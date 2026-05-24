@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as wishlistStore from "../lib/wishlistStore";
-import { pauseCloudPull } from "../lib/cloudSyncGuard";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
@@ -38,6 +37,8 @@ export default function Wishlist() {
   var groupsRef = useRef([]);
   var itemsRef = useRef([]);
   var skipSaveRef = useRef(false);
+  var saveMsgS = useState("");
+  var saveMsg = saveMsgS[0], setSaveMsg = saveMsgS[1];
 
   var loadFromCloud = useCallback(function() {
     skipSaveRef.current = true;
@@ -62,9 +63,16 @@ export default function Wishlist() {
 
   useCloudSync(loadFromCloud);
 
-  function persist(gs, list) {
-    pauseCloudPull(6000);
-    return wishlistStore.persistAll(gs || groupsRef.current, list || itemsRef.current);
+  async function persist(gs, list) {
+    var res = await wishlistStore.persistAll(gs || groupsRef.current, list || itemsRef.current);
+    if (res.ok) {
+      setSaveMsg("Guardado na nuvem ✓");
+      try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
+      setTimeout(function() { setSaveMsg(""); }, 2500);
+    } else if (res.error) {
+      setSaveMsg("Erro: " + res.error);
+    }
+    return res;
   }
 
   useEffect(function() {
@@ -163,7 +171,6 @@ export default function Wishlist() {
 
   async function removeItem(id) {
     var next = items.filter(function(i) { return i.id !== id; });
-    pauseCloudPull(6000);
     setItems(next);
     await persist(groups, next);
   }
@@ -177,6 +184,8 @@ export default function Wishlist() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button" onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
             <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 16, color: accent, margin: 0 }}>Wishlist</h1>
+            {saveMsg ? <span style={{ fontSize: 10, color: saveMsg.indexOf("Erro") >= 0 ? "#FF3D8A" : "#34D399", fontFamily: "'JetBrains Mono',monospace" }}>{saveMsg}</span> : null}
+            <button type="button" onClick={loadFromCloud} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.45)", fontSize: 10, padding: "6px 10px", cursor: "pointer" }}>↻ Nuvem</button>
           </div>
           <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 8 }}>
             <input type="checkbox" checked={showDone} onChange={function(e) { setShowDone(e.target.checked); }} />

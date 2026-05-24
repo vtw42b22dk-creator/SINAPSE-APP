@@ -67,10 +67,8 @@ export async function loadCategories() {
 }
 
 export async function saveCategories(categories) {
-  var rows = (categories || []).map(catToDb);
-  await writeLocal(CAT_KEY, rows);
-  var res = await replaceRows(CAT_TABLE, CAT_KEY, rows);
-  return res.ok ? categories : categories;
+  if (!categories || !categories.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(catToDb), { pruneOrphans: true });
 }
 
 export async function pullExpenses() {
@@ -110,7 +108,8 @@ export async function loadExpenses() {
 }
 
 export async function saveExpenses(rows) {
-  return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, (rows || []).map(toDb));
+  if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, (rows || []).map(toDb), { pruneOrphans: true });
 }
 
 export function newExpense(title, amount, categories, day) {

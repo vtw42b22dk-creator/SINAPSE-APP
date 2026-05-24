@@ -335,9 +335,26 @@ export default function Hub() {
           <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:8,paddingTop:8}}>
             <StorageBar usage={storageUsage} loggedIn={!!auth.user} />
             {auth.user ? (
-              <p style={{margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",textAlign:"center",lineHeight:1.5,maxWidth:420,color:cloudStatus && cloudStatus.ok ? "#34D399" : cloudStatus ? "#FF3D8A" : "rgba(255,255,255,0.3)"}}>
-                {cloudStatus ? cloudStatus.detail : "A verificar sincronização…"}
-              </p>
+              <div style={{ textAlign: "center", maxWidth: 440 }}>
+                <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.55, color: cloudStatus && cloudStatus.ok ? "#34D399" : cloudStatus ? "#FF3D8A" : "rgba(255,255,255,0.3)" }}>
+                  {cloudStatus ? cloudStatus.detail : "A verificar sincronização…"}
+                </p>
+                <button
+                  type="button"
+                  onClick={function() {
+                    setCloudStatus(null);
+                    probeCloudTables().then(setCloudStatus);
+                  }}
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.45)", fontSize: 10, padding: "6px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}
+                >
+                  Verificar nuvem outra vez
+                </button>
+                {cloudStatus && !cloudStatus.ok ? (
+                  <p style={{ margin: "10px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+                    Abre Supabase → SQL Editor → cola o ficheiro supabase/SETUP-TUDO.sql → Run
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <button

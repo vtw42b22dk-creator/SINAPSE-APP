@@ -63,12 +63,7 @@ function sortItems(rows) {
 }
 
 export async function pullGroups() {
-  var remote = [];
-  try {
-    remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
-  } catch (e) {
-    return loadGroups();
-  }
+  var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
   var local = await readLocal(GROUPS_KEY, []);
   var merged = mergeRowsByTimestamp(local, remote);
   merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
@@ -80,12 +75,7 @@ export async function pullGroups() {
 }
 
 export async function pullItems() {
-  var remote = [];
-  try {
-    remote = await fetchRemoteRows(TABLE, normalize);
-  } catch (e) {
-    return loadItems();
-  }
+  var remote = await fetchRemoteRows(TABLE, normalize);
   var local = await readLocal(KEY, []);
   var merged = mergeRowsByTimestamp(local, remote);
   await writeLocal(KEY, merged);
@@ -96,10 +86,6 @@ export async function loadGroups() {
   var groups = await selectRowsMerged(GROUPS_TABLE, GROUPS_KEY, [], normalizeGroup);
   groups = groups.sort(function(a, b) { return a.order_index - b.order_index; });
   if (!groups.length) {
-    try {
-      var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
-      if (remote.length) return remote.sort(function(a, b) { return a.order_index - b.order_index; });
-    } catch (e) {}
     groups = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
     await writeLocal(GROUPS_KEY, groups);
   }
@@ -107,10 +93,11 @@ export async function loadGroups() {
 }
 
 export async function saveGroups(groups) {
+  if (!groups || !groups.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   return replaceRows(
     GROUPS_TABLE,
     GROUPS_KEY,
-    (groups || []).map(function(g) {
+    groups.map(function(g) {
       return {
         id: g.id,
         name: g.name,
@@ -118,7 +105,8 @@ export async function saveGroups(groups) {
         order_index: g.order_index || 0,
         updated: g.updated || Date.now(),
       };
-    })
+    }),
+    { pruneOrphans: true }
   );
 }
 
@@ -128,13 +116,20 @@ export async function loadItems() {
 }
 
 export async function saveItems(items) {
-  return replaceRows(TABLE, KEY, (items || []).map(toDb));
+  if (!items || !items.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  return replaceRows(TABLE, KEY, items.map(toDb), { pruneOrphans: true });
 }
 
 export async function persistAll(groups, items) {
   var gRes = await saveGroups(groups);
   var iRes = await saveItems(items);
-  return { groups: gRes, items: iRes };
+  var ok = gRes.ok && iRes.ok;
+  return {
+    ok: ok,
+    error: !gRes.ok ? gRes.error : !iRes.ok ? iRes.error : null,
+    groups: gRes,
+    items: iRes,
+  };
 }
 
 export function newGroup(name) {

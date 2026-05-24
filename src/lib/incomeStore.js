@@ -55,9 +55,10 @@ export async function loadCategories() {
 }
 
 export async function saveCategories(categories) {
+  if (!categories || !categories.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(function(c) {
     return { id: c.id, name: c.name, order_index: c.order_index || 0 };
-  }));
+  }), { pruneOrphans: true });
 }
 
 export async function pullIncomes() {
@@ -97,7 +98,8 @@ export async function loadIncomes() {
 }
 
 export async function saveIncomes(rows) {
-  return replaceRows(TABLE, KEY, (rows || []).map(toDb));
+  if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  return replaceRows(TABLE, KEY, (rows || []).map(toDb), { pruneOrphans: true });
 }
 
 export function newIncome(title, amount, categories, day) {

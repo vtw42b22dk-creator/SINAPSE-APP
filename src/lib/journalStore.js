@@ -1,4 +1,5 @@
 import {
+  cloudErrorMessage,
   fetchRemoteRows,
   mergeRowsByTimestamp,
   readLocal,
@@ -22,7 +23,7 @@ function normalizeBlock(b) {
     space_id: b.space_id,
     type: b.type || "text",
     content: b.content || "",
-    meta: b.meta || {},
+    meta: b.meta && typeof b.meta === "object" ? b.meta : {},
     order_index: b.order_index || 0,
     updated: b.updated_at ? new Date(b.updated_at).getTime() : (b.updated || 0),
   };
@@ -52,12 +53,8 @@ function overlayEditingBlock(merged, editingBlock) {
   });
   var nc = normalizeBlock(editingBlock);
   var prev = map[editingBlock.id];
-  if (!prev) {
+  if (!prev || (editingBlock.content || "").length >= (prev.content || "").length) {
     map[editingBlock.id] = nc;
-  } else {
-    var lc = (editingBlock.content || "").length;
-    var pc = (prev.content || "").length;
-    if (lc >= pc) map[editingBlock.id] = nc;
   }
   return Object.values(map);
 }
@@ -67,6 +64,11 @@ function sanitizeBlockForSave(b) {
   if (meta.attachment) meta.attachment = stripAttachmentRef(meta.attachment);
   var content = b.content || "";
   if (content.length > 200000 && meta.attachment && meta.attachment.url) content = meta.attachment.url;
+  try {
+    JSON.stringify(meta);
+  } catch (e) {
+    meta = {};
+  }
   return {
     id: b.id,
     space_id: b.space_id,
@@ -79,31 +81,29 @@ function sanitizeBlockForSave(b) {
 }
 
 export async function pullSpaces() {
-  var remote = [];
   try {
-    remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
+    var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
+    var local = await readLocal(SPACES, []);
+    var merged = mergeRowsByTimestamp(local, remote);
+    if (!merged.length) merged = [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+    await writeLocal(SPACES, merged);
+    return merged;
   } catch (e) {
     return loadSpaces();
   }
-  var local = await readLocal(SPACES, []);
-  var merged = mergeRowsByTimestamp(local, remote);
-  if (!merged.length) merged = [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
-  await writeLocal(SPACES, merged);
-  return merged;
 }
 
 export async function pullBlocks(editingBlock) {
-  var remote = [];
   try {
-    remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
+    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
+    var local = await readLocal(BLOCKS, []);
+    var merged = mergeRowsByTimestamp(local, remote);
+    merged = overlayEditingBlock(merged, editingBlock);
+    await writeLocal(BLOCKS, merged);
+    return blocksToUi(merged);
   } catch (e) {
     return loadBlocks();
   }
-  var local = await readLocal(BLOCKS, []);
-  var merged = mergeRowsByTimestamp(local, remote);
-  merged = overlayEditingBlock(merged, editingBlock);
-  await writeLocal(BLOCKS, merged);
-  return blocksToUi(merged);
 }
 
 export async function loadSpaces() {
@@ -118,7 +118,8 @@ export async function saveSpaces(spaces) {
     SPACES,
     (spaces || []).map(function(s) {
       return { id: s.id, title: s.title, color: s.color || "#FFB800", updated: Date.now() };
-    })
+    }),
+    { pruneOrphans: true }
   );
 }
 
@@ -128,14 +129,19 @@ export async function loadBlocks() {
 }
 
 export async function saveBlocks(blocks) {
-  var rows = (blocks || []).map(sanitizeBlockForSave);
-  return replaceRows("journal_blocks", BLOCKS, rows);
+  if (!blocks || !blocks.length) {
+    return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  }
+  var rows = blocks.map(sanitizeBlockForSave);
+  return replaceRows("journal_blocks", BLOCKS, rows, { pruneOrphans: true });
 }
 
 export async function saveAll(spaces, blocks) {
-  var s = await saveSpaces(spaces);
-  var b = await saveBlocks(blocks);
-  return { spaces: s, blocks: b };
+  var s = await saveSpaces(spaces || []);
+  var b = await saveBlocks(blocks || []);
+  var ok = s.ok && b.ok;
+  var error = !s.ok ? s.error : !b.ok ? b.error : null;
+  return { ok: ok, error: error, spaces: s, blocks: b };
 }
 
 export function newBlock(spaceId, type) {

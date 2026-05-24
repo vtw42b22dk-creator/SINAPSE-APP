@@ -5,6 +5,12 @@ export function uid(prefix) {
   return (prefix || "id") + Date.now() + Math.random().toString(36).slice(2, 8);
 }
 
+export function cloudErrorMessage(err) {
+  if (!err) return "erro desconhecido";
+  if (typeof err === "string") return err;
+  return err.message || err.details || err.hint || String(err);
+}
+
 export async function getUser() {
   if (!supabase) return null;
   try {
@@ -82,6 +88,13 @@ function stampRow(row) {
   return Object.assign({}, row, { updated: ms, updated_at: new Date(ms).toISOString() });
 }
 
+function cleanPayload(row, userId) {
+  var out = Object.assign({}, row, { user_id: userId });
+  delete out.updated;
+  delete out.created;
+  return out;
+}
+
 export async function fetchRemoteRows(table, normalizeFn) {
   var user = await getUser();
   if (!supabase || !user) return [];
@@ -98,19 +111,13 @@ export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
   var user = await getUser();
   if (!supabase || !user) return local;
   try {
-    var res = await supabase.from(table).select("*").eq("user_id", user.id);
-    if (res.error) throw res.error;
-    var remote = (res.data || []).map(function(r) {
-      return normalizeFn ? normalizeFn(r) : r;
-    });
+    var remote = await fetchRemoteRows(table, normalizeFn);
     if (!remote.length) return local.length ? local : (fallback ? fallback.slice() : []);
     var merged = mergeRowsByTimestamp(local, remote);
     await writeLocal(localKey, merged);
     return merged;
   } catch (e) {
-    if (typeof console !== "undefined" && console.warn) {
-      console.warn("[Sinapse] leitura nuvem falhou:", table, e.message || e);
-    }
+    console.warn("[Sinapse] leitura:", table, cloudErrorMessage(e));
     return local;
   }
 }
@@ -120,52 +127,54 @@ export async function selectRows(table, localKey, fallback) {
 }
 
 export async function upsertRows(table, localKey, rows) {
-  await writeLocal(localKey, rows);
-  var user = await getUser();
-  if (!supabase || !user) return { ok: true, rows: rows };
-  try {
-    var payload = rows.map(function(row) {
-      return Object.assign({}, row, { user_id: user.id, updated_at: new Date().toISOString() });
-    });
-    var res = await supabase.from(table).upsert(payload);
-    if (res.error) throw res.error;
-    return { ok: true, rows: rows };
-  } catch (e) {
-    return { ok: false, error: e, rows: rows };
-  }
+  return replaceRows(table, localKey, rows, { pruneOrphans: false });
 }
 
-export async function replaceRows(table, localKey, rows) {
+/**
+ * Grava na nuvem. Nunca apaga tudo na nuvem com lista vazia (evita wipe acidental).
+ * pruneOrphans: remove linhas na nuvem que já não estão na lista (após upsert OK).
+ */
+export async function replaceRows(table, localKey, rows, options) {
+  options = options || {};
   var stamped = (rows || []).map(stampRow);
   await writeLocal(localKey, stamped);
+
   var user = await getUser();
-  if (!supabase || !user) return { ok: true, rows: stamped };
+  if (!supabase || !user) {
+    return { ok: false, cloud: false, error: "Supabase não configurado.", rows: stamped };
+  }
+  if (!stamped.length) {
+    return { ok: true, cloud: true, rows: [], skippedEmpty: true };
+  }
+
   try {
-    var ids = stamped.map(function(r) { return r.id; });
-    if (stamped.length) {
-      var payload = stamped.map(function(row) {
-        var out = Object.assign({}, row, { user_id: user.id });
-        delete out.updated;
-        return out;
-      });
-      var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
-      if (res.error) throw res.error;
+    var payload = stamped.map(function(row) {
+      return cleanPayload(row, user.id);
+    });
+    var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
+    if (res.error) throw res.error;
+
+    if (options.pruneOrphans) {
+      var ids = stamped.map(function(r) { return r.id; });
+      var existing = await supabase.from(table).select("id").eq("user_id", user.id);
+      if (existing.error) throw existing.error;
+      var orphanIds = (existing.data || [])
+        .map(function(r) { return r.id; })
+        .filter(function(id) { return ids.indexOf(id) < 0; });
+      if (orphanIds.length) {
+        var del = await supabase.from(table).delete().eq("user_id", user.id).in("id", orphanIds);
+        if (del.error) throw del.error;
+      }
     }
-    var existing = await supabase.from(table).select("id").eq("user_id", user.id);
-    if (existing.error) throw existing.error;
-    var orphanIds = (existing.data || [])
-      .map(function(r) { return r.id; })
-      .filter(function(id) { return ids.indexOf(id) < 0; });
-    if (orphanIds.length) {
-      var del = await supabase.from(table).delete().eq("user_id", user.id).in("id", orphanIds);
-      if (del.error) throw del.error;
-    }
-    return { ok: true, rows: stamped };
+
+    return { ok: true, cloud: true, rows: stamped };
   } catch (e) {
-    if (typeof console !== "undefined" && console.warn) {
-      console.warn("[Sinapse] gravação nuvem falhou:", table, e.message || e);
-    }
-    return { ok: false, error: e, rows: stamped };
+    var msg = cloudErrorMessage(e);
+    console.warn("[Sinapse] gravação falhou:", table, msg);
+    try {
+      sessionStorage.setItem("sinapse-last-cloud-error", table + ": " + msg);
+    } catch (ex) {}
+    return { ok: false, cloud: false, error: msg, rows: stamped };
   }
 }
 
@@ -174,7 +183,9 @@ export async function deleteRow(table, localKey, rows, id) {
   await writeLocal(localKey, next);
   var user = await getUser();
   if (supabase && user) {
-    try { await supabase.from(table).delete().eq("user_id", user.id).eq("id", id); } catch (e) {}
+    try {
+      await supabase.from(table).delete().eq("user_id", user.id).eq("id", id);
+    } catch (e) {}
   }
   return next;
 }

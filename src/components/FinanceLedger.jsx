@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { pauseCloudPull } from "../lib/cloudSyncGuard";
 import { useCloudSync } from "../lib/useCloudSync";
 
 function monthKeyFromDate(d) {
@@ -51,11 +50,9 @@ export default function FinanceLedger(props) {
   useEffect(function() { rowsRef.current = rows; }, [rows]);
 
   function persistCats(cats) {
-    pauseCloudPull(6000);
     return store.saveCategories(cats || categoriesRef.current);
   }
   function persistRows(rws) {
-    pauseCloudPull(6000);
     return store.saveRows(rws || rowsRef.current);
   }
 
