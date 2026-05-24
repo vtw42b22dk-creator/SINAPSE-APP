@@ -81,6 +81,20 @@ export function mergeRowsByTimestamp(local, remote) {
   return Object.values(map);
 }
 
+/** Ao trazer da nuvem: o servidor define quem existe; local só ganha se o id ainda está no remoto. */
+export function mergePullFromRemote(local, remote) {
+  var map = {};
+  (remote || []).forEach(function(r) {
+    if (r && r.id) map[r.id] = r;
+  });
+  (local || []).forEach(function(l) {
+    if (!l || !l.id) return;
+    var r = map[l.id];
+    if (r && ts(l) > ts(r)) map[l.id] = l;
+  });
+  return Object.values(map);
+}
+
 function stampRow(row) {
   var ms = row.updated ? Number(row.updated) : 0;
   if (!ms && row.updated_at) ms = new Date(row.updated_at).getTime();
@@ -191,11 +205,20 @@ export async function replaceRows(table, localKey, rows, options) {
 export async function deleteRow(table, localKey, rows, id) {
   var next = rows.filter(function(row) { return row.id !== id; });
   await writeLocal(localKey, next);
-  var user = await getUser();
-  if (supabase && user) {
-    try {
-      await supabase.from(table).delete().eq("user_id", user.id).eq("id", id);
-    } catch (e) {}
-  }
+  await deleteRemoteIds(table, [id]);
   return next;
+}
+
+/** Apaga linhas na nuvem por id (eliminar tema, grupo, etc.). */
+export async function deleteRemoteIds(table, ids) {
+  if (!ids || !ids.length) return { ok: true };
+  var user = await getUser();
+  if (!supabase || !user) return { ok: false, error: "Sem ligação" };
+  try {
+    var res = await supabase.from(table).delete().eq("user_id", user.id).in("id", ids);
+    if (res.error) throw res.error;
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: cloudErrorMessage(e) };
+  }
 }

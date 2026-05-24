@@ -37,6 +37,7 @@ export default function Wishlist() {
   var groupsRef = useRef([]);
   var itemsRef = useRef([]);
   var skipSaveRef = useRef(false);
+  var lastSaveAt = useRef(0);
   var saveMsgS = useState("");
   var saveMsg = saveMsgS[0], setSaveMsg = saveMsgS[1];
 
@@ -61,11 +62,17 @@ export default function Wishlist() {
     });
   }, []);
 
-  useCloudSync(loadFromCloud);
+  useCloudSync(loadFromCloud, {
+    shouldSkip: function() {
+      if (Date.now() - lastSaveAt.current < 4000) return true;
+      return false;
+    },
+  });
 
   async function persist(gs, list) {
     var res = await wishlistStore.persistAll(gs || groupsRef.current, list || itemsRef.current);
     if (res.ok) {
+      lastSaveAt.current = Date.now();
       setSaveMsg("Guardado na nuvem ✓");
       try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
       setTimeout(function() { setSaveMsg(""); }, 2500);
@@ -131,16 +138,18 @@ export default function Wishlist() {
 
   async function removeGroup(g) {
     if (!g || groups.length <= 1) return;
-    if (!window.confirm("Eliminar o grupo \"" + g.name + "\"? Os itens passam para Geral.")) return;
+    if (!window.confirm("Eliminar o grupo \"" + g.name + "\"? Os itens passam para o primeiro grupo restante.")) return;
     var fallback = groups.find(function(x) { return x.id !== g.id; });
     var nextItems = items.map(function(i) {
       return i.group_id === g.id ? Object.assign({}, i, { group_id: fallback ? fallback.id : null, updated: Date.now() }) : i;
     });
     var next = groups.filter(function(x) { return x.id !== g.id; });
+    clearTimeout(saveTimer.current);
     skipSaveRef.current = true;
     setItems(nextItems);
     setGroups(next);
     if (activeGroup === g.id) setActiveGroup(next[0] ? next[0].id : null);
+    await wishlistStore.deleteGroup(g.id);
     await persist(next, nextItems);
     skipSaveRef.current = false;
   }
@@ -209,7 +218,7 @@ export default function Wishlist() {
                     background: on ? g.color + "12" : "transparent", color: on ? g.color : "rgba(255,255,255,0.55)",
                     cursor: "pointer", fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 13, whiteSpace: "nowrap",
                   }}>{g.name}</button>
-                  {groups.length > 1 && <button type="button" onClick={function() { removeGroup(g); }} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 14 }} aria-label="Eliminar grupo">×</button>}
+                  {groups.length > 1 && <button type="button" onClick={function(e) { e.stopPropagation(); removeGroup(g); }} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 14 }} aria-label="Eliminar grupo">×</button>}
                 </div>
               );
             })}

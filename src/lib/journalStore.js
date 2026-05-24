@@ -1,7 +1,8 @@
 import {
-  cloudErrorMessage,
+  deleteRemoteIds,
   fetchRemoteRows,
-  mergeRowsByTimestamp,
+  getUser,
+  mergePullFromRemote,
   readLocal,
   replaceRows,
   selectRowsMerged,
@@ -29,6 +30,57 @@ function normalizeBlock(b) {
   };
 }
 
+function textLen(html) {
+  if (!html) return 0;
+  return String(html).replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim().length;
+}
+
+function pickRicherBlock(a, b) {
+  var la = textLen(a.content);
+  var lb = textLen(b.content);
+  var ta = a.updated || 0;
+  var tb = b.updated || 0;
+  if (la === 0 && lb > 0) return b;
+  if (lb === 0 && la > 0) return a;
+  if (ta > tb) return a;
+  if (tb > ta) return b;
+  return la >= lb ? a : b;
+}
+
+/** Junta blocos preferindo texto mais completo (evita apagar conteúdo). */
+export function mergeBlocksByContent(local, remote) {
+  var map = {};
+  (remote || []).forEach(function(r) {
+    var n = normalizeBlock(r);
+    if (n.id) map[n.id] = n;
+  });
+  (local || []).forEach(function(l) {
+    var nl = normalizeBlock(l);
+    if (!nl.id) return;
+    var r = map[nl.id];
+    map[nl.id] = r ? pickRicherBlock(nl, r) : nl;
+  });
+  return Object.values(map);
+}
+
+/** Pull: remoto define existência; bloco só local (apagado noutro lado) não volta. */
+export function mergeBlocksForPull(local, remote, editingBlock) {
+  var editingId = editingBlock && editingBlock.id;
+  var map = {};
+  (remote || []).forEach(function(r) {
+    var n = normalizeBlock(r);
+    if (n.id) map[n.id] = n;
+  });
+  (local || []).forEach(function(l) {
+    var nl = normalizeBlock(l);
+    if (!nl.id) return;
+    var r = map[nl.id];
+    if (r) map[nl.id] = pickRicherBlock(nl, r);
+    else if (editingId === nl.id) map[nl.id] = nl;
+  });
+  return Object.values(map);
+}
+
 function blocksToUi(merged) {
   return hydrateJournalBlocks(
     merged.map(function(b) {
@@ -53,9 +105,7 @@ function overlayEditingBlock(merged, editingBlock) {
   });
   var nc = normalizeBlock(editingBlock);
   var prev = map[editingBlock.id];
-  if (!prev || (editingBlock.content || "").length >= (prev.content || "").length) {
-    map[editingBlock.id] = nc;
-  }
+  map[editingBlock.id] = prev ? pickRicherBlock(nc, prev) : nc;
   return Object.values(map);
 }
 
@@ -84,7 +134,7 @@ export async function pullSpaces() {
   try {
     var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
     var local = await readLocal(SPACES, []);
-    var merged = mergeRowsByTimestamp(local, remote);
+    var merged = mergePullFromRemote(local, remote);
     if (!merged.length) merged = [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
     await writeLocal(SPACES, merged);
     return merged;
@@ -97,7 +147,7 @@ export async function pullBlocks(editingBlock) {
   try {
     var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
     var local = await readLocal(BLOCKS, []);
-    var merged = mergeRowsByTimestamp(local, remote);
+    var merged = mergeBlocksForPull(local, remote, editingBlock);
     merged = overlayEditingBlock(merged, editingBlock);
     await writeLocal(BLOCKS, merged);
     return blocksToUi(merged);
@@ -124,8 +174,17 @@ export async function saveSpaces(spaces) {
 }
 
 export async function loadBlocks() {
-  var merged = await selectRowsMerged("journal_blocks", BLOCKS, [], normalizeBlock);
-  return blocksToUi(merged);
+  var local = await readLocal(BLOCKS, []);
+  var user = await getUser();
+  if (!user) return blocksToUi(local);
+  try {
+    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
+    var merged = mergeBlocksForPull(local, remote, null);
+    await writeLocal(BLOCKS, merged);
+    return blocksToUi(merged);
+  } catch (e) {
+    return blocksToUi(local);
+  }
 }
 
 export async function saveBlocks(blocks) {
@@ -139,9 +198,17 @@ export async function saveBlocks(blocks) {
 export async function saveAll(spaces, blocks) {
   var s = await saveSpaces(spaces || []);
   var b = await saveBlocks(blocks || []);
-  var ok = s.ok && b.ok;
-  var error = !s.ok ? s.error : !b.ok ? b.error : null;
-  return { ok: ok, error: error, spaces: s, blocks: b };
+  return { ok: s.ok && b.ok, error: s.error || b.error, spaces: s, blocks: b };
+}
+
+/** Apaga tema e blocos na nuvem (para sincronizar eliminações). */
+export async function deleteSpaceAndBlocks(spaceId, blockIds) {
+  if (blockIds && blockIds.length) await deleteRemoteIds("journal_blocks", blockIds);
+  if (spaceId) await deleteRemoteIds("journal_spaces", [spaceId]);
+}
+
+export async function deleteRemoteBlock(blockId) {
+  if (blockId) await deleteRemoteIds("journal_blocks", [blockId]);
 }
 
 export function newBlock(spaceId, type) {

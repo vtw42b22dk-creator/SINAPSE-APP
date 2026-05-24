@@ -32,6 +32,7 @@ export default function Journal() {
   var editingBlockRef = useRef(null);
   var flushHandlersRef = useRef({});
   var skipSaveRef = useRef(false);
+  var lastSaveAt = useRef(0);
   var saveMsgS = useState("");
   var saveMsg = saveMsgS[0], setSaveMsg = saveMsgS[1];
 
@@ -60,7 +61,13 @@ export default function Journal() {
     });
   }, []);
 
-  useCloudSync(loadFromCloud);
+  useCloudSync(loadFromCloud, {
+    shouldSkip: function() {
+      if (editingBlockRef.current) return true;
+      if (Date.now() - lastSaveAt.current < 4000) return true;
+      return false;
+    },
+  });
 
   function flushAllEditors() {
     Object.keys(flushHandlersRef.current).forEach(function(id) {
@@ -72,6 +79,7 @@ export default function Journal() {
   function reportSave(res) {
     if (!res) return;
     if (res.ok && res.cloud !== false) {
+      lastSaveAt.current = Date.now();
       setSaveMsg("Guardado na nuvem ✓");
       try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
       setTimeout(function() { setSaveMsg(""); }, 2500);
@@ -166,13 +174,17 @@ export default function Journal() {
     blocks.filter(function(b) { return b.space_id === space.id && b.meta && b.meta.attachment; }).forEach(function(b) {
       attachmentsStore.deleteAttachment(b.meta.attachment);
     });
+    var deletedBlockIds = blocks.filter(function(b) { return b.space_id === space.id; }).map(function(b) { return b.id; });
     var nextBlocks = blocks.filter(function(b) { return b.space_id !== space.id; });
+    clearTimeout(saveSpacesTimer.current);
+    clearTimeout(saveBlocksTimer.current);
     skipSaveRef.current = true;
     flushAllEditors();
     setSpaces(nextSpaces);
     setBlocks(nextBlocks);
     if (active === space.id) setActive(nextSpaces[0] ? nextSpaces[0].id : null);
     await persistAll(nextSpaces, nextBlocks);
+    await journalStore.deleteSpaceAndBlocks(space.id, deletedBlockIds);
     skipSaveRef.current = false;
   }
 
@@ -184,17 +196,23 @@ export default function Journal() {
   }
 
   function updateBlock(id, patch) {
-    setBlocks(blocks.map(function(b) {
-      return b.id === id ? Object.assign({}, b, patch, { updated: Date.now() }) : b;
-    }));
+    setBlocks(function(prev) {
+      return prev.map(function(b) {
+        return b.id === id ? Object.assign({}, b, patch, { updated: Date.now() }) : b;
+      });
+    });
   }
 
-  function removeBlock(id) {
-    var block = blocks.find(function(b) { return b.id === id; });
+  async function removeBlock(id) {
+    var block = blocksRef.current.find(function(b) { return b.id === id; });
     if (block && block.meta && block.meta.attachment) attachmentsStore.deleteAttachment(block.meta.attachment);
-    var next = blocks.filter(function(b) { return b.id !== id; });
+    var next = blocksRef.current.filter(function(b) { return b.id !== id; });
+    clearTimeout(saveBlocksTimer.current);
+    skipSaveRef.current = true;
     setBlocks(next);
-    persistBlocks(next);
+    await persistBlocks(next);
+    await journalStore.deleteRemoteBlock(id);
+    skipSaveRef.current = false;
   }
 
   function format(cmd, value) {
@@ -294,14 +312,10 @@ function JournalBlock(props) {
   var uploadMsg = uploadS[0], setUploadMsg = uploadS[1];
 
   useEffect(function() {
+    latestHtml.current = b.content || "";
     if (!editorRef.current || b.type === "image" || b.type === "document") return;
-    if (focusedRef.current) return;
-    var html = b.content || "";
-    if (html !== latestHtml.current) {
-      latestHtml.current = html;
-      editorRef.current.innerHTML = html;
-    }
-  }, [b.id, b.content, b.type]);
+    editorRef.current.innerHTML = latestHtml.current;
+  }, [b.id, b.type]);
 
   useEffect(function() {
     return function() { clearTimeout(saveTimer.current); };
