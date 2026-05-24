@@ -19,6 +19,7 @@ var JOURNAL_TEXT = {
   letterSpacing: JOURNAL_LETTER_SPACING,
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
+var SAVE_DEBOUNCE_MS = 1800;
 
 function escapeHtml(text) {
   return String(text)
@@ -54,12 +55,15 @@ export default function Journal() {
   var active = activeS[0], setActive = activeS[1];
   var titleS = useState("");
   var newTitle = titleS[0], setNewTitle = titleS[1];
-  var loadedS = useState(false);
-  var loaded = loadedS[0], setLoaded = loadedS[1];
+  var hydratedS = useState(false);
+  var isHydrated = hydratedS[0], setIsHydrated = hydratedS[1];
+  var sessionWarnS = useState("");
+  var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
   var saveSpacesTimer = useRef(null);
   var saveBlocksTimer = useRef(null);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
+  var isHydratedRef = useRef(false);
   var editingBlockRef = useRef(null);
   var flushHandlersRef = useRef({});
   var skipSaveRef = useRef(false);
@@ -89,16 +93,16 @@ export default function Journal() {
       journalStore.loadBlocksLocal(),
     ]).then(function(local) {
       applyJournalData(local[0], local[1]);
-      setLoaded(true);
       return Promise.all([
         journalStore.pullSpaces(),
         journalStore.pullBlocks(getEditingSnapshot()),
       ]).then(function(sync) {
         applyJournalData(sync[0], sync[1]);
-        setTimeout(function() { skipSaveRef.current = false; }, 150);
-      }).catch(function() {
-        setTimeout(function() { skipSaveRef.current = false; }, 150);
       });
+    }).finally(function() {
+      isHydratedRef.current = true;
+      setIsHydrated(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
     });
   }, []);
 
@@ -120,7 +124,7 @@ export default function Journal() {
 
   useCloudSync({
     shouldSkip: function() {
-      if (!loaded) return true;
+      if (!isHydratedRef.current) return true;
       if (shouldSkipCloudSync()) return true;
       if (editingBlockRef.current) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
@@ -140,23 +144,47 @@ export default function Journal() {
 
   function reloadLocalOnly() {
     skipSaveRef.current = true;
+    isHydratedRef.current = false;
+    setIsHydrated(false);
     return Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()]).then(function(local) {
       applyJournalData(local[0], local[1]);
-      setLoaded(true);
+    }).finally(function() {
+      isHydratedRef.current = true;
+      setIsHydrated(true);
       setTimeout(function() { skipSaveRef.current = false; }, 200);
     });
+  }
+
+  function finishHydration(sync) {
+    if (sync) applyJournalData(sync[0], sync[1]);
+    isHydratedRef.current = true;
+    setIsHydrated(true);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   useEffect(function() {
     var alive = true;
     skipSaveRef.current = true;
-    Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()]).then(function(local) {
-      if (!alive) return;
-      applyJournalData(local[0], local[1]);
-      setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 100);
-      if (!shouldSkipCloudSync()) syncFromCloud();
-    });
+    isHydratedRef.current = false;
+    setIsHydrated(false);
+    Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()])
+      .then(function(local) {
+        if (!alive) return;
+        applyJournalData(local[0], local[1]);
+        if (shouldSkipCloudSync()) return null;
+        return Promise.all([
+          journalStore.pullSpaces(),
+          journalStore.pullBlocks(getEditingSnapshot()),
+        ]);
+      })
+      .then(function(sync) {
+        if (!alive) return;
+        finishHydration(sync);
+      })
+      .catch(function() {
+        if (!alive) return;
+        finishHydration(null);
+      });
     function onRecovered() {
       if (!alive) return;
       reloadLocalOnly();
@@ -177,21 +205,31 @@ export default function Journal() {
 
   function reportSave(res) {
     if (!res) return;
+    if (res.emergency || (res.spaces && res.spaces.emergency) || (res.blocks && res.blocks.emergency)) {
+      setSessionWarn("Sessão expirada — o Diário foi guardado neste dispositivo. Inicia sessão no Hub para sincronizar.");
+      return;
+    }
     if (res.ok && res.cloud !== false) {
       lastSaveAt.current = Date.now();
+      setSessionWarn("");
       try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
+    } else if (res.error) {
+      setSessionWarn("Nuvem: " + res.error);
     }
   }
 
   async function persistSpaces(nextSpaces) {
+    if (!isHydratedRef.current || skipSaveRef.current) return;
     reportSave(await journalStore.saveSpaces(nextSpaces || spacesRef.current));
   }
 
   async function persistBlocks(nextBlocks) {
+    if (!isHydratedRef.current || skipSaveRef.current) return;
     reportSave(await journalStore.saveBlocks(nextBlocks || blocksRef.current));
   }
 
   async function persistAll(nextSpaces, nextBlocks) {
+    if (!isHydratedRef.current || skipSaveRef.current) return;
     reportSave(await journalStore.saveAll(nextSpaces || spacesRef.current, nextBlocks || blocksRef.current));
   }
 
@@ -205,27 +243,28 @@ export default function Journal() {
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
 
   useEffect(function() {
-    if (!loaded || skipSaveRef.current) return;
+    if (!isHydrated || skipSaveRef.current) return;
     clearTimeout(saveSpacesTimer.current);
     saveSpacesTimer.current = setTimeout(function() {
       persistSpaces(spacesRef.current);
-    }, 400);
+    }, SAVE_DEBOUNCE_MS);
     return function() { clearTimeout(saveSpacesTimer.current); };
-  }, [spaces, loaded]);
+  }, [spaces, isHydrated]);
 
   useEffect(function() {
-    if (!loaded || skipSaveRef.current) return;
+    if (!isHydrated || skipSaveRef.current) return;
     clearTimeout(saveBlocksTimer.current);
     saveBlocksTimer.current = setTimeout(function() {
       flushAllEditors();
       persistBlocks(blocksRef.current);
-    }, 500);
+    }, SAVE_DEBOUNCE_MS);
     return function() { clearTimeout(saveBlocksTimer.current); };
-  }, [blocks, loaded]);
+  }, [blocks, isHydrated]);
 
   useEffect(function() {
-    if (!loaded) return;
+    if (!isHydrated) return;
     function flush() {
+      if (!isHydratedRef.current) return;
       flushAllEditors();
       persistAll();
     }
@@ -234,7 +273,7 @@ export default function Journal() {
       if (document.visibilityState === "hidden") flush();
     });
     return function() { window.removeEventListener("beforeunload", flush); };
-  }, [loaded]);
+  }, [isHydrated]);
 
   function registerFlush(id, fn) {
     flushHandlersRef.current[id] = fn;
@@ -250,6 +289,7 @@ export default function Journal() {
   }, [blocks, active]);
 
   function createSpace() {
+    if (!isHydrated) return;
     if (!newTitle.trim()) return;
     var s = { id: journalStore.newBlock("x").id.replace("jb", "js"), title: newTitle.trim(), color: COLORS[spaces.length % COLORS.length] };
     var next = spaces.concat([s]);
@@ -283,13 +323,14 @@ export default function Journal() {
   }
 
   function addBlock(type) {
-    if (!active) return;
+    if (!isHydrated || !active) return;
     var next = blocks.concat([journalStore.newBlock(active, type)]);
     setBlocks(next);
     persistBlocks(next);
   }
 
   function updateBlock(id, patch) {
+    if (!isHydrated) return;
     setBlocks(function(prev) {
       return prev.map(function(b) {
         return b.id === id ? Object.assign({}, b, patch, { updated: Date.now() }) : b;
@@ -319,7 +360,7 @@ export default function Journal() {
       onCopyCapture={handleJournalCopy}
       style={{
         minHeight: "100vh",
-        background: loaded ? "radial-gradient(circle at 20% 0," + color + "0D,transparent 35%)," + pageBg() : pageBg(),
+        background: isHydrated ? "radial-gradient(circle at 20% 0," + color + "0D,transparent 35%)," + pageBg() : pageBg(),
         color: "#FFFFFF",
         fontFamily: JOURNAL_FONT,
         letterSpacing: JOURNAL_LETTER_SPACING,
@@ -342,8 +383,15 @@ export default function Journal() {
         </div>
       </header>
 
+      {sessionWarn ? (
+        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#FFB800", fontFamily: JOURNAL_FONT }}>
+          {sessionWarn}
+        </div>
+      ) : null}
+
       <main className="mod-main" data-scrollable style={{maxWidth:1180,margin:"0 auto",padding:isMobile?"14px 12px 80px":"22px 20px"}}>
-        {!loaded ? <PageLoader accent={ACCENT} lines={7} /> : (
+        {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
+        <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",position:isMobile?"sticky":"static",top:isMobile?78:"auto",zIndex:isMobile?10:1,backdropFilter:"blur(14px)"}}>
           <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, margin: "0 0 12px" }}>TEMAS</p>
@@ -390,12 +438,14 @@ export default function Journal() {
                     onEditEnd={function() { editingBlockRef.current = null; }}
                     registerFlush={registerFlush}
                     unregisterFlush={unregisterFlush}
+                    editingEnabled={isHydrated}
                   />
                 );
               })}
             </div>
           )}
         </section>
+        </div>
         </div>
         )}
       </main>
@@ -487,7 +537,7 @@ function JournalBlock(props) {
       ) : (
         <div
           ref={editorRef}
-          contentEditable
+          contentEditable={props.editingEnabled !== false}
           suppressContentEditableWarning
           onInput={onInput}
           onFocus={function() {

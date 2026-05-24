@@ -99,7 +99,6 @@ async function seedDefaultsOnce() {
   var rows = defaultCategories();
   await writeLocal(CAT_KEY, rows);
   try { await writeLocal(CAT_SEED_KEY, true); } catch (e) {}
-  saveCategories(rows).catch(function() {});
   return rows;
 }
 

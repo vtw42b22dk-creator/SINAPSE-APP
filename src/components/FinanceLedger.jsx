@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+var SAVE_DEBOUNCE_MS = 1800;
+
 function monthKeyFromDate(d) {
   return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
 }
@@ -13,8 +15,11 @@ export default function FinanceLedger(props) {
   var categories = categoriesS[0], setCategories = categoriesS[1];
   var rowsS = useState([]);
   var rows = rowsS[0], setRows = rowsS[1];
-  var loadedS = useState(false);
-  var loaded = loadedS[0], setLoaded = loadedS[1];
+  var hydratedS = useState(false);
+  var isHydrated = hydratedS[0], setIsHydrated = hydratedS[1];
+  var sessionWarnS = useState("");
+  var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
+  var isHydratedRef = useRef(false);
   var monthS = useState(monthKeyFromDate(new Date()));
   var month = monthS[0], setMonth = monthS[1];
   var draftS = useState({ title: "", amount: "", categories: [], day: store.todayKey(), notes: "" });
@@ -65,60 +70,91 @@ export default function FinanceLedger(props) {
     });
   }
 
-  useEffect(function() {
-    var alive = true;
-    skipSaveRef.current = true;
-    Promise.all([store.loadCategories(), store.loadRows()]).then(function(res) {
-      if (!alive) return;
+  function finishHydration(res) {
+    if (res) {
       setCategories(res[0]);
       setRows(res[1]);
       applyDraftCategories(res[0]);
-      setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 100);
-      syncFromCloud();
-    }).catch(function() {
-      if (!alive) return;
-      setLoaded(true);
-      skipSaveRef.current = false;
-    });
-    return function() { alive = false; };
-  }, [store, syncFromCloud]);
+    }
+    isHydratedRef.current = true;
+    setIsHydrated(true);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
+  }
 
   useEffect(function() {
-    if (!loaded) return;
+    var alive = true;
+    skipSaveRef.current = true;
+    isHydratedRef.current = false;
+    setIsHydrated(false);
+    Promise.all([store.loadCategories(), store.loadRows()])
+      .then(function(res) {
+        if (!alive) return;
+        setCategories(res[0]);
+        setRows(res[1]);
+        applyDraftCategories(res[0]);
+        return Promise.all([pullCategories(), pullRows()]);
+      })
+      .then(function(sync) {
+        if (!alive) return;
+        finishHydration(sync);
+      })
+      .catch(function() {
+        if (!alive) return;
+        finishHydration(null);
+      });
+    return function() { alive = false; };
+  }, [store, pullCategories, pullRows]);
+
+  useEffect(function() {
+    if (!isHydrated) return;
     function onVis() {
+      if (!isHydratedRef.current) return;
       if (document.visibilityState === "hidden") pushToCloud();
       else if (Date.now() - lastDeleteAt.current >= 20000 && Date.now() - lastSaveAt.current >= 8000) syncFromCloud();
     }
     document.addEventListener("visibilitychange", onVis);
     return function() { document.removeEventListener("visibilitychange", onVis); };
-  }, [loaded, syncFromCloud]);
+  }, [isHydrated, syncFromCloud]);
 
   useEffect(function() { categoriesRef.current = categories; }, [categories]);
   useEffect(function() { rowsRef.current = rows; }, [rows]);
 
+  function reportSave(res) {
+    if (!res) return;
+    if (res.emergency) {
+      setSessionWarn("Sessão expirada — dados guardados neste dispositivo. Inicia sessão no Hub.");
+      return;
+    }
+    if (res.ok && res.cloud) {
+      lastSaveAt.current = Date.now();
+      setSessionWarn("");
+    } else if (res.error) {
+      setSessionWarn("Nuvem: " + res.error);
+    }
+  }
+
   function persistCats(cats) {
-    lastSaveAt.current = Date.now();
-    return store.saveCategories(cats || categoriesRef.current);
+    if (!isHydratedRef.current || skipSaveRef.current) return Promise.resolve();
+    return store.saveCategories(cats || categoriesRef.current).then(reportSave);
   }
   function persistRows(rws) {
-    lastSaveAt.current = Date.now();
-    return store.saveRows(rws || rowsRef.current);
+    if (!isHydratedRef.current || skipSaveRef.current) return Promise.resolve();
+    return store.saveRows(rws || rowsRef.current).then(reportSave);
   }
 
   useEffect(function() {
-    if (!loaded || skipSaveRef.current) return;
+    if (!isHydrated || skipSaveRef.current) return;
     clearTimeout(saveCatTimer.current);
-    saveCatTimer.current = setTimeout(function() { persistCats(); }, 400);
+    saveCatTimer.current = setTimeout(function() { persistCats(); }, SAVE_DEBOUNCE_MS);
     return function() { clearTimeout(saveCatTimer.current); };
-  }, [categories, loaded, store]);
+  }, [categories, isHydrated, store]);
 
   useEffect(function() {
-    if (!loaded || skipSaveRef.current) return;
+    if (!isHydrated || skipSaveRef.current) return;
     clearTimeout(saveRowsTimer.current);
-    saveRowsTimer.current = setTimeout(function() { persistRows(); }, 500);
+    saveRowsTimer.current = setTimeout(function() { persistRows(); }, SAVE_DEBOUNCE_MS);
     return function() { clearTimeout(saveRowsTimer.current); };
-  }, [rows, loaded, store]);
+  }, [rows, isHydrated, store]);
 
   var categoryNames = useMemo(function() {
     return categories.map(function(c) { return c.name; });
@@ -152,6 +188,7 @@ export default function FinanceLedger(props) {
   }
 
   function addRow() {
+    if (!isHydrated) return;
     if (!draft.title.trim() || !draft.amount) return;
     var cats = (draft.categories || []).slice(0, 2);
     if (!cats.length && categoryNames[0]) cats = [categoryNames[0]];
@@ -189,6 +226,7 @@ export default function FinanceLedger(props) {
   }
 
   function saveCategory() {
+    if (!isHydrated) return;
     if (!catDraft.name.trim()) return;
     if (catDraft.id) {
       var old = categories.find(function(c) { return c.id === catDraft.id; });
@@ -242,10 +280,13 @@ export default function FinanceLedger(props) {
     setTimeout(function() { skipSaveRef.current = false; }, 120);
   }
 
-  if (!loaded) return props.loader || null;
+  if (!isHydrated) return props.loader || null;
 
   return (
-    <div>
+    <div style={{ pointerEvents: isHydrated ? "auto" : "none" }}>
+      {sessionWarn ? (
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#FFB800", fontFamily: "'JetBrains Mono',monospace" }}>{sessionWarn}</p>
+      ) : null}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
         <button onClick={function() { setManageCat(!manageCat); }} style={{ background: manageCat ? accent + "18" : "rgba(255,255,255,0.03)", border: "1px solid " + (manageCat ? accent + "45" : "rgba(255,255,255,0.08)"), borderRadius: 10, color: manageCat ? accent : "rgba(255,255,255,0.45)", padding: "7px 12px", cursor: "pointer", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>Categorias</button>
         <button onClick={function() { shiftMonth(-1); }} style={navBtn()}>‹</button>

@@ -10,6 +10,7 @@ import {
   mergeRowArrays,
   isValidRowArray,
 } from "./dataGuard";
+import { ensureWriteSession, saveEmergencyDraft, clearEmergencyDraft } from "./safeCloudWrite";
 
 var LAST_USER_KEY = "sinapse-last-user-id-v1";
 
@@ -312,20 +313,34 @@ export async function replaceRows(table, localKey, rows, options) {
   }
   await writeLocal(localKey, stamped);
 
-  var user = await getUser();
-  if (!supabase || !user) {
-    return { ok: false, cloud: false, error: "Supabase não configurado.", rows: stamped };
-  }
   if (!stamped.length) {
     return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   }
 
+  if (!supabase) {
+    saveEmergencyDraft(localKey, stamped);
+    return { ok: true, cloud: false, emergency: true, error: "Supabase não configurado.", rows: stamped };
+  }
+
+  var session = await ensureWriteSession();
+  if (!session.canWriteCloud || !session.user) {
+    saveEmergencyDraft(localKey, stamped);
+    return {
+      ok: true,
+      cloud: false,
+      emergency: true,
+      error: session.reason || "Sem sessão",
+      rows: stamped,
+    };
+  }
+
   try {
     var payload = stamped.map(function(row) {
-      return cleanPayload(row, user.id);
+      return cleanPayload(row, session.user.id);
     });
     var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
     if (res.error) throw res.error;
+    clearEmergencyDraft(localKey);
 
     if (options.pruneOrphans === true) {
       var ids = stamped.map(function(r) { return r.id; });
