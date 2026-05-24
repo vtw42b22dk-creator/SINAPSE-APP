@@ -9,6 +9,6 @@ export default defineConfig({
   base: base,
   plugins: [react()],
   define: {
-    __APP_SYNC_REV__: JSON.stringify('sync-v3'),
+    __APP_SYNC_REV__: JSON.stringify('sync-v4'),
   },
 })

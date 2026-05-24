@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as wishlistStore from "../lib/wishlistStore";
+import { pauseCloudPull } from "../lib/cloudSyncGuard";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
@@ -34,13 +35,12 @@ export default function Wishlist() {
   var newGroupS = useState("");
   var newGroupName = newGroupS[0], setNewGroupName = newGroupS[1];
   var saveTimer = useRef(null);
-  var hydratingRef = useRef(false);
-
   var groupsRef = useRef([]);
   var itemsRef = useRef([]);
+  var skipSaveRef = useRef(false);
 
   var loadFromCloud = useCallback(function() {
-    hydratingRef.current = true;
+    skipSaveRef.current = true;
     return Promise.all([wishlistStore.pullGroups(), wishlistStore.pullItems()]).then(function(res) {
       var gs = res[0];
       var list = res[1];
@@ -56,28 +56,44 @@ export default function Wishlist() {
         return gs[0] ? gs[0].id : null;
       });
       setLoaded(true);
-      setTimeout(function() { hydratingRef.current = false; }, 0);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
     });
   }, []);
 
-  useCloudSync(loadFromCloud, ["wishlist_groups", "wishlist_items"]);
+  useCloudSync(loadFromCloud);
+
+  function persist(gs, list) {
+    pauseCloudPull(6000);
+    return wishlistStore.persistAll(gs || groupsRef.current, list || itemsRef.current);
+  }
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
-    return function() { window.removeEventListener("resize", onResize); }
+    return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
   useEffect(function() { groupsRef.current = groups; }, [groups]);
   useEffect(function() { itemsRef.current = items; }, [items]);
 
   useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
+    if (!loaded || skipSaveRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
-      wishlistStore.persistAll(groupsRef.current, itemsRef.current);
-    }, 500);
+      persist();
+    }, 400);
+    return function() { clearTimeout(saveTimer.current); };
   }, [items, groups, loaded]);
+
+  useEffect(function() {
+    if (!loaded) return;
+    function flush() { persist(); }
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "hidden") flush();
+    });
+    return function() { window.removeEventListener("beforeunload", flush); };
+  }, [loaded]);
 
   var activeG = groups.find(function(g) { return g.id === activeGroup; }) || groups[0];
   var accent = activeG ? activeG.color : ACCENT;
@@ -98,19 +114,27 @@ export default function Wishlist() {
     var g = wishlistStore.newGroup(newGroupName.trim());
     g.color = GROUP_COLORS[groups.length % GROUP_COLORS.length];
     g.order_index = groups.length;
-    setGroups(groups.concat([g]));
+    var next = groups.concat([g]);
+    setGroups(next);
     setActiveGroup(g.id);
     setNewGroupName("");
+    persist(next, items);
   }
 
-  function removeGroup(g) {
+  async function removeGroup(g) {
     if (!g || groups.length <= 1) return;
     if (!window.confirm("Eliminar o grupo \"" + g.name + "\"? Os itens passam para Geral.")) return;
     var fallback = groups.find(function(x) { return x.id !== g.id; });
-    setItems(items.map(function(i) { return i.group_id === g.id ? Object.assign({}, i, { group_id: fallback ? fallback.id : null }) : i; }));
+    var nextItems = items.map(function(i) {
+      return i.group_id === g.id ? Object.assign({}, i, { group_id: fallback ? fallback.id : null, updated: Date.now() }) : i;
+    });
     var next = groups.filter(function(x) { return x.id !== g.id; });
+    skipSaveRef.current = true;
+    setItems(nextItems);
     setGroups(next);
     if (activeGroup === g.id) setActiveGroup(next[0] ? next[0].id : null);
+    await persist(next, nextItems);
+    skipSaveRef.current = false;
   }
 
   async function addItem() {
@@ -126,17 +150,22 @@ export default function Wishlist() {
     var nextItems = [item].concat(items);
     setItems(nextItems);
     setDraft({ title: "", url: "", price: "", notes: "", priority: "med", group_id: g.id });
-    await wishlistStore.persistAll(groups, nextItems);
+    await persist(groups, nextItems);
   }
 
   function togglePurchased(id) {
-    setItems(items.map(function(i) {
+    var next = items.map(function(i) {
       return i.id === id ? Object.assign({}, i, { purchased: !i.purchased, updated: Date.now() }) : i;
-    }));
+    });
+    setItems(next);
+    persist(groups, next);
   }
 
-  function removeItem(id) {
-    setItems(items.filter(function(i) { return i.id !== id; }));
+  async function removeItem(id) {
+    var next = items.filter(function(i) { return i.id !== id; });
+    pauseCloudPull(6000);
+    setItems(next);
+    await persist(groups, next);
   }
 
   return (
@@ -146,7 +175,7 @@ export default function Wishlist() {
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(10,10,16,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "12px" : "14px 20px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
+            <button type="button" onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
             <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 16, color: accent, margin: 0 }}>Wishlist</h1>
           </div>
           <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -165,20 +194,20 @@ export default function Wishlist() {
               var on = activeG && g.id === activeG.id;
               return (
                 <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                  <button onClick={function() { setActiveGroup(g.id); }} style={{
+                  <button type="button" onClick={function() { setActiveGroup(g.id); }} style={{
                     flex: 1, textAlign: "left", padding: "10px 12px", borderRadius: 12,
                     border: "1px solid " + (on ? g.color + "45" : "rgba(255,255,255,0.06)"),
                     background: on ? g.color + "12" : "transparent", color: on ? g.color : "rgba(255,255,255,0.55)",
                     cursor: "pointer", fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 13, whiteSpace: "nowrap",
                   }}>{g.name}</button>
-                  {groups.length > 1 && <button onClick={function() { removeGroup(g); }} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.2)", cursor: "pointer" }}>×</button>}
+                  {groups.length > 1 && <button type="button" onClick={function() { removeGroup(g); }} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 14 }} aria-label="Eliminar grupo">×</button>}
                 </div>
               );
             })}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <input value={newGroupName} onChange={function(e) { setNewGroupName(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addGroup(); }} placeholder="Novo grupo..." style={{ flex: 1, minWidth: 0, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "8px 10px", outline: "none", fontSize: 13 }} />
-            <button onClick={addGroup} style={{ background: accent + "14", border: "1px solid " + accent + "35", borderRadius: 10, color: accent, padding: "0 12px", cursor: "pointer" }}>+</button>
+            <button type="button" onClick={addGroup} style={{ background: accent + "14", border: "1px solid " + accent + "35", borderRadius: 10, color: accent, padding: "0 12px", cursor: "pointer" }}>+</button>
           </div>
         </aside>}
 
@@ -197,9 +226,9 @@ export default function Wishlist() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               {PRIORITIES.map(function(p) {
                 var on = draft.priority === p.id;
-                return <button key={p.id} onClick={function() { setDraft(Object.assign({}, draft, { priority: p.id })); }} style={{ border: "1px solid " + (on ? p.color : "rgba(255,255,255,0.1)"), background: on ? p.color + "18" : "transparent", color: on ? p.color : "rgba(255,255,255,0.4)", borderRadius: 10, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>{p.label}</button>;
+                return <button key={p.id} type="button" onClick={function() { setDraft(Object.assign({}, draft, { priority: p.id })); }} style={{ border: "1px solid " + (on ? p.color : "rgba(255,255,255,0.1)"), background: on ? p.color + "18" : "transparent", color: on ? p.color : "rgba(255,255,255,0.4)", borderRadius: 10, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>{p.label}</button>;
               })}
-              <button onClick={addItem} style={{ marginLeft: "auto", background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "8px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ Adicionar</button>
+              <button type="button" onClick={addItem} style={{ marginLeft: "auto", background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "8px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ Adicionar</button>
             </div>
           </div>
 
@@ -211,7 +240,7 @@ export default function Wishlist() {
               return (
                 <article key={item.id} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", padding: "14px 16px", opacity: item.purchased ? 0.55 : 1, animation: "modIn .35s ease " + (idx * 0.04) + "s both" }}>
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <button onClick={function() { togglePurchased(item.id); }} style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, border: "2px solid " + (item.purchased ? accent : "rgba(255,255,255,0.2)"), background: item.purchased ? accent + "25" : "transparent", color: item.purchased ? accent : "transparent", cursor: "pointer" }}>{item.purchased ? "✓" : ""}</button>
+                    <button type="button" onClick={function() { togglePurchased(item.id); }} style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, border: "2px solid " + (item.purchased ? accent : "rgba(255,255,255,0.2)"), background: item.purchased ? accent + "25" : "transparent", color: item.purchased ? accent : "transparent", cursor: "pointer" }}>{item.purchased ? "✓" : ""}</button>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 15, textDecoration: item.purchased ? "line-through" : "none", color: item.purchased ? "rgba(255,255,255,0.4)" : "#fff" }}>{item.title}</p>
                       {item.notes && <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{item.notes}</p>}
@@ -221,7 +250,7 @@ export default function Wishlist() {
                         {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#38BDF8" }}>Abrir link</a>}
                       </div>
                     </div>
-                    <button onClick={function() { removeItem(item.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer" }}>×</button>
+                    <button type="button" onClick={function() { removeItem(item.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 16 }} aria-label="Eliminar">×</button>
                   </div>
                 </article>
               );

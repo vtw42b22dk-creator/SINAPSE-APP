@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as journalStore from "../lib/journalStore";
 import * as attachmentsStore from "../lib/attachmentsStore";
+import { pauseCloudPull } from "../lib/cloudSyncGuard";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
@@ -25,20 +26,26 @@ export default function Journal() {
   var newTitle = titleS[0], setNewTitle = titleS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
-  var saveTimer = useRef(null);
-  var hydratingRef = useRef(false);
+  var saveSpacesTimer = useRef(null);
+  var saveBlocksTimer = useRef(null);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
   var editingBlockRef = useRef(null);
-  var flushBlocksRef = useRef(null);
   var flushHandlersRef = useRef({});
+  var skipSaveRef = useRef(false);
+
+  function getEditingSnapshot() {
+    var id = editingBlockRef.current;
+    if (!id) return null;
+    return blocksRef.current.find(function(b) { return b.id === id; }) || null;
+  }
 
   var loadFromCloud = useCallback(function() {
-    if (flushBlocksRef.current) flushBlocksRef.current();
-    hydratingRef.current = true;
+    flushAllEditors();
+    skipSaveRef.current = true;
     return Promise.all([
-      journalStore.pullSpaces(spacesRef.current),
-      journalStore.pullBlocks(blocksRef.current, editingBlockRef.current),
+      journalStore.pullSpaces(),
+      journalStore.pullBlocks(getEditingSnapshot()),
     ]).then(function(res) {
       setSpaces(res[0]);
       setBlocks(res[1]);
@@ -47,11 +54,33 @@ export default function Journal() {
         return res[0][0] ? res[0][0].id : null;
       });
       setLoaded(true);
-      setTimeout(function() { hydratingRef.current = false; }, 0);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
     });
   }, []);
 
-  useCloudSync(loadFromCloud, ["journal_spaces", "journal_blocks"]);
+  useCloudSync(loadFromCloud);
+
+  function flushAllEditors() {
+    Object.keys(flushHandlersRef.current).forEach(function(id) {
+      var fn = flushHandlersRef.current[id];
+      if (fn) fn();
+    });
+  }
+
+  function persistSpaces(nextSpaces) {
+    pauseCloudPull(6000);
+    return journalStore.saveSpaces(nextSpaces || spacesRef.current);
+  }
+
+  function persistBlocks(nextBlocks) {
+    pauseCloudPull(6000);
+    return journalStore.saveBlocks(nextBlocks || blocksRef.current);
+  }
+
+  function persistAll(nextSpaces, nextBlocks) {
+    pauseCloudPull(6000);
+    return journalStore.saveAll(nextSpaces || spacesRef.current, nextBlocks || blocksRef.current);
+  }
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -59,25 +88,33 @@ export default function Journal() {
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
-  useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(function() { journalStore.saveSpaces(spaces); }, 500);
-  }, [spaces, loaded]);
-  useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(function() { journalStore.saveBlocks(blocks); }, 700);
-  }, [blocks, loaded]);
-
   useEffect(function() { blocksRef.current = blocks; }, [blocks]);
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
+
+  useEffect(function() {
+    if (!loaded || skipSaveRef.current) return;
+    clearTimeout(saveSpacesTimer.current);
+    saveSpacesTimer.current = setTimeout(function() {
+      persistSpaces(spacesRef.current);
+    }, 400);
+    return function() { clearTimeout(saveSpacesTimer.current); };
+  }, [spaces, loaded]);
+
+  useEffect(function() {
+    if (!loaded || skipSaveRef.current) return;
+    clearTimeout(saveBlocksTimer.current);
+    saveBlocksTimer.current = setTimeout(function() {
+      flushAllEditors();
+      persistBlocks(blocksRef.current);
+    }, 500);
+    return function() { clearTimeout(saveBlocksTimer.current); };
+  }, [blocks, loaded]);
+
   useEffect(function() {
     if (!loaded) return;
     function flush() {
-      if (flushBlocksRef.current) flushBlocksRef.current();
-      journalStore.saveBlocks(blocksRef.current);
-      journalStore.saveSpaces(spacesRef.current);
+      flushAllEditors();
+      persistAll();
     }
     window.addEventListener("beforeunload", flush);
     document.addEventListener("visibilitychange", function() {
@@ -86,14 +123,6 @@ export default function Journal() {
     return function() { window.removeEventListener("beforeunload", flush); };
   }, [loaded]);
 
-  useEffect(function() {
-    flushBlocksRef.current = function() {
-      Object.keys(flushHandlersRef.current).forEach(function(id) {
-        var fn = flushHandlersRef.current[id];
-        if (fn) fn();
-      });
-    };
-  }, []);
   function registerFlush(id, fn) {
     flushHandlersRef.current[id] = fn;
   }
@@ -110,12 +139,15 @@ export default function Journal() {
   function createSpace() {
     if (!newTitle.trim()) return;
     var s = { id: journalStore.newBlock("x").id.replace("jb", "js"), title: newTitle.trim(), color: COLORS[spaces.length % COLORS.length] };
-    setSpaces(spaces.concat([s]));
+    var next = spaces.concat([s]);
+    pauseCloudPull(6000);
+    setSpaces(next);
     setActive(s.id);
     setNewTitle("");
+    persistSpaces(next);
   }
 
-  function removeSpace(space) {
+  async function removeSpace(space) {
     if (!space) return;
     if (!window.confirm("Eliminar o tema \"" + space.title + "\" e todos os blocos dentro dele?")) return;
     var nextSpaces = spaces.filter(function(s) { return s.id !== space.id; });
@@ -123,14 +155,22 @@ export default function Journal() {
     blocks.filter(function(b) { return b.space_id === space.id && b.meta && b.meta.attachment; }).forEach(function(b) {
       attachmentsStore.deleteAttachment(b.meta.attachment);
     });
+    var nextBlocks = blocks.filter(function(b) { return b.space_id !== space.id; });
+    skipSaveRef.current = true;
+    flushAllEditors();
     setSpaces(nextSpaces);
-    setBlocks(blocks.filter(function(b) { return b.space_id !== space.id; }));
+    setBlocks(nextBlocks);
     if (active === space.id) setActive(nextSpaces[0] ? nextSpaces[0].id : null);
+    await persistAll(nextSpaces, nextBlocks);
+    skipSaveRef.current = false;
   }
 
   function addBlock(type) {
     if (!active) return;
-    setBlocks(blocks.concat([journalStore.newBlock(active, type)]));
+    var next = blocks.concat([journalStore.newBlock(active, type)]);
+    pauseCloudPull(6000);
+    setBlocks(next);
+    persistBlocks(next);
   }
 
   function updateBlock(id, patch) {
@@ -142,7 +182,10 @@ export default function Journal() {
   function removeBlock(id) {
     var block = blocks.find(function(b) { return b.id === id; });
     if (block && block.meta && block.meta.attachment) attachmentsStore.deleteAttachment(block.meta.attachment);
-    setBlocks(blocks.filter(function(b) { return b.id !== id; }));
+    var next = blocks.filter(function(b) { return b.id !== id; });
+    pauseCloudPull(6000);
+    setBlocks(next);
+    persistBlocks(next);
   }
 
   function format(cmd, value) {
@@ -177,14 +220,14 @@ export default function Journal() {
             {spaces.map(function(s) {
               var on = active === s.id;
               return <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <button onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"rgba(255,255,255,0.62)",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif",whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
-                <button onClick={function(){removeSpace(s);}} title="Eliminar tema" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.22)",cursor:"pointer",flexShrink:0}}>×</button>
+                <button type="button" onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"rgba(255,255,255,0.62)",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif",whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
+                <button type="button" onClick={function(e){e.stopPropagation(); removeSpace(s);}} title="Eliminar tema" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.35)",cursor:"pointer",flexShrink:0,fontSize:16,lineHeight:1}} aria-label="Eliminar tema">×</button>
               </div>;
             })}
           </div>
           <div style={{display:"flex",gap:8,marginTop:14}}>
             <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Novo tema..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#fff",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13}}/>
-            <button onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
+            <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
           </div>
         </aside>
 
@@ -194,9 +237,9 @@ export default function Journal() {
             <h2 style={{margin:"6px 0 0",fontSize:"clamp(28px,5vw,48px)",fontFamily:"'JetBrains Mono',monospace"}}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-            <button onClick={function(){format("bold");}} style={toolBtn()}>Negrito</button>
-            <button onClick={function(){format("italic");}} style={toolBtn()}>Itálico</button>
-            <button onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
+            <button type="button" onClick={function(){format("bold");}} style={toolBtn()}>Negrito</button>
+            <button type="button" onClick={function(){format("italic");}} style={toolBtn()}>Itálico</button>
+            <button type="button" onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
           </div>
           {activeBlocks.length === 0 ? (
             <div style={{border:"1px dashed "+color+"22",borderRadius:24,minHeight:280,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>
@@ -235,37 +278,46 @@ function JournalBlock(props) {
   var editorRef = useRef(null);
   var latestHtml = useRef(b.content || "");
   var saveTimer = useRef(null);
+  var focusedRef = useRef(false);
   var uploadS = useState("");
   var uploadMsg = uploadS[0], setUploadMsg = uploadS[1];
+
   useEffect(function() {
     if (!editorRef.current || b.type === "image" || b.type === "document") return;
+    if (focusedRef.current) return;
     var html = b.content || "";
     if (html !== latestHtml.current) {
       latestHtml.current = html;
       editorRef.current.innerHTML = html;
     }
   }, [b.id, b.content, b.type]);
+
   useEffect(function() {
     return function() { clearTimeout(saveTimer.current); };
   }, [b.id]);
+
   function pushContent() {
     props.onChange(b.id, { content: latestHtml.current });
   }
+
   function onInput(e) {
     latestHtml.current = e.currentTarget.innerHTML;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(pushContent, 400);
+    saveTimer.current = setTimeout(pushContent, 300);
   }
+
   function syncText() {
     clearTimeout(saveTimer.current);
     pushContent();
   }
+
   useEffect(function() {
     if (props.registerFlush) props.registerFlush(b.id, syncText);
     return function() {
       if (props.unregisterFlush) props.unregisterFlush(b.id);
     };
   }, [b.id]);
+
   async function onFile(e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -287,21 +339,22 @@ function JournalBlock(props) {
     });
     setTimeout(function() { setUploadMsg(""); }, 2800);
   }
+
   return (
     <div style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:18,padding:14}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
         <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:props.color}}>{b.type.toUpperCase()}</span>
-        <button onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer"}}>×</button>
+        <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer"}}>×</button>
       </div>
       {uploadMsg ? <p style={{margin:"0 0 8px",fontSize:11,color:props.color,opacity:0.85}}>{uploadMsg}</p> : null}
       {b.type === "image" ? (
         <div>
-          {b.content ? <img src={b.content} alt={b.meta && b.meta.name || "Imagem"} style={{maxWidth:"100%",borderRadius:14,display:"block"}}/> : <button onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:160,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher imagem</button>}
+          {b.content ? <img src={b.content} alt={b.meta && b.meta.name || "Imagem"} style={{maxWidth:"100%",borderRadius:14,display:"block"}}/> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:160,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher imagem</button>}
           <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={onFile}/>
         </div>
       ) : b.type === "document" ? (
         <div>
-          {b.content ? <a href={b.content} download={b.meta && b.meta.name} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderRadius:14,border:"1px solid "+props.color+"24",background:props.color+"08",color:props.color,textDecoration:"none"}}><span style={{fontSize:24}}>📄</span><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.meta && b.meta.name || "Documento"}</span></a> : <button onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:120,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher documento</button>}
+          {b.content ? <a href={b.content} download={b.meta && b.meta.name} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderRadius:14,border:"1px solid "+props.color+"24",background:props.color+"08",color:props.color,textDecoration:"none"}}><span style={{fontSize:24}}>📄</span><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.meta && b.meta.name || "Documento"}</span></a> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:120,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher documento</button>}
           <input ref={fileRef} type="file" style={{display:"none"}} onChange={onFile}/>
         </div>
       ) : (
@@ -310,8 +363,15 @@ function JournalBlock(props) {
           contentEditable
           suppressContentEditableWarning
           onInput={onInput}
-          onFocus={function() { if (props.onEditStart) props.onEditStart(b.id); }}
-          onBlur={function() { syncText(); if (props.onEditEnd) props.onEditEnd(); }}
+          onFocus={function() {
+            focusedRef.current = true;
+            if (props.onEditStart) props.onEditStart(b.id);
+          }}
+          onBlur={function() {
+            focusedRef.current = false;
+            syncText();
+            if (props.onEditEnd) props.onEditEnd();
+          }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
           style={{outline:"none",fontSize:b.type==="title"?26:15,lineHeight:1.85,color:"rgba(255,255,255,0.86)",fontFamily:b.type==="title"?"'JetBrains Mono',monospace":"'IBM Plex Sans',sans-serif",fontWeight:b.type==="title"?600:400,minHeight:b.type==="title"?38:90}}
         />

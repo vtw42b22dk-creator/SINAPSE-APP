@@ -44,40 +44,21 @@ function blocksToUi(merged) {
   );
 }
 
-function blockTs(b) {
-  return b && b.updated ? Number(b.updated) : 0;
-}
-
-function mergeBlocksWithCurrent(base, current, editingBlockId) {
+function overlayEditingBlock(merged, editingBlock) {
+  if (!editingBlock || !editingBlock.id) return merged;
   var map = {};
-  (base || []).forEach(function(b) {
-    map[b.id] = normalizeBlock(b);
+  merged.forEach(function(b) {
+    map[b.id] = b;
   });
-  (current || []).forEach(function(c) {
-    if (!c || !c.id) return;
-    if (editingBlockId && c.id !== editingBlockId) return;
-    var nc = normalizeBlock(c);
-    var r = map[c.id];
-    if (!r) {
-      map[c.id] = nc;
-      return;
-    }
-    var lc = (c.content || "").trim().length;
-    var rc = (r.content || "").trim().length;
-    var lu = blockTs(nc);
-    var ru = blockTs(r);
-    if (rc > 0 && lc === 0) return;
-    if (lc > 0 && rc === 0) {
-      map[c.id] = nc;
-      return;
-    }
-    if (editingBlockId === c.id && lu >= ru - 3000) {
-      map[c.id] = lc >= rc ? nc : Object.assign({}, r, { content: c.content, meta: c.meta || r.meta, updated: Math.max(lu, ru) });
-      return;
-    }
-    if (lu > ru && lc >= rc) map[c.id] = nc;
-    else if (lc > rc) map[c.id] = Object.assign({}, r, { content: c.content, meta: c.meta || r.meta, updated: Math.max(lu, ru) });
-  });
+  var nc = normalizeBlock(editingBlock);
+  var prev = map[editingBlock.id];
+  if (!prev) {
+    map[editingBlock.id] = nc;
+  } else {
+    var lc = (editingBlock.content || "").length;
+    var pc = (prev.content || "").length;
+    if (lc >= pc) map[editingBlock.id] = nc;
+  }
   return Object.values(map);
 }
 
@@ -97,7 +78,7 @@ function sanitizeBlockForSave(b) {
   };
 }
 
-export async function pullSpaces(currentSpaces) {
+export async function pullSpaces() {
   var remote = [];
   try {
     remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
@@ -105,13 +86,13 @@ export async function pullSpaces(currentSpaces) {
     return loadSpaces();
   }
   var local = await readLocal(SPACES, []);
-  var merged = mergeRowsByTimestamp(mergeRowsByTimestamp(local, remote), currentSpaces || []);
+  var merged = mergeRowsByTimestamp(local, remote);
   if (!merged.length) merged = [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
   await writeLocal(SPACES, merged);
   return merged;
 }
 
-export async function pullBlocks(currentBlocks, editingBlockId) {
+export async function pullBlocks(editingBlock) {
   var remote = [];
   try {
     remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
@@ -119,8 +100,8 @@ export async function pullBlocks(currentBlocks, editingBlockId) {
     return loadBlocks();
   }
   var local = await readLocal(BLOCKS, []);
-  var base = mergeRowsByTimestamp(local, remote);
-  var merged = mergeBlocksWithCurrent(base, currentBlocks, editingBlockId || null);
+  var merged = mergeRowsByTimestamp(local, remote);
+  merged = overlayEditingBlock(merged, editingBlock);
   await writeLocal(BLOCKS, merged);
   return blocksToUi(merged);
 }
@@ -135,8 +116,8 @@ export async function saveSpaces(spaces) {
   return replaceRows(
     "journal_spaces",
     SPACES,
-    spaces.map(function(s) {
-      return { id: s.id, title: s.title, color: s.color || "#FFB800" };
+    (spaces || []).map(function(s) {
+      return { id: s.id, title: s.title, color: s.color || "#FFB800", updated: Date.now() };
     })
   );
 }
@@ -149,6 +130,12 @@ export async function loadBlocks() {
 export async function saveBlocks(blocks) {
   var rows = (blocks || []).map(sanitizeBlockForSave);
   return replaceRows("journal_blocks", BLOCKS, rows);
+}
+
+export async function saveAll(spaces, blocks) {
+  var s = await saveSpaces(spaces);
+  var b = await saveBlocks(blocks);
+  return { spaces: s, blocks: b };
 }
 
 export function newBlock(spaceId, type) {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { pauseCloudPull } from "../lib/cloudSyncGuard";
 import { useCloudSync } from "../lib/useCloudSync";
 
 function monthKeyFromDate(d) {
@@ -24,45 +25,53 @@ export default function FinanceLedger(props) {
   var manageCat = manageCatS[0], setManageCat = manageCatS[1];
   var catDraftS = useState({ id: null, name: "" });
   var catDraft = catDraftS[0], setCatDraft = catDraftS[1];
-  var saveTimer = useRef(null);
-  var hydratingRef = useRef(false);
+  var saveCatTimer = useRef(null);
+  var saveRowsTimer = useRef(null);
+  var skipSaveRef = useRef(false);
+  var categoriesRef = useRef([]);
+  var rowsRef = useRef([]);
   var pullCategories = store.pullCategories || store.loadCategories;
   var pullRows = store.pullRows || store.loadRows;
-  var syncTables = store.syncTables || [];
 
   var loadFromCloud = useCallback(function() {
-    hydratingRef.current = true;
+    skipSaveRef.current = true;
     return Promise.all([pullCategories(), pullRows()]).then(function(res) {
       setCategories(res[0]);
       setRows(res[1]);
       var first = res[0][0];
       if (first) setDraft(function(d) { return Object.assign({}, d, { categories: d.categories.length ? d.categories : [first.name] }); });
       setLoaded(true);
-      setTimeout(function() { hydratingRef.current = false; }, 0);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
     });
   }, [store]);
 
-  useCloudSync(loadFromCloud, syncTables);
+  useCloudSync(loadFromCloud);
+
+  useEffect(function() { categoriesRef.current = categories; }, [categories]);
+  useEffect(function() { rowsRef.current = rows; }, [rows]);
+
+  function persistCats(cats) {
+    pauseCloudPull(6000);
+    return store.saveCategories(cats || categoriesRef.current);
+  }
+  function persistRows(rws) {
+    pauseCloudPull(6000);
+    return store.saveRows(rws || rowsRef.current);
+  }
 
   useEffect(function() {
-    if (store.pullCategories) return;
-    Promise.all([store.loadCategories(), store.loadRows()]).then(function(res) {
-      setCategories(res[0]);
-      setRows(res[1]);
-      var first = res[0][0];
-      if (first) setDraft(function(d) { return Object.assign({}, d, { categories: d.categories.length ? d.categories : [first.name] }); });
-      setLoaded(true);
-    });
-  }, [store]);
+    if (!loaded || skipSaveRef.current) return;
+    clearTimeout(saveCatTimer.current);
+    saveCatTimer.current = setTimeout(function() { persistCats(); }, 400);
+    return function() { clearTimeout(saveCatTimer.current); };
+  }, [categories, loaded, store]);
 
   useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(function() {
-      store.saveCategories(categories);
-      store.saveRows(rows);
-    }, 500);
-  }, [rows, categories, loaded, store]);
+    if (!loaded || skipSaveRef.current) return;
+    clearTimeout(saveRowsTimer.current);
+    saveRowsTimer.current = setTimeout(function() { persistRows(); }, 500);
+    return function() { clearTimeout(saveRowsTimer.current); };
+  }, [rows, loaded, store]);
 
   var categoryNames = useMemo(function() {
     return categories.map(function(c) { return c.name; });

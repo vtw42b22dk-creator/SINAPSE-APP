@@ -74,10 +74,8 @@ export async function pullGroups() {
   merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
   if (!merged.length) {
     merged = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
-    await writeLocal(GROUPS_KEY, merged);
-  } else {
-    await writeLocal(GROUPS_KEY, merged);
   }
+  await writeLocal(GROUPS_KEY, merged);
   return merged;
 }
 
