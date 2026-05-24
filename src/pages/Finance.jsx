@@ -13,6 +13,7 @@ var INCOME_ACCENT = "#34D399";
 var expenseAdapter = {
   loadCategories: financeStore.loadCategories,
   saveCategories: financeStore.saveCategories,
+  deleteCategory: financeStore.deleteCategory,
   loadRows: financeStore.loadExpenses,
   saveRows: financeStore.saveExpenses,
   pullCategories: financeStore.pullCategories,
@@ -26,6 +27,7 @@ var expenseAdapter = {
 var incomeAdapter = {
   loadCategories: incomeStore.loadCategories,
   saveCategories: incomeStore.saveCategories,
+  deleteCategory: incomeStore.deleteCategory,
   loadRows: incomeStore.loadIncomes,
   saveRows: incomeStore.saveIncomes,
   pullCategories: incomeStore.pullCategories,

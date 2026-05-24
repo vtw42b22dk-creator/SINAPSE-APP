@@ -205,21 +205,30 @@ export default function FinanceLedger(props) {
     setCatDraft({ id: null, name: "" });
   }
 
-  function removeCategory(cat) {
-    if (categories.length <= 1) return;
+  async function removeCategory(cat) {
+    if (!cat || categoriesRef.current.length <= 1) return;
     if (!window.confirm("Apagar a categoria \"" + cat.name + "\"?")) return;
-    var fallback = categories.find(function(c) { return c.name === "Outro" && c.id !== cat.id; }) || categories.find(function(c) { return c.id !== cat.id; });
+    var fallback = categoriesRef.current.find(function(c) { return c.name === "Outro" && c.id !== cat.id; })
+      || categoriesRef.current.find(function(c) { return c.id !== cat.id; });
     var fbName = fallback ? fallback.name : "Outro";
-    setRows(function(prev) {
-      return prev.map(function(e) {
-        return Object.assign({}, e, {
-          categories: (e.categories || [e.category]).map(function(c) { return c === cat.name ? fbName : c; }).slice(0, 2),
-          category: e.category === cat.name ? fbName : e.category,
-        });
+    var nextCats = categoriesRef.current.filter(function(c) { return c.id !== cat.id; });
+    var nextRows = rowsRef.current.map(function(e) {
+      return Object.assign({}, e, {
+        categories: (e.categories || [e.category]).map(function(c) { return c === cat.name ? fbName : c; }).slice(0, 2),
+        category: e.category === cat.name ? fbName : e.category,
       });
     });
-    setCategories(function(prev) { return prev.filter(function(c) { return c.id !== cat.id; });
-    });
+    clearTimeout(saveCatTimer.current);
+    clearTimeout(saveRowsTimer.current);
+    skipSaveRef.current = true;
+    categoriesRef.current = nextCats;
+    rowsRef.current = nextRows;
+    setCategories(nextCats);
+    setRows(nextRows);
+    if (catDraft.id === cat.id) setCatDraft({ id: null, name: "" });
+    if (store.deleteCategory) await store.deleteCategory(cat.id);
+    await Promise.all([persistCats(nextCats), persistRows(nextRows)]);
+    setTimeout(function() { skipSaveRef.current = false; }, 120);
   }
 
   if (!loaded) return props.loader || null;
@@ -245,7 +254,9 @@ export default function FinanceLedger(props) {
                 <span>{cat.name}</span>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={function() { setCatDraft({ id: cat.id, name: cat.name }); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer" }}>✎</button>
-                  <button onClick={function() { removeCategory(cat); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>×</button>
+                  {categories.length > 1 ? (
+                    <button type="button" onClick={function() { removeCategory(cat); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer" }} aria-label={"Apagar " + cat.name}>×</button>
+                  ) : null}
                 </div>
               </div>
             );

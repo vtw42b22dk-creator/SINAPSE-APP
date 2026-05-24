@@ -1,4 +1,4 @@
-import { fetchRemoteRows, mergePullFromRemote, readLocal, replaceRows, uid, writeLocal } from "./cloudStore";
+import { deleteRemoteIds, fetchRemoteRows, mergePullFromRemote, readLocal, replaceRows, uid, writeLocal } from "./cloudStore";
 import { todayKey } from "./financeStore";
 
 var TABLE = "incomes";
@@ -65,6 +65,11 @@ export async function saveCategories(categories) {
   return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(function(c) {
     return { id: c.id, name: c.name, order_index: c.order_index || 0 };
   }), { pruneOrphans: true });
+}
+
+export async function deleteCategory(categoryId) {
+  if (!categoryId) return { ok: true };
+  return deleteRemoteIds(CAT_TABLE, [categoryId]);
 }
 
 export async function pullIncomes() {
