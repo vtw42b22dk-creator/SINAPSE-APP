@@ -1,4 +1,4 @@
-import { readLocal, replaceRows, selectRowsMerged, uid } from "./cloudStore";
+import { replaceRows, selectRowsMerged, uid } from "./cloudStore";
 import { hydrateJournalBlocks, stripAttachmentRef } from "./attachmentsStore";
 
 var SPACES = "journal-spaces-v1";
@@ -35,21 +35,6 @@ function sanitizeBlockForSave(b) {
   };
 }
 
-function mergeBlocks(local, remote) {
-  var map = {};
-  (remote || []).forEach(function(b) { map[b.id] = b; });
-  (local || []).forEach(function(localB) {
-    var remoteB = map[localB.id];
-    if (!remoteB) { map[localB.id] = localB; return; }
-    var lc = (localB.content || "").length;
-    var rc = (remoteB.content || "").length;
-    var lu = localB.updated || 0;
-    var ru = remoteB.updated || 0;
-    if (lc > rc || lu > ru) map[localB.id] = localB;
-  });
-  return Object.values(map);
-}
-
 export async function loadSpaces() {
   var rows = await selectRowsMerged("journal_spaces", SPACES, [], normalizeSpace);
   if (!rows.length) return [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
@@ -63,9 +48,7 @@ export async function saveSpaces(spaces) {
 }
 
 export async function loadBlocks() {
-  var remote = await selectRowsMerged("journal_blocks", BLOCKS, [], normalizeBlock);
-  var localRows = await readLocal(BLOCKS, []);
-  var merged = mergeBlocks(localRows, remote);
+  var merged = await selectRowsMerged("journal_blocks", BLOCKS, [], normalizeBlock);
   return hydrateJournalBlocks(merged.map(function(b) {
     return { id: b.id, space_id: b.space_id, type: b.type, content: b.content, meta: b.meta, order_index: b.order_index };
   }));

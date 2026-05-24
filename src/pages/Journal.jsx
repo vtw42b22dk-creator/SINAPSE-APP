@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as journalStore from "../lib/journalStore";
 import * as attachmentsStore from "../lib/attachmentsStore";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
+import { useCloudSync } from "../lib/useCloudSync";
 
 var ACCENT = "#FFB800";
 var COLORS = ["#FFB800", "#00FFC8", "#7B61FF", "#FF3D8A", "#38BDF8", "#34D399"];
@@ -29,16 +30,21 @@ export default function Journal() {
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
 
-  useEffect(function() {
+  var loadFromCloud = useCallback(function() {
     hydratingRef.current = true;
-    Promise.all([journalStore.loadSpaces(), journalStore.loadBlocks()]).then(function(res) {
+    return Promise.all([journalStore.loadSpaces(), journalStore.loadBlocks()]).then(function(res) {
       setSpaces(res[0]);
       setBlocks(res[1]);
-      setActive(res[0][0] ? res[0][0].id : null);
+      setActive(function(prev) {
+        if (prev && res[0].some(function(s) { return s.id === prev; })) return prev;
+        return res[0][0] ? res[0][0].id : null;
+      });
       setLoaded(true);
       setTimeout(function() { hydratingRef.current = false; }, 0);
     });
   }, []);
+
+  var cloudSyncRef = useCloudSync(loadFromCloud);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -47,12 +53,12 @@ export default function Journal() {
   }, []);
 
   useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
+    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() { journalStore.saveSpaces(spaces); }, 500);
   }, [spaces, loaded]);
   useEffect(function() {
-    if (!loaded || hydratingRef.current) return;
+    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() { journalStore.saveBlocks(blocks); }, 700);
   }, [blocks, loaded]);
@@ -105,7 +111,9 @@ export default function Journal() {
   }
 
   function updateBlock(id, patch) {
-    setBlocks(blocks.map(function(b) { return b.id === id ? Object.assign({}, b, patch) : b; }));
+    setBlocks(blocks.map(function(b) {
+      return b.id === id ? Object.assign({}, b, patch, { updated: Date.now() }) : b;
+    }));
   }
 
   function removeBlock(id) {

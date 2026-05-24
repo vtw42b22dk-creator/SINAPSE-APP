@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as wishlistStore from "../lib/wishlistStore";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
+import { useCloudSync } from "../lib/useCloudSync";
 
 var ACCENT = "#34D399";
 var GROUP_COLORS = ["#34D399", "#FFB800", "#7B61FF", "#FF3D8A", "#38BDF8", "#00FFC8"];
@@ -33,9 +34,11 @@ export default function Wishlist() {
   var newGroupS = useState("");
   var newGroupName = newGroupS[0], setNewGroupName = newGroupS[1];
   var saveTimer = useRef(null);
+  var hydratingRef = useRef(false);
 
-  useEffect(function() {
-    Promise.all([wishlistStore.loadGroups(), wishlistStore.loadItems()]).then(function(res) {
+  var loadFromCloud = useCallback(function() {
+    hydratingRef.current = true;
+    return Promise.all([wishlistStore.loadGroups(), wishlistStore.loadItems()]).then(function(res) {
       var gs = res[0];
       var list = res[1];
       if (gs[0]) {
@@ -45,10 +48,16 @@ export default function Wishlist() {
       }
       setGroups(gs);
       setItems(list);
-      setActiveGroup(gs[0] ? gs[0].id : null);
+      setActiveGroup(function(prev) {
+        if (prev && gs.some(function(g) { return g.id === prev; })) return prev;
+        return gs[0] ? gs[0].id : null;
+      });
       setLoaded(true);
+      setTimeout(function() { hydratingRef.current = false; }, 0);
     });
   }, []);
+
+  var cloudSyncRef = useCloudSync(loadFromCloud);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -57,11 +66,10 @@ export default function Wishlist() {
   }, []);
 
   useEffect(function() {
-    if (!loaded) return;
+    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
-      wishlistStore.saveGroups(groups);
-      wishlistStore.saveItems(items);
+      wishlistStore.persistAll(groups, items);
     }, 500);
   }, [items, groups, loaded]);
 
