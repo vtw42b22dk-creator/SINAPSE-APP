@@ -1,0 +1,108 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root,
+[data-theme="neon"] {
+  --page-bg: linear-gradient(160deg, #0A0A0F 0%, #0D0E18 40%, #0A0A0F 100%);
+  --page-text: #ffffff;
+  --header-bg: rgba(10, 10, 16, 0.92);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --surface: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="minimal"] {
+  --page-bg: linear-gradient(165deg, #f7f7f7 0%, #ececec 50%, #f5f5f5 100%);
+  --page-text: #111111;
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --surface: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="minimal"] button {
+  color: inherit;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100%;
+  background: #06060C;
+}
+
+[data-theme="minimal"] html,
+[data-theme="minimal"] body,
+[data-theme="minimal"] #root {
+  background: #f5f5f5;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+}
+
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+[data-scrollable],
+textarea {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+@media (pointer: coarse) {
+  body,
+  button,
+  a,
+  [role="button"],
+  svg text,
+  h1,
+  h2,
+  h3,
+  p,
+  span {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [contenteditable="true"],
+  [contenteditable="true"] * {
+    font-size: 16px !important;
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }

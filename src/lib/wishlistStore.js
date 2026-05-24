@@ -1,0 +1,88 @@
+import { replaceRows, selectRowsMerged, uid } from "./cloudStore";
+
+var TABLE = "wishlist_items";
+var KEY = "wishlist-items-v1";
+var GROUPS_TABLE = "wishlist_groups";
+var GROUPS_KEY = "wishlist-groups-v1";
+var DEFAULT_GROUP = "Geral";
+
+function normalizeGroup(row) {
+  return {
+    id: row.id || uid("wg"),
+    name: row.name || DEFAULT_GROUP,
+    color: row.color || "#34D399",
+    order_index: row.order_index != null ? row.order_index : 0,
+  };
+}
+
+function normalize(row) {
+  return {
+    id: row.id || uid("wl"),
+    title: row.title || "",
+    url: row.url || "",
+    price: row.price != null ? Number(row.price) : null,
+    currency: row.currency || "EUR",
+    priority: row.priority || "med",
+    notes: row.notes || "",
+    purchased: !!row.purchased,
+    group_id: row.group_id || null,
+    created: row.created || row.created_at || Date.now(),
+    updated: row.updated || row.updated_at || row.created || Date.now(),
+  };
+}
+
+function toDb(item) {
+  return {
+    id: item.id,
+    title: item.title,
+    url: item.url || "",
+    price: item.price,
+    currency: item.currency || "EUR",
+    priority: item.priority || "med",
+    notes: item.notes || "",
+    purchased: !!item.purchased,
+    group_id: item.group_id || null,
+  };
+}
+
+export async function loadGroups() {
+  var groups = await selectRowsMerged(GROUPS_TABLE, GROUPS_KEY, [], normalizeGroup);
+  groups = groups.sort(function(a, b) { return a.order_index - b.order_index; });
+  if (!groups.length) {
+    groups = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+    await saveGroups(groups);
+  }
+  return groups;
+}
+
+export async function saveGroups(groups) {
+  return replaceRows(GROUPS_TABLE, GROUPS_KEY, (groups || []).map(function(g) {
+    return { id: g.id, name: g.name, color: g.color || "#34D399", order_index: g.order_index || 0 };
+  }));
+}
+
+export async function loadItems() {
+  var rows = await selectRowsMerged(TABLE, KEY, [], normalize);
+  return rows.sort(function(a, b) {
+    if (a.purchased !== b.purchased) return a.purchased ? 1 : -1;
+    return (b.updated || 0) - (a.updated || 0);
+  });
+}
+
+export async function saveItems(items) {
+  return replaceRows(TABLE, KEY, (items || []).map(toDb));
+}
+
+export async function persistAll(groups, items) {
+  await saveGroups(groups);
+  return saveItems(items);
+}
+
+export function newGroup(name) {
+  return normalizeGroup({ id: uid("wg"), name: name || "Novo grupo", color: "#34D399", order_index: Date.now() });
+}
+
+export function newItem(title, groupId) {
+  var now = Date.now();
+  return normalize({ id: uid("wl"), title: title || "", group_id: groupId || null, created: now, updated: now });
+}

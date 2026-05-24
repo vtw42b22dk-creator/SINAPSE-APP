@@ -1,0 +1,110 @@
+═══════════════════════════════════════════════
+  SINAPSE — CRIAR REPOSITÓRIO NOVO NO GITHUB
+═══════════════════════════════════════════════
+
+Nome recomendado do repo:  sinapse-app
+Link final do site:        https://TEU_USER.github.io/sinapse-app/
+(substitui TEU_USER pelo teu nome GitHub)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTE A — CRIAR O REPO NO SITE (2 min)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Entra em https://github.com/new
+
+2. Preenche:
+   Repository name:  sinapse-app
+   Description:      (opcional) Sinapse app
+   Public  ← marca isto (Pages grátis)
+   NÃO marques "Add a README"
+   NÃO marques .gitignore nem license
+
+3. Clica "Create repository"
+
+4. Fica na página — NÃO cries ficheiros lá.
+   O código vem do teu PC (GitHub Desktop).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTE B — GITHUB DESKTOP (5 min)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Abre GitHub Desktop
+
+2. Menu:  File  →  Remove repository
+   (só tira da lista — NÃO apaga a pasta do PC)
+   Confirma.
+
+3. Menu:  File  →  Add local repository
+   Pasta:  C:\Users\marti\sinapse-app
+   Se pedir:  create a repository  →  Create
+
+4. Menu:  Repository  →  Repository settings
+   Remotes  →  se existir "origin" antigo, remove
+
+5. Clica o botão grande:
+   "Publish repository"
+
+   - Name: sinapse-app
+   - Organization: (a tua conta)
+   - DESMARCA "Keep this code private"  (tem de ser Public)
+   - Publish repository
+
+6. Se já tinhas commits locais, faz:
+   Branch  →  Push origin
+   (ou "Publish" já envia tudo)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTE C — SECRETS SUPABASE (2 min)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No browser:  github.com/TEU_USER/sinapse-app
+
+Settings  →  Secrets and variables  →  Actions  →  New secret
+
+Secret 1:
+  Name:   VITE_SUPABASE_URL
+  Value:  (copia do ficheiro .env no PC)
+
+Secret 2:
+  Name:   VITE_SUPABASE_ANON_KEY
+  Value:  (copia do ficheiro .env no PC)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTE D — ATIVAR O SITE (3 min)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Settings  →  Pages
+2. Source:  GitHub Actions
+3. Separador Actions
+4. Clica "Publicar no GitHub Pages"
+5. Run workflow  →  Run workflow
+6. Espera bolinha VERDE (2-5 min)
+7. Volta a Settings → Pages → copia o link
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTE E — SUPABASE (login)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+supabase.com  →  teu projeto  →  Authentication  →  URL Configuration
+
+Site URL:        https://TEU_USER.github.io/sinapse-app/
+Redirect URLs:   a mesma linha + http://localhost:5173
+
+Save  →  abre o link no telemóvel e entra.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROBLEMAS?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• 404 no link     → Actions não está verde OU Pages não é "GitHub Actions"
+• Login falha     → URLs no Supabase erradas
+• Push falha      → Repo tem de se chamar igual no GitHub e no Desktop
+• .env no GitHub  → NUNCA — só os 2 secrets acima
+
+═══════════════════════════════════════════════

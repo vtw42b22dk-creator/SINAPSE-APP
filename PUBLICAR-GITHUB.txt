@@ -1,0 +1,49 @@
+SINAPSE — PUBLICAR SÓ COM GITHUB
+================================
+
+O TEU LINK (quando estiver ativo):
+https://vtw42b22dk-creator.github.io/sinapseapp/
+
+REPO: vtw42b22dk-creator/sinapseapp
+
+
+PASSO 1 — GitHub Desktop
+------------------------
+1. Abre GitHub Desktop
+2. Repository = pasta C:\Users\marti\sinapse-app
+3. Se aparecer alterações: Summary = "Atualizar site" → Commit
+4. Clica "Push origin"
+
+Se der erro "Repository not found":
+- GitHub.com → + New repository → nome: sinapseapp → Public → Create
+- No Desktop: Repository → Repository settings → Remote
+  URL: https://github.com/TEU_USER/sinapseapp.git
+- Depois Push origin
+
+
+PASSO 2 — Dois secrets (uma vez)
+--------------------------------
+github.com → sinapseapp → Settings → Secrets and variables → Actions
+
+Criar:
+  VITE_SUPABASE_URL        (valor do teu .env)
+  VITE_SUPABASE_ANON_KEY   (valor do teu .env)
+
+
+PASSO 3 — Ativar Pages (uma vez)
+--------------------------------
+Settings → Pages → Source: GitHub Actions
+
+
+PASSO 4 — Publicar
+------------------
+Actions → "Publicar no GitHub Pages" → Run workflow
+Esperar visto verde.
+
+Settings → Pages → copiar o link.
+
+
+PASSO 5 — Supabase (login)
+--------------------------
+Authentication → URL Configuration
+Site URL e Redirect: o link do passo 4
