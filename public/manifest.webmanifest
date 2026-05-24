@@ -2,14 +2,14 @@
   "name": "Sinapse",
   "short_name": "Sinapse",
   "description": "Calendário, tarefas, sinapses e diário sincronizados.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0A0A12",
   "theme_color": "#00FFC8",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "./favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
