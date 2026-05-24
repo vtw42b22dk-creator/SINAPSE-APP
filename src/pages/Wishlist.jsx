@@ -66,12 +66,20 @@ export default function Wishlist() {
     });
   }, []);
 
-  useCloudSync(syncFromCloud, {
+  useCloudSync({
     shouldSkip: function() {
       if (!loaded) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
+    },
+    onPull: syncFromCloud,
+    onPush: function() {
+      skipSaveRef.current = true;
+      return persist(groupsRef.current, itemsRef.current).finally(function() {
+        lastSaveAt.current = Date.now();
+        setTimeout(function() { skipSaveRef.current = false; }, 150);
+      });
     },
   });
 

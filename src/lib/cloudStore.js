@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { supabase } from "./supabase";
+import { backupBeforeWrite, readWithRecovery, recoverFromRing, scanAllStorageForBaseKey } from "./dataGuard";
 
 var LAST_USER_KEY = "sinapse-last-user-id-v1";
 
@@ -55,18 +56,50 @@ export async function scopedKey(key) {
 
 export async function readLocal(key, fallback) {
   try {
-    var raw = localStorage.getItem(await scopedKey(key));
-    if (!raw) raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    var sk = await scopedKey(key);
+    return await readWithRecovery(key, sk, async function() {
+      var raw = localStorage.getItem(sk);
+      if (!raw) raw = localStorage.getItem(key);
+      if (!raw) return Array.isArray(fallback) ? fallback.slice() : fallback;
+      return JSON.parse(raw);
+    });
   } catch (e) {
-    return fallback;
+    return Array.isArray(fallback) ? fallback.slice() : fallback;
   }
 }
 
 export async function writeLocal(key, value) {
   try {
-    localStorage.setItem(await scopedKey(key), JSON.stringify(value));
+    var sk = await scopedKey(key);
+    var prev = [];
+    try {
+      var raw = localStorage.getItem(sk);
+      if (raw) prev = JSON.parse(raw);
+    } catch (e) {}
+    if (Array.isArray(prev) && prev.length) {
+      await backupBeforeWrite(sk, prev);
+    }
+    if ((!value || !value.length) && Array.isArray(prev) && prev.length) {
+      return;
+    }
+    localStorage.setItem(sk, JSON.stringify(value || []));
   } catch (e) {}
+}
+
+/** Restaura a melhor cópia de backup para esta chave. */
+export async function restoreFromBackups(key) {
+  var sk = await scopedKey(key);
+  var fromRing = recoverFromRing(sk);
+  if (fromRing && fromRing.length) {
+    await writeLocal(key, fromRing);
+    return { ok: true, count: fromRing.length, source: "backup" };
+  }
+  var scanned = scanAllStorageForBaseKey(key);
+  if (scanned && scanned.data.length) {
+    await writeLocal(key, scanned.data);
+    return { ok: true, count: scanned.data.length, source: scanned.key };
+  }
+  return { ok: false, reason: "Sem cópias" };
 }
 
 function ts(row) {
@@ -255,7 +288,7 @@ export async function replaceRows(table, localKey, rows, options) {
     var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
     if (res.error) throw res.error;
 
-    if (options.pruneOrphans) {
+    if (options.pruneOrphans === true) {
       var ids = stamped.map(function(r) { return r.id; });
       var existing = await supabase.from(table).select("id").eq("user_id", user.id);
       if (existing.error) throw existing.error;

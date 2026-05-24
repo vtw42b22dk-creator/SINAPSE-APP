@@ -87,13 +87,22 @@ export default function Journal() {
     });
   }, []);
 
-  useCloudSync(syncFromCloud, {
+  useCloudSync({
     shouldSkip: function() {
       if (!loaded) return true;
       if (editingBlockRef.current) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
+    },
+    onPull: syncFromCloud,
+    onPush: function() {
+      flushAllEditors();
+      skipSaveRef.current = true;
+      return persistAll().finally(function() {
+        lastSaveAt.current = Date.now();
+        setTimeout(function() { skipSaveRef.current = false; }, 150);
+      });
     },
   });
 

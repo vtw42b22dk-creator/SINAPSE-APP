@@ -1,15 +1,11 @@
 import {
   deleteRemoteIds,
-  fetchRemoteRows,
-  getLocalDeletedIds,
-  mergePullFromRemoteAsync,
   readLocal,
   replaceRows,
-  safeWriteLocal,
-  selectRowsMerged,
   uid,
   writeLocal,
 } from "./cloudStore";
+import { safePullMerge } from "./syncEngine";
 import { hydrateJournalBlocks, stripAttachmentRef } from "./attachmentsStore";
 
 var SPACES = "journal-spaces-v1";
@@ -89,7 +85,7 @@ export function mergeBlocksForPull(local, remote, editingBlock, deletedIds) {
     if (!nl.id) return;
     var r = map[nl.id];
     if (r) map[nl.id] = pickRicherBlock(nl, r);
-    else if (editingId === nl.id) map[nl.id] = nl;
+    else if (!deleted[nl.id]) map[nl.id] = nl;
   });
   return Object.values(map);
 }
@@ -156,13 +152,12 @@ export async function loadBlocksLocal() {
 
 export async function pullSpaces() {
   try {
-    var local = await readLocal(SPACES, []);
-    var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
-    var merged = await mergePullFromRemoteAsync(local, remote, SPACES);
+    var merged = await safePullMerge(SPACES, "journal_spaces", normalizeSpace);
     if (!merged.length) {
+      var local = await readLocal(SPACES, []);
       merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+      await writeLocal(SPACES, merged);
     }
-    await safeWriteLocal(SPACES, merged, local);
     return merged;
   } catch (e) {
     return loadSpacesLocal();
@@ -171,12 +166,9 @@ export async function pullSpaces() {
 
 export async function pullBlocks(editingBlock) {
   try {
-    var local = await readLocal(BLOCKS, []);
-    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
-    var deletedIds = await getLocalDeletedIds(BLOCKS);
-    var merged = mergeBlocksForPull(local, remote, editingBlock, deletedIds);
-    merged = overlayEditingBlock(merged, editingBlock);
-    await safeWriteLocal(BLOCKS, merged, local);
+    var merged = await safePullMerge(BLOCKS, "journal_blocks", normalizeBlock, function(local, remote, deletedIds) {
+      return overlayEditingBlock(mergeBlocksForPull(local, remote, editingBlock, deletedIds), editingBlock);
+    });
     return blocksToUi(merged);
   } catch (e) {
     return loadBlocksLocal();
@@ -196,7 +188,7 @@ export async function saveSpaces(spaces) {
     (spaces || []).map(function(s) {
       return { id: s.id, title: s.title, color: s.color || "#FFB800", updated: Date.now() };
     }),
-    { pruneOrphans: true }
+    { pruneOrphans: false }
   );
 }
 
@@ -209,7 +201,7 @@ export async function saveBlocks(blocks) {
     return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   }
   var rows = blocks.map(sanitizeBlockForSave);
-  return replaceRows("journal_blocks", BLOCKS, rows, { pruneOrphans: true });
+  return replaceRows("journal_blocks", BLOCKS, rows, { pruneOrphans: false });
 }
 
 export async function saveAll(spaces, blocks) {

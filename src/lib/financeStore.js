@@ -1,13 +1,12 @@
 import {
   deleteRemoteIds,
   fetchRemoteRows,
-  mergePullFromRemoteAsync,
   readLocal,
   replaceRows,
-  safeWriteLocal,
   uid,
   writeLocal,
 } from "./cloudStore";
+import { safePullMerge } from "./syncEngine";
 
 var EXPENSE_TABLE = "expenses";
 var EXPENSE_KEY = "expenses-v1";
@@ -126,7 +125,7 @@ export async function loadCategories() {
 
 export async function saveCategories(categories) {
   if (!categories || !categories.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
-  return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(catToDb), { pruneOrphans: true });
+  return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(catToDb), { pruneOrphans: false });
 }
 
 export async function deleteCategory(categoryId) {
@@ -136,10 +135,7 @@ export async function deleteCategory(categoryId) {
 
 export async function pullExpenses() {
   try {
-    var remote = await fetchRemoteRows(EXPENSE_TABLE, normalize);
-    var local = await readLocal(EXPENSE_KEY, []);
-    var merged = await mergePullFromRemoteAsync(local, remote, EXPENSE_KEY);
-    await safeWriteLocal(EXPENSE_KEY, merged, local);
+    var merged = await safePullMerge(EXPENSE_KEY, EXPENSE_TABLE, normalize);
     return merged.sort(function(a, b) {
       return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
     });
@@ -150,12 +146,8 @@ export async function pullExpenses() {
 
 export async function pullCategories() {
   try {
-    var local = await readLocal(CAT_KEY, []);
-    var remote = await fetchRemoteRows(CAT_TABLE, normCat);
-    var merged = await mergePullFromRemoteAsync(local, remote, CAT_KEY);
-    if (!merged.length && local.length) merged = local;
+    var merged = await safePullMerge(CAT_KEY, CAT_TABLE, normCat);
     if (!merged.length) merged = await ensureCategories();
-    await safeWriteLocal(CAT_KEY, merged, local);
     return sortCats(merged);
   } catch (e) {
     var local = await loadCategoriesLocal();
@@ -172,7 +164,7 @@ export async function loadExpenses() {
 
 export async function saveExpenses(rows) {
   if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
-  return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, (rows || []).map(toDb), { pruneOrphans: true });
+  return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, (rows || []).map(toDb), { pruneOrphans: false });
 }
 
 export async function deleteExpense(id) {

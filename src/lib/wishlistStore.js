@@ -1,15 +1,12 @@
 import {
   deleteRemoteIds,
-  fetchRemoteRows,
-  mergePullFromRemoteAsync,
-  mergeRowsByTimestamp,
   readLocal,
   replaceRows,
-  safeWriteLocal,
   selectRowsMerged,
   uid,
   writeLocal,
 } from "./cloudStore";
+import { safePullMerge } from "./syncEngine";
 
 var TABLE = "wishlist_items";
 var KEY = "wishlist-items-v1";
@@ -81,14 +78,9 @@ export async function loadItemsLocal() {
 
 export async function pullGroups() {
   try {
-    var local = await readLocal(GROUPS_KEY, []);
-    var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
-    var merged = await mergePullFromRemoteAsync(local, remote, GROUPS_KEY);
+    var merged = await safePullMerge(GROUPS_KEY, GROUPS_TABLE, normalizeGroup);
     merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
-    if (!merged.length) {
-      merged = local.length ? local : [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
-    }
-    await safeWriteLocal(GROUPS_KEY, merged, local);
+    if (!merged.length) return loadGroupsLocal();
     return merged;
   } catch (e) {
     return loadGroupsLocal();
@@ -97,10 +89,7 @@ export async function pullGroups() {
 
 export async function pullItems() {
   try {
-    var local = await readLocal(KEY, []);
-    var remote = await fetchRemoteRows(TABLE, normalize);
-    var merged = await mergePullFromRemoteAsync(local, remote, KEY);
-    await safeWriteLocal(KEY, merged, local);
+    var merged = await safePullMerge(KEY, TABLE, normalize);
     return sortItems(merged.map(normalize));
   } catch (e) {
     return loadItemsLocal();
@@ -131,7 +120,7 @@ export async function saveGroups(groups) {
         updated: g.updated || Date.now(),
       };
     }),
-    { pruneOrphans: true }
+    { pruneOrphans: false }
   );
 }
 
@@ -142,7 +131,7 @@ export async function loadItems() {
 
 export async function saveItems(items) {
   if (!items || !items.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
-  return replaceRows(TABLE, KEY, items.map(toDb), { pruneOrphans: true });
+  return replaceRows(TABLE, KEY, items.map(toDb), { pruneOrphans: false });
 }
 
 export async function deleteGroup(groupId) {

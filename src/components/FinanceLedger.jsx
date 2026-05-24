@@ -44,15 +44,26 @@ export default function FinanceLedger(props) {
 
   var syncFromCloud = useCallback(function() {
     if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
-    if (Date.now() - lastSaveAt.current < 4000) return Promise.resolve();
+    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     return Promise.all([pullCategories(), pullRows()]).then(function(res) {
       if (skipSaveRef.current) return;
       skipSaveRef.current = true;
       setCategories(res[0]);
       setRows(res[1]);
-      setTimeout(function() { skipSaveRef.current = false; }, 80);
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
     }).catch(function() {});
   }, [store]);
+
+  function pushToCloud() {
+    skipSaveRef.current = true;
+    return Promise.all([
+      persistCats(categoriesRef.current),
+      persistRows(rowsRef.current),
+    ]).finally(function() {
+      lastSaveAt.current = Date.now();
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
+    });
+  }
 
   useEffect(function() {
     var alive = true;
@@ -63,7 +74,7 @@ export default function FinanceLedger(props) {
       setRows(res[1]);
       applyDraftCategories(res[0]);
       setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 80);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
       syncFromCloud();
     }).catch(function() {
       if (!alive) return;
@@ -74,17 +85,14 @@ export default function FinanceLedger(props) {
   }, [store, syncFromCloud]);
 
   useEffect(function() {
-    function onVisible() {
-      if (document.visibilityState === "hidden") return;
-      syncFromCloud();
+    if (!loaded) return;
+    function onVis() {
+      if (document.visibilityState === "hidden") pushToCloud();
+      else if (Date.now() - lastDeleteAt.current >= 20000 && Date.now() - lastSaveAt.current >= 8000) syncFromCloud();
     }
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onVisible);
-    return function() {
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onVisible);
-    };
-  }, [syncFromCloud]);
+    document.addEventListener("visibilitychange", onVis);
+    return function() { document.removeEventListener("visibilitychange", onVis); };
+  }, [loaded, syncFromCloud]);
 
   useEffect(function() { categoriesRef.current = categories; }, [categories]);
   useEffect(function() { rowsRef.current = rows; }, [rows]);

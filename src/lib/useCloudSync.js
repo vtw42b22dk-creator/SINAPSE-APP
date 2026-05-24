@@ -2,48 +2,37 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "./AuthContext";
 
 /**
- * Carrega da nuvem ao abrir o módulo e quando voltas ao separador
- * (se não estiveres a editar — evita apagar texto a meio).
+ * Sincronização segura:
+ * - onPush ao sair do separador (grava na nuvem)
+ * - onPull ao voltar (só se shouldSkip permitir) — merge protegido nos stores
  */
-export function useCloudSync(loadFn, opts) {
+export function useCloudSync(opts) {
   opts = opts || {};
   var auth = useAuth();
   var userId = auth && auth.user ? auth.user.id : null;
-  var loadRef = useRef(loadFn);
-  var didLoad = useRef(false);
   var optsRef = useRef(opts);
-  loadRef.current = loadFn;
   optsRef.current = opts;
 
   useEffect(
     function() {
-      if (!userId) {
-        didLoad.current = false;
-        return;
-      }
-      if (didLoad.current) return;
-      didLoad.current = true;
-      Promise.resolve()
-        .then(function() { return loadRef.current(); })
-        .catch(function() {});
-    },
-    [userId]
-  );
-
-  useEffect(
-    function() {
       if (!userId) return;
-      function pullIfVisible() {
-        if (document.visibilityState === "hidden") return;
+
+      function onVisibility() {
         var o = optsRef.current;
-        if (o.shouldSkip && o.shouldSkip()) return;
-        loadRef.current().catch(function() {});
+        if (document.visibilityState === "hidden") {
+          if (o.onPush) {
+            Promise.resolve().then(function() { return o.onPush(); }).catch(function() {});
+          }
+          return;
+        }
+        if (o.onPull && !(o.shouldSkip && o.shouldSkip())) {
+          Promise.resolve().then(function() { return o.onPull(); }).catch(function() {});
+        }
       }
-      document.addEventListener("visibilitychange", pullIfVisible);
-      window.addEventListener("focus", pullIfVisible);
+
+      document.addEventListener("visibilitychange", onVisibility);
       return function() {
-        document.removeEventListener("visibilitychange", pullIfVisible);
-        window.removeEventListener("focus", pullIfVisible);
+        document.removeEventListener("visibilitychange", onVisibility);
       };
     },
     [userId]
@@ -51,7 +40,9 @@ export function useCloudSync(loadFn, opts) {
 
   return {
     reload: function() {
-      return loadRef.current();
+      var o = optsRef.current;
+      if (o.onPull) return o.onPull();
+      return Promise.resolve();
     },
   };
 }

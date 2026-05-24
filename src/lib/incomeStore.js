@@ -1,13 +1,12 @@
 import {
   deleteRemoteIds,
   fetchRemoteRows,
-  mergePullFromRemoteAsync,
   readLocal,
   replaceRows,
-  safeWriteLocal,
   uid,
   writeLocal,
 } from "./cloudStore";
+import { safePullMerge } from "./syncEngine";
 import { todayKey } from "./financeStore";
 
 var TABLE = "incomes";
@@ -109,7 +108,7 @@ export async function saveCategories(categories) {
   if (!categories || !categories.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(function(c) {
     return { id: c.id, name: c.name, order_index: c.order_index || 0, updated: c.updated || Date.now() };
-  }), { pruneOrphans: true });
+  }), { pruneOrphans: false });
 }
 
 export async function deleteCategory(categoryId) {
@@ -119,10 +118,7 @@ export async function deleteCategory(categoryId) {
 
 export async function pullIncomes() {
   try {
-    var remote = await fetchRemoteRows(TABLE, normalize);
-    var local = await readLocal(KEY, []);
-    var merged = await mergePullFromRemoteAsync(local, remote, KEY);
-    await safeWriteLocal(KEY, merged, local);
+    var merged = await safePullMerge(KEY, TABLE, normalize);
     return merged.sort(function(a, b) {
       return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
     });
@@ -133,12 +129,8 @@ export async function pullIncomes() {
 
 export async function pullCategories() {
   try {
-    var local = await readLocal(CAT_KEY, []);
-    var remote = await fetchRemoteRows(CAT_TABLE, normCat);
-    var merged = await mergePullFromRemoteAsync(local, remote, CAT_KEY);
-    if (!merged.length && local.length) merged = local;
+    var merged = await safePullMerge(CAT_KEY, CAT_TABLE, normCat);
     if (!merged.length) merged = await ensureCategories();
-    await safeWriteLocal(CAT_KEY, merged, local);
     return sortCats(merged);
   } catch (e) {
     var local = await loadCategoriesLocal();
@@ -155,7 +147,7 @@ export async function loadIncomes() {
 
 export async function saveIncomes(rows) {
   if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
-  return replaceRows(TABLE, KEY, (rows || []).map(toDb), { pruneOrphans: true });
+  return replaceRows(TABLE, KEY, (rows || []).map(toDb), { pruneOrphans: false });
 }
 
 export async function deleteIncome(id) {

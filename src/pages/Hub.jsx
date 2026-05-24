@@ -283,42 +283,26 @@ export default function Hub() {
   var recoverBusyS = useState(false);
   var recoverBusy = recoverBusyS[0], setRecoverBusy = recoverBusyS[1];
 
-  function formatRecoverResult(label, r) {
-    if (!r || !r.ok) return label + ": " + (r && r.reason ? r.reason : "nada encontrado");
-    return label + ": " + r.count + " recuperado(s)";
-  }
-
   async function runRecover(which) {
     setRecoverBusy(true);
-    setRecoverMsg("A procurar cópias…");
+    setRecoverMsg("A procurar cópias de segurança e nuvem…");
     try {
       var res;
-      var parts;
-      if (which === "journal") {
+      if (which === "all") {
+        res = await dataRecovery.recoverAll();
+        setRecoverMsg(
+          res.journal.summary + " · " + res.wishlist.summary + " · " + res.finance.summary + " — Abre cada módulo."
+        );
+      } else if (which === "journal") {
         res = await dataRecovery.recoverJournal();
-        parts = [
-          formatRecoverResult("Nuvem (textos)", res.cloudBlocks),
-          formatRecoverResult("Nuvem (temas)", res.cloudSpaces),
-          formatRecoverResult("Browser (textos)", res.localBlocks),
-          formatRecoverResult("Browser (temas)", res.localSpaces),
-        ];
+        setRecoverMsg(res.summary + " — Abre o Diário.");
       } else if (which === "finance") {
         res = await dataRecovery.recoverFinance();
-        parts = [
-          formatRecoverResult("Nuvem (categorias gastos)", res.cloudCats),
-          formatRecoverResult("Nuvem (gastos)", res.cloudExp),
-          formatRecoverResult("Browser (categorias)", res.localCats),
-        ];
+        setRecoverMsg(res.summary + " — Abre o Financeiro.");
       } else {
         res = await dataRecovery.recoverWishlist();
-        parts = [
-          formatRecoverResult("Nuvem (itens)", res.cloudItems),
-          formatRecoverResult("Nuvem (grupos)", res.cloudGroups),
-          formatRecoverResult("Browser (itens)", res.localItems),
-          formatRecoverResult("Browser (grupos)", res.localGroups),
-        ];
+        setRecoverMsg(res.summary + " — Abre a Wishlist.");
       }
-      setRecoverMsg(parts.join(" · ") + " — Abre o módulo para ver.");
     } catch (e) {
       setRecoverMsg("Erro: " + (e.message || String(e)));
     }
@@ -378,6 +362,7 @@ export default function Hub() {
                   <button type="button" disabled={recoverBusy} onClick={function() { runRecover("journal"); }} style={recoverBtnStyle()}>Recuperar Diário</button>
                   <button type="button" disabled={recoverBusy} onClick={function() { runRecover("wishlist"); }} style={recoverBtnStyle()}>Recuperar Wishlist</button>
                   <button type="button" disabled={recoverBusy} onClick={function() { runRecover("finance"); }} style={recoverBtnStyle()}>Recuperar Financeiro</button>
+                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("all"); }} style={recoverBtnStyle()}>Recuperar tudo</button>
                 </div>
                 {recoverMsg ? <p style={{ margin: "10px 0 0", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#34D399", lineHeight: 1.55 }}>{recoverMsg}</p> : null}
               </div>
