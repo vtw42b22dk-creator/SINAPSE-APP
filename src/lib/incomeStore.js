@@ -1,4 +1,4 @@
-import { replaceRows, selectRowsMerged, uid } from "./cloudStore";
+import { fetchRemoteRows, mergeRowsByTimestamp, readLocal, replaceRows, selectRowsMerged, uid, writeLocal } from "./cloudStore";
 import { todayKey } from "./financeStore";
 
 var TABLE = "incomes";
@@ -58,6 +58,35 @@ export async function saveCategories(categories) {
   return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(function(c) {
     return { id: c.id, name: c.name, order_index: c.order_index || 0 };
   }));
+}
+
+export async function pullIncomes() {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(TABLE, normalize);
+  } catch (e) {
+    return loadIncomes();
+  }
+  var local = await readLocal(KEY, []);
+  var merged = mergeRowsByTimestamp(local, remote);
+  await writeLocal(KEY, merged);
+  return merged.sort(function(a, b) {
+    return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
+  });
+}
+
+export async function pullCategories() {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(CAT_TABLE, normCat);
+  } catch (e) {
+    return loadCategories();
+  }
+  var local = await readLocal(CAT_KEY, []);
+  var merged = mergeRowsByTimestamp(local, remote);
+  if (!merged.length) return loadCategories();
+  await writeLocal(CAT_KEY, merged);
+  return merged.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
 }
 
 export async function loadIncomes() {

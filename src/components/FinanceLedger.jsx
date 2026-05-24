@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCloudSync } from "../lib/useCloudSync";
 
 function monthKeyFromDate(d) {
   return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
@@ -24,8 +25,27 @@ export default function FinanceLedger(props) {
   var catDraftS = useState({ id: null, name: "" });
   var catDraft = catDraftS[0], setCatDraft = catDraftS[1];
   var saveTimer = useRef(null);
+  var hydratingRef = useRef(false);
+  var pullCategories = store.pullCategories || store.loadCategories;
+  var pullRows = store.pullRows || store.loadRows;
+  var syncTables = store.syncTables || [];
+
+  var loadFromCloud = useCallback(function() {
+    hydratingRef.current = true;
+    return Promise.all([pullCategories(), pullRows()]).then(function(res) {
+      setCategories(res[0]);
+      setRows(res[1]);
+      var first = res[0][0];
+      if (first) setDraft(function(d) { return Object.assign({}, d, { categories: d.categories.length ? d.categories : [first.name] }); });
+      setLoaded(true);
+      setTimeout(function() { hydratingRef.current = false; }, 0);
+    });
+  }, [store]);
+
+  useCloudSync(loadFromCloud, syncTables);
 
   useEffect(function() {
+    if (store.pullCategories) return;
     Promise.all([store.loadCategories(), store.loadRows()]).then(function(res) {
       setCategories(res[0]);
       setRows(res[1]);
@@ -36,7 +56,7 @@ export default function FinanceLedger(props) {
   }, [store]);
 
   useEffect(function() {
-    if (!loaded) return;
+    if (!loaded || hydratingRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
       store.saveCategories(categories);

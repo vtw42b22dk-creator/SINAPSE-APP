@@ -62,7 +62,7 @@ function sortItems(rows) {
   });
 }
 
-export async function pullGroups(currentGroups) {
+export async function pullGroups() {
   var remote = [];
   try {
     remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
@@ -70,7 +70,7 @@ export async function pullGroups(currentGroups) {
     return loadGroups();
   }
   var local = await readLocal(GROUPS_KEY, []);
-  var merged = mergeRowsByTimestamp(mergeRowsByTimestamp(local, remote), currentGroups || []);
+  var merged = mergeRowsByTimestamp(local, remote);
   merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
   if (!merged.length) {
     merged = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
@@ -81,7 +81,7 @@ export async function pullGroups(currentGroups) {
   return merged;
 }
 
-export async function pullItems(currentItems) {
+export async function pullItems() {
   var remote = [];
   try {
     remote = await fetchRemoteRows(TABLE, normalize);
@@ -89,7 +89,7 @@ export async function pullItems(currentItems) {
     return loadItems();
   }
   var local = await readLocal(KEY, []);
-  var merged = mergeRowsByTimestamp(mergeRowsByTimestamp(local, remote), currentItems || []);
+  var merged = mergeRowsByTimestamp(local, remote);
   await writeLocal(KEY, merged);
   return sortItems(merged.map(normalize));
 }

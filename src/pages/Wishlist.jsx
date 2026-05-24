@@ -41,10 +41,7 @@ export default function Wishlist() {
 
   var loadFromCloud = useCallback(function() {
     hydratingRef.current = true;
-    return Promise.all([
-      wishlistStore.pullGroups(groupsRef.current),
-      wishlistStore.pullItems(itemsRef.current),
-    ]).then(function(res) {
+    return Promise.all([wishlistStore.pullGroups(), wishlistStore.pullItems()]).then(function(res) {
       var gs = res[0];
       var list = res[1];
       if (gs[0]) {

@@ -29,12 +29,16 @@ export default function Journal() {
   var hydratingRef = useRef(false);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
+  var editingBlockRef = useRef(null);
+  var flushBlocksRef = useRef(null);
+  var flushHandlersRef = useRef({});
 
   var loadFromCloud = useCallback(function() {
+    if (flushBlocksRef.current) flushBlocksRef.current();
     hydratingRef.current = true;
     return Promise.all([
       journalStore.pullSpaces(spacesRef.current),
-      journalStore.pullBlocks(blocksRef.current),
+      journalStore.pullBlocks(blocksRef.current, editingBlockRef.current),
     ]).then(function(res) {
       setSpaces(res[0]);
       setBlocks(res[1]);
@@ -71,6 +75,7 @@ export default function Journal() {
   useEffect(function() {
     if (!loaded) return;
     function flush() {
+      if (flushBlocksRef.current) flushBlocksRef.current();
       journalStore.saveBlocks(blocksRef.current);
       journalStore.saveSpaces(spacesRef.current);
     }
@@ -80,6 +85,21 @@ export default function Journal() {
     });
     return function() { window.removeEventListener("beforeunload", flush); };
   }, [loaded]);
+
+  useEffect(function() {
+    flushBlocksRef.current = function() {
+      Object.keys(flushHandlersRef.current).forEach(function(id) {
+        var fn = flushHandlersRef.current[id];
+        if (fn) fn();
+      });
+    };
+  }, []);
+  function registerFlush(id, fn) {
+    flushHandlersRef.current[id] = fn;
+  }
+  function unregisterFlush(id) {
+    delete flushHandlersRef.current[id];
+  }
 
   var activeSpace = spaces.find(function(s) { return s.id === active; }) || spaces[0];
   var color = activeSpace ? activeSpace.color : ACCENT;
@@ -184,7 +204,21 @@ export default function Journal() {
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {activeBlocks.map(function(b) { return <JournalBlock key={b.id} block={b} color={color} onChange={updateBlock} onDelete={removeBlock}/>; })}
+              {activeBlocks.map(function(b) {
+                return (
+                  <JournalBlock
+                    key={b.id}
+                    block={b}
+                    color={color}
+                    onChange={updateBlock}
+                    onDelete={removeBlock}
+                    onEditStart={function(id) { editingBlockRef.current = id; }}
+                    onEditEnd={function() { editingBlockRef.current = null; }}
+                    registerFlush={registerFlush}
+                    unregisterFlush={unregisterFlush}
+                  />
+                );
+              })}
             </div>
           )}
         </section>
@@ -200,33 +234,38 @@ function JournalBlock(props) {
   var fileRef = useRef(null);
   var editorRef = useRef(null);
   var latestHtml = useRef(b.content || "");
-  var dirtyRef = useRef(false);
+  var saveTimer = useRef(null);
   var uploadS = useState("");
   var uploadMsg = uploadS[0], setUploadMsg = uploadS[1];
   useEffect(function() {
     if (!editorRef.current || b.type === "image" || b.type === "document") return;
-    latestHtml.current = b.content || "";
-    editorRef.current.innerHTML = b.content || "";
-    dirtyRef.current = false;
-  }, [b.id, b.type]);
+    var html = b.content || "";
+    if (html !== latestHtml.current) {
+      latestHtml.current = html;
+      editorRef.current.innerHTML = html;
+    }
+  }, [b.id, b.content, b.type]);
   useEffect(function() {
-    if (b.type === "image" || b.type === "document") return;
-    var timer = setInterval(function() {
-      if (dirtyRef.current && editorRef.current) {
-        props.onChange(b.id, { content: latestHtml.current });
-        dirtyRef.current = false;
-      }
-    }, 2500);
-    return function() { clearInterval(timer); };
-  }, [b.id, b.type]);
-  function onInput(e) {
-    dirtyRef.current = true;
-    latestHtml.current = e.currentTarget.innerHTML;
-  }
-  function syncText() {
-    dirtyRef.current = false;
+    return function() { clearTimeout(saveTimer.current); };
+  }, [b.id]);
+  function pushContent() {
     props.onChange(b.id, { content: latestHtml.current });
   }
+  function onInput(e) {
+    latestHtml.current = e.currentTarget.innerHTML;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(pushContent, 400);
+  }
+  function syncText() {
+    clearTimeout(saveTimer.current);
+    pushContent();
+  }
+  useEffect(function() {
+    if (props.registerFlush) props.registerFlush(b.id, syncText);
+    return function() {
+      if (props.unregisterFlush) props.unregisterFlush(b.id);
+    };
+  }, [b.id]);
   async function onFile(e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -271,7 +310,8 @@ function JournalBlock(props) {
           contentEditable
           suppressContentEditableWarning
           onInput={onInput}
-          onBlur={syncText}
+          onFocus={function() { if (props.onEditStart) props.onEditStart(b.id); }}
+          onBlur={function() { syncText(); if (props.onEditEnd) props.onEditEnd(); }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
           style={{outline:"none",fontSize:b.type==="title"?26:15,lineHeight:1.85,color:"rgba(255,255,255,0.86)",fontFamily:b.type==="title"?"'JetBrains Mono',monospace":"'IBM Plex Sans',sans-serif",fontWeight:b.type==="title"?600:400,minHeight:b.type==="title"?38:90}}
         />

@@ -1,4 +1,4 @@
-import { readLocal, replaceRows, selectRowsMerged, uid, writeLocal } from "./cloudStore";
+import { fetchRemoteRows, mergeRowsByTimestamp, readLocal, replaceRows, selectRowsMerged, uid, writeLocal } from "./cloudStore";
 
 var EXPENSE_TABLE = "expenses";
 var EXPENSE_KEY = "expenses-v1";
@@ -71,6 +71,35 @@ export async function saveCategories(categories) {
   await writeLocal(CAT_KEY, rows);
   var res = await replaceRows(CAT_TABLE, CAT_KEY, rows);
   return res.ok ? categories : categories;
+}
+
+export async function pullExpenses() {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(EXPENSE_TABLE, normalize);
+  } catch (e) {
+    return loadExpenses();
+  }
+  var local = await readLocal(EXPENSE_KEY, []);
+  var merged = mergeRowsByTimestamp(local, remote);
+  await writeLocal(EXPENSE_KEY, merged);
+  return merged.sort(function(a, b) {
+    return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
+  });
+}
+
+export async function pullCategories() {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(CAT_TABLE, normCat);
+  } catch (e) {
+    return loadCategories();
+  }
+  var local = await readLocal(CAT_KEY, []);
+  var merged = mergeRowsByTimestamp(local, remote);
+  if (!merged.length) return loadCategories();
+  await writeLocal(CAT_KEY, merged);
+  return merged.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
 }
 
 export async function loadExpenses() {

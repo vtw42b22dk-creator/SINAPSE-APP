@@ -44,24 +44,38 @@ function blocksToUi(merged) {
   );
 }
 
-function mergeBlocksWithCurrent(base, current) {
+function blockTs(b) {
+  return b && b.updated ? Number(b.updated) : 0;
+}
+
+function mergeBlocksWithCurrent(base, current, editingBlockId) {
   var map = {};
   (base || []).forEach(function(b) {
     map[b.id] = normalizeBlock(b);
   });
   (current || []).forEach(function(c) {
     if (!c || !c.id) return;
+    if (editingBlockId && c.id !== editingBlockId) return;
     var nc = normalizeBlock(c);
     var r = map[c.id];
     if (!r) {
       map[c.id] = nc;
       return;
     }
-    var lu = nc.updated || 0;
-    var ru = r.updated || 0;
-    var lc = (c.content || "").length;
-    var rc = (r.content || "").length;
-    if (lu > ru || (lu === ru && lc >= rc)) map[c.id] = nc;
+    var lc = (c.content || "").trim().length;
+    var rc = (r.content || "").trim().length;
+    var lu = blockTs(nc);
+    var ru = blockTs(r);
+    if (rc > 0 && lc === 0) return;
+    if (lc > 0 && rc === 0) {
+      map[c.id] = nc;
+      return;
+    }
+    if (editingBlockId === c.id && lu >= ru - 3000) {
+      map[c.id] = lc >= rc ? nc : Object.assign({}, r, { content: c.content, meta: c.meta || r.meta, updated: Math.max(lu, ru) });
+      return;
+    }
+    if (lu > ru && lc >= rc) map[c.id] = nc;
     else if (lc > rc) map[c.id] = Object.assign({}, r, { content: c.content, meta: c.meta || r.meta, updated: Math.max(lu, ru) });
   });
   return Object.values(map);
@@ -97,7 +111,7 @@ export async function pullSpaces(currentSpaces) {
   return merged;
 }
 
-export async function pullBlocks(currentBlocks) {
+export async function pullBlocks(currentBlocks, editingBlockId) {
   var remote = [];
   try {
     remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
@@ -106,7 +120,7 @@ export async function pullBlocks(currentBlocks) {
   }
   var local = await readLocal(BLOCKS, []);
   var base = mergeRowsByTimestamp(local, remote);
-  var merged = mergeBlocksWithCurrent(base, currentBlocks);
+  var merged = mergeBlocksWithCurrent(base, currentBlocks, editingBlockId || null);
   await writeLocal(BLOCKS, merged);
   return blocksToUi(merged);
 }

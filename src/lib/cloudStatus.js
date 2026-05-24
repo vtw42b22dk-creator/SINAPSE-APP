@@ -5,8 +5,9 @@ import { supabase } from "./supabase";
 export var SYNC_REV = typeof __APP_SYNC_REV__ !== "undefined" ? __APP_SYNC_REV__ : "desconhecida";
 
 var PROBE_TABLES = [
-  { table: "journal_blocks", label: "Diário" },
-  { table: "wishlist_items", label: "Wishlist" },
+  { table: "journal_blocks", label: "Diário (texto)" },
+  { table: "wishlist_items", label: "Wishlist (itens)" },
+  { table: "expenses", label: "Gastos" },
 ];
 
 export async function probeCloudTables() {
