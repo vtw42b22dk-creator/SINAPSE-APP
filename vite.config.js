@@ -8,4 +8,7 @@ if (base !== './' && base !== '/' && !base.endsWith('/')) base += '/'
 export default defineConfig({
   base: base,
   plugins: [react()],
+  define: {
+    __APP_SYNC_REV__: JSON.stringify('sync-v2'),
+  },
 })

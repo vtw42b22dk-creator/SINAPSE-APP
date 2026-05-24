@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { useTheme } from "../lib/ThemeContext";
 import * as changelog from "../lib/changelog";
+import { probeCloudTables, SYNC_REV } from "../lib/cloudStatus";
 import UpdatesChangelog, { UpdatesFloatingButton } from "../components/UpdatesChangelog";
 
 function ParticleField() {
@@ -276,6 +277,15 @@ export default function Hub() {
   var changelogUnread = chS[0], setChangelogUnread = chS[1];
   var openChS = useState(false);
   var changelogOpen = openChS[0], setChangelogOpen = openChS[1];
+  var cloudS = useState(null);
+  var cloudStatus = cloudS[0], setCloudStatus = cloudS[1];
+  useEffect(function() {
+    if (!auth.user) {
+      setCloudStatus(null);
+      return;
+    }
+    probeCloudTables().then(setCloudStatus);
+  }, [auth.user]);
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
@@ -322,8 +332,13 @@ export default function Hub() {
               return <ModuleCard key={mod.id} module={mod} compact={isMobile} index={i} onClick={function() { if (mod.path) navigate(mod.path); }} />;
             })}
           </div>
-          <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",justifyContent:"center",paddingTop:8}}>
+          <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:8,paddingTop:8}}>
             <StorageBar usage={storageUsage} loggedIn={!!auth.user} />
+            {auth.user ? (
+              <p style={{margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",textAlign:"center",lineHeight:1.5,maxWidth:420,color:cloudStatus && cloudStatus.ok ? "#34D399" : cloudStatus ? "#FF3D8A" : "rgba(255,255,255,0.3)"}}>
+                {cloudStatus ? cloudStatus.detail : "A verificar sincronização…"}
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
@@ -347,7 +362,7 @@ export default function Hub() {
             }}
           >
             {changelogUnread ? <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#FF3D8A", animation: "pulseDot 1.8s ease-in-out infinite" }} /> : null}
-            Ver atualizações · Hub v0.2
+            Ver atualizações · {SYNC_REV}
           </button>
         </div>
       </div>
