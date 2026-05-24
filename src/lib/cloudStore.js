@@ -88,10 +88,20 @@ function stampRow(row) {
   return Object.assign({}, row, { updated: ms, updated_at: new Date(ms).toISOString() });
 }
 
+function safeOrderIndex(value) {
+  var n = value != null ? Number(value) : Math.floor(Date.now() / 1000);
+  if (!isFinite(n)) n = 0;
+  if (n > 2147483647) n = Math.floor(n / 1000);
+  if (n > 2147483647) n = 2147483647;
+  if (n < 0) n = 0;
+  return Math.floor(n);
+}
+
 function cleanPayload(row, userId) {
   var out = Object.assign({}, row, { user_id: userId });
   delete out.updated;
   delete out.created;
+  if (out.order_index != null) out.order_index = safeOrderIndex(out.order_index);
   return out;
 }
 

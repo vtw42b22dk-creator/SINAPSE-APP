@@ -151,7 +151,7 @@ export function newBlock(spaceId, type) {
     type: type || "text",
     content: "",
     meta: {},
-    order_index: Date.now(),
+    order_index: Math.floor(Date.now() / 1000),
     updated: Date.now(),
   };
 }

@@ -133,7 +133,7 @@ export async function persistAll(groups, items) {
 }
 
 export function newGroup(name) {
-  return normalizeGroup({ id: uid("wg"), name: name || "Novo grupo", color: "#34D399", order_index: Date.now() });
+  return normalizeGroup({ id: uid("wg"), name: name || "Novo grupo", color: "#34D399", order_index: Math.floor(Date.now() / 1000) });
 }
 
 export function newItem(title, groupId) {

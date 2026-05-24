@@ -2,8 +2,13 @@
 -- SINAPSE — cola TUDO isto no Supabase → SQL Editor → Run (uma vez)
 -- Projeto: supabase.com → teu projeto → SQL Editor
 -- ============================================================
--- O diário (journal_*) já vem do schema.sql principal.
--- Este ficheiro cria wishlist, gastos e categorias que faltam muitas vezes.
+
+-- Correções (order_index + group_id)
+alter table public.wishlist_items add column if not exists group_id text;
+alter table public.journal_blocks alter column order_index type bigint;
+alter table public.wishlist_groups alter column order_index type bigint;
+alter table public.finance_categories alter column order_index type bigint;
+alter table public.income_categories alter column order_index type bigint;
 
 -- ---------- WISHLIST + GASTOS ----------
 create table if not exists public.wishlist_groups (
