@@ -5,7 +5,7 @@ import * as incomeStore from "../lib/incomeStore";
 import FinanceLedger from "../components/FinanceLedger";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
-import { pageBg, pageText, useTheme } from "../lib/ThemeContext";
+import { pageBg, pageText } from "../lib/ThemeContext";
 
 var EXPENSE_ACCENT = "#38BDF8";
 var INCOME_ACCENT = "#34D399";
@@ -38,19 +38,15 @@ var incomeAdapter = {
 
 export default function Finance() {
   var navigate = useNavigate();
-  var theme = useTheme();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
   var tabS = useState("expense");
   var tab = tabS[0], setTab = tabS[1];
-  var readyS = useState(false);
-  var ready = readyS[0], setReady = readyS[1];
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
-    setReady(true);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
@@ -71,21 +67,18 @@ export default function Finance() {
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={function() { setTab("expense"); }} style={tabBtn(tab === "expense", EXPENSE_ACCENT)}>Gastos</button>
             <button onClick={function() { setTab("income"); }} style={tabBtn(tab === "income", INCOME_ACCENT)}>Recursos</button>
-            {theme && <button onClick={theme.toggle} style={backBtn()} title="Alternar tema">{theme.isMinimal ? "Neon" : "Claro"}</button>}
           </div>
         </div>
       </header>
       <main className="mod-main" data-scrollable style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px" }}>
-        {!ready ? <PageLoader accent={accent} /> : (
-          <FinanceLedger
-            key={tab}
-            store={tab === "income" ? incomeAdapter : expenseAdapter}
-            accent={accent}
-            isMobile={isMobile}
-            label={tab === "income" ? "Registar entrada" : "Registar gasto"}
-            loader={<PageLoader accent={accent} />}
-          />
-        )}
+        <FinanceLedger
+          key={tab}
+          store={tab === "income" ? incomeAdapter : expenseAdapter}
+          accent={accent}
+          isMobile={isMobile}
+          label={tab === "income" ? "Registar entrada" : "Registar gasto"}
+          loader={<PageLoader accent={accent} lines={4} />}
+        />
       </main>
     </div>
   );

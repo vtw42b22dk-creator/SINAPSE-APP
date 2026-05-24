@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
-import { useTheme } from "../lib/ThemeContext";
-import * as changelog from "../lib/changelog";
-import { probeCloudTables, SYNC_REV } from "../lib/cloudStatus";
-import UpdatesChangelog, { UpdatesFloatingButton } from "../components/UpdatesChangelog";
 
 function ParticleField() {
   const ref = useRef(null);
@@ -240,9 +236,6 @@ function StorageBar(props) {
   var pct = Math.min(100, Math.round((usage.bytes / limit) * 100));
   var color = pct >= 90 ? "#FF3D5A" : pct >= 70 ? "#FFB800" : "#00FFC8";
   var estPhotos = estimateLocalPhotos(usage.bytes);
-  var cloudHint = props.loggedIn
-    ? "Com login Supabase, as fotos vão para a nuvem (centenas+, conforme o teu plano)."
-    : "Sem login, as fotos ficam só neste dispositivo (limite ~5 MB).";
   return (
     <div style={{width:"min(420px,100%)",padding:"14px 16px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)",animation:"fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s both",flexShrink:0}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:8}}>
@@ -254,12 +247,11 @@ function StorageBar(props) {
       </div>
       <p style={{margin:"8px 0 0",fontSize:10,color:"rgba(255,255,255,0.28)",textAlign:"center",lineHeight:1.5}}>
         {usage.bytes < 50000
-          ? "Quase vazio aqui — normal se as fotos estão na nuvem."
+          ? "Quase vazio aqui."
           : estPhotos > 0
-            ? "Cópias locais ~" + estPhotos + " foto(s) de tamanho médio (se guardadas sem nuvem)."
+            ? "Cópias locais ~" + estPhotos + " foto(s) de tamanho médio."
             : "Texto e dados da app neste browser."}
       </p>
-      <p style={{margin:"4px 0 0",fontSize:9,color:"rgba(255,255,255,0.2)",textAlign:"center",lineHeight:1.45}}>{cloudHint}</p>
     </div>
   );
 }
@@ -267,25 +259,11 @@ function StorageBar(props) {
 export default function Hub() {
   var navigate = useNavigate();
   var auth = useAuth();
-  var theme = useTheme();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
   var stS = useState(getAppStorageUsage);
   var storageUsage = stS[0], setStorageUsage = stS[1];
-  var chS = useState(changelog.hasUnreadChangelog);
-  var changelogUnread = chS[0], setChangelogUnread = chS[1];
-  var openChS = useState(false);
-  var changelogOpen = openChS[0], setChangelogOpen = openChS[1];
-  var cloudS = useState(null);
-  var cloudStatus = cloudS[0], setCloudStatus = cloudS[1];
-  useEffect(function() {
-    if (!auth.user) {
-      setCloudStatus(null);
-      return;
-    }
-    probeCloudTables().then(setCloudStatus);
-  }, [auth.user]);
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
@@ -304,14 +282,11 @@ export default function Hub() {
   return (
     <div>
       <style>{"@keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:0.2}}@keyframes floatBubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes pulseDot{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}"}</style>
-      <UpdatesFloatingButton isMobile={isMobile} unread={changelogUnread} onOpen={function() { setChangelogOpen(true); }} />
-      <UpdatesChangelog open={changelogOpen} onClose={function() { setChangelogOpen(false); }} onSeen={function() { setChangelogUnread(false); }} isMobile={isMobile} />
       <div data-scrollable style={{minHeight:"100vh", background:"linear-gradient(160deg, #0A0A0F 0%, #0D0E18 40%, #0A0A0F 100%)",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start",
         padding:isMobile?"72px 14px 100px":"48px 24px 56px", position:"relative", overflow:"auto", WebkitOverflowScrolling:"touch"}}>
         <ParticleField />
         <div style={{position:"fixed",top:isMobile?12:18,right:isMobile?12:18,zIndex:4,display:"flex",gap:8}}>
-          {theme && <button onClick={theme.toggle} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.45)",fontSize:12,padding:"8px 12px",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif"}}>{theme.isMinimal ? "Neon" : "Claro"}</button>}
           <button onClick={function(){auth.signOut();}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.45)",fontSize:12,padding:"8px 12px",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif"}}>Sair</button>
         </div>
         <div style={{position:"fixed",top:"-20%",right:"-10%",width:500,height:500,background:"radial-gradient(circle, rgba(0,255,200,0.03), transparent 60%)",pointerEvents:"none"}} />
@@ -334,53 +309,7 @@ export default function Hub() {
           </div>
           <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:8,paddingTop:8}}>
             <StorageBar usage={storageUsage} loggedIn={!!auth.user} />
-            {auth.user ? (
-              <div style={{ textAlign: "center", maxWidth: 440 }}>
-                <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.55, color: cloudStatus && cloudStatus.ok ? "#34D399" : cloudStatus ? "#FF3D8A" : "rgba(255,255,255,0.3)" }}>
-                  {cloudStatus ? cloudStatus.detail : "A verificar sincronização…"}
-                </p>
-                <button
-                  type="button"
-                  onClick={function() {
-                    setCloudStatus(null);
-                    probeCloudTables().then(setCloudStatus);
-                  }}
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.45)", fontSize: 10, padding: "6px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}
-                >
-                  Verificar nuvem outra vez
-                </button>
-                {cloudStatus && !cloudStatus.ok ? (
-                  <p style={{ margin: "10px 0 0", fontSize: 9, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-                    Abre Supabase → SQL Editor → cola o ficheiro supabase/SETUP-TUDO.sql → Run
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
-          <button
-            type="button"
-            onClick={function() { setChangelogOpen(true); }}
-            style={{
-              marginTop: 8,
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 12,
-              padding: "10px 18px",
-              cursor: "pointer",
-              fontFamily: "'JetBrains Mono',monospace",
-              fontSize: 10,
-              color: changelogUnread ? "#00FFC8" : "rgba(255,255,255,0.22)",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              animation: "fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.55s both",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            {changelogUnread ? <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#FF3D8A", animation: "pulseDot 1.8s ease-in-out infinite" }} /> : null}
-            Ver atualizações · {SYNC_REV}
-          </button>
         </div>
       </div>
     </div>

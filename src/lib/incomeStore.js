@@ -1,4 +1,4 @@
-import { fetchRemoteRows, mergeRowsByTimestamp, readLocal, replaceRows, selectRowsMerged, uid, writeLocal } from "./cloudStore";
+import { fetchRemoteRows, mergePullFromRemote, readLocal, replaceRows, uid, writeLocal } from "./cloudStore";
 import { todayKey } from "./financeStore";
 
 var TABLE = "incomes";
@@ -43,15 +43,21 @@ function toDb(row) {
   };
 }
 
+function defaultCategories() {
+  return DEFAULT_CATEGORIES.map(function(name, i) {
+    return { id: uid("ic"), name: name, order_index: i };
+  });
+}
+
 export async function loadCategories() {
-  var rows = await selectRowsMerged(CAT_TABLE, CAT_KEY, [], normCat);
-  if (!rows.length) {
-    rows = DEFAULT_CATEGORIES.map(function(name, i) {
-      return { id: uid("ic"), name: name, order_index: i };
-    });
-    await saveCategories(rows);
+  var local = await readLocal(CAT_KEY, []);
+  if (local.length) {
+    return local.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
   }
-  return rows.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
+  var rows = defaultCategories();
+  await writeLocal(CAT_KEY, rows);
+  saveCategories(rows).catch(function() {});
+  return rows;
 }
 
 export async function saveCategories(categories) {
@@ -69,7 +75,7 @@ export async function pullIncomes() {
     return loadIncomes();
   }
   var local = await readLocal(KEY, []);
-  var merged = mergeRowsByTimestamp(local, remote);
+  var merged = mergePullFromRemote(local, remote);
   await writeLocal(KEY, merged);
   return merged.sort(function(a, b) {
     return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
@@ -84,15 +90,15 @@ export async function pullCategories() {
     return loadCategories();
   }
   var local = await readLocal(CAT_KEY, []);
-  var merged = mergeRowsByTimestamp(local, remote);
+  var merged = mergePullFromRemote(local, remote);
   if (!merged.length) return loadCategories();
   await writeLocal(CAT_KEY, merged);
   return merged.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
 }
 
 export async function loadIncomes() {
-  var rows = await selectRowsMerged(TABLE, KEY, [], normalize);
-  return rows.sort(function(a, b) {
+  var local = await readLocal(KEY, []);
+  return (local || []).map(normalize).sort(function(a, b) {
     return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
   });
 }

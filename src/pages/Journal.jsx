@@ -33,8 +33,6 @@ export default function Journal() {
   var flushHandlersRef = useRef({});
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
-  var saveMsgS = useState("");
-  var saveMsg = saveMsgS[0], setSaveMsg = saveMsgS[1];
 
   function getEditingSnapshot() {
     var id = editingBlockRef.current;
@@ -56,7 +54,6 @@ export default function Journal() {
         return res[0][0] ? res[0][0].id : null;
       });
       setLoaded(true);
-      setSaveMsg("");
       setTimeout(function() { skipSaveRef.current = false; }, 100);
     });
   }, []);
@@ -80,13 +77,7 @@ export default function Journal() {
     if (!res) return;
     if (res.ok && res.cloud !== false) {
       lastSaveAt.current = Date.now();
-      setSaveMsg("Guardado na nuvem ✓");
       try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
-      setTimeout(function() { setSaveMsg(""); }, 2500);
-    } else if (res.error) {
-      setSaveMsg("Erro ao guardar: " + res.error);
-    } else if (res.skippedEmpty) {
-      setSaveMsg("");
     }
   }
 
@@ -228,8 +219,6 @@ export default function Journal() {
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
             <h1 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,color:color,margin:0}}>Diário</h1>
-            {saveMsg ? <span style={{fontSize:10,color:saveMsg.indexOf("Erro")>=0?"#FF3D8A":"#34D399",fontFamily:"'JetBrains Mono',monospace"}}>{saveMsg}</span> : null}
-            <button type="button" onClick={function() { loadFromCloud(); }} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"rgba(255,255,255,0.45)",fontSize:10,padding:"6px 10px",cursor:"pointer"}}>↻ Trazer da nuvem</button>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0}}>
             <button onClick={function(){addBlock("title");}} style={topBtn(color)}>+ Título</button>

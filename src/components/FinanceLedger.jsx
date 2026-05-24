@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useCloudSync } from "../lib/useCloudSync";
 
 function monthKeyFromDate(d) {
   return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
@@ -27,32 +26,73 @@ export default function FinanceLedger(props) {
   var saveCatTimer = useRef(null);
   var saveRowsTimer = useRef(null);
   var skipSaveRef = useRef(false);
+  var lastSaveAt = useRef(0);
   var categoriesRef = useRef([]);
   var rowsRef = useRef([]);
   var pullCategories = store.pullCategories || store.loadCategories;
   var pullRows = store.pullRows || store.loadRows;
 
-  var loadFromCloud = useCallback(function() {
-    skipSaveRef.current = true;
+  function applyDraftCategories(cats) {
+    var first = cats && cats[0];
+    if (first) {
+      setDraft(function(d) {
+        return Object.assign({}, d, { categories: d.categories.length ? d.categories : [first.name] });
+      });
+    }
+  }
+
+  var syncFromCloud = useCallback(function() {
+    if (Date.now() - lastSaveAt.current < 4000) return Promise.resolve();
     return Promise.all([pullCategories(), pullRows()]).then(function(res) {
+      if (skipSaveRef.current) return;
+      skipSaveRef.current = true;
       setCategories(res[0]);
       setRows(res[1]);
-      var first = res[0][0];
-      if (first) setDraft(function(d) { return Object.assign({}, d, { categories: d.categories.length ? d.categories : [first.name] }); });
-      setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 100);
-    });
+      setTimeout(function() { skipSaveRef.current = false; }, 80);
+    }).catch(function() {});
   }, [store]);
 
-  useCloudSync(loadFromCloud);
+  useEffect(function() {
+    var alive = true;
+    skipSaveRef.current = true;
+    Promise.all([store.loadCategories(), store.loadRows()]).then(function(res) {
+      if (!alive) return;
+      setCategories(res[0]);
+      setRows(res[1]);
+      applyDraftCategories(res[0]);
+      setLoaded(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 80);
+      syncFromCloud();
+    }).catch(function() {
+      if (!alive) return;
+      setLoaded(true);
+      skipSaveRef.current = false;
+    });
+    return function() { alive = false; };
+  }, [store, syncFromCloud]);
+
+  useEffect(function() {
+    function onVisible() {
+      if (document.visibilityState === "hidden") return;
+      syncFromCloud();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return function() {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [syncFromCloud]);
 
   useEffect(function() { categoriesRef.current = categories; }, [categories]);
   useEffect(function() { rowsRef.current = rows; }, [rows]);
 
   function persistCats(cats) {
+    lastSaveAt.current = Date.now();
     return store.saveCategories(cats || categoriesRef.current);
   }
   function persistRows(rws) {
+    lastSaveAt.current = Date.now();
     return store.saveRows(rws || rowsRef.current);
   }
 
@@ -91,25 +131,45 @@ export default function FinanceLedger(props) {
   }, [monthItems]);
 
   function toggleCategory(name) {
-    var cur = draft.categories || [];
-    if (cur.indexOf(name) >= 0) {
-      setDraft(Object.assign({}, draft, { categories: cur.filter(function(c) { return c !== name; }) }));
-      return;
-    }
-    if (cur.length >= 2) return;
-    setDraft(Object.assign({}, draft, { categories: cur.concat([name]) }));
+    setDraft(function(d) {
+      var cur = d.categories || [];
+      if (cur.indexOf(name) >= 0) {
+        return Object.assign({}, d, { categories: cur.filter(function(c) { return c !== name; }) });
+      }
+      if (cur.length >= 2) return d;
+      return Object.assign({}, d, { categories: cur.concat([name]) });
+    });
   }
 
   function addRow() {
     if (!draft.title.trim() || !draft.amount) return;
     var cats = (draft.categories || []).slice(0, 2);
     if (!cats.length && categoryNames[0]) cats = [categoryNames[0]];
-    setRows(rows.concat([store.newRow(draft.title.trim(), Number(draft.amount), cats, draft.day)]));
+    var row = store.newRow(draft.title.trim(), Number(draft.amount), cats, draft.day);
+    clearTimeout(saveRowsTimer.current);
+    skipSaveRef.current = true;
+    setRows(function(prev) {
+      var next = prev.concat([row]);
+      rowsRef.current = next;
+      persistRows(next).finally(function() {
+        setTimeout(function() { skipSaveRef.current = false; }, 80);
+      });
+      return next;
+    });
     setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: store.todayKey(), notes: "" });
   }
 
   function removeRow(id) {
-    setRows(rows.filter(function(e) { return e.id !== id; }));
+    clearTimeout(saveRowsTimer.current);
+    skipSaveRef.current = true;
+    setRows(function(prev) {
+      var next = prev.filter(function(e) { return e.id !== id; });
+      rowsRef.current = next;
+      persistRows(next).finally(function() {
+        setTimeout(function() { skipSaveRef.current = false; }, 80);
+      });
+      return next;
+    });
   }
 
   function shiftMonth(delta) {
@@ -124,19 +184,23 @@ export default function FinanceLedger(props) {
       var old = categories.find(function(c) { return c.id === catDraft.id; });
       var oldName = old ? old.name : "";
       var newName = catDraft.name.trim();
-      setCategories(categories.map(function(c) { return c.id === catDraft.id ? Object.assign({}, c, { name: newName }) : c; }));
+      setCategories(function(prev) {
+        return prev.map(function(c) { return c.id === catDraft.id ? Object.assign({}, c, { name: newName }) : c; });
+      });
       if (oldName && oldName !== newName) {
-        setRows(rows.map(function(e) {
-          return Object.assign({}, e, {
-            categories: (e.categories || []).map(function(c) { return c === oldName ? newName : c; }),
-            category: e.category === oldName ? newName : e.category,
+        setRows(function(prev) {
+          return prev.map(function(e) {
+            return Object.assign({}, e, {
+              categories: (e.categories || []).map(function(c) { return c === oldName ? newName : c; }),
+              category: e.category === oldName ? newName : e.category,
+            });
           });
-        }));
+        });
       }
     } else {
       var nc = store.newCategory(catDraft.name.trim());
       nc.order_index = categories.length;
-      setCategories(categories.concat([nc]));
+      setCategories(function(prev) { return prev.concat([nc]); });
     }
     setCatDraft({ id: null, name: "" });
   }
@@ -146,13 +210,16 @@ export default function FinanceLedger(props) {
     if (!window.confirm("Apagar a categoria \"" + cat.name + "\"?")) return;
     var fallback = categories.find(function(c) { return c.name === "Outro" && c.id !== cat.id; }) || categories.find(function(c) { return c.id !== cat.id; });
     var fbName = fallback ? fallback.name : "Outro";
-    setRows(rows.map(function(e) {
-      return Object.assign({}, e, {
-        categories: (e.categories || [e.category]).map(function(c) { return c === cat.name ? fbName : c; }).slice(0, 2),
-        category: e.category === cat.name ? fbName : e.category,
+    setRows(function(prev) {
+      return prev.map(function(e) {
+        return Object.assign({}, e, {
+          categories: (e.categories || [e.category]).map(function(c) { return c === cat.name ? fbName : c; }).slice(0, 2),
+          category: e.category === cat.name ? fbName : e.category,
+        });
       });
-    }));
-    setCategories(categories.filter(function(c) { return c.id !== cat.id; }));
+    });
+    setCategories(function(prev) { return prev.filter(function(c) { return c.id !== cat.id; });
+    });
   }
 
   if (!loaded) return props.loader || null;
@@ -203,9 +270,9 @@ export default function FinanceLedger(props) {
       </div>
 
       <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid " + accent + "22", background: accent + "06" }}>
-        <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" style={inputStyle()} />
+        <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 140px 1fr", gap: 10 }}>
-          <input value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={inputStyle()} />
+          <input value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
           <input type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={inputStyle()} />
         </div>
         <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace" }}>CATEGORIAS (máx. 2)</p>
@@ -221,7 +288,7 @@ export default function FinanceLedger(props) {
             );
           })}
         </div>
-        <button onClick={addRow} style={{ background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ {label}</button>
+        <button type="button" onClick={addRow} style={{ background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ {label}</button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -238,7 +305,7 @@ export default function FinanceLedger(props) {
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: accent }}>{Number(e.amount).toFixed(2)} €</p>
-                  <button onClick={function() { removeRow(e.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer" }}>×</button>
+                  <button type="button" onClick={function() { removeRow(e.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer" }}>×</button>
                 </div>
               </div>
             </article>
