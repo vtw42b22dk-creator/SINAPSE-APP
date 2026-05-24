@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+site-pronto/
+site-pronto-upload.zip
+sinapse-app-dist.zip
 .env
 .env.*
 !.env.example
