@@ -36,9 +36,15 @@ export default function Wishlist() {
   var saveTimer = useRef(null);
   var hydratingRef = useRef(false);
 
+  var groupsRef = useRef([]);
+  var itemsRef = useRef([]);
+
   var loadFromCloud = useCallback(function() {
     hydratingRef.current = true;
-    return Promise.all([wishlistStore.loadGroups(), wishlistStore.loadItems()]).then(function(res) {
+    return Promise.all([
+      wishlistStore.pullGroups(groupsRef.current),
+      wishlistStore.pullItems(itemsRef.current),
+    ]).then(function(res) {
       var gs = res[0];
       var list = res[1];
       if (gs[0]) {
@@ -57,7 +63,7 @@ export default function Wishlist() {
     });
   }, []);
 
-  var cloudSyncRef = useCloudSync(loadFromCloud);
+  useCloudSync(loadFromCloud, ["wishlist_groups", "wishlist_items"]);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -65,11 +71,14 @@ export default function Wishlist() {
     return function() { window.removeEventListener("resize", onResize); }
   }, []);
 
+  useEffect(function() { groupsRef.current = groups; }, [groups]);
+  useEffect(function() { itemsRef.current = items; }, [items]);
+
   useEffect(function() {
-    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
+    if (!loaded || hydratingRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
-      wishlistStore.persistAll(groups, items);
+      wishlistStore.persistAll(groupsRef.current, itemsRef.current);
     }, 500);
   }, [items, groups, loaded]);
 

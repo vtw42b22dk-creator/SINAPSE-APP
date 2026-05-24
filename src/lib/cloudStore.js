@@ -62,7 +62,7 @@ function ts(row) {
   return 0;
 }
 
-function mergeByTimestamp(local, remote) {
+export function mergeRowsByTimestamp(local, remote) {
   var map = {};
   (remote || []).forEach(function(r) {
     if (r && r.id) map[r.id] = r;
@@ -70,9 +70,26 @@ function mergeByTimestamp(local, remote) {
   (local || []).forEach(function(l) {
     if (!l || !l.id) return;
     var r = map[l.id];
-    if (!r || ts(l) >= ts(r)) map[l.id] = l;
+    if (!r || ts(l) > ts(r)) map[l.id] = l;
   });
   return Object.values(map);
+}
+
+function stampRow(row) {
+  var ms = row.updated ? Number(row.updated) : 0;
+  if (!ms && row.updated_at) ms = new Date(row.updated_at).getTime();
+  if (!ms || ms < 1) ms = Date.now();
+  return Object.assign({}, row, { updated: ms, updated_at: new Date(ms).toISOString() });
+}
+
+export async function fetchRemoteRows(table, normalizeFn) {
+  var user = await getUser();
+  if (!supabase || !user) return [];
+  var res = await supabase.from(table).select("*").eq("user_id", user.id);
+  if (res.error) throw res.error;
+  return (res.data || []).map(function(r) {
+    return normalizeFn ? normalizeFn(r) : r;
+  });
 }
 
 export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
@@ -87,7 +104,7 @@ export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
       return normalizeFn ? normalizeFn(r) : r;
     });
     if (!remote.length) return local.length ? local : (fallback ? fallback.slice() : []);
-    var merged = mergeByTimestamp(local, remote);
+    var merged = mergeRowsByTimestamp(local, remote);
     await writeLocal(localKey, merged);
     return merged;
   } catch (e) {
@@ -119,10 +136,7 @@ export async function upsertRows(table, localKey, rows) {
 }
 
 export async function replaceRows(table, localKey, rows) {
-  var now = new Date().toISOString();
-  var stamped = (rows || []).map(function(row) {
-    return Object.assign({}, row, { updated: Date.now(), updated_at: now });
-  });
+  var stamped = (rows || []).map(stampRow);
   await writeLocal(localKey, stamped);
   var user = await getUser();
   if (!supabase || !user) return { ok: true, rows: stamped };
@@ -130,7 +144,9 @@ export async function replaceRows(table, localKey, rows) {
     var ids = stamped.map(function(r) { return r.id; });
     if (stamped.length) {
       var payload = stamped.map(function(row) {
-        return Object.assign({}, row, { user_id: user.id, updated_at: now });
+        var out = Object.assign({}, row, { user_id: user.id });
+        delete out.updated;
+        return out;
       });
       var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
       if (res.error) throw res.error;

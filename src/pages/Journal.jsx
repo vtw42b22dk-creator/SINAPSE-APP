@@ -32,7 +32,10 @@ export default function Journal() {
 
   var loadFromCloud = useCallback(function() {
     hydratingRef.current = true;
-    return Promise.all([journalStore.loadSpaces(), journalStore.loadBlocks()]).then(function(res) {
+    return Promise.all([
+      journalStore.pullSpaces(spacesRef.current),
+      journalStore.pullBlocks(blocksRef.current),
+    ]).then(function(res) {
       setSpaces(res[0]);
       setBlocks(res[1]);
       setActive(function(prev) {
@@ -44,7 +47,7 @@ export default function Journal() {
     });
   }, []);
 
-  var cloudSyncRef = useCloudSync(loadFromCloud);
+  useCloudSync(loadFromCloud, ["journal_spaces", "journal_blocks"]);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -53,12 +56,12 @@ export default function Journal() {
   }, []);
 
   useEffect(function() {
-    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
+    if (!loaded || hydratingRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() { journalStore.saveSpaces(spaces); }, 500);
   }, [spaces, loaded]);
   useEffect(function() {
-    if (!loaded || hydratingRef.current || cloudSyncRef.current) return;
+    if (!loaded || hydratingRef.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() { journalStore.saveBlocks(blocks); }, 700);
   }, [blocks, loaded]);

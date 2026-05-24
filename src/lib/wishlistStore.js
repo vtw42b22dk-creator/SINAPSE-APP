@@ -1,4 +1,12 @@
-import { replaceRows, selectRowsMerged, uid } from "./cloudStore";
+import {
+  fetchRemoteRows,
+  mergeRowsByTimestamp,
+  readLocal,
+  replaceRows,
+  selectRowsMerged,
+  uid,
+  writeLocal,
+} from "./cloudStore";
 
 var TABLE = "wishlist_items";
 var KEY = "wishlist-items-v1";
@@ -12,6 +20,7 @@ function normalizeGroup(row) {
     name: row.name || DEFAULT_GROUP,
     color: row.color || "#34D399",
     order_index: row.order_index != null ? row.order_index : 0,
+    updated: row.updated_at ? new Date(row.updated_at).getTime() : (row.updated || 0),
   };
 }
 
@@ -42,31 +51,82 @@ function toDb(item) {
     notes: item.notes || "",
     purchased: !!item.purchased,
     group_id: item.group_id || null,
+    updated: item.updated || Date.now(),
   };
+}
+
+function sortItems(rows) {
+  return rows.sort(function(a, b) {
+    if (a.purchased !== b.purchased) return a.purchased ? 1 : -1;
+    return (b.updated || 0) - (a.updated || 0);
+  });
+}
+
+export async function pullGroups(currentGroups) {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
+  } catch (e) {
+    return loadGroups();
+  }
+  var local = await readLocal(GROUPS_KEY, []);
+  var merged = mergeRowsByTimestamp(mergeRowsByTimestamp(local, remote), currentGroups || []);
+  merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
+  if (!merged.length) {
+    merged = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+    await writeLocal(GROUPS_KEY, merged);
+  } else {
+    await writeLocal(GROUPS_KEY, merged);
+  }
+  return merged;
+}
+
+export async function pullItems(currentItems) {
+  var remote = [];
+  try {
+    remote = await fetchRemoteRows(TABLE, normalize);
+  } catch (e) {
+    return loadItems();
+  }
+  var local = await readLocal(KEY, []);
+  var merged = mergeRowsByTimestamp(mergeRowsByTimestamp(local, remote), currentItems || []);
+  await writeLocal(KEY, merged);
+  return sortItems(merged.map(normalize));
 }
 
 export async function loadGroups() {
   var groups = await selectRowsMerged(GROUPS_TABLE, GROUPS_KEY, [], normalizeGroup);
   groups = groups.sort(function(a, b) { return a.order_index - b.order_index; });
   if (!groups.length) {
+    try {
+      var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
+      if (remote.length) return remote.sort(function(a, b) { return a.order_index - b.order_index; });
+    } catch (e) {}
     groups = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
-    await saveGroups(groups);
+    await writeLocal(GROUPS_KEY, groups);
   }
   return groups;
 }
 
 export async function saveGroups(groups) {
-  return replaceRows(GROUPS_TABLE, GROUPS_KEY, (groups || []).map(function(g) {
-    return { id: g.id, name: g.name, color: g.color || "#34D399", order_index: g.order_index || 0 };
-  }));
+  return replaceRows(
+    GROUPS_TABLE,
+    GROUPS_KEY,
+    (groups || []).map(function(g) {
+      return {
+        id: g.id,
+        name: g.name,
+        color: g.color || "#34D399",
+        order_index: g.order_index || 0,
+        updated: g.updated || Date.now(),
+      };
+    })
+  );
 }
 
 export async function loadItems() {
   var rows = await selectRowsMerged(TABLE, KEY, [], normalize);
-  return rows.sort(function(a, b) {
-    if (a.purchased !== b.purchased) return a.purchased ? 1 : -1;
-    return (b.updated || 0) - (a.updated || 0);
-  });
+  return sortItems(rows);
 }
 
 export async function saveItems(items) {
@@ -74,8 +134,9 @@ export async function saveItems(items) {
 }
 
 export async function persistAll(groups, items) {
-  await saveGroups(groups);
-  return saveItems(items);
+  var gRes = await saveGroups(groups);
+  var iRes = await saveItems(items);
+  return { groups: gRes, items: iRes };
 }
 
 export function newGroup(name) {
