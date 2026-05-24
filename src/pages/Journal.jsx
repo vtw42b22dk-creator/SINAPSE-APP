@@ -40,31 +40,72 @@ export default function Journal() {
     return blocksRef.current.find(function(b) { return b.id === id; }) || null;
   }
 
+  function applyJournalData(spacesList, blocksList) {
+    setSpaces(spacesList);
+    setBlocks(blocksList);
+    setActive(function(prev) {
+      if (prev && spacesList.some(function(s) { return s.id === prev; })) return prev;
+      return spacesList[0] ? spacesList[0].id : null;
+    });
+  }
+
   var loadFromCloud = useCallback(function() {
     flushAllEditors();
     skipSaveRef.current = true;
     return Promise.all([
-      journalStore.pullSpaces(),
-      journalStore.pullBlocks(getEditingSnapshot()),
-    ]).then(function(res) {
-      setSpaces(res[0]);
-      setBlocks(res[1]);
-      setActive(function(prev) {
-        if (prev && res[0].some(function(s) { return s.id === prev; })) return prev;
-        return res[0][0] ? res[0][0].id : null;
-      });
+      journalStore.loadSpacesLocal(),
+      journalStore.loadBlocksLocal(),
+    ]).then(function(local) {
+      applyJournalData(local[0], local[1]);
       setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 100);
+      return Promise.all([
+        journalStore.pullSpaces(),
+        journalStore.pullBlocks(getEditingSnapshot()),
+      ]).then(function(sync) {
+        applyJournalData(sync[0], sync[1]);
+        setTimeout(function() { skipSaveRef.current = false; }, 150);
+      }).catch(function() {
+        setTimeout(function() { skipSaveRef.current = false; }, 150);
+      });
     });
   }, []);
 
-  useCloudSync(loadFromCloud, {
+  var syncFromCloud = useCallback(function() {
+    if (editingBlockRef.current) return Promise.resolve();
+    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
+    skipSaveRef.current = true;
+    return Promise.all([
+      journalStore.pullSpaces(),
+      journalStore.pullBlocks(getEditingSnapshot()),
+    ]).then(function(sync) {
+      applyJournalData(sync[0], sync[1]);
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
+    }).catch(function() {
+      skipSaveRef.current = false;
+    });
+  }, []);
+
+  useCloudSync(syncFromCloud, {
     shouldSkip: function() {
+      if (!loaded) return true;
       if (editingBlockRef.current) return true;
-      if (Date.now() - lastSaveAt.current < 4000) return true;
+      if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
     },
   });
+
+  useEffect(function() {
+    var alive = true;
+    skipSaveRef.current = true;
+    Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()]).then(function(local) {
+      if (!alive) return;
+      applyJournalData(local[0], local[1]);
+      setLoaded(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
+      syncFromCloud();
+    });
+    return function() { alive = false; };
+  }, []);
 
   function flushAllEditors() {
     Object.keys(flushHandlersRef.current).forEach(function(id) {

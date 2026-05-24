@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { supabase } from "./supabase";
 
+var LAST_USER_KEY = "sinapse-last-user-id-v1";
+
 export function uid(prefix) {
   return (prefix || "id") + Date.now() + Math.random().toString(36).slice(2, 8);
 }
@@ -35,7 +37,15 @@ export async function refreshSession() {
 
 export async function currentUserId() {
   var u = await getUser();
-  return u ? u.id : "local";
+  if (u && u.id) {
+    try { localStorage.setItem(LAST_USER_KEY, u.id); } catch (e) {}
+    return u.id;
+  }
+  try {
+    var last = localStorage.getItem(LAST_USER_KEY);
+    if (last) return last;
+  } catch (e) {}
+  return "local";
 }
 
 export async function scopedKey(key) {
@@ -81,18 +91,38 @@ export function mergeRowsByTimestamp(local, remote) {
   return Object.values(map);
 }
 
-/** Ao trazer da nuvem: o servidor define quem existe; local só ganha se o id ainda está no remoto. */
+/**
+ * Ao trazer da nuvem: remoto define existência, mas NUNCA apaga tudo local
+ * se a nuvem vier vazia (sessão/erro) — evita wipe acidental.
+ */
 export function mergePullFromRemote(local, remote) {
+  var loc = local || [];
+  var rem = remote || [];
+  if (!rem.length) {
+    return loc.length ? loc.slice() : [];
+  }
   var map = {};
-  (remote || []).forEach(function(r) {
+  rem.forEach(function(r) {
     if (r && r.id) map[r.id] = r;
   });
-  (local || []).forEach(function(l) {
+  loc.forEach(function(l) {
     if (!l || !l.id) return;
     var r = map[l.id];
     if (r && ts(l) > ts(r)) map[l.id] = l;
   });
   return Object.values(map);
+}
+
+/** Não sobrescrever localStorage com [] se já havia dados. */
+export async function safeWriteLocal(key, next, prev) {
+  var previous = prev;
+  if (previous === undefined) {
+    try { previous = await readLocal(key, []); } catch (e) { previous = []; }
+  }
+  if (!next || !next.length) {
+    if (previous && previous.length) return;
+  }
+  await writeLocal(key, next || []);
 }
 
 function stampRow(row) {
@@ -161,6 +191,10 @@ export async function upsertRows(table, localKey, rows) {
 export async function replaceRows(table, localKey, rows, options) {
   options = options || {};
   var stamped = (rows || []).map(stampRow);
+  var previous = await readLocal(localKey, []);
+  if (!stamped.length && previous && previous.length) {
+    return { ok: true, cloud: true, rows: previous, skippedEmpty: true, keptLocal: true };
+  }
   await writeLocal(localKey, stamped);
 
   var user = await getUser();

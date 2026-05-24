@@ -39,33 +39,51 @@ export default function Wishlist() {
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
 
-  var loadFromCloud = useCallback(function() {
+  function applyWishlistData(gs, list) {
+    if (gs[0]) {
+      list = list.map(function(i) {
+        return i.group_id ? i : Object.assign({}, i, { group_id: gs[0].id });
+      });
+    }
+    setGroups(gs);
+    setItems(list);
+    setActiveGroup(function(prev) {
+      if (prev && gs.some(function(g) { return g.id === prev; })) return prev;
+      return gs[0] ? gs[0].id : null;
+    });
+  }
+
+  var syncFromCloud = useCallback(function() {
+    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     skipSaveRef.current = true;
     return Promise.all([wishlistStore.pullGroups(), wishlistStore.pullItems()]).then(function(res) {
-      var gs = res[0];
-      var list = res[1];
-      if (gs[0]) {
-        list = list.map(function(i) {
-          return i.group_id ? i : Object.assign({}, i, { group_id: gs[0].id });
-        });
-      }
-      setGroups(gs);
-      setItems(list);
-      setActiveGroup(function(prev) {
-        if (prev && gs.some(function(g) { return g.id === prev; })) return prev;
-        return gs[0] ? gs[0].id : null;
-      });
-      setLoaded(true);
-      setTimeout(function() { skipSaveRef.current = false; }, 100);
+      applyWishlistData(res[0], res[1]);
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
+    }).catch(function() {
+      skipSaveRef.current = false;
     });
   }, []);
 
-  useCloudSync(loadFromCloud, {
+  useCloudSync(syncFromCloud, {
     shouldSkip: function() {
-      if (Date.now() - lastSaveAt.current < 4000) return true;
+      if (!loaded) return true;
+      if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
     },
   });
+
+  useEffect(function() {
+    var alive = true;
+    skipSaveRef.current = true;
+    Promise.all([wishlistStore.loadGroupsLocal(), wishlistStore.loadItemsLocal()]).then(function(res) {
+      if (!alive) return;
+      applyWishlistData(res[0], res[1]);
+      setLoaded(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 100);
+      syncFromCloud();
+    });
+    return function() { alive = false; };
+  }, []);
 
   async function persist(gs, list) {
     var res = await wishlistStore.persistAll(gs || groupsRef.current, list || itemsRef.current);

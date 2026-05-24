@@ -5,6 +5,7 @@ import {
   mergePullFromRemote,
   readLocal,
   replaceRows,
+  safeWriteLocal,
   selectRowsMerged,
   uid,
   writeLocal,
@@ -63,15 +64,21 @@ export function mergeBlocksByContent(local, remote) {
   return Object.values(map);
 }
 
-/** Pull: remoto define existência; bloco só local (apagado noutro lado) não volta. */
+/** Pull: junta com remoto; se remoto vazio, mantém local (nunca wipe). */
 export function mergeBlocksForPull(local, remote, editingBlock) {
+  var loc = local || [];
+  var rem = remote || [];
+  if (!rem.length) {
+    if (!loc.length) return [];
+    return loc.map(function(l) { return normalizeBlock(l); });
+  }
   var editingId = editingBlock && editingBlock.id;
   var map = {};
-  (remote || []).forEach(function(r) {
+  rem.forEach(function(r) {
     var n = normalizeBlock(r);
     if (n.id) map[n.id] = n;
   });
-  (local || []).forEach(function(l) {
+  loc.forEach(function(l) {
     var nl = normalizeBlock(l);
     if (!nl.id) return;
     var r = map[nl.id];
@@ -130,29 +137,42 @@ function sanitizeBlockForSave(b) {
   };
 }
 
+export async function loadSpacesLocal() {
+  var local = await readLocal(SPACES, []);
+  if (!local.length) return [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+  return local;
+}
+
+export async function loadBlocksLocal() {
+  var local = await readLocal(BLOCKS, []);
+  return blocksToUi(local);
+}
+
 export async function pullSpaces() {
   try {
-    var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
     var local = await readLocal(SPACES, []);
+    var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
     var merged = mergePullFromRemote(local, remote);
-    if (!merged.length) merged = [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
-    await writeLocal(SPACES, merged);
+    if (!merged.length) {
+      merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+    }
+    await safeWriteLocal(SPACES, merged, local);
     return merged;
   } catch (e) {
-    return loadSpaces();
+    return loadSpacesLocal();
   }
 }
 
 export async function pullBlocks(editingBlock) {
   try {
-    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
     var local = await readLocal(BLOCKS, []);
+    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
     var merged = mergeBlocksForPull(local, remote, editingBlock);
     merged = overlayEditingBlock(merged, editingBlock);
-    await writeLocal(BLOCKS, merged);
+    await safeWriteLocal(BLOCKS, merged, local);
     return blocksToUi(merged);
   } catch (e) {
-    return loadBlocks();
+    return loadBlocksLocal();
   }
 }
 
@@ -174,17 +194,7 @@ export async function saveSpaces(spaces) {
 }
 
 export async function loadBlocks() {
-  var local = await readLocal(BLOCKS, []);
-  var user = await getUser();
-  if (!user) return blocksToUi(local);
-  try {
-    var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
-    var merged = mergeBlocksForPull(local, remote, null);
-    await writeLocal(BLOCKS, merged);
-    return blocksToUi(merged);
-  } catch (e) {
-    return blocksToUi(local);
-  }
+  return loadBlocksLocal();
 }
 
 export async function saveBlocks(blocks) {

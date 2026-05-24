@@ -5,6 +5,7 @@ import {
   mergeRowsByTimestamp,
   readLocal,
   replaceRows,
+  safeWriteLocal,
   selectRowsMerged,
   uid,
   writeLocal,
@@ -64,24 +65,46 @@ function sortItems(rows) {
   });
 }
 
-export async function pullGroups() {
-  var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
+export async function loadGroupsLocal() {
   var local = await readLocal(GROUPS_KEY, []);
-  var merged = mergePullFromRemote(local, remote);
-  merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
-  if (!merged.length) {
-    merged = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+  local = (local || []).sort(function(a, b) { return a.order_index - b.order_index; });
+  if (!local.length) {
+    local = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
   }
-  await writeLocal(GROUPS_KEY, merged);
-  return merged;
+  return local;
+}
+
+export async function loadItemsLocal() {
+  var local = await readLocal(KEY, []);
+  return sortItems((local || []).map(normalize));
+}
+
+export async function pullGroups() {
+  try {
+    var local = await readLocal(GROUPS_KEY, []);
+    var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
+    var merged = mergePullFromRemote(local, remote);
+    merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
+    if (!merged.length) {
+      merged = local.length ? local : [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+    }
+    await safeWriteLocal(GROUPS_KEY, merged, local);
+    return merged;
+  } catch (e) {
+    return loadGroupsLocal();
+  }
 }
 
 export async function pullItems() {
-  var remote = await fetchRemoteRows(TABLE, normalize);
-  var local = await readLocal(KEY, []);
-  var merged = mergePullFromRemote(local, remote);
-  await writeLocal(KEY, merged);
-  return sortItems(merged.map(normalize));
+  try {
+    var local = await readLocal(KEY, []);
+    var remote = await fetchRemoteRows(TABLE, normalize);
+    var merged = mergePullFromRemote(local, remote);
+    await safeWriteLocal(KEY, merged, local);
+    return sortItems(merged.map(normalize));
+  } catch (e) {
+    return loadItemsLocal();
+  }
 }
 
 export async function loadGroups() {
