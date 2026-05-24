@@ -291,7 +291,8 @@ export default function Hub() {
       if (which === "all") {
         res = await dataRecovery.recoverAll();
         setRecoverMsg(
-          res.journal.summary + " · " + res.wishlist.summary + " · " + res.finance.summary + " — Abre cada módulo."
+          res.journal.summary + " · " + res.wishlist.summary + " · " + res.finance.summary +
+          " Se já tens o Diário aberto, fecha e volta a abrir (ou recarrega a página)."
         );
       } else if (which === "journal") {
         res = await dataRecovery.recoverJournal();

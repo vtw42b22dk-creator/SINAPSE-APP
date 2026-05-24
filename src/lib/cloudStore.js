@@ -1,6 +1,15 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { supabase } from "./supabase";
-import { backupBeforeWrite, readWithRecovery, recoverFromRing, scanAllStorageForBaseKey } from "./dataGuard";
+import {
+  backupBeforeWrite,
+  readWithRecovery,
+  recoverFromRing,
+  scanAllStorageForBaseKey,
+  collectAllRingSnapshots,
+  collectAllStorageArraysForBaseKey,
+  mergeRowArrays,
+  isValidRowArray,
+} from "./dataGuard";
 
 var LAST_USER_KEY = "sinapse-last-user-id-v1";
 
@@ -86,20 +95,50 @@ export async function writeLocal(key, value) {
   } catch (e) {}
 }
 
-/** Restaura a melhor cópia de backup para esta chave. */
+function pickNewerRow(a, b) {
+  var ta = a.updated || a.updated_at || 0;
+  var tb = b.updated || b.updated_at || 0;
+  if (typeof ta === "string") ta = new Date(ta).getTime();
+  if (typeof tb === "string") tb = new Date(tb).getTime();
+  return Number(ta) >= Number(tb) ? a : b;
+}
+
+/** Grava à força e confirma que ficou guardado (recuperação). */
+export async function forceWriteLocal(key, value) {
+  if (!isValidRowArray(value)) {
+    return { ok: false, error: "Dados inválidos" };
+  }
+  try {
+    var sk = await scopedKey(key);
+    var payload = JSON.stringify(value);
+    localStorage.setItem(sk, payload);
+    try { localStorage.setItem(key, payload); } catch (e) {}
+    var verify = JSON.parse(localStorage.getItem(sk) || "[]");
+    if (!isValidRowArray(verify) || verify.length < value.length) {
+      return { ok: false, error: "Gravação não confirmada (armazenamento cheio?)" };
+    }
+    return { ok: true, count: verify.length };
+  } catch (e) {
+    return { ok: false, error: e.message || String(e) };
+  }
+}
+
+/** Junta TODAS as cópias do anel + outras chaves e grava. */
 export async function restoreFromBackups(key) {
   var sk = await scopedKey(key);
+  var arrays = collectAllRingSnapshots(sk);
+  arrays = arrays.concat(collectAllStorageArraysForBaseKey(key));
   var fromRing = recoverFromRing(sk);
-  if (fromRing && fromRing.length) {
-    await writeLocal(key, fromRing);
-    return { ok: true, count: fromRing.length, source: "backup" };
+  if (fromRing && fromRing.length) arrays.push(fromRing);
+  var merged = mergeRowArrays(arrays, pickNewerRow);
+  if (!merged.length) {
+    var scanned = scanAllStorageForBaseKey(key);
+    if (scanned && isValidRowArray(scanned.data)) merged = scanned.data;
   }
-  var scanned = scanAllStorageForBaseKey(key);
-  if (scanned && scanned.data.length) {
-    await writeLocal(key, scanned.data);
-    return { ok: true, count: scanned.data.length, source: scanned.key };
-  }
-  return { ok: false, reason: "Sem cópias" };
+  if (!merged.length) return { ok: false, reason: "Sem cópias válidas" };
+  var wrote = await forceWriteLocal(key, merged);
+  if (!wrote.ok) return { ok: false, reason: wrote.error || "Falha ao gravar" };
+  return { ok: true, count: wrote.count, source: "backup" };
 }
 
 function ts(row) {

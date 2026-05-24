@@ -66,6 +66,17 @@ export async function loadGroupsLocal() {
   var local = await readLocal(GROUPS_KEY, []);
   local = (local || []).sort(function(a, b) { return a.order_index - b.order_index; });
   if (!local.length) {
+    var items = await readLocal(KEY, []);
+    var seen = {};
+    (items || []).forEach(function(it) {
+      if (it && it.group_id) seen[it.group_id] = true;
+    });
+    local = Object.keys(seen).map(function(id, i) {
+      return normalizeGroup({ id: id, name: "Recuperado", color: "#34D399", order_index: i });
+    });
+    if (local.length) await writeLocal(GROUPS_KEY, local);
+  }
+  if (!local.length) {
     local = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
   }
   return local;

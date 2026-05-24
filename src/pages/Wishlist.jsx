@@ -5,6 +5,7 @@ import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
+import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 
 var ACCENT = "#34D399";
 var GROUP_COLORS = ["#34D399", "#FFB800", "#7B61FF", "#FF3D8A", "#38BDF8", "#00FFC8"];
@@ -69,6 +70,7 @@ export default function Wishlist() {
   useCloudSync({
     shouldSkip: function() {
       if (!loaded) return true;
+      if (shouldSkipCloudSync()) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
@@ -83,6 +85,15 @@ export default function Wishlist() {
     },
   });
 
+  function reloadLocalOnly() {
+    skipSaveRef.current = true;
+    return Promise.all([wishlistStore.loadGroupsLocal(), wishlistStore.loadItemsLocal()]).then(function(res) {
+      applyWishlistData(res[0], res[1]);
+      setLoaded(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
+    });
+  }
+
   useEffect(function() {
     var alive = true;
     skipSaveRef.current = true;
@@ -91,9 +102,17 @@ export default function Wishlist() {
       applyWishlistData(res[0], res[1]);
       setLoaded(true);
       setTimeout(function() { skipSaveRef.current = false; }, 100);
-      syncFromCloud();
+      if (!shouldSkipCloudSync()) syncFromCloud();
     });
-    return function() { alive = false; };
+    function onRecovered() {
+      if (!alive) return;
+      reloadLocalOnly();
+    }
+    window.addEventListener(RECOVERY_EVENT, onRecovered);
+    return function() {
+      alive = false;
+      window.removeEventListener(RECOVERY_EVENT, onRecovered);
+    };
   }, []);
 
   async function persist(gs, list) {

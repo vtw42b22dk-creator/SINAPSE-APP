@@ -13,6 +13,62 @@ function hasUsefulRows(arr) {
   return Array.isArray(arr) && arr.length > 0;
 }
 
+/** Só aceita listas de objetos com id (evita confundir com tombstones). */
+export function isValidDataRow(row) {
+  return row && typeof row === "object" && !Array.isArray(row) && typeof row.id === "string" && row.id.length > 0;
+}
+
+export function isValidRowArray(arr) {
+  if (!hasUsefulRows(arr)) return false;
+  for (var i = 0; i < arr.length; i++) {
+    if (!isValidDataRow(arr[i])) return false;
+  }
+  return true;
+}
+
+export function mergeRowArrays(arrays, pickWinner) {
+  var map = {};
+  (arrays || []).forEach(function(arr) {
+    if (!isValidRowArray(arr)) return;
+    arr.forEach(function(row) {
+      if (!isValidDataRow(row)) return;
+      var prev = map[row.id];
+      map[row.id] = prev && pickWinner ? pickWinner(prev, row) : (prev || row);
+    });
+  });
+  return Object.values(map);
+}
+
+export function collectAllRingSnapshots(scopedDataKey) {
+  var arrays = [];
+  try {
+    var ringRaw = localStorage.getItem(backupRingStorageKey(scopedDataKey));
+    if (!ringRaw) return arrays;
+    var ring = JSON.parse(ringRaw);
+    if (!Array.isArray(ring)) return arrays;
+    ring.forEach(function(entry) {
+      if (entry && isValidRowArray(entry.data)) arrays.push(entry.data);
+    });
+  } catch (e) {}
+  return arrays;
+}
+
+export function collectAllStorageArraysForBaseKey(baseKey) {
+  var arrays = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k || k.indexOf(baseKey) < 0) continue;
+      if (k.indexOf("backup-ring") >= 0 || k.indexOf("deleted-v1") >= 0) continue;
+      try {
+        var data = JSON.parse(localStorage.getItem(k) || "null");
+        if (isValidRowArray(data)) arrays.push(data);
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return arrays;
+}
+
 /** Guarda snapshot antes de alterações (só se tiver dados). */
 export async function backupBeforeWrite(scopedDataKey, data, writeFn) {
   if (!hasUsefulRows(data)) return;
@@ -27,39 +83,20 @@ export async function backupBeforeWrite(scopedDataKey, data, writeFn) {
 }
 
 export function scanAllStorageForBaseKey(baseKey) {
-  var best = null;
-  var bestN = 0;
-  try {
-    for (var i = 0; i < localStorage.length; i++) {
-      var k = localStorage.key(i);
-      if (!k || k.indexOf(baseKey) < 0) continue;
-      if (k.indexOf("backup-ring") >= 0 || k.indexOf("deleted-v1") >= 0) continue;
-      try {
-        var data = JSON.parse(localStorage.getItem(k) || "null");
-        if (hasUsefulRows(data) && data.length > bestN) {
-          bestN = data.length;
-          best = { key: k, data: data };
-        }
-      } catch (e) {}
-    }
-  } catch (e) {}
-  return best;
+  var arrays = collectAllStorageArraysForBaseKey(baseKey);
+  if (!arrays.length) return null;
+  var best = arrays[0];
+  for (var i = 1; i < arrays.length; i++) {
+    if (arrays[i].length > best.length) best = arrays[i];
+  }
+  return { key: baseKey, data: best };
 }
 
 export function recoverFromRing(scopedDataKey) {
-  try {
-    var ringRaw = localStorage.getItem(backupRingStorageKey(scopedDataKey));
-    if (!ringRaw) return null;
-    var ring = JSON.parse(ringRaw);
-    if (!Array.isArray(ring) || !ring.length) return null;
-    var best = ring[0];
-    for (var j = 0; j < ring.length; j++) {
-      if (ring[j].data && ring[j].data.length > (best.data || []).length) best = ring[j];
-    }
-    return best && best.data ? best.data : null;
-  } catch (e) {
-    return null;
-  }
+  var arrays = collectAllRingSnapshots(scopedDataKey);
+  if (!arrays.length) return null;
+  var merged = mergeRowArrays(arrays);
+  return merged.length ? merged : null;
 }
 
 /**

@@ -6,6 +6,7 @@ import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
+import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 
 var ACCENT = "#FFB800";
 var COLORS = ["#FFB800", "#00FFC8", "#7B61FF", "#FF3D8A", "#38BDF8", "#34D399"];
@@ -90,6 +91,7 @@ export default function Journal() {
   useCloudSync({
     shouldSkip: function() {
       if (!loaded) return true;
+      if (shouldSkipCloudSync()) return true;
       if (editingBlockRef.current) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
@@ -106,6 +108,15 @@ export default function Journal() {
     },
   });
 
+  function reloadLocalOnly() {
+    skipSaveRef.current = true;
+    return Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()]).then(function(local) {
+      applyJournalData(local[0], local[1]);
+      setLoaded(true);
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
+    });
+  }
+
   useEffect(function() {
     var alive = true;
     skipSaveRef.current = true;
@@ -114,9 +125,17 @@ export default function Journal() {
       applyJournalData(local[0], local[1]);
       setLoaded(true);
       setTimeout(function() { skipSaveRef.current = false; }, 100);
-      syncFromCloud();
+      if (!shouldSkipCloudSync()) syncFromCloud();
     });
-    return function() { alive = false; };
+    function onRecovered() {
+      if (!alive) return;
+      reloadLocalOnly();
+    }
+    window.addEventListener(RECOVERY_EVENT, onRecovered);
+    return function() {
+      alive = false;
+      window.removeEventListener(RECOVERY_EVENT, onRecovered);
+    };
   }, []);
 
   function flushAllEditors() {

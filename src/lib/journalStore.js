@@ -141,6 +141,19 @@ function sanitizeBlockForSave(b) {
 
 export async function loadSpacesLocal() {
   var local = await readLocal(SPACES, []);
+  if (!local.length) {
+    var blocks = await readLocal(BLOCKS, []);
+    if (blocks.length) {
+      var seen = {};
+      blocks.forEach(function(b) {
+        if (b && b.space_id) seen[b.space_id] = true;
+      });
+      local = Object.keys(seen).map(function(id) {
+        return { id: id, title: "Recuperado", color: "#FFB800", updated: Date.now() };
+      });
+      if (local.length) await writeLocal(SPACES, local);
+    }
+  }
   if (!local.length) return [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
   return local;
 }
