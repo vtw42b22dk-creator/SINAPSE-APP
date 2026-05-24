@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { replaceRows, selectRows, uid } from "./cloudStore";
+import { deleteRemoteIds, replaceRows, selectRows, uid } from "./cloudStore";
 
 var TABLE = "calendar_events";
 var KEY = "sinapse-calendar-v3";
@@ -56,6 +56,19 @@ export async function saveEvents(events) {
   });
   await replaceRows(TABLE, KEY, rows);
   return events;
+}
+
+/** Remove evento localmente e na nuvem (evita reaparecer ao sincronizar). */
+export async function deleteEventById(events, eventId) {
+  if (!eventId) return events || {};
+  var next = {};
+  Object.keys(events || {}).forEach(function(k) {
+    var list = (events[k] || []).filter(function(ev) { return ev.id !== eventId; });
+    if (list.length) next[k] = list;
+  });
+  await deleteRemoteIds(TABLE, [eventId], KEY);
+  await saveEvents(next);
+  return next;
 }
 
 function normalizeObject(obj) {

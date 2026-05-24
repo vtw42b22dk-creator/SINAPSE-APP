@@ -10,6 +10,36 @@ import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 
 var ACCENT = "#FFB800";
 var COLORS = ["#FFB800", "#00FFC8", "#7B61FF", "#FF3D8A", "#38BDF8", "#34D399"];
+var JOURNAL_FONT = "'JetBrains Mono', monospace";
+var JOURNAL_LETTER_SPACING = "0.04em";
+var JOURNAL_LINE_HEIGHT = 1.75;
+var JOURNAL_TEXT = {
+  fontFamily: JOURNAL_FONT,
+  color: "#FFFFFF",
+  letterSpacing: JOURNAL_LETTER_SPACING,
+  lineHeight: JOURNAL_LINE_HEIGHT,
+};
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function handleJournalCopy(e) {
+  var sel = window.getSelection();
+  if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
+  var text = sel.toString();
+  var html =
+    '<span style="font-family:JetBrains Mono,monospace;color:#FFFFFF;letter-spacing:0.04em;line-height:1.75;">' +
+    escapeHtml(text).replace(/\n/g, "<br/>") +
+    "</span>";
+  e.clipboardData.setData("text/plain", text);
+  e.clipboardData.setData("text/html", html);
+  e.preventDefault();
+}
 
 export default function Journal() {
   var navigate = useNavigate();
@@ -285,14 +315,23 @@ export default function Journal() {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:loaded ? "radial-gradient(circle at 20% 0,"+color+"0D,transparent 35%),"+pageBg() : pageBg(),color:pageText(),fontFamily:"'IBM Plex Sans',sans-serif"}}>
+    <div
+      onCopyCapture={handleJournalCopy}
+      style={{
+        minHeight: "100vh",
+        background: loaded ? "radial-gradient(circle at 20% 0," + color + "0D,transparent 35%)," + pageBg() : pageBg(),
+        color: "#FFFFFF",
+        fontFamily: JOURNAL_FONT,
+        letterSpacing: JOURNAL_LETTER_SPACING,
+        lineHeight: JOURNAL_LINE_HEIGHT,
+      }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
       <style>{MODULE_ENTRY_CSS}</style>
       <header style={{position:"sticky",top:0,zIndex:20,background:"rgba(10,10,16,0.92)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(255,255,255,0.05)",padding:isMobile?"12px":"14px 20px"}}>
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
-            <h1 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,color:color,margin:0}}>Diário</h1>
+            <h1 style={{ fontFamily: JOURNAL_FONT, fontSize: 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>Diário</h1>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0}}>
             <button onClick={function(){addBlock("title");}} style={topBtn(color)}>+ Título</button>
@@ -307,26 +346,26 @@ export default function Journal() {
         {!loaded ? <PageLoader accent={ACCENT} lines={7} /> : (
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",position:isMobile?"sticky":"static",top:isMobile?78:"auto",zIndex:isMobile?10:1,backdropFilter:"blur(14px)"}}>
-          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"rgba(255,255,255,0.28)",letterSpacing:1,margin:"0 0 12px"}}>TEMAS</p>
+          <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, margin: "0 0 12px" }}>TEMAS</p>
           <div data-scrollable style={{display:"flex",flexDirection:isMobile?"row":"column",gap:8,overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0}}>
             {spaces.map(function(s) {
               var on = active === s.id;
               return <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <button type="button" onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"rgba(255,255,255,0.62)",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif",whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
+                <button type="button" onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"#FFFFFF",cursor:"pointer",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT,whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
                 <button type="button" onClick={function(e){e.stopPropagation(); removeSpace(s);}} title="Eliminar tema" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.35)",cursor:"pointer",flexShrink:0,fontSize:16,lineHeight:1}} aria-label="Eliminar tema">×</button>
               </div>;
             })}
           </div>
           <div style={{display:"flex",gap:8,marginTop:14}}>
-            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Novo tema..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#fff",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13}}/>
+            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Novo tema..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
             <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
           </div>
         </aside>
 
         <section style={{minWidth:0}}>
           <div style={{marginBottom:16}}>
-            <p style={{margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",letterSpacing:2,color:color}}>ESPAÇO</p>
-            <h2 style={{margin:"6px 0 0",fontSize:"clamp(28px,5vw,48px)",fontFamily:"'JetBrains Mono',monospace"}}>{activeSpace ? activeSpace.title : "Diário"}</h2>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>ESPAÇO</p>
+            <h2 style={{ margin: "6px 0 0", fontSize: "clamp(28px,5vw,48px)", fontFamily: JOURNAL_FONT, color: "#FFFFFF", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
             <button type="button" onClick={function(){format("bold");}} style={toolBtn()}>Negrito</button>
@@ -334,7 +373,7 @@ export default function Journal() {
             <button type="button" onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
           </div>
           {activeBlocks.length === 0 ? (
-            <div style={{border:"1px dashed "+color+"22",borderRadius:24,minHeight:280,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>
+            <div style={{border:"1px dashed "+color+"22",borderRadius:24,minHeight:280,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",color:"rgba(255,255,255,0.45)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}>
               Adiciona blocos para começar a escrever.
             </div>
           ) : (
@@ -431,7 +470,7 @@ function JournalBlock(props) {
   return (
     <div style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:18,padding:14}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-        <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:props.color}}>{b.type.toUpperCase()}</span>
+        <span style={{ fontSize: 10, fontFamily: JOURNAL_FONT, color: props.color, letterSpacing: JOURNAL_LETTER_SPACING }}>{b.type.toUpperCase()}</span>
         <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer"}}>×</button>
       </div>
       {uploadMsg ? <p style={{margin:"0 0 8px",fontSize:11,color:props.color,opacity:0.85}}>{uploadMsg}</p> : null}
@@ -461,7 +500,13 @@ function JournalBlock(props) {
             if (props.onEditEnd) props.onEditEnd();
           }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
-          style={{outline:"none",fontSize:b.type==="title"?26:15,lineHeight:1.85,color:"rgba(255,255,255,0.86)",fontFamily:b.type==="title"?"'JetBrains Mono',monospace":"'IBM Plex Sans',sans-serif",fontWeight:b.type==="title"?600:400,minHeight:b.type==="title"?38:90}}
+          style={{
+            outline: "none",
+            fontSize: b.type === "title" ? 26 : 15,
+            fontWeight: b.type === "title" ? 600 : 400,
+            minHeight: b.type === "title" ? 38 : 90,
+            ...JOURNAL_TEXT,
+          }}
         />
       )}
     </div>
@@ -469,8 +514,30 @@ function JournalBlock(props) {
 }
 
 function topBtn(color) {
-  return {background:color+"12",border:"1px solid "+color+"35",borderRadius:10,color:color,padding:"8px 12px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",fontSize:11};
+  return {
+    background: color + "12",
+    border: "1px solid " + color + "35",
+    borderRadius: 10,
+    color: color,
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontFamily: JOURNAL_FONT,
+    fontSize: 11,
+    letterSpacing: JOURNAL_LETTER_SPACING,
+    lineHeight: JOURNAL_LINE_HEIGHT,
+  };
 }
 function toolBtn() {
-  return {background:"rgba(255,255,255,0.035)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.58)",padding:"8px 12px",cursor:"pointer",fontSize:12};
+  return {
+    background: "rgba(255,255,255,0.035)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10,
+    color: "#FFFFFF",
+    padding: "8px 12px",
+    cursor: "pointer",
+    fontSize: 12,
+    fontFamily: JOURNAL_FONT,
+    letterSpacing: JOURNAL_LETTER_SPACING,
+    lineHeight: JOURNAL_LINE_HEIGHT,
+  };
 }

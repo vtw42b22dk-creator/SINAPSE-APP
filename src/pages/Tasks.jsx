@@ -192,8 +192,10 @@ export default function Tasks() {
   }
 
   function deleteTask(id) {
-    setTasks(function(prev) { return prev.filter(function(t) { return t.id !== id; }); });
+    var next = tasks.filter(function(t) { return t.id !== id; });
+    setTasks(next);
     if (editId === id) resetDraft();
+    taskStore.deleteTaskById(next, id).catch(function() {});
   }
 
   function toggleDone(id) {

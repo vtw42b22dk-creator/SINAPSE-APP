@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { replaceRows, selectRowsMerged, uid } from "./cloudStore";
+import { deleteRemoteIds, replaceRows, selectRowsMerged, uid } from "./cloudStore";
 
 var TABLE = "tasks";
 var KEY = "sinapse-tasks-v2";
@@ -64,6 +64,15 @@ export async function loadTasks() {
 
 export async function saveTasks(tasks) {
   return replaceRows(TABLE, KEY, tasks.map(toDb));
+}
+
+/** Remove tarefa localmente e na nuvem (evita reaparecer ao sincronizar). */
+export async function deleteTaskById(tasks, taskId) {
+  if (!taskId) return tasks;
+  var next = (tasks || []).filter(function(t) { return t.id !== taskId; });
+  await deleteRemoteIds(TABLE, [taskId], KEY);
+  await replaceRows(TABLE, KEY, next.map(toDb), { pruneOrphans: false });
+  return next;
 }
 
 export async function createLinkedTask(tasks, source) {

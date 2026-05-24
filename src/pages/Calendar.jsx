@@ -74,6 +74,24 @@ var HOUR_H = 44;
 var SNAP_MIN = 15;
 var HOURS = 24;
 
+var EVT_TRUNC = {
+  display: "block",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  minWidth: 0,
+  width: "100%",
+};
+
+function EventTitleLine(props) {
+  var label = props.title || "";
+  return (
+    <span title={label} style={Object.assign({}, EVT_TRUNC, props.style || {})}>
+      {label}
+    </span>
+  );
+}
+
 function timeToMin(t) {
   if (!t) return 0;
   var p = t.split(":");
@@ -343,7 +361,7 @@ function WeekTimeGrid(props) {
           overflow: "hidden",
         }}>
           <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: range.color || ACCENT }}>{minToTime(segStart - dayStart)}</p>
-          <p style={{ margin: "2px 0 0", fontSize: 10, color: "#fff", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label || "Novo evento"}</p>
+          <EventTitleLine title={label || "Novo evento"} style={{ margin: "2px 0 0", fontSize: 10, color: "#fff", fontWeight: 500 }} />
         </div>
       );
     }
@@ -387,9 +405,9 @@ function WeekTimeGrid(props) {
                 {list.map(function(ev) {
                   var c = ev.color || ACCENT;
                   return (
-                    <button type="button" key={ev.id} onClick={function() { props.onSelectDay(props.weekDays[i]); props.onOpenPopup(ev, props.weekDays[i]); }}
-                      style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'IBM Plex Sans',sans-serif" }}>
-                      {ev.title}
+                    <button type="button" key={ev.id} title={ev.title || ""} onClick={function() { props.onSelectDay(props.weekDays[i]); props.onOpenPopup(ev, props.weekDays[i]); }}
+                      style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, maxWidth: "100%" }}>
+                      <EventTitleLine title={ev.title} style={{ fontSize: 9, color: c }} />
                     </button>
                   );
                 })}
@@ -442,22 +460,28 @@ function WeekTimeGrid(props) {
                     var c = ev.color || ACCENT;
                     var cols = Math.max(1, seg.columns || 1);
                     var col = Math.min(cols - 1, seg.column || 0);
+                    var blockH = Math.max(h, 20);
+                    var compact = blockH < 34;
                     return (
                       <div key={seg.sourceKey + ev.id + dayIdx}
+                        title={ev.title || ""}
                         onPointerDown={function(e) { onBlockPointerDown(e, ev, seg.sourceKey); }}
                         onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); props.onOpenPopup(ev, seg.sourceKey); }}
                         style={{
                           position: "absolute",
                           left: "calc(" + (col / cols * 100) + "% + 3px)",
                           width: "calc(" + (100 / cols) + "% - 6px)",
-                          top: top + 1, height: Math.max(h, 20),
+                          top: top + 1, height: blockH,
                           background: c + "28", border: "1px solid " + c + "55", borderRadius: 8,
-                          padding: "4px 6px", overflow: "hidden", cursor: props.readOnly ? "pointer" : "grab",
+                          padding: compact ? "2px 4px" : "4px 6px", overflow: "hidden", cursor: props.readOnly ? "pointer" : "grab",
                           zIndex: 10, boxShadow: "0 4px 12px " + c + "18",
                           touchAction: "none", userSelect: "none",
+                          display: "flex", flexDirection: "column", justifyContent: compact ? "center" : "flex-start", minWidth: 0,
                         }}>
-                        <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c }}>{seg.continuesBefore ? "↳ " : ""}{timeFromMinutes(seg.segmentStart)}-{timeFromMinutes(seg.segmentStart + seg.segmentDuration)} · {durationLabel(seg.segmentDuration)}{seg.continuesAfter ? " ↴" : ""}</p>
-                        <p style={{ margin: "2px 0 0", fontSize: 10, color: "#fff", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.title}</p>
+                        {!compact && (
+                          <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{seg.continuesBefore ? "↳ " : ""}{timeFromMinutes(seg.segmentStart)}-{timeFromMinutes(seg.segmentStart + seg.segmentDuration)} · {durationLabel(seg.segmentDuration)}{seg.continuesAfter ? " ↴" : ""}</p>
+                        )}
+                        <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 9 : 10, color: "#fff", fontWeight: 500 }} />
                       </div>
                     );
                   })}
@@ -506,7 +530,7 @@ function EventCard(props) {
       <span style={{width:4,alignSelf:"stretch",borderRadius:4,background:c,flexShrink:0}}/>
       <div style={{flex:1,minWidth:0}}>
         <p style={{margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:c}}>{formatEventTime(ev)}</p>
-        <p style={{margin:"4px 0 0",fontSize:13,color:"rgba(255,255,255,0.85)"}}>{ev.title}</p>
+        <p title={ev.title || ""} style={{margin:"4px 0 0",fontSize:13,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.title}</p>
         {ev.notes && <p style={{margin:"6px 0 0",fontSize:11,color:"rgba(255,255,255,0.35)",lineHeight:1.5,whiteSpace:"pre-wrap"}}>{ev.notes}</p>}
       </div>
       {!props.readOnly && (
@@ -866,13 +890,12 @@ export default function Calendar() {
   }
 
   function deletePopup(dayKey, id) {
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      next[dayKey] = (next[dayKey] || []).filter(function(e) { return e.id !== id; });
-      if (!next[dayKey].length) delete next[dayKey];
-      return next;
-    });
+    var next = Object.assign({}, events);
+    next[dayKey] = (next[dayKey] || []).filter(function(e) { return e.id !== id; });
+    if (!next[dayKey].length) delete next[dayKey];
+    setEvents(next);
     setPopup(null);
+    calendarStore.deleteEventById(next, id).catch(function() {});
   }
 
   function onWeekSlotClick(key, minutes) {
@@ -932,12 +955,20 @@ export default function Calendar() {
 
   function deleteEvent(id) {
     if (readOnly) return;
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      next[selected] = (next[selected] || []).filter(function(e) { return e.id !== id; });
-      if (!next[selected].length) delete next[selected];
-      return next;
+    var next = Object.assign({}, events);
+    var found = false;
+    Object.keys(next).forEach(function(k) {
+      var before = (next[k] || []).length;
+      next[k] = (next[k] || []).filter(function(e) { return e.id !== id; });
+      if (next[k].length !== before) found = true;
+      if (!next[k].length) delete next[k];
     });
+    if (!found) {
+      next[selected] = (next[selected] || []).filter(function(e) { return e.id !== id; });
+      if (next[selected] && !next[selected].length) delete next[selected];
+    }
+    setEvents(next);
+    calendarStore.deleteEventById(next, id).catch(function() {});
     if (editId === id) resetForm();
   }
 
@@ -1002,11 +1033,14 @@ export default function Calendar() {
         <span style={{ fontWeight: isToday ? 600 : 400, alignSelf: tall ? "flex-start" : "center" }}>{p.d}</span>
         {tall && dayEv.slice(0, 4).map(function(ev) {
           return (
-            <span key={ev.id} style={{
+            <span key={ev.id} title={ev.title || ""} style={{
               fontSize: 9, padding: "3px 6px", borderRadius: 6,
               background: (ev.color || ACCENT) + "18", color: ev.color || ACCENT,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'IBM Plex Sans',sans-serif",
-            }}>{ev.title}</span>
+              overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif",
+              maxWidth: "100%", minWidth: 0, display: "block",
+            }}>
+              <EventTitleLine title={ev.title} style={{ fontSize: 9, color: ev.color || ACCENT }} />
+            </span>
           );
         })}
         {!tall && dayEv.length > 0 && (
@@ -1176,7 +1210,7 @@ export default function Calendar() {
       {isMobile && !mobileCreateOpen && (
         <div data-no-canvas-zoom style={{position:"fixed",left:10,right:76,bottom:12,zIndex:50,background:"rgba(8,10,16,0.88)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"10px 12px",backdropFilter:"blur(18px)",boxShadow:"0 16px 60px rgba(0,0,0,0.45)"}}>
           <p style={{margin:"0 0 6px",fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:ACCENT,textTransform:"uppercase"}}>{selDateLabel}</p>
-          {dayEvents.length ? <div data-scrollable style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:2}}>{dayEvents.map(function(ev){return <button key={ev.id} onClick={function(){openPopup(ev, selected);}} style={{flexShrink:0,maxWidth:180,background:(ev.color||ACCENT)+"18",border:"1px solid "+(ev.color||ACCENT)+"35",borderRadius:12,color:ev.color||ACCENT,padding:"8px 10px",fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatEventTime(ev)} · {ev.title}</button>;})}</div> : <p style={{margin:0,fontSize:12,color:"rgba(255,255,255,0.32)"}}>Sem eventos neste dia.</p>}
+          {dayEvents.length ? <div data-scrollable style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:2}}>{dayEvents.map(function(ev){return <button key={ev.id} title={(formatEventTime(ev) + " · " + (ev.title||"")).trim()} onClick={function(){openPopup(ev, selected);}} style={{flexShrink:0,maxWidth:180,minWidth:0,background:(ev.color||ACCENT)+"18",border:"1px solid "+(ev.color||ACCENT)+"35",borderRadius:12,color:ev.color||ACCENT,padding:"8px 10px",fontSize:12,overflow:"hidden"}}><span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatEventTime(ev)} · {ev.title}</span></button>;})}</div> : <p style={{margin:0,fontSize:12,color:"rgba(255,255,255,0.32)"}}>Sem eventos neste dia.</p>}
         </div>
       )}
       {isMobile && (
