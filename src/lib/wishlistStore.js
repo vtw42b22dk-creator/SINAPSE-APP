@@ -1,7 +1,7 @@
 import {
   deleteRemoteIds,
   fetchRemoteRows,
-  mergePullFromRemote,
+  mergePullFromRemoteAsync,
   mergeRowsByTimestamp,
   readLocal,
   replaceRows,
@@ -83,7 +83,7 @@ export async function pullGroups() {
   try {
     var local = await readLocal(GROUPS_KEY, []);
     var remote = await fetchRemoteRows(GROUPS_TABLE, normalizeGroup);
-    var merged = mergePullFromRemote(local, remote);
+    var merged = await mergePullFromRemoteAsync(local, remote, GROUPS_KEY);
     merged = merged.sort(function(a, b) { return a.order_index - b.order_index; });
     if (!merged.length) {
       merged = local.length ? local : [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
@@ -99,7 +99,7 @@ export async function pullItems() {
   try {
     var local = await readLocal(KEY, []);
     var remote = await fetchRemoteRows(TABLE, normalize);
-    var merged = mergePullFromRemote(local, remote);
+    var merged = await mergePullFromRemoteAsync(local, remote, KEY);
     await safeWriteLocal(KEY, merged, local);
     return sortItems(merged.map(normalize));
   } catch (e) {
@@ -147,7 +147,12 @@ export async function saveItems(items) {
 
 export async function deleteGroup(groupId) {
   if (!groupId) return { ok: true };
-  return deleteRemoteIds(GROUPS_TABLE, [groupId]);
+  return deleteRemoteIds(GROUPS_TABLE, [groupId], GROUPS_KEY);
+}
+
+export async function deleteItem(itemId) {
+  if (!itemId) return { ok: true };
+  return deleteRemoteIds(TABLE, [itemId], KEY);
 }
 
 export async function persistAll(groups, items) {

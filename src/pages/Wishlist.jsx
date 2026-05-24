@@ -38,6 +38,7 @@ export default function Wishlist() {
   var itemsRef = useRef([]);
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
+  var lastDeleteAt = useRef(0);
 
   function applyWishlistData(gs, list) {
     if (gs[0]) {
@@ -54,6 +55,7 @@ export default function Wishlist() {
   }
 
   var syncFromCloud = useCallback(function() {
+    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     skipSaveRef.current = true;
     return Promise.all([wishlistStore.pullGroups(), wishlistStore.pullItems()]).then(function(res) {
@@ -67,6 +69,7 @@ export default function Wishlist() {
   useCloudSync(syncFromCloud, {
     shouldSkip: function() {
       if (!loaded) return true;
+      if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
     },
@@ -161,9 +164,10 @@ export default function Wishlist() {
     setItems(nextItems);
     setGroups(next);
     if (activeGroup === g.id) setActiveGroup(next[0] ? next[0].id : null);
+    lastDeleteAt.current = Date.now();
     await wishlistStore.deleteGroup(g.id);
     await persist(next, nextItems);
-    skipSaveRef.current = false;
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   async function addItem() {
@@ -191,9 +195,15 @@ export default function Wishlist() {
   }
 
   async function removeItem(id) {
-    var next = items.filter(function(i) { return i.id !== id; });
+    clearTimeout(saveTimer.current);
+    skipSaveRef.current = true;
+    lastDeleteAt.current = Date.now();
+    var next = itemsRef.current.filter(function(i) { return i.id !== id; });
+    itemsRef.current = next;
     setItems(next);
-    await persist(groups, next);
+    await wishlistStore.deleteItem(id);
+    await persist(groupsRef.current, next);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   return (

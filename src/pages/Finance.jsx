@@ -11,11 +11,12 @@ var EXPENSE_ACCENT = "#38BDF8";
 var INCOME_ACCENT = "#34D399";
 
 var expenseAdapter = {
-  loadCategories: financeStore.loadCategories,
+  loadCategories: financeStore.loadCategoriesLocal,
   saveCategories: financeStore.saveCategories,
   deleteCategory: financeStore.deleteCategory,
   loadRows: financeStore.loadExpenses,
   saveRows: financeStore.saveExpenses,
+  deleteRow: financeStore.deleteExpense,
   pullCategories: financeStore.pullCategories,
   pullRows: financeStore.pullExpenses,
   newRow: financeStore.newExpense,
@@ -25,11 +26,12 @@ var expenseAdapter = {
 };
 
 var incomeAdapter = {
-  loadCategories: incomeStore.loadCategories,
+  loadCategories: incomeStore.loadCategoriesLocal,
   saveCategories: incomeStore.saveCategories,
   deleteCategory: incomeStore.deleteCategory,
   loadRows: incomeStore.loadIncomes,
   saveRows: incomeStore.saveIncomes,
+  deleteRow: incomeStore.deleteIncome,
   pullCategories: incomeStore.pullCategories,
   pullRows: incomeStore.pullIncomes,
   newRow: incomeStore.newIncome,

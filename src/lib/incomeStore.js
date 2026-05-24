@@ -1,14 +1,33 @@
-import { deleteRemoteIds, fetchRemoteRows, mergePullFromRemote, readLocal, replaceRows, uid, writeLocal } from "./cloudStore";
+import {
+  deleteRemoteIds,
+  fetchRemoteRows,
+  mergePullFromRemoteAsync,
+  readLocal,
+  replaceRows,
+  safeWriteLocal,
+  uid,
+  writeLocal,
+} from "./cloudStore";
 import { todayKey } from "./financeStore";
 
 var TABLE = "incomes";
 var KEY = "incomes-v1";
 var CAT_TABLE = "income_categories";
 var CAT_KEY = "income-categories-v1";
+var CAT_SEED_KEY = "income-categories-seeded-v1";
 var DEFAULT_CATEGORIES = ["Salário", "Freelance", "Investimentos", "Reembolsos", "Outro"];
 
+function sortCats(rows) {
+  return (rows || []).slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
+}
+
 function normCat(r) {
-  return { id: r.id || uid("ic"), name: r.name || "Outro", order_index: r.order_index != null ? r.order_index : 0 };
+  return {
+    id: r.id || uid("ic"),
+    name: r.name || "Outro",
+    order_index: r.order_index != null ? r.order_index : 0,
+    updated: r.updated || r.updated_at || Date.now(),
+  };
 }
 
 function normalize(row) {
@@ -45,60 +64,86 @@ function toDb(row) {
 
 function defaultCategories() {
   return DEFAULT_CATEGORIES.map(function(name, i) {
-    return { id: uid("ic"), name: name, order_index: i };
+    return {
+      id: "ic-def-" + i,
+      name: name,
+      order_index: i,
+      updated: Date.now(),
+    };
   });
 }
 
-export async function loadCategories() {
+export async function loadCategoriesLocal() {
   var local = await readLocal(CAT_KEY, []);
-  if (local.length) {
-    return local.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
-  }
+  return sortCats(local);
+}
+
+async function seedDefaultsOnce() {
   var rows = defaultCategories();
   await writeLocal(CAT_KEY, rows);
+  try { await writeLocal(CAT_SEED_KEY, true); } catch (e) {}
   saveCategories(rows).catch(function() {});
   return rows;
+}
+
+export async function ensureCategories() {
+  var local = await readLocal(CAT_KEY, []);
+  if (local.length) return sortCats(local);
+  try {
+    var remote = await fetchRemoteRows(CAT_TABLE, normCat);
+    if (remote.length) {
+      await writeLocal(CAT_KEY, remote);
+      return sortCats(remote);
+    }
+  } catch (e) {}
+  return seedDefaultsOnce();
+}
+
+export async function loadCategories() {
+  var local = await loadCategoriesLocal();
+  if (local.length) return local;
+  return ensureCategories();
 }
 
 export async function saveCategories(categories) {
   if (!categories || !categories.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   return replaceRows(CAT_TABLE, CAT_KEY, (categories || []).map(function(c) {
-    return { id: c.id, name: c.name, order_index: c.order_index || 0 };
+    return { id: c.id, name: c.name, order_index: c.order_index || 0, updated: c.updated || Date.now() };
   }), { pruneOrphans: true });
 }
 
 export async function deleteCategory(categoryId) {
   if (!categoryId) return { ok: true };
-  return deleteRemoteIds(CAT_TABLE, [categoryId]);
+  return deleteRemoteIds(CAT_TABLE, [categoryId], CAT_KEY);
 }
 
 export async function pullIncomes() {
-  var remote = [];
   try {
-    remote = await fetchRemoteRows(TABLE, normalize);
+    var remote = await fetchRemoteRows(TABLE, normalize);
+    var local = await readLocal(KEY, []);
+    var merged = await mergePullFromRemoteAsync(local, remote, KEY);
+    await safeWriteLocal(KEY, merged, local);
+    return merged.sort(function(a, b) {
+      return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
+    });
   } catch (e) {
     return loadIncomes();
   }
-  var local = await readLocal(KEY, []);
-  var merged = mergePullFromRemote(local, remote);
-  await writeLocal(KEY, merged);
-  return merged.sort(function(a, b) {
-    return b.day.localeCompare(a.day) || (b.created || 0) - (a.created || 0);
-  });
 }
 
 export async function pullCategories() {
-  var remote = [];
   try {
-    remote = await fetchRemoteRows(CAT_TABLE, normCat);
+    var local = await readLocal(CAT_KEY, []);
+    var remote = await fetchRemoteRows(CAT_TABLE, normCat);
+    var merged = await mergePullFromRemoteAsync(local, remote, CAT_KEY);
+    if (!merged.length && local.length) merged = local;
+    if (!merged.length) merged = await ensureCategories();
+    await safeWriteLocal(CAT_KEY, merged, local);
+    return sortCats(merged);
   } catch (e) {
-    return loadCategories();
+    var local = await loadCategoriesLocal();
+    return local.length ? local : ensureCategories();
   }
-  var local = await readLocal(CAT_KEY, []);
-  var merged = mergePullFromRemote(local, remote);
-  if (!merged.length) return loadCategories();
-  await writeLocal(CAT_KEY, merged);
-  return merged.slice().sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
 }
 
 export async function loadIncomes() {
@@ -111,6 +156,11 @@ export async function loadIncomes() {
 export async function saveIncomes(rows) {
   if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   return replaceRows(TABLE, KEY, (rows || []).map(toDb), { pruneOrphans: true });
+}
+
+export async function deleteIncome(id) {
+  if (!id) return { ok: true };
+  return deleteRemoteIds(TABLE, [id], KEY);
 }
 
 export function newIncome(title, amount, categories, day) {
@@ -126,11 +176,16 @@ export function newIncome(title, amount, categories, day) {
 }
 
 export function newCategory(name) {
-  return { id: uid("ic"), name: name || "Nova categoria", order_index: Date.now() };
+  return {
+    id: uid("ic"),
+    name: name || "Nova categoria",
+    order_index: Math.floor(Date.now() / 1000),
+    updated: Date.now(),
+  };
 }
 
-export function monthTotal(incomes, monthKey) {
-  return (incomes || []).filter(function(e) {
+export function monthTotal(rows, monthKey) {
+  return (rows || []).filter(function(e) {
     return e.day && e.day.indexOf(monthKey) === 0;
   }).reduce(function(sum, e) { return sum + (Number(e.amount) || 0); }, 0);
 }

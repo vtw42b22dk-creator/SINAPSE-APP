@@ -27,6 +27,7 @@ export default function FinanceLedger(props) {
   var saveRowsTimer = useRef(null);
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
+  var lastDeleteAt = useRef(0);
   var categoriesRef = useRef([]);
   var rowsRef = useRef([]);
   var pullCategories = store.pullCategories || store.loadCategories;
@@ -42,6 +43,7 @@ export default function FinanceLedger(props) {
   }
 
   var syncFromCloud = useCallback(function() {
+    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 4000) return Promise.resolve();
     return Promise.all([pullCategories(), pullRows()]).then(function(res) {
       if (skipSaveRef.current) return;
@@ -159,17 +161,17 @@ export default function FinanceLedger(props) {
     setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: store.todayKey(), notes: "" });
   }
 
-  function removeRow(id) {
+  async function removeRow(id) {
     clearTimeout(saveRowsTimer.current);
     skipSaveRef.current = true;
-    setRows(function(prev) {
-      var next = prev.filter(function(e) { return e.id !== id; });
-      rowsRef.current = next;
-      persistRows(next).finally(function() {
-        setTimeout(function() { skipSaveRef.current = false; }, 80);
-      });
-      return next;
-    });
+    lastDeleteAt.current = Date.now();
+    lastSaveAt.current = Date.now();
+    var next = rowsRef.current.filter(function(e) { return e.id !== id; });
+    rowsRef.current = next;
+    setRows(next);
+    if (store.deleteRow) await store.deleteRow(id);
+    await persistRows(next);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   function shiftMonth(delta) {
@@ -221,6 +223,7 @@ export default function FinanceLedger(props) {
     clearTimeout(saveCatTimer.current);
     clearTimeout(saveRowsTimer.current);
     skipSaveRef.current = true;
+    lastDeleteAt.current = Date.now();
     categoriesRef.current = nextCats;
     rowsRef.current = nextRows;
     setCategories(nextCats);

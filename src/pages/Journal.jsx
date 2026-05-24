@@ -33,6 +33,7 @@ export default function Journal() {
   var flushHandlersRef = useRef({});
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
+  var lastDeleteAt = useRef(0);
 
   function getEditingSnapshot() {
     var id = editingBlockRef.current;
@@ -72,6 +73,7 @@ export default function Journal() {
 
   var syncFromCloud = useCallback(function() {
     if (editingBlockRef.current) return Promise.resolve();
+    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     skipSaveRef.current = true;
     return Promise.all([
@@ -89,6 +91,7 @@ export default function Journal() {
     shouldSkip: function() {
       if (!loaded) return true;
       if (editingBlockRef.current) return true;
+      if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;
     },
@@ -215,9 +218,10 @@ export default function Journal() {
     setSpaces(nextSpaces);
     setBlocks(nextBlocks);
     if (active === space.id) setActive(nextSpaces[0] ? nextSpaces[0].id : null);
-    await persistAll(nextSpaces, nextBlocks);
+    lastDeleteAt.current = Date.now();
     await journalStore.deleteSpaceAndBlocks(space.id, deletedBlockIds);
-    skipSaveRef.current = false;
+    await persistAll(nextSpaces, nextBlocks);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   function addBlock(type) {
@@ -242,9 +246,10 @@ export default function Journal() {
     clearTimeout(saveBlocksTimer.current);
     skipSaveRef.current = true;
     setBlocks(next);
-    await persistBlocks(next);
+    lastDeleteAt.current = Date.now();
     await journalStore.deleteRemoteBlock(id);
-    skipSaveRef.current = false;
+    await persistBlocks(next);
+    setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
   function format(cmd, value) {

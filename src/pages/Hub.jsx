@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
+import * as dataRecovery from "../lib/dataRecovery";
 
 function ParticleField() {
   const ref = useRef(null);
@@ -256,6 +257,19 @@ function StorageBar(props) {
   );
 }
 
+function recoverBtnStyle() {
+  return {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 10,
+    padding: "6px 12px",
+    cursor: "pointer",
+    fontFamily: "'JetBrains Mono',monospace",
+  };
+}
+
 export default function Hub() {
   var navigate = useNavigate();
   var auth = useAuth();
@@ -264,6 +278,52 @@ export default function Hub() {
   var isMobile = viewportW < 720;
   var stS = useState(getAppStorageUsage);
   var storageUsage = stS[0], setStorageUsage = stS[1];
+  var recoverMsgS = useState("");
+  var recoverMsg = recoverMsgS[0], setRecoverMsg = recoverMsgS[1];
+  var recoverBusyS = useState(false);
+  var recoverBusy = recoverBusyS[0], setRecoverBusy = recoverBusyS[1];
+
+  function formatRecoverResult(label, r) {
+    if (!r || !r.ok) return label + ": " + (r && r.reason ? r.reason : "nada encontrado");
+    return label + ": " + r.count + " recuperado(s)";
+  }
+
+  async function runRecover(which) {
+    setRecoverBusy(true);
+    setRecoverMsg("A procurar cópias…");
+    try {
+      var res;
+      var parts;
+      if (which === "journal") {
+        res = await dataRecovery.recoverJournal();
+        parts = [
+          formatRecoverResult("Nuvem (textos)", res.cloudBlocks),
+          formatRecoverResult("Nuvem (temas)", res.cloudSpaces),
+          formatRecoverResult("Browser (textos)", res.localBlocks),
+          formatRecoverResult("Browser (temas)", res.localSpaces),
+        ];
+      } else if (which === "finance") {
+        res = await dataRecovery.recoverFinance();
+        parts = [
+          formatRecoverResult("Nuvem (categorias gastos)", res.cloudCats),
+          formatRecoverResult("Nuvem (gastos)", res.cloudExp),
+          formatRecoverResult("Browser (categorias)", res.localCats),
+        ];
+      } else {
+        res = await dataRecovery.recoverWishlist();
+        parts = [
+          formatRecoverResult("Nuvem (itens)", res.cloudItems),
+          formatRecoverResult("Nuvem (grupos)", res.cloudGroups),
+          formatRecoverResult("Browser (itens)", res.localItems),
+          formatRecoverResult("Browser (grupos)", res.localGroups),
+        ];
+      }
+      setRecoverMsg(parts.join(" · ") + " — Abre o módulo para ver.");
+    } catch (e) {
+      setRecoverMsg("Erro: " + (e.message || String(e)));
+    }
+    setRecoverBusy(false);
+  }
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
@@ -309,6 +369,19 @@ export default function Hub() {
           </div>
           <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:8,paddingTop:8}}>
             <StorageBar usage={storageUsage} loggedIn={!!auth.user} />
+            {auth.user ? (
+              <div style={{ textAlign: "center", maxWidth: 440, marginTop: 4 }}>
+                <p style={{ margin: "0 0 8px", fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
+                  Perdeste texto ou listas? Tenta recuperar da nuvem ou de cópias antigas neste browser.
+                </p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("journal"); }} style={recoverBtnStyle()}>Recuperar Diário</button>
+                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("wishlist"); }} style={recoverBtnStyle()}>Recuperar Wishlist</button>
+                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("finance"); }} style={recoverBtnStyle()}>Recuperar Financeiro</button>
+                </div>
+                {recoverMsg ? <p style={{ margin: "10px 0 0", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#34D399", lineHeight: 1.55 }}>{recoverMsg}</p> : null}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

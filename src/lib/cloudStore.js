@@ -91,26 +91,69 @@ export function mergeRowsByTimestamp(local, remote) {
   return Object.values(map);
 }
 
+function tombstoneKey(localKey) {
+  return localKey + "-deleted-v1";
+}
+
+function deletedSet(deletedIds) {
+  var d = {};
+  (deletedIds || []).forEach(function(id) {
+    if (id) d[id] = true;
+  });
+  return d;
+}
+
+/** Regista ids apagados neste dispositivo (a sync não os repõe). */
+export async function markLocalDeleted(localKey, ids) {
+  if (!ids || !ids.length) return;
+  var cur = await readLocal(tombstoneKey(localKey), []);
+  var map = deletedSet(cur);
+  ids.forEach(function(id) {
+    if (id) map[id] = true;
+  });
+  var list = Object.keys(map);
+  if (list.length > 1000) list = list.slice(-1000);
+  await writeLocal(tombstoneKey(localKey), list);
+}
+
+export async function getLocalDeletedIds(localKey) {
+  return await readLocal(tombstoneKey(localKey), []);
+}
+
+export async function clearLocalDeleted(localKey) {
+  await writeLocal(tombstoneKey(localKey), []);
+}
+
 /**
  * Ao trazer da nuvem: remoto define existência, mas NUNCA apaga tudo local
- * se a nuvem vier vazia (sessão/erro) — evita wipe acidental.
+ * se a nuvem vier vazia; ids em tombstones não voltam.
  */
-export function mergePullFromRemote(local, remote) {
+export function mergePullFromRemote(local, remote, deletedIds) {
   var loc = local || [];
   var rem = remote || [];
+  var deleted = deletedSet(deletedIds);
   if (!rem.length) {
     return loc.length ? loc.slice() : [];
   }
   var map = {};
   rem.forEach(function(r) {
-    if (r && r.id) map[r.id] = r;
+    if (r && r.id && !deleted[r.id]) map[r.id] = r;
   });
   loc.forEach(function(l) {
-    if (!l || !l.id) return;
+    if (!l || !l.id || deleted[l.id]) return;
     var r = map[l.id];
-    if (r && ts(l) > ts(r)) map[l.id] = l;
+    if (r) {
+      if (ts(l) > ts(r)) map[l.id] = l;
+    } else {
+      map[l.id] = l;
+    }
   });
   return Object.values(map);
+}
+
+export async function mergePullFromRemoteAsync(local, remote, localKey) {
+  var deletedIds = await getLocalDeletedIds(localKey);
+  return mergePullFromRemote(local, remote, deletedIds);
 }
 
 /** Não sobrescrever localStorage com [] se já havia dados. */
@@ -222,6 +265,7 @@ export async function replaceRows(table, localKey, rows, options) {
       if (orphanIds.length) {
         var del = await supabase.from(table).delete().eq("user_id", user.id).in("id", orphanIds);
         if (del.error) throw del.error;
+        await markLocalDeleted(localKey, orphanIds);
       }
     }
 
@@ -244,13 +288,14 @@ export async function deleteRow(table, localKey, rows, id) {
 }
 
 /** Apaga linhas na nuvem por id (eliminar tema, grupo, etc.). */
-export async function deleteRemoteIds(table, ids) {
+export async function deleteRemoteIds(table, ids, localKey) {
   if (!ids || !ids.length) return { ok: true };
   var user = await getUser();
   if (!supabase || !user) return { ok: false, error: "Sem ligação" };
   try {
     var res = await supabase.from(table).delete().eq("user_id", user.id).in("id", ids);
     if (res.error) throw res.error;
+    if (localKey) await markLocalDeleted(localKey, ids);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: cloudErrorMessage(e) };

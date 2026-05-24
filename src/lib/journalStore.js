@@ -1,8 +1,8 @@
 import {
   deleteRemoteIds,
   fetchRemoteRows,
-  getUser,
-  mergePullFromRemote,
+  getLocalDeletedIds,
+  mergePullFromRemoteAsync,
   readLocal,
   replaceRows,
   safeWriteLocal,
@@ -65,9 +65,15 @@ export function mergeBlocksByContent(local, remote) {
 }
 
 /** Pull: junta com remoto; se remoto vazio, mantém local (nunca wipe). */
-export function mergeBlocksForPull(local, remote, editingBlock) {
+export function mergeBlocksForPull(local, remote, editingBlock, deletedIds) {
   var loc = local || [];
   var rem = remote || [];
+  var deleted = {};
+  (deletedIds || []).forEach(function(id) { if (id) deleted[id] = true; });
+  rem = rem.filter(function(r) {
+    var n = normalizeBlock(r);
+    return n.id && !deleted[n.id];
+  });
   if (!rem.length) {
     if (!loc.length) return [];
     return loc.map(function(l) { return normalizeBlock(l); });
@@ -152,7 +158,7 @@ export async function pullSpaces() {
   try {
     var local = await readLocal(SPACES, []);
     var remote = await fetchRemoteRows("journal_spaces", normalizeSpace);
-    var merged = mergePullFromRemote(local, remote);
+    var merged = await mergePullFromRemoteAsync(local, remote, SPACES);
     if (!merged.length) {
       merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
     }
@@ -167,7 +173,8 @@ export async function pullBlocks(editingBlock) {
   try {
     var local = await readLocal(BLOCKS, []);
     var remote = await fetchRemoteRows("journal_blocks", normalizeBlock);
-    var merged = mergeBlocksForPull(local, remote, editingBlock);
+    var deletedIds = await getLocalDeletedIds(BLOCKS);
+    var merged = mergeBlocksForPull(local, remote, editingBlock, deletedIds);
     merged = overlayEditingBlock(merged, editingBlock);
     await safeWriteLocal(BLOCKS, merged, local);
     return blocksToUi(merged);
@@ -213,12 +220,12 @@ export async function saveAll(spaces, blocks) {
 
 /** Apaga tema e blocos na nuvem (para sincronizar eliminações). */
 export async function deleteSpaceAndBlocks(spaceId, blockIds) {
-  if (blockIds && blockIds.length) await deleteRemoteIds("journal_blocks", blockIds);
-  if (spaceId) await deleteRemoteIds("journal_spaces", [spaceId]);
+  if (blockIds && blockIds.length) await deleteRemoteIds("journal_blocks", blockIds, BLOCKS);
+  if (spaceId) await deleteRemoteIds("journal_spaces", [spaceId], SPACES);
 }
 
 export async function deleteRemoteBlock(blockId) {
-  if (blockId) await deleteRemoteIds("journal_blocks", [blockId]);
+  if (blockId) await deleteRemoteIds("journal_blocks", [blockId], BLOCKS);
 }
 
 export function newBlock(spaceId, type) {
