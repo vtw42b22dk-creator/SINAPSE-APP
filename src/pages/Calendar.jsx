@@ -2,7 +2,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
-import * as taskStore from "../lib/tasksStore";
 
 var ACCENT = "#00FFC8";
 var SK = "sinapse-calendar-v2";
@@ -16,9 +15,7 @@ function parseKey(k) {
   var p = k.split("-");
   return { y: +p[0], m: +p[1] - 1, d: +p[2] };
 }
-function sameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
+
 function loadEvents() {
   try {
     var raw = localStorage.getItem(SK);
@@ -130,6 +127,11 @@ function eventTimeLabel(ev) {
   if (!ev.time) return "—";
   var dur = evDuration(ev);
   return ev.time + "-" + eventEndTime(ev) + " · " + durationLabel(dur);
+}
+function eventTooltip(ev) {
+  var title = (ev.title || "").trim() || "Sem título";
+  if (ev.allDay || !ev.time) return title;
+  return title + " [" + ev.time + " - " + eventEndTime(ev) + "]";
 }
 
 function timeUntilLabel(dayKey, ev) {
@@ -285,7 +287,7 @@ function WeekTimeGrid(props) {
       setPreview(null);
       if (!d.moved) {
         props.onSelectDay(dayKey);
-        props.onOpenPopup(ev, dayKey);
+        if (props.onEventClick) props.onEventClick(ev, dayKey);
         return;
       }
       var p = posFromPointer(pe.clientX, pe.clientY, d.duration);
@@ -302,17 +304,17 @@ function WeekTimeGrid(props) {
 
   function onSlotPointerDown(e, dayIdx) {
     if (props.readOnly || dragRef.current) return;
-    if (e.pointerType === "touch") return;
     if (e.button && e.button !== 0) return;
     var p = posFromPointer(e.clientX, e.clientY, 15);
     if (!p) return;
     e.preventDefault();
     var startAbs = p.dayIdx * 1440 + p.minutes;
-    createRef.current = { startAbs: startAbs, color: ACCENT };
+    createRef.current = { startAbs: startAbs, color: ACCENT, moved: false };
     setCreatePreview({ startAbs: startAbs, endAbs: startAbs + 60, color: ACCENT });
 
     function onMove(pe) {
       if (!createRef.current) return;
+      createRef.current.moved = true;
       var n = posFromPointer(pe.clientX, pe.clientY, 15);
       if (!n) return;
       var endAbs = n.dayIdx * 1440 + n.minutes;
@@ -324,12 +326,17 @@ function WeekTimeGrid(props) {
       window.removeEventListener("pointerup", onUp);
       if (!createRef.current) return;
       var s = createRef.current.startAbs;
+      var moved = createRef.current.moved;
       createRef.current = null;
       var n = posFromPointer(pe.clientX, pe.clientY, 15);
       var eAbs = n ? n.dayIdx * 1440 + n.minutes : s + 60;
       if (eAbs <= s) eAbs = s + 60;
       setCreatePreview(null);
-      if (props.onRangeCreate) props.onRangeCreate(props.weekDays[Math.floor(s / 1440)], s % 1440, props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s);
+      if (!moved && props.onSlotClick) {
+        props.onSlotClick(props.weekDays[Math.floor(s / 1440)], s % 1440);
+      } else if (moved && props.onRangeCreate) {
+        props.onRangeCreate(props.weekDays[Math.floor(s / 1440)], s % 1440, props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s);
+      }
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -368,11 +375,18 @@ function WeekTimeGrid(props) {
     return bits;
   }
 
+  var nowTickS = useState(0);
+  var nowTick = nowTickS[0], setNowTick = nowTickS[1];
+  useEffect(function() {
+    var id = setInterval(function() { setNowTick(Date.now()); }, 60000);
+    return function() { clearInterval(id); };
+  }, []);
+
   var nowLine = useMemo(function() {
     if (props.weekDays.indexOf(props.todayKey) < 0) return null;
     var t = new Date();
     return { dayIdx: props.weekDays.indexOf(props.todayKey), top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
-  }, [props.weekDays, props.todayKey]);
+  }, [props.weekDays, props.todayKey, nowTick]);
 
   return (
     <div className="week-wrap">
@@ -405,7 +419,7 @@ function WeekTimeGrid(props) {
                 {list.map(function(ev) {
                   var c = ev.color || ACCENT;
                   return (
-                    <button type="button" key={ev.id} title={ev.title || ""} onClick={function() { props.onSelectDay(props.weekDays[i]); props.onOpenPopup(ev, props.weekDays[i]); }}
+                    <button type="button" key={ev.id} title={eventTooltip(ev)} onClick={function() { props.onSelectDay(props.weekDays[i]); if (props.onEventClick) props.onEventClick(ev, props.weekDays[i]); }}
                       style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, maxWidth: "100%" }}>
                       <EventTitleLine title={ev.title} style={{ fontSize: 9, color: c }} />
                     </button>
@@ -448,8 +462,8 @@ function WeekTimeGrid(props) {
                     );
                   })}
                   {nowLine && nowLine.dayIdx === dayIdx && (
-                    <div style={{ position: "absolute", top: nowLine.top, left: 0, right: 0, height: 2, background: "#FF3D8A", zIndex: 5, pointerEvents: "none" }}>
-                      <span style={{ position: "absolute", left: -4, top: -3, width: 8, height: 8, borderRadius: "50%", background: "#FF3D8A" }} />
+                    <div style={{ position: "absolute", top: nowLine.top, left: 0, right: 0, height: 2, background: ACCENT, boxShadow: "0 0 12px " + ACCENT + "88", zIndex: 5, pointerEvents: "none" }}>
+                      <span style={{ position: "absolute", left: -4, top: -4, width: 8, height: 8, borderRadius: "50%", background: ACCENT, boxShadow: "0 0 8px " + ACCENT }} />
                     </div>
                   )}
                   {list.map(function(seg) {
@@ -464,9 +478,9 @@ function WeekTimeGrid(props) {
                     var compact = blockH < 34;
                     return (
                       <div key={seg.sourceKey + ev.id + dayIdx}
-                        title={ev.title || ""}
+                        title={eventTooltip(ev)}
                         onPointerDown={function(e) { onBlockPointerDown(e, ev, seg.sourceKey); }}
-                        onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); props.onOpenPopup(ev, seg.sourceKey); }}
+                        onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); if (props.onEventClick) props.onEventClick(ev, seg.sourceKey); }}
                         style={{
                           position: "absolute",
                           left: "calc(" + (col / cols * 100) + "% + 3px)",
@@ -481,7 +495,7 @@ function WeekTimeGrid(props) {
                         {!compact && (
                           <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{seg.continuesBefore ? "↳ " : ""}{timeFromMinutes(seg.segmentStart)}-{timeFromMinutes(seg.segmentStart + seg.segmentDuration)} · {durationLabel(seg.segmentDuration)}{seg.continuesAfter ? " ↴" : ""}</p>
                         )}
-                        <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 9 : 10, color: "#fff", fontWeight: 500 }} />
+                        <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 9 : 10, color: "#fff", fontWeight: 500, flex: 1, minHeight: 0 }} />
                       </div>
                     );
                   })}
@@ -543,116 +557,178 @@ function EventCard(props) {
   );
 }
 
-function EventPopup(props) {
-  var ev = props.event;
-  var tS = useState(ev.title || "");
-  var title = tS[0], setTitle = tS[1];
-  var nS = useState(ev.notes || "");
-  var notes = nS[0], setNotes = nS[1];
-  var adS = useState(!!ev.allDay);
-  var allDay = adS[0], setAllDay = adS[1];
-  var timeS = useState(ev.time || "09:00");
-  var time = timeS[0], setTime = timeS[1];
-  var durS = useState(evDuration(ev));
-  var duration = durS[0], setDuration = durS[1];
-  var endS = useState(eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev)));
-  var endTime = endS[0], setEndTime = endS[1];
-  var cS = useState(ev.color || ACCENT);
-  var color = cS[0], setColor = cS[1];
-  var repS = useState([false, false, false, false, false, false, false]);
-  var repeatDays = repS[0], setRepeatDays = repS[1];
-  var taskS = useState(!!ev.task_id);
-  var saveAsTask = taskS[0], setSaveAsTask = taskS[1];
+function MiniCalendar(props) {
+  var view = props.view;
+  var selected = props.selected;
+  var todayKey = props.todayKey;
+  var events = props.events;
+  var isMobile = props.isMobile;
 
-  function toggleRepeat(i) {
-    setRepeatDays(function(prev) {
-      var next = prev.slice();
-      next[i] = !next[i];
-      return next;
-    });
-  }
+  var grid = useMemo(function() {
+    var first = new Date(view.y, view.m, 1);
+    var start = (first.getDay() + 6) % 7;
+    var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+    var cells = [];
+    var prevDays = new Date(view.y, view.m, 0).getDate();
+    for (var i = start - 1; i >= 0; i--) {
+      cells.push({ d: prevDays - i, m: view.m - 1, y: view.m === 0 ? view.y - 1 : view.y, outside: true });
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      cells.push({ d: d, m: view.m, y: view.y, outside: false });
+    }
+    while (cells.length % 7 !== 0 || cells.length < 42) {
+      var n = cells.length - start - daysInMonth + 1;
+      cells.push({ d: n, m: view.m + 1, y: view.m === 11 ? view.y + 1 : view.y, outside: true });
+    }
+    return cells;
+  }, [view.y, view.m]);
 
-  function save() {
-    if (!title.trim()) return;
-    var nextDuration = durationFromTimes(time, endTime);
-    props.onSave(props.dayKey, Object.assign({}, ev, {
-      title: title.trim(),
-      notes: notes.trim(),
-      allDay: allDay,
-      time: allDay ? null : time,
-      duration: allDay ? null : nextDuration,
-      color: color,
-    }), repeatDays, saveAsTask);
-  }
-
-  var p = parseKey(props.dayKey);
-  var dow = (new Date(p.y, p.m, p.d).getDay() + 6) % 7;
-  var cdS = useState(timeUntilLabel(props.dayKey, ev));
-  var countdown = cdS[0], setCountdown = cdS[1];
-  useEffect(function() {
-    function tick() { setCountdown(timeUntilLabel(props.dayKey, ev)); }
-    tick();
-    var id = setInterval(tick, 30000);
-    return function() { clearInterval(id); };
-  }, [props.dayKey, ev.id, ev.time, ev.allDay, ev.duration]);
+  var monthLabel = new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 18 }} onClick={props.onClose}>
-      <div style={{ width: "min(440px,94vw)", maxHeight: "90vh", overflow: "auto", background: "rgba(10,12,20,0.98)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, boxShadow: "0 24px 80px rgba(0,0,0,0.55)", padding: 18 }} onClick={function(e) { e.stopPropagation(); }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: color, letterSpacing: 1 }}>EDITAR EVENTO</p>
-          <button type="button" onClick={props.onClose} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.45)", width: 34, height: 34, cursor: "pointer" }}>×</button>
-        </div>
-
-        <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 12, background: color + "12", border: "1px solid " + color + "30" }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", letterSpacing: 1 }}>TEMPO ATÉ AO EVENTO</p>
-          <p style={{ margin: "4px 0 0", fontSize: 15, fontFamily: "'JetBrains Mono',monospace", color: color }}>{countdown}</p>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <input value={title} onChange={function(e) { setTitle(e.target.value); }} placeholder="Título"
-            style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "11px 12px", fontSize: 14, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-          <textarea value={notes} onChange={function(e) { setNotes(e.target.value); }} placeholder="Notas..." rows={4}
-            style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "10px 12px", fontSize: 12, outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5 }} />
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
-            <input type="checkbox" checked={allDay} onChange={function(e) { setAllDay(e.target.checked); }} style={{ accentColor: color }} />
-            Dia todo / sem hora
-          </label>
-          {!allDay && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <input type="time" value={time} onChange={function(e) { setTime(e.target.value); setEndTime(addMinutes(e.target.value, duration)); }}
-                style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: color, padding: "9px 10px", fontSize: 12, fontFamily: "'JetBrains Mono',monospace", outline: "none" }} />
-              <input type="time" value={endTime} onChange={function(e) { setEndTime(e.target.value); setDuration(durationFromTimes(time, e.target.value)); }}
-                style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "9px 10px", fontSize: 12, fontFamily: "'JetBrains Mono',monospace", outline: "none" }} />
-              <p style={{gridColumn:"1 / -1",margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"rgba(255,255,255,0.32)"}}>Duração: {durationLabel(durationFromTimes(time, endTime))}</p>
-            </div>
-          )}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {COLORS.map(function(c) {
-              return <button type="button" key={c} onClick={function() { setColor(c); }} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: color === c ? "2px solid #fff" : "2px solid transparent", cursor: "pointer", opacity: color === c ? 1 : 0.6 }} />;
-            })}
-          </div>
-          <div>
-            <p style={{ margin: "2px 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
-            <div style={{ display: "flex", gap: 6 }}>
-              {WEEKDAYS.map(function(w, i) {
-                var on = repeatDays[i], base = i === dow;
-                return <button type="button" key={w} onClick={function() { if (!base) toggleRepeat(i); }} disabled={base}
-                  style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "1px solid " + (base ? color + "60" : on ? color + "40" : "rgba(255,255,255,0.08)"), background: base ? color + "20" : on ? color + "12" : "transparent", color: base || on ? color : "rgba(255,255,255,0.35)", cursor: base ? "default" : "pointer", fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}>{w[0]}</button>;
-              })}
-            </div>
-          </div>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
-            <input type="checkbox" checked={saveAsTask} onChange={function(e) { setSaveAsTask(e.target.checked); }} style={{ accentColor: color }} />
-            Guardar também em Tarefas (Inbox)
-          </label>
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-          <button type="button" onClick={save} style={{ flex: 1, background: color + "1F", border: "1px solid " + color + "50", borderRadius: 10, color: color, padding: "11px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }}>Guardar</button>
-          <button type="button" onClick={function() { props.onDelete(props.dayKey, ev.id); }} style={{ background: "rgba(255,61,90,0.08)", border: "1px solid rgba(255,61,90,0.25)", borderRadius: 10, color: "#FF3D5A", padding: "11px 14px", cursor: "pointer", fontSize: 12 }}>Apagar</button>
+    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: isMobile ? 16 : 14, padding: "14px 12px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 8 }}>
+        <p style={{ margin: 0, fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.75)", textTransform: "capitalize", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{monthLabel}</p>
+        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+          <NavBtn onClick={props.onPrevMonth} title="Mês anterior">‹</NavBtn>
+          <NavBtn onClick={props.onNextMonth} title="Mês seguinte">›</NavBtn>
         </div>
       </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 4 }}>
+        {WEEKDAYS.map(function(w) {
+          return <div key={w} style={{ textAlign: "center", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.25)", padding: "2px 0" }}>{w.slice(0, 1)}</div>;
+        })}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2 }}>
+        {grid.map(function(cell, i) {
+          var k = dateKey(cell.y, cell.m, cell.d);
+          var isSel = k === selected;
+          var isToday = k === todayKey;
+          var outside = cell.outside;
+          var hasEv = (events[k] || []).length > 0;
+          return (
+            <button type="button" key={k + i} onClick={function() { props.onSelectDay(k, cell); }}
+              style={{
+                aspectRatio: "1",
+                minHeight: isMobile ? 36 : 28,
+                borderRadius: 8,
+                border: isSel ? "1px solid " + ACCENT : "1px solid transparent",
+                background: isSel ? ACCENT + "18" : isToday ? ACCENT + "0A" : "transparent",
+                color: outside ? "rgba(255,255,255,0.15)" : isSel ? ACCENT : isToday ? ACCENT : "rgba(255,255,255,0.65)",
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono',monospace",
+                fontSize: isMobile ? 12 : 10,
+                fontWeight: isToday ? 600 : 400,
+                padding: 0,
+                position: "relative",
+              }}>
+              {cell.d}
+              {hasEv && !outside && (
+                <span style={{ position: "absolute", bottom: 3, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: ACCENT, opacity: isSel ? 1 : 0.5 }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SidebarForm(props) {
+  var p = props;
+  var inputStyle = {
+    width: "100%",
+    background: "rgba(0,0,0,0.25)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10,
+    color: "#fff",
+    padding: p.isMobile ? "12px" : "10px 12px",
+    fontSize: p.isMobile ? 16 : 13,
+    outline: "none",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+  };
+  var timeStyle = Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: ACCENT });
+
+  return (
+    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: p.isMobile ? 16 : 14, padding: "14px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, textTransform: "uppercase" }}>
+          {p.editId ? "Editar evento" : "Novo evento"}
+        </p>
+        {p.isMobile && (
+          <button type="button" onClick={p.onClose} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "rgba(255,255,255,0.45)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>Fechar</button>
+        )}
+      </div>
+
+      <input value={p.title} onChange={function(e) { p.setTitle(e.target.value); }} placeholder="Título do evento / tarefa"
+        onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) p.onSubmit(); }}
+        style={inputStyle} />
+
+      <label style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", letterSpacing: 0.5 }}>DATA</label>
+      <input type="date" value={p.formDate} onChange={function(e) { p.onDateChange(e.target.value); }} style={timeStyle} />
+
+      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
+        <input type="checkbox" checked={p.allDay} onChange={function(e) { p.setAllDay(e.target.checked); }} style={{ accentColor: p.color }} />
+        Dia todo
+      </label>
+
+      {!p.allDay && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>INÍCIO</label>
+            <input type="time" value={p.time} onChange={function(e) { p.setTime(e.target.value); p.setEndTime(addMinutes(e.target.value, p.duration)); }} style={timeStyle} />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>FIM</label>
+            <input type="time" value={p.endTime} onChange={function(e) { p.setEndTime(e.target.value); p.setDuration(durationFromTimes(p.time, e.target.value)); }} style={Object.assign({}, timeStyle, { color: "#fff" })} />
+          </div>
+          <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>Duração: {durationLabel(durationFromTimes(p.time, p.endTime))}</p>
+        </div>
+      )}
+
+      <label style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", letterSpacing: 0.5 }}>CATEGORIA</label>
+      <select value={p.color} onChange={function(e) { p.setColor(e.target.value); }}
+        style={Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, cursor: "pointer", appearance: "none", backgroundImage: "linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.35) 50%), linear-gradient(135deg, rgba(255,255,255,0.35) 50%, transparent 50%)", backgroundPosition: "calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px)", backgroundSize: "5px 5px, 5px 5px", backgroundRepeat: "no-repeat" })}>
+        {COLORS.map(function(c, i) {
+          var labels = ["Neon", "Roxo", "Rosa", "Âmbar", "Azul", "Laranja"];
+          return <option key={c} value={c} style={{ background: "#0A0A0F", color: c }}>{labels[i] || c}</option>;
+        })}
+      </select>
+
+      {!p.editId && (
+        <div>
+          <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
+          <div style={{ display: "flex", gap: 4 }}>
+            {WEEKDAYS.map(function(w, i) {
+              var isSelDay = i === p.selectedDow;
+              var on = p.repeatDays[i];
+              return (
+                <button type="button" key={w} onClick={function() { if (!isSelDay) p.toggleRepeat(i); }} disabled={isSelDay} title={isSelDay ? "Dia base" : "Copiar para " + w}
+                  style={{
+                    flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
+                    border: "1px solid " + (isSelDay ? p.color + "60" : on ? p.color + "40" : "rgba(255,255,255,0.08)"),
+                    background: isSelDay ? p.color + "20" : on ? p.color + "12" : "transparent",
+                    color: isSelDay ? p.color : on ? p.color : "rgba(255,255,255,0.35)",
+                    cursor: isSelDay ? "default" : "pointer",
+                  }}>{w.slice(0, 1)}</button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <button type="button" onClick={p.onSubmit}
+        style={{ width: "100%", background: p.color + "22", border: "1px solid " + p.color + "55", borderRadius: 10, color: p.color, fontSize: 12, padding: "12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, boxShadow: "0 0 20px " + p.color + "18", marginTop: 4 }}>
+        {p.editId ? "Guardar alterações" : "Adicionar evento"}
+      </button>
+
+      {p.editId && (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={p.onCancelEdit} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "rgba(255,255,255,0.4)", fontSize: 11, padding: "8px", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
+          <button type="button" onClick={function() { p.onDelete(p.editId); }} style={{ background: "rgba(255,61,90,0.08)", border: "1px solid rgba(255,61,90,0.25)", borderRadius: 8, color: "#FF3D5A", fontSize: 11, padding: "8px 12px", cursor: "pointer" }}>Apagar</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -674,15 +750,9 @@ export default function Calendar() {
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
 
-  var modeS = useState("month");
-  var displayMode = modeS[0], setDisplayMode = modeS[1];
   var readOnly = false;
-  var sideS = useState(true);
+  var sideS = useState(!isMobile);
   var sidebarOpen = sideS[0], setSidebarOpen = sideS[1];
-  var mobileCreateS = useState(false);
-  var mobileCreateOpen = mobileCreateS[0], setMobileCreateOpen = mobileCreateS[1];
-  var popS = useState(null);
-  var popup = popS[0], setPopup = popS[1];
 
   var titleS = useState(""); var title = titleS[0], setTitle = titleS[1];
   var timeS = useState("09:00"); var time = timeS[0], setTime = timeS[1];
@@ -727,7 +797,7 @@ export default function Calendar() {
   useEffect(function() {
     if (!loaded) return;
     function shouldRefresh() {
-      return !mobileCreateOpen && !popup;
+      return !sidebarOpen || !isMobile;
     }
     function onVisible() {
       if (document.visibilityState === "visible" && shouldRefresh()) refreshCalendar();
@@ -745,38 +815,16 @@ export default function Calendar() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onFocus);
     };
-  }, [loaded, mobileCreateOpen, popup, refreshCalendar]);
+  }, [loaded, sidebarOpen, isMobile, refreshCalendar]);
 
   var weekDays = useMemo(function() { return weekKeys(selected); }, [selected]);
 
-  var monthLabel = new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
   var weekLabel = useMemo(function() {
     var a = parseKey(weekDays[0]), b = parseKey(weekDays[6]);
     var da = new Date(a.y, a.m, a.d), db = new Date(b.y, b.m, b.d);
     if (a.m === b.m) return da.getDate() + " – " + db.getDate() + " " + da.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
     return da.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }) + " – " + db.toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
   }, [weekDays]);
-
-  var grid = useMemo(function() {
-    var first = new Date(view.y, view.m, 1);
-    var start = (first.getDay() + 6) % 7;
-    var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
-    var cells = [];
-    var prevDays = new Date(view.y, view.m, 0).getDate();
-    for (var i = start - 1; i >= 0; i--) {
-      cells.push({ d: prevDays - i, m: view.m - 1, y: view.m === 0 ? view.y - 1 : view.y, outside: true });
-    }
-    for (var d = 1; d <= daysInMonth; d++) {
-      cells.push({ d: d, m: view.m, y: view.y, outside: false });
-    }
-    while (cells.length % 7 !== 0 || cells.length < 42) {
-      var n = cells.length - start - daysInMonth + 1;
-      cells.push({ d: n, m: view.m + 1, y: view.m === 11 ? view.y + 1 : view.y, outside: true });
-    }
-    return cells;
-  }, [view.y, view.m]);
-
-  var dayEvents = sortEvents(events[selected] || []);
 
   function shiftWeek(delta) {
     var p = parseKey(selected);
@@ -828,74 +876,26 @@ export default function Calendar() {
   function createRangeEvent(startKey, startMin, endKey, endMin, dur) {
     if (readOnly) return;
     var p = parseKey(startKey);
-    var item = {
-      id: uid(),
-      title: "Novo evento",
-      color: ACCENT,
-      allDay: false,
-      time: minToTime(startMin),
-      notes: "",
-      duration: Math.max(SNAP_MIN, dur || 60),
-    };
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      next[startKey] = sortEvents((next[startKey] || []).concat([item]));
-      return next;
-    });
+    var d = Math.max(SNAP_MIN, dur || 60);
     setSelected(startKey);
     setView({ y: p.y, m: p.m });
-    setTime(item.time);
-    setEndTime(addMinutes(item.time, item.duration));
-    setDuration(item.duration);
     setAllDay(false);
-    setPopup({ dayKey: startKey, event: item });
+    setTime(minToTime(startMin));
+    setDuration(d);
+    setEndTime(minToTime(startMin + d));
+    setEditId(null);
+    setTitle("");
+    setSidebarOpen(true);
+  }
+  function onEventClick(ev, dayKey) {
+    startEdit(ev, dayKey);
   }
 
-  function openPopup(ev, dayKey) {
-    setSelected(dayKey);
-    var p = parseKey(dayKey);
+  function onFormDateChange(val) {
+    if (!val) return;
+    setSelected(val);
+    var p = parseKey(val);
     setView({ y: p.y, m: p.m });
-    setPopup({ dayKey: dayKey, event: ev });
-  }
-
-  async function savePopup(dayKey, updated, repeatDaysForPopup, saveAsTask) {
-    var nextTaskId = updated.task_id || null;
-    if (saveAsTask) {
-      var tasks = await taskStore.loadTasks();
-      var nextTasks = await taskStore.createLinkedTask(tasks, {
-        title: updated.title,
-        notes: updated.notes,
-        due: dayKey,
-        column: "inbox",
-        source_type: "calendar",
-        source_id: updated.id,
-      });
-      var linked = nextTasks.find(function(t) { return t.source_type === "calendar" && t.source_id === updated.id; });
-      nextTaskId = linked ? linked.id : nextTaskId;
-    }
-    var finalEvent = Object.assign({}, updated, { task_id: nextTaskId });
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      next[dayKey] = sortEvents((next[dayKey] || []).map(function(e) {
-        return e.id === finalEvent.id ? finalEvent : e;
-      }));
-      var keys = weekKeys(dayKey);
-      (repeatDaysForPopup || []).forEach(function(on, i) {
-        if (!on || keys[i] === dayKey) return;
-        next[keys[i]] = sortEvents((next[keys[i]] || []).concat([Object.assign({}, finalEvent, { id: uid(), task_id: null })]));
-      });
-      return next;
-    });
-    setPopup(null);
-  }
-
-  function deletePopup(dayKey, id) {
-    var next = Object.assign({}, events);
-    next[dayKey] = (next[dayKey] || []).filter(function(e) { return e.id !== id; });
-    if (!next[dayKey].length) delete next[dayKey];
-    setEvents(next);
-    setPopup(null);
-    calendarStore.deleteEventById(next, id).catch(function() {});
   }
 
   function onWeekSlotClick(key, minutes) {
@@ -907,6 +907,7 @@ export default function Calendar() {
     setTime(minToTime(minutes));
     setEndTime(addMinutes(minToTime(minutes), duration));
     setEditId(null);
+    setSidebarOpen(true);
   }
 
   function toggleRepeat(i) {
@@ -938,8 +939,11 @@ export default function Calendar() {
     setEvents(function(prev) {
       var next = Object.assign({}, prev);
       if (editId) {
-        var list = sortEvents((next[selected] || []).map(function(e) { return e.id === editId ? item : e; }));
-        next[selected] = list;
+        Object.keys(next).forEach(function(k) {
+          next[k] = (next[k] || []).filter(function(e) { return e.id !== editId; });
+          if (!next[k].length) delete next[k];
+        });
+        next[selected] = sortEvents((next[selected] || []).concat([item]));
         return next;
       }
       targets.forEach(function(k) {
@@ -950,7 +954,7 @@ export default function Calendar() {
       return next;
     });
     resetForm();
-    if (isMobile) setMobileCreateOpen(false);
+    if (isMobile) setSidebarOpen(false);
   }
 
   function deleteEvent(id) {
@@ -972,8 +976,13 @@ export default function Calendar() {
     if (editId === id) resetForm();
   }
 
-  function startEdit(ev) {
+  function startEdit(ev, dayKey) {
     if (readOnly) return;
+    if (dayKey) {
+      setSelected(dayKey);
+      var dp = parseKey(dayKey);
+      setView({ y: dp.y, m: dp.m });
+    }
     setEditId(ev.id);
     setTitle(ev.title);
     setAllDay(!!ev.allDay);
@@ -983,7 +992,7 @@ export default function Calendar() {
     setNotes(ev.notes || "");
     setColor(ev.color || ACCENT);
     setRepeatDays([false, false, false, false, false, false, false]);
-    if (isMobile) setMobileCreateOpen(true);
+    setSidebarOpen(true);
   }
 
   function selectDay(k, cell) {
@@ -993,230 +1002,105 @@ export default function Calendar() {
       var p = parseKey(k);
       setView({ y: p.y, m: p.m });
     }
-    if (!readOnly) resetForm();
+    if (!readOnly && !editId) resetForm();
   }
 
-  var selParsed = parseKey(selected);
-  var selDateLabel = new Date(selParsed.y, selParsed.m, selParsed.d).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
-  var selectedDow = (new Date(selParsed.y, selParsed.m, selParsed.d).getDay() + 6) % 7;
-
-  function renderDayButton(cell, i, tall) {
-    var k = cell ? dateKey(cell.y, cell.m, cell.d) : weekDays[i];
-    var p = parseKey(k);
-    var isSel = k === selected;
-    var cellDate = new Date(p.y, p.m, p.d);
-    var isToday = sameDay(cellDate, today);
-    var outside = cell && cell.outside;
-    var dayEv = sortEvents(events[k] || []);
-    return (
-      <button type="button" key={k + (i || 0)} onClick={function(){selectDay(k, cell);}}
-        style={{
-          minHeight: tall ? 120 : isMobile ? 42 : 44,
-          aspectRatio: tall ? undefined : "1",
-          borderRadius: isMobile ? 10 : 12,
-          border: isSel ? "2px solid " + ACCENT : "1px solid rgba(255,255,255,0.04)",
-          background: outside ? "transparent" : isSel ? ACCENT + "14" : isToday ? ACCENT + "08" : "rgba(255,255,255,0.02)",
-          color: outside ? "rgba(255,255,255,0.12)" : isSel ? ACCENT : "rgba(255,255,255,0.75)",
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: tall ? "stretch" : "center",
-          justifyContent: tall ? "flex-start" : "center",
-          gap: isMobile ? 4 : 6,
-          padding: tall ? 10 : isMobile ? 3 : 4,
-          transition: "all 0.2s",
-          fontFamily: "'JetBrains Mono',monospace",
-          fontSize: isMobile ? 12 : 13,
-          textAlign: tall ? "left" : "center",
-          overflow: "hidden",
-        }}>
-        <span style={{ fontWeight: isToday ? 600 : 400, alignSelf: tall ? "flex-start" : "center" }}>{p.d}</span>
-        {tall && dayEv.slice(0, 4).map(function(ev) {
-          return (
-            <span key={ev.id} title={ev.title || ""} style={{
-              fontSize: 9, padding: "3px 6px", borderRadius: 6,
-              background: (ev.color || ACCENT) + "18", color: ev.color || ACCENT,
-              overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif",
-              maxWidth: "100%", minWidth: 0, display: "block",
-            }}>
-              <EventTitleLine title={ev.title} style={{ fontSize: 9, color: ev.color || ACCENT }} />
-            </span>
-          );
-        })}
-        {!tall && dayEv.length > 0 && (
-          <span style={{ display: "flex", gap: 3, justifyContent: "center" }}>
-            {dayEv.slice(0, 3).map(function(ev, j) {
-              return <span key={j} style={{ width: 5, height: 5, borderRadius: "50%", background: ev.color || ACCENT }} />;
-            })}
-          </span>
-        )}
-      </button>
-    );
-  }
+  var selectedDow = (new Date(parseKey(selected).y, parseKey(selected).m, parseKey(selected).d).getDay() + 6) % 7;
 
   return (
-    <div data-scrollable style={{ minHeight: "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", overflow: isMobile ? "auto" : "hidden" }}>
+    <div data-scrollable style={{ minHeight: "100vh", height: isMobile ? "auto" : "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: isMobile ? "auto" : "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}} .cal-main{max-width:1100px;margin:0 auto;padding:24px 20px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:24px;animation:calIn .4s ease} .cal-main--week{max-width:min(1400px,98vw)} .week-scroll{max-height:min(72vh,1056px);overflow:auto;border-radius:12px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch}.week-scroll::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}@media(max-width:800px){.cal-main,.cal-main--week{grid-template-columns:1fr!important;padding:14px 12px 130px;gap:14px}.week-wrap{min-width:760px}.cal-calendar-panel{overflow-x:auto;-webkit-overflow-scrolling:touch}.cal-mobile-actions{width:100%;justify-content:space-between}.cal-mobile-actions button{flex:1}.cal-main aside{order:2}.cal-main section{order:1}}"}</style>
+      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.week-scroll{flex:1;min-height:0;max-height:none;overflow:auto;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}@media(max-width:719px){.cal-shell{flex-direction:column;padding-bottom:8px}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:12px 10px 16px}.cal-grid-panel{border-radius:14px;padding:12px 10px 14px}.week-wrap{min-width:640px}.cal-grid-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.cal-header-actions{flex:1;justify-content:flex-end}}"}</style>
       <div style={{ position: "fixed", top: "-15%", right: "-5%", width: 480, height: 480, background: "radial-gradient(circle,rgba(0,255,200,0.04),transparent 65%)", pointerEvents: "none" }} />
 
-      <header style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 10 : 12, padding: isMobile ? "12px" : "14px 20px", background: "linear-gradient(180deg,rgba(10,10,15,0.95),rgba(10,10,15,0.7))", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
-          <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>Calendário</h1>
+      <header style={{ position: "sticky", top: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 8 : 12, padding: isMobile ? "10px 12px" : "12px 18px", background: "linear-gradient(180deg,rgba(10,10,15,0.96),rgba(10,10,15,0.75))", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 14 : 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap" }}>Calendário</h1>
         </div>
-        <div className="cal-mobile-actions" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <ModePill label="Mês" active={displayMode === "month"} onClick={function() { setDisplayMode("month"); }} />
-          <ModePill label="Semana" active={displayMode === "week"} onClick={function() { setDisplayMode("week"); }} />
-          {!isMobile && <ModePill label={sidebarOpen ? "Minimizar menu" : "Abrir menu"} active={!sidebarOpen} onClick={function() { setSidebarOpen(!sidebarOpen); }} />}
-          <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 14px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Hoje</button>
+        <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {isMobile && (
+            <button type="button" onClick={function() { setSidebarOpen(!sidebarOpen); }} style={{ background: sidebarOpen ? ACCENT + "18" : "rgba(255,255,255,0.03)", border: "1px solid " + (sidebarOpen ? ACCENT + "45" : "rgba(255,255,255,0.08)"), borderRadius: 10, color: sidebarOpen ? ACCENT : "rgba(255,255,255,0.55)", fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>☰ Menu</button>
+          )}
+          {!isMobile && (
+            <ModePill label={sidebarOpen ? "Ocultar painel" : "Mostrar painel"} active={sidebarOpen} onClick={function() { setSidebarOpen(!sidebarOpen); }} />
+          )}
+          <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
+          <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
+          <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
+          {isMobile && (
+            <button type="button" onClick={function() { resetForm(); setSidebarOpen(true); }} style={{ background: ACCENT + "18", border: "1px solid " + ACCENT + "45", borderRadius: 10, color: ACCENT, fontSize: 18, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>+</button>
+          )}
         </div>
       </header>
 
-      <main className={"cal-main" + (displayMode === "week" ? " cal-main--week" : "")} style={{ gridTemplateColumns: sidebarOpen ? undefined : "1fr" }}>
-        <section className="cal-calendar-panel" data-scrollable style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: isMobile ? 18 : 20, padding: isMobile ? "14px 12px 18px" : "20px 18px 24px", backdropFilter: "blur(12px)", minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-            <h2 style={{ margin: 0, fontSize: "clamp(16px,4vw,22px)", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.9)" }}>
-              {displayMode === "month" ? monthLabel : weekLabel}
-            </h2>
-            <div style={{ display: "flex", gap: 8 }}>
-              {displayMode === "month" ? (
-                <>
-                  <NavBtn onClick={prevMonth} title="Mês anterior">‹</NavBtn>
-                  <NavBtn onClick={nextMonth} title="Mês seguinte">›</NavBtn>
-                </>
-              ) : (
-                <>
-                  <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
-                  <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
-                </>
-              )}
-            </div>
-          </div>
+      <main className="cal-shell">
+        {sidebarOpen && isMobile && (
+          <div className="cal-backdrop" onClick={function() { setSidebarOpen(false); }} />
+        )}
 
-          {displayMode === "month" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, marginBottom: 8 }}>
-              {WEEKDAYS.map(function(w) {
-                return <div key={w} style={{ textAlign: "center", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.25)", letterSpacing: 1, padding: "4px 0" }}>{w}</div>;
-              })}
-            </div>
-          )}
-
-          {displayMode === "month" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: isMobile ? 4 : 6 }}>
-              {grid.map(function(cell, i) { return renderDayButton(cell, i, false); })}
-            </div>
-          ) : (
-            <WeekTimeGrid
-              weekDays={weekDays}
-              events={events}
+        {sidebarOpen && (
+          <aside className="cal-sidebar" data-scrollable>
+            <MiniCalendar
+              view={view}
               selected={selected}
               todayKey={todayKey}
-              readOnly={isMobile || readOnly}
-              onSelectDay={function(k) { selectDay(k, null); }}
-              onEdit={startEdit}
-              onOpenPopup={openPopup}
-              onMove={moveTimedEvent}
-              onSlotClick={isMobile ? null : onWeekSlotClick}
-              onRangeCreate={isMobile ? null : createRangeEvent}
+              events={events}
+              isMobile={isMobile}
+              onSelectDay={selectDay}
+              onPrevMonth={prevMonth}
+              onNextMonth={nextMonth}
             />
-          )}
-        </section>
+            <SidebarForm
+              isMobile={isMobile}
+              editId={editId}
+              title={title}
+              setTitle={setTitle}
+              formDate={selected}
+              onDateChange={onFormDateChange}
+              allDay={allDay}
+              setAllDay={setAllDay}
+              time={time}
+              setTime={setTime}
+              endTime={endTime}
+              setEndTime={setEndTime}
+              duration={duration}
+              setDuration={setDuration}
+              color={color}
+              setColor={setColor}
+              repeatDays={repeatDays}
+              selectedDow={selectedDow}
+              toggleRepeat={toggleRepeat}
+              onSubmit={addOrUpdateEvent}
+              onCancelEdit={resetForm}
+              onDelete={deleteEvent}
+              onClose={function() { setSidebarOpen(false); resetForm(); }}
+            />
+          </aside>
+        )}
 
-        {((!isMobile && sidebarOpen) || (isMobile && mobileCreateOpen)) && <aside data-scrollable style={isMobile ? { position:"fixed", left:10, right:10, bottom:10, zIndex:60, maxHeight:"78vh", overflow:"auto", display: "flex", flexDirection: "column", gap: 16, background:"rgba(8,10,16,0.94)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:22, padding:10, backdropFilter:"blur(22px)", boxShadow:"0 20px 80px rgba(0,0,0,0.65)" } : { display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: isMobile ? 18 : 20, padding: isMobile ? "16px 14px" : "18px 16px", backdropFilter: "blur(12px)" }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
-              <p style={{ margin: "0 0 4px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, textTransform: "uppercase" }}>Dia selecionado</p>
-              {isMobile && <button type="button" onClick={function(){setMobileCreateOpen(false); resetForm();}} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"6px 10px",cursor:"pointer"}}>Fechar</button>}
-            </div>
-            <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.85)", lineHeight: 1.4 }}>{selDateLabel}</h3>
-
-            {!readOnly && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-                <input value={title} onChange={function(e) { setTitle(e.target.value); }} placeholder="Título do evento..."
-                  onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) addOrUpdateEvent(); }}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "11px 12px", fontSize: isMobile ? 16 : 13, outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
-                <textarea value={notes} onChange={function(e) { setNotes(e.target.value); }} placeholder="Notas (opcional)..." rows={3}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "10px 12px", fontSize: isMobile ? 16 : 12, outline: "none", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5 }} />
-                <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
-                  <input type="checkbox" checked={allDay} onChange={function(e) { setAllDay(e.target.checked); }} style={{ accentColor: ACCENT }} />
-                  Dia todo (sem hora)
-                </label>
-                {!allDay && (
-                  <>
-                    <label style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Início</label>
-                    <input type="time" value={time} onChange={function(e) { setTime(e.target.value); setEndTime(addMinutes(e.target.value, duration)); }}
-                      style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: ACCENT, padding: "9px 12px", fontSize: 12, fontFamily: "'JetBrains Mono',monospace", outline: "none", boxSizing: "border-box" }} />
-                    <label style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Fim</label>
-                    <input type="time" value={endTime} onChange={function(e) { setEndTime(e.target.value); setDuration(durationFromTimes(time, e.target.value)); }}
-                      style={{ width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "9px 12px", fontSize: 12, fontFamily: "'JetBrains Mono',monospace", outline: "none", boxSizing: "border-box" }} />
-                    <p style={{margin:"-2px 0 0",fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"rgba(255,255,255,0.3)"}}>Duração: {durationLabel(durationFromTimes(time, endTime))}</p>
-                  </>
-                )}
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {COLORS.map(function(c) {
-                    return (
-                      <button type="button" key={c} onClick={function() { setColor(c); }}
-                        style={{ width: 22, height: 22, borderRadius: "50%", background: c, border: color === c ? "2px solid #fff" : "2px solid transparent", cursor: "pointer", opacity: color === c ? 1 : 0.55 }} />
-                    );
-                  })}
-                </div>
-                {!editId && (
-                  <div>
-                    <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)", letterSpacing: 0.5 }}>REPETIR NESTA SEMANA</p>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      {WEEKDAYS.map(function(w, i) {
-                        var isSelDay = i === selectedDow;
-                        var on = repeatDays[i];
-                        return (
-                          <button type="button" key={w} onClick={function() { if (!isSelDay) toggleRepeat(i); }} disabled={isSelDay} title={isSelDay ? "Dia base" : "Copiar para " + w}
-                            style={{
-                              flex: 1, padding: "8px 0", borderRadius: 8, fontSize: 10, fontFamily: "'JetBrains Mono',monospace",
-                              border: "1px solid " + (isSelDay ? ACCENT + "60" : on ? ACCENT + "40" : "rgba(255,255,255,0.08)"),
-                              background: isSelDay ? ACCENT + "20" : on ? ACCENT + "12" : "transparent",
-                              color: isSelDay ? ACCENT : on ? ACCENT : "rgba(255,255,255,0.35)",
-                              cursor: isSelDay ? "default" : "pointer", opacity: isSelDay ? 1 : 0.9,
-                            }}>{w.slice(0, 1)}</button>
-                        );
-                      })}
-                    </div>
-                    <p style={{ margin: "8px 0 0", fontSize: 10, color: "rgba(255,255,255,0.2)", lineHeight: 1.4 }}>O dia selecionado é sempre incluído. Marca outros dias para criar o mesmo evento.</p>
-                  </div>
-                )}
-                <button type="button" onClick={addOrUpdateEvent}
-                  style={{ width: "100%", background: ACCENT + "18", border: "1px solid " + ACCENT + "40", borderRadius: 10, color: ACCENT, fontSize: 12, padding: "11px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500 }}>
-                  {editId ? "Guardar alterações" : "Adicionar evento"}
-                </button>
-                {editId && (
-                  <button type="button" onClick={resetForm} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer", textAlign: "left", padding: 0, fontFamily: "inherit" }}>Cancelar edição</button>
-                )}
-              </div>
-            )}
-
-            {readOnly && <p style={{ margin: "0 0 14px", fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>Modo só visualização — ativa «Editar» no topo para alterar eventos.</p>}
-
-            {dayEvents.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>{readOnly ? "Sem eventos neste dia." : "Sem eventos. Preenche o formulário acima."}</p>
-            ) : (
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8, maxHeight: readOnly ? 420 : 280, overflow: "auto" }}>
-                {dayEvents.map(function(ev) {
-                  return <EventCard key={ev.id} ev={ev} readOnly={readOnly} onEdit={startEdit} onDelete={deleteEvent} />;
-                })}
-              </ul>
-            )}
+        <section className="cal-grid-area">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 10, flexShrink: 0 }}>
+            <h2 style={{ margin: 0, fontSize: "clamp(14px,3.5vw,20px)", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.9)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{weekLabel}</h2>
           </div>
-        </aside>}
+          <div className="cal-grid-panel">
+            <div className="cal-grid-scroll" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: isMobile ? "auto" : "hidden" }}>
+              <WeekTimeGrid
+                weekDays={weekDays}
+                events={events}
+                selected={selected}
+                todayKey={todayKey}
+                readOnly={readOnly}
+                onSelectDay={function(k) { selectDay(k, null); }}
+                onEventClick={onEventClick}
+                onMove={moveTimedEvent}
+                onSlotClick={onWeekSlotClick}
+                onRangeCreate={createRangeEvent}
+              />
+            </div>
+          </div>
+        </section>
       </main>
-      {isMobile && !mobileCreateOpen && (
-        <div data-no-canvas-zoom style={{position:"fixed",left:10,right:76,bottom:12,zIndex:50,background:"rgba(8,10,16,0.88)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"10px 12px",backdropFilter:"blur(18px)",boxShadow:"0 16px 60px rgba(0,0,0,0.45)"}}>
-          <p style={{margin:"0 0 6px",fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:ACCENT,textTransform:"uppercase"}}>{selDateLabel}</p>
-          {dayEvents.length ? <div data-scrollable style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:2}}>{dayEvents.map(function(ev){return <button key={ev.id} title={(formatEventTime(ev) + " · " + (ev.title||"")).trim()} onClick={function(){openPopup(ev, selected);}} style={{flexShrink:0,maxWidth:180,minWidth:0,background:(ev.color||ACCENT)+"18",border:"1px solid "+(ev.color||ACCENT)+"35",borderRadius:12,color:ev.color||ACCENT,padding:"8px 10px",fontSize:12,overflow:"hidden"}}><span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatEventTime(ev)} · {ev.title}</span></button>;})}</div> : <p style={{margin:0,fontSize:12,color:"rgba(255,255,255,0.32)"}}>Sem eventos neste dia.</p>}
-        </div>
-      )}
-      {isMobile && (
-        <button type="button" onClick={function(){resetForm(); setMobileCreateOpen(true);}} style={{position:"fixed",right:14,bottom:16,zIndex:55,width:52,height:52,borderRadius:"50%",border:"1px solid "+ACCENT+"55",background:ACCENT+"20",color:ACCENT,fontSize:28,cursor:"pointer",boxShadow:"0 14px 50px rgba(0,255,200,0.22)",backdropFilter:"blur(14px)"}}>+</button>
-      )}
-      {popup && <EventPopup event={popup.event} dayKey={popup.dayKey} onClose={function() { setPopup(null); }} onSave={savePopup} onDelete={deletePopup} />}
     </div>
   );
 }
