@@ -383,7 +383,11 @@ function WeekTimeGrid(props) {
       if (!moved && props.onSlotClick) {
         props.onSlotClick(props.weekDays[Math.floor(s / 1440)], s % 1440);
       } else if (moved && props.onRangeCreate) {
-        props.onRangeCreate(props.weekDays[Math.floor(s / 1440)], s % 1440, props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s);
+        props.onRangeCreate(
+          props.weekDays[Math.floor(s / 1440)], s % 1440,
+          props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s,
+          pe.clientX, pe.clientY
+        );
       }
     }
     window.addEventListener("pointermove", onMove);
@@ -871,6 +875,137 @@ function MiniCalendar(props) {
   );
 }
 
+function EventPopup(props) {
+  var p = props;
+  var ev = p.event;
+  var tS = useState(ev.title || "");
+  var title = tS[0], setTitle = tS[1];
+  var adS = useState(!!ev.allDay);
+  var allDay = adS[0], setAllDay = adS[1];
+  var timeS = useState(ev.time || "09:00");
+  var time = timeS[0], setTime = timeS[1];
+  var endS = useState(minToTime(timeToMin(ev.time || "09:00") + evDuration(ev)));
+  var endTime = endS[0], setEndTime = endS[1];
+  var cS = useState(ev.color || ACCENT);
+  var color = cS[0], setColor = cS[1];
+  var repS = useState([false, false, false, false, false, false, false]);
+  var repeatDays = repS[0], setRepeatDays = repS[1];
+
+  var parsed = parseKey(p.dayKey);
+  var baseDow = (new Date(parsed.y, parsed.m, parsed.d).getDay() + 6) % 7;
+  var left = Math.max(12, Math.min((p.anchor && p.anchor.x) || window.innerWidth / 2 - 160, window.innerWidth - 332));
+  var top = Math.max(12, Math.min((p.anchor && p.anchor.y) || 80, window.innerHeight - 420));
+
+  function toggleRepeat(i) {
+    setRepeatDays(function(prev) {
+      var next = prev.slice();
+      next[i] = !next[i];
+      return next;
+    });
+  }
+
+  function save() {
+    if (!title.trim()) return;
+    p.onSave(p.dayKey, {
+      id: ev.id,
+      title: title.trim(),
+      color: color,
+      allDay: allDay,
+      time: allDay ? null : time,
+      notes: "",
+      duration: allDay ? null : durationFromTimes(time, endTime),
+    }, repeatDays);
+  }
+
+  var inputStyle = {
+    width: "100%",
+    background: "rgba(0,0,0,0.25)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 10,
+    color: "#fff",
+    padding: "10px 12px",
+    fontSize: 13,
+    outline: "none",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+  };
+  var timeStyle = Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: color });
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={p.onClose}>
+      <div style={{
+        position: "fixed", left: left, top: top, width: "min(320px, calc(100vw - 24px))",
+        background: "rgba(10,12,20,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px " + color + "22",
+        padding: 14, maxHeight: "calc(100vh - 24px)", overflow: "auto",
+      }} onClick={function(e) { e.stopPropagation(); }}>
+        <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: color, letterSpacing: 1, textTransform: "uppercase" }}>Novo evento</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <input value={title} onChange={function(e) { setTitle(e.target.value); }} placeholder="Título do evento"
+            autoFocus
+            onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) save(); if (e.key === "Escape") p.onClose(); }}
+            style={inputStyle} />
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
+            <input type="checkbox" checked={allDay} onChange={function(e) { setAllDay(e.target.checked); }} style={{ accentColor: color }} />
+            Dia todo
+          </label>
+          {!allDay && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>INÍCIO</label>
+                <input type="time" value={time} onChange={function(e) { setTime(e.target.value); }} style={timeStyle} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>FIM</label>
+                <input type="time" value={endTime} onChange={function(e) { setEndTime(e.target.value); }} style={Object.assign({}, timeStyle, { color: "#fff" })} />
+              </div>
+              <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>
+                {durationLabel(durationFromTimes(time, endTime))}
+              </p>
+            </div>
+          )}
+          <select value={color} onChange={function(e) { setColor(e.target.value); }}
+            style={Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, cursor: "pointer" })}>
+            {COLORS.map(function(c, i) {
+              var labels = ["Neon", "Roxo", "Rosa", "Âmbar", "Azul", "Laranja"];
+              return <option key={c} value={c} style={{ background: "#0A0A0F", color: c }}>{labels[i] || c}</option>;
+            })}
+          </select>
+          <div>
+            <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
+            <div style={{ display: "flex", gap: 4 }}>
+              {WEEKDAYS.map(function(w, i) {
+                var isBase = i === baseDow;
+                var on = repeatDays[i];
+                return (
+                  <button type="button" key={w} onClick={function() { if (!isBase) toggleRepeat(i); }} disabled={isBase} title={isBase ? "Dia base" : "Copiar para " + w}
+                    style={{
+                      flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
+                      border: "1px solid " + (isBase ? color + "60" : on ? color + "40" : "rgba(255,255,255,0.08)"),
+                      background: isBase ? color + "20" : on ? color + "12" : "transparent",
+                      color: isBase ? color : on ? color : "rgba(255,255,255,0.35)",
+                      cursor: isBase ? "default" : "pointer",
+                    }}>{w.slice(0, 1)}</button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button type="button" onClick={save}
+            style={{ flex: 1, background: color + "22", border: "1px solid " + color + "55", borderRadius: 10, color: color, padding: "10px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, fontWeight: 600 }}>
+            Adicionar
+          </button>
+          <button type="button" onClick={p.onClose}
+            style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "10px 14px", cursor: "pointer", fontSize: 12 }}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SidebarForm(props) {
   var p = props;
   var inputStyle = {
@@ -1001,6 +1136,8 @@ export default function Calendar() {
   var duration = durS[0], setDuration = durS[1];
   var endS = useState("10:00");
   var endTime = endS[0], setEndTime = endS[1];
+  var popS = useState(null);
+  var popup = popS[0], setPopup = popS[1];
 
   var refreshCalendar = useCallback(function() {
     return calendarStore.loadEvents().then(function(data) {
@@ -1108,19 +1245,42 @@ export default function Calendar() {
     setAllDay(false);
   }
 
-  function createRangeEvent(startKey, startMin, endKey, endMin, dur) {
+  function createRangeEvent(startKey, startMin, endKey, endMin, dur, anchorX, anchorY) {
     if (readOnly) return;
     var p = parseKey(startKey);
     var d = Math.max(SNAP_MIN, dur || 60);
     setSelected(startKey);
     setView({ y: p.y, m: p.m });
-    setAllDay(false);
-    setTime(minToTime(startMin));
-    setDuration(d);
-    setEndTime(minToTime(startMin + d));
-    setEditId(null);
-    setTitle("");
-    setSidebarOpen(true);
+    setPopup({
+      dayKey: startKey,
+      anchor: { x: anchorX || window.innerWidth / 2, y: anchorY || 120 },
+      event: {
+        id: uid(),
+        title: "",
+        color: ACCENT,
+        allDay: false,
+        time: minToTime(startMin),
+        notes: "",
+        duration: d,
+      },
+    });
+  }
+
+  function savePopup(dayKey, item, repeatDaysForPopup) {
+    if (readOnly || !item.title.trim()) return;
+    var targets = [dayKey];
+    weekDays.forEach(function(k, i) {
+      if (repeatDaysForPopup[i] && k !== dayKey) targets.push(k);
+    });
+    setEvents(function(prev) {
+      var next = Object.assign({}, prev);
+      targets.forEach(function(k) {
+        var copy = Object.assign({}, item, { id: k === dayKey ? item.id : uid() });
+        next[k] = sortEvents((next[k] || []).concat([copy]));
+      });
+      return next;
+    });
+    setPopup(null);
   }
   function onEventClick(ev, dayKey) {
     startEdit(ev, dayKey);
@@ -1402,6 +1562,15 @@ export default function Calendar() {
       </main>
       {isMobile && (
         <button type="button" className="cal-fab-create" onClick={openCreateMenu} title="Novo evento" aria-label="Novo evento">+</button>
+      )}
+      {popup && !isMobile && (
+        <EventPopup
+          event={popup.event}
+          dayKey={popup.dayKey}
+          anchor={popup.anchor}
+          onClose={function() { setPopup(null); }}
+          onSave={savePopup}
+        />
       )}
     </div>
   );
