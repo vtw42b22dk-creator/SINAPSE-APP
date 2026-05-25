@@ -436,11 +436,12 @@ function WeekTimeGrid(props) {
     return { dayIdx: props.weekDays.indexOf(props.todayKey), top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
   }, [props.weekDays, props.todayKey, nowTick]);
 
+  var weekAnchor = props.weekDays[0];
   useEffect(function() {
     var el = scrollRef.current;
     if (!el) return;
     el.scrollTop = SCROLL_START_HOUR * HOUR_H;
-  }, [props.weekDays, props.todayKey]);
+  }, [weekAnchor]);
 
   return (
     <div className="week-wrap">
@@ -654,11 +655,12 @@ function DayTimeGrid(props) {
     return { top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
   }, [dayKey, props.todayKey, nowTick]);
 
+  var weekAnchor = props.weekAnchor;
   useEffect(function() {
     var el = scrollRef.current;
     if (!el) return;
     el.scrollTop = SCROLL_START_HOUR * HOUR_H;
-  }, [dayKey]);
+  }, [weekAnchor]);
 
   return (
     <div className="day-grid-wrap">
@@ -931,27 +933,25 @@ function SidebarForm(props) {
         })}
       </select>
 
-      {!p.editId && (
-        <div>
-          <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
-          <div style={{ display: "flex", gap: 4 }}>
-            {WEEKDAYS.map(function(w, i) {
-              var isSelDay = i === p.selectedDow;
-              var on = p.repeatDays[i];
-              return (
-                <button type="button" key={w} onClick={function() { if (!isSelDay) p.toggleRepeat(i); }} disabled={isSelDay} title={isSelDay ? "Dia base" : "Copiar para " + w}
-                  style={{
-                    flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
-                    border: "1px solid " + (isSelDay ? p.color + "60" : on ? p.color + "40" : "rgba(255,255,255,0.08)"),
-                    background: isSelDay ? p.color + "20" : on ? p.color + "12" : "transparent",
-                    color: isSelDay ? p.color : on ? p.color : "rgba(255,255,255,0.35)",
-                    cursor: isSelDay ? "default" : "pointer",
-                  }}>{w.slice(0, 1)}</button>
-              );
-            })}
-          </div>
+      <div>
+        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
+        <div style={{ display: "flex", gap: 4 }}>
+          {WEEKDAYS.map(function(w, i) {
+            var isSelDay = i === p.selectedDow;
+            var on = p.repeatDays[i];
+            return (
+              <button type="button" key={w} onClick={function() { if (!isSelDay) p.toggleRepeat(i); }} disabled={isSelDay} title={isSelDay ? "Dia base" : "Copiar para " + w}
+                style={{
+                  flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
+                  border: "1px solid " + (isSelDay ? p.color + "60" : on ? p.color + "40" : "rgba(255,255,255,0.08)"),
+                  background: isSelDay ? p.color + "20" : on ? p.color + "12" : "transparent",
+                  color: isSelDay ? p.color : on ? p.color : "rgba(255,255,255,0.35)",
+                  cursor: isSelDay ? "default" : "pointer",
+                }}>{w.slice(0, 1)}</button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       <button type="button" onClick={p.onSubmit}
         style={{ width: "100%", background: p.color + "22", border: "1px solid " + p.color + "55", borderRadius: 10, color: p.color, fontSize: 12, padding: "12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, boxShadow: "0 0 20px " + p.color + "18", marginTop: 4 }}>
@@ -1172,11 +1172,9 @@ export default function Calendar() {
       duration: allDay ? null : durationFromTimes(time, endTime),
     };
     var targets = [selected];
-    if (!editId) {
-      weekDays.forEach(function(k, i) {
-        if (repeatDays[i] && k !== selected) targets.push(k);
-      });
-    }
+    weekDays.forEach(function(k, i) {
+      if (repeatDays[i] && k !== selected) targets.push(k);
+    });
     setEvents(function(prev) {
       var next = Object.assign({}, prev);
       if (editId) {
@@ -1184,7 +1182,10 @@ export default function Calendar() {
           next[k] = (next[k] || []).filter(function(e) { return e.id !== editId; });
           if (!next[k].length) delete next[k];
         });
-        next[selected] = sortEvents((next[selected] || []).concat([item]));
+        targets.forEach(function(k) {
+          var copy = Object.assign({}, item, { id: k === selected ? editId : uid() });
+          next[k] = sortEvents((next[k] || []).concat([copy]));
+        });
         return next;
       }
       targets.forEach(function(k) {
@@ -1373,6 +1374,7 @@ export default function Calendar() {
               {isMobile ? (
                 <DayTimeGrid
                   dayKey={selected}
+                  weekAnchor={weekDays[0]}
                   events={events}
                   todayKey={todayKey}
                   readOnly={readOnly}
