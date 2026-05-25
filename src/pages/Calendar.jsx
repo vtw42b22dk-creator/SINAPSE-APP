@@ -70,6 +70,7 @@ function formatEventTime(ev) {
 var HOUR_H = 44;
 var SNAP_MIN = 15;
 var HOURS = 24;
+var SCROLL_START_HOUR = 6;
 
 var EVT_TRUNC = {
   display: "block",
@@ -202,6 +203,7 @@ function layoutSegments(segments) {
 
 function WeekTimeGrid(props) {
   var gridRef = useRef(null);
+  var scrollRef = useRef(null);
   var dragRef = useRef(null);
   var previewS = useState(null);
   var preview = previewS[0], setPreview = previewS[1];
@@ -256,7 +258,24 @@ function WeekTimeGrid(props) {
   function onBlockPointerDown(e, ev, dayKey) {
     if (props.readOnly) return;
     e.stopPropagation();
-    e.preventDefault();
+    if (!props.isMobile) e.preventDefault();
+    if (props.isMobile) {
+      var tapStartX = e.clientX, tapStartY = e.clientY, tapMoved = false;
+      function onTapMove(pe) {
+        if (Math.abs(pe.clientX - tapStartX) + Math.abs(pe.clientY - tapStartY) > 12) tapMoved = true;
+      }
+      function onTapUp() {
+        window.removeEventListener("pointermove", onTapMove);
+        window.removeEventListener("pointerup", onTapUp);
+        if (!tapMoved) {
+          props.onSelectDay(dayKey);
+          if (props.onEventClick) props.onEventClick(ev, dayKey);
+        }
+      }
+      window.addEventListener("pointermove", onTapMove);
+      window.addEventListener("pointerup", onTapUp);
+      return;
+    }
     var startMin = timeToMin(ev.time);
     var dur = evDuration(ev);
     var c = ev.color || ACCENT;
@@ -307,14 +326,43 @@ function WeekTimeGrid(props) {
     if (e.button && e.button !== 0) return;
     var p = posFromPointer(e.clientX, e.clientY, 15);
     if (!p) return;
-    e.preventDefault();
     var startAbs = p.dayIdx * 1440 + p.minutes;
-    createRef.current = { startAbs: startAbs, color: ACCENT, moved: false };
+    var moveThreshold = props.isMobile ? 14 : 8;
+
+    if (props.isMobile) {
+      createRef.current = { startAbs: startAbs, moved: false, startX: e.clientX, startY: e.clientY };
+      function onMove(pe) {
+        if (!createRef.current) return;
+        if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > moveThreshold) {
+          createRef.current.moved = true;
+        }
+      }
+      function onUp() {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        if (!createRef.current) return;
+        var s = createRef.current.startAbs;
+        var moved = createRef.current.moved;
+        createRef.current = null;
+        if (!moved && props.onSlotClick) {
+          props.onSlotClick(props.weekDays[Math.floor(s / 1440)], s % 1440);
+        }
+      }
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      return;
+    }
+
+    createRef.current = { startAbs: startAbs, color: ACCENT, moved: false, startX: e.clientX, startY: e.clientY };
     setCreatePreview({ startAbs: startAbs, endAbs: startAbs + 60, color: ACCENT });
 
     function onMove(pe) {
       if (!createRef.current) return;
-      createRef.current.moved = true;
+      if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > moveThreshold) {
+        createRef.current.moved = true;
+        pe.preventDefault();
+      }
+      if (!createRef.current.moved) return;
       var n = posFromPointer(pe.clientX, pe.clientY, 15);
       if (!n) return;
       var endAbs = n.dayIdx * 1440 + n.minutes;
@@ -388,8 +436,15 @@ function WeekTimeGrid(props) {
     return { dayIdx: props.weekDays.indexOf(props.todayKey), top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
   }, [props.weekDays, props.todayKey, nowTick]);
 
+  useEffect(function() {
+    var el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = SCROLL_START_HOUR * HOUR_H;
+  }, [props.weekDays, props.todayKey]);
+
   return (
     <div className="week-wrap">
+      <div className="week-header-sticky" style={{ flexShrink: 0 }}>
       <div style={{ display: "flex", marginLeft: 44, marginBottom: 6, gap: 0 }}>
         {props.weekDays.map(function(k, i) {
           var p = parseKey(k);
@@ -431,7 +486,9 @@ function WeekTimeGrid(props) {
         </div>
       )}
 
-      <div className="week-scroll">
+      </div>
+
+      <div ref={scrollRef} className="week-scroll">
         <div style={{ display: "flex", position: "relative" }}>
           <div style={{ width: 44, flexShrink: 0, position: "relative", height: HOURS * HOUR_H }}>
             {Array.from({ length: HOURS }, function(_, h) {
@@ -451,6 +508,7 @@ function WeekTimeGrid(props) {
                 <div key={k} style={{
                   flex: 1, position: "relative", borderLeft: "1px solid rgba(255,255,255,0.05)",
                   background: isSel ? ACCENT + "04" : "transparent",
+                  touchAction: "pan-y",
                 }} onPointerDown={function(e) { onSlotPointerDown(e, dayIdx); }}>
                   {Array.from({ length: HOURS }, function(_, h) {
                     return (
@@ -507,9 +565,14 @@ function WeekTimeGrid(props) {
           </div>
         </div>
       </div>
-      {!props.readOnly && (
+      {!props.readOnly && !props.isMobile && (
         <p style={{ margin: "12px 0 0", fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
           Arrasta na grelha para criar um evento · Arrasta blocos para mudar dia e hora
+        </p>
+      )}
+      {!props.readOnly && props.isMobile && (
+        <p style={{ margin: "8px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)", lineHeight: 1.5 }}>
+          Toca num horário e larga para criar · Usa + em baixo à esquerda
         </p>
       )}
     </div>
@@ -898,6 +961,11 @@ export default function Calendar() {
     setView({ y: p.y, m: p.m });
   }
 
+  function openCreateMenu() {
+    resetForm();
+    setSidebarOpen(true);
+  }
+
   function onWeekSlotClick(key, minutes) {
     if (readOnly) return;
     setSelected(key);
@@ -907,7 +975,8 @@ export default function Calendar() {
     setTime(minToTime(minutes));
     setEndTime(addMinutes(minToTime(minutes), duration));
     setEditId(null);
-    setSidebarOpen(true);
+    setTitle("");
+    if (isMobile) openCreateMenu();
   }
 
   function toggleRepeat(i) {
@@ -1008,12 +1077,13 @@ export default function Calendar() {
   var selectedDow = (new Date(parseKey(selected).y, parseKey(selected).m, parseKey(selected).d).getDay() + 6) % 7;
 
   return (
-    <div data-scrollable style={{ minHeight: "100vh", height: isMobile ? "auto" : "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: isMobile ? "auto" : "hidden" }}>
+    <div className="cal-page" data-scrollable style={{ minHeight: "100vh", height: "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.week-scroll{flex:1;min-height:0;max-height:none;overflow:auto;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}@media(max-width:719px){.cal-shell{flex-direction:column;padding-bottom:8px}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:12px 10px 16px}.cal-grid-panel{border-radius:14px;padding:12px 10px 14px}.week-wrap{min-width:640px}.cal-grid-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.cal-header-actions{flex:1;justify-content:flex-end}}"}</style>
+      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-top-sticky{flex-shrink:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,15,0.98),rgba(10,10,15,0.92));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.04)}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-header-sticky{flex-shrink:0;background:rgba(10,12,18,0.92)}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}.cal-fab-create{position:fixed;left:14px;bottom:16px;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,255,200,0.55);background:rgba(0,255,200,0.2);color:#00FFC8;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 14px 50px rgba(0,255,200,0.22);backdrop-filter:blur(14px)}@media(max-width:719px){.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0 10px 12px;min-height:0}.cal-grid-panel{border-radius:14px;padding:10px 8px 12px;min-height:0;border:none;background:transparent}.cal-week-label{margin:0;padding:10px 4px 8px;font-size:clamp(14px,3.5vw,18px)}.week-wrap{min-width:640px}.cal-grid-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.cal-header-actions{flex:1;justify-content:flex-end}.cal-fab-create{bottom:max(16px,env(safe-area-inset-bottom))}}"}</style>
       <div style={{ position: "fixed", top: "-15%", right: "-5%", width: 480, height: 480, background: "radial-gradient(circle,rgba(0,255,200,0.04),transparent 65%)", pointerEvents: "none" }} />
 
-      <header style={{ position: "sticky", top: 0, zIndex: 30, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 8 : 12, padding: isMobile ? "10px 12px" : "12px 18px", background: "linear-gradient(180deg,rgba(10,10,15,0.96),rgba(10,10,15,0.75))", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
+      <div className="cal-top-sticky">
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 8 : 12, padding: isMobile ? "10px 12px" : "12px 18px", background: "transparent", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
           <h1 style={{ margin: 0, fontSize: isMobile ? 14 : 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap" }}>Calendário</h1>
@@ -1028,11 +1098,12 @@ export default function Calendar() {
           <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
           <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
           <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
-          {isMobile && (
-            <button type="button" onClick={function() { resetForm(); setSidebarOpen(true); }} style={{ background: ACCENT + "18", border: "1px solid " + ACCENT + "45", borderRadius: 10, color: ACCENT, fontSize: 18, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>+</button>
-          )}
         </div>
       </header>
+      {isMobile && (
+        <h2 className="cal-week-label" style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.9)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{weekLabel}</h2>
+      )}
+      </div>
 
       <main className="cal-shell">
         {sidebarOpen && isMobile && (
@@ -1080,27 +1151,33 @@ export default function Calendar() {
         )}
 
         <section className="cal-grid-area">
+          {!isMobile && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 10, flexShrink: 0 }}>
             <h2 style={{ margin: 0, fontSize: "clamp(14px,3.5vw,20px)", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.9)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{weekLabel}</h2>
           </div>
+          )}
           <div className="cal-grid-panel">
-            <div className="cal-grid-scroll" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: isMobile ? "auto" : "hidden" }}>
+            <div className="cal-grid-scroll">
               <WeekTimeGrid
                 weekDays={weekDays}
                 events={events}
                 selected={selected}
                 todayKey={todayKey}
                 readOnly={readOnly}
+                isMobile={isMobile}
                 onSelectDay={function(k) { selectDay(k, null); }}
                 onEventClick={onEventClick}
-                onMove={moveTimedEvent}
+                onMove={isMobile ? null : moveTimedEvent}
                 onSlotClick={onWeekSlotClick}
-                onRangeCreate={createRangeEvent}
+                onRangeCreate={isMobile ? null : createRangeEvent}
               />
             </div>
           </div>
         </section>
       </main>
+      {isMobile && (
+        <button type="button" className="cal-fab-create" onClick={openCreateMenu} title="Novo evento" aria-label="Novo evento">+</button>
+      )}
     </div>
   );
 }
