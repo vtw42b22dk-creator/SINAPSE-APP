@@ -444,84 +444,70 @@ function WeekTimeGrid(props) {
 
   return (
     <div className="week-wrap">
-      <div className="week-header-sticky" style={{ flexShrink: 0 }}>
-      <div style={{ display: "flex", marginLeft: 44, marginBottom: 6, gap: 0 }}>
-        {props.weekDays.map(function(k, i) {
-          var p = parseKey(k);
-          var isSel = k === props.selected;
-          var isToday = k === props.todayKey;
-          return (
-            <button type="button" key={k} onClick={function() { props.onSelectDay(k); }}
-              style={{
-                flex: 1, padding: "8px 4px", border: "none", borderRadius: 10, cursor: "pointer",
-                background: isSel ? ACCENT + "18" : isToday ? ACCENT + "08" : "transparent",
-                borderBottom: isSel ? "2px solid " + ACCENT : "2px solid transparent",
-                fontFamily: "'JetBrains Mono',monospace", color: isSel ? ACCENT : "rgba(255,255,255,0.55)",
-              }}>
-              <div style={{ fontSize: 9, opacity: 0.5 }}>{WEEKDAYS[i]}</div>
-              <div style={{ fontSize: 15, fontWeight: isToday ? 600 : 400 }}>{p.d}</div>
-            </button>
-          );
-        })}
-      </div>
-
-      {allDayByDay.some(function(l) { return l.length > 0; }) && (
-        <div style={{ display: "flex", marginLeft: 44, marginBottom: 8, minHeight: 32 }}>
-          <div style={{ width: 44, marginLeft: -44, fontSize: 9, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono',monospace", paddingTop: 6, textAlign: "right", paddingRight: 8 }}>dia</div>
-          {allDayByDay.map(function(list, i) {
-            return (
-              <div key={props.weekDays[i]} style={{ flex: 1, padding: "2px 4px", display: "flex", flexDirection: "column", gap: 3, borderLeft: "1px solid rgba(255,255,255,0.04)" }}>
-                {list.map(function(ev) {
-                  var c = ev.color || ACCENT;
-                  return (
-                    <button type="button" key={ev.id} title={eventTooltip(ev)} onClick={function() { props.onSelectDay(props.weekDays[i]); if (props.onEventClick) props.onEventClick(ev, props.weekDays[i]); }}
-                      style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, maxWidth: "100%" }}>
-                      <EventTitleLine title={ev.title} style={{ fontSize: 9, color: c }} />
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      </div>
-
       <div ref={scrollRef} className="week-scroll">
-        <div style={{ display: "flex", position: "relative" }}>
-          <div style={{ width: 44, flexShrink: 0, position: "relative", height: HOURS * HOUR_H }}>
-            {Array.from({ length: HOURS }, function(_, h) {
+        <div className="week-header-sticky">
+          <div className="week-cols week-cols--head">
+            <div className="week-time-gutter" aria-hidden="true" />
+            {props.weekDays.map(function(k, i) {
+              var p = parseKey(k);
+              var isSel = k === props.selected;
+              var isToday = k === props.todayKey;
               return (
-                <div key={h} style={{
-                  position: "absolute", top: h * HOUR_H - 7, right: 8, fontSize: 9,
-                  fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.2)",
-                }}>{pad(h) + ":00"}</div>
+                <button type="button" key={k} onClick={function() { props.onSelectDay(k); }}
+                  className={"week-day-head" + (isSel ? " is-sel" : "") + (isToday ? " is-today" : "")}
+                  style={{ color: isSel ? ACCENT : isToday ? ACCENT : "rgba(255,255,255,0.55)" }}>
+                  <span className="week-day-head__dow">{WEEKDAYS[i]}</span>
+                  <span className="week-day-head__num">{p.d}</span>
+                </button>
               );
             })}
           </div>
-          <div ref={gridRef} style={{ flex: 1, display: "flex", position: "relative", height: HOURS * HOUR_H, minWidth: 0 }}>
+
+          {allDayByDay.some(function(l) { return l.length > 0; }) && (
+            <div className="week-cols week-cols--allday">
+              <div className="week-time-gutter week-time-gutter--label">dia</div>
+              {allDayByDay.map(function(list, i) {
+                return (
+                  <div key={props.weekDays[i]} className="week-allday-col">
+                    {list.map(function(ev) {
+                      var c = ev.color || ACCENT;
+                      return (
+                        <button type="button" key={ev.id} title={eventTooltip(ev)} onClick={function() { props.onSelectDay(props.weekDays[i]); if (props.onEventClick) props.onEventClick(ev, props.weekDays[i]); }}
+                          style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, display: "block" }}>
+                          <EventTitleLine title={ev.title} style={{ fontSize: 9, color: c }} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="week-cols week-cols--body">
+          <div className="week-time-labels" style={{ height: HOURS * HOUR_H }}>
+            {Array.from({ length: HOURS }, function(_, h) {
+              return (
+                <div key={h} className="week-time-label" style={{ top: h * HOUR_H - 7 }}>{pad(h) + ":00"}</div>
+              );
+            })}
+          </div>
+          <div ref={gridRef} className="week-days-track" style={{ height: HOURS * HOUR_H }}>
             {props.weekDays.map(function(k, dayIdx) {
               var list = timedOnDay(k, dayIdx);
               var isSel = k === props.selected;
               return (
-                <div key={k} style={{
-                  flex: 1, position: "relative", borderLeft: "1px solid rgba(255,255,255,0.05)",
-                  background: isSel ? ACCENT + "04" : "transparent",
-                  touchAction: "pan-y",
-                }} onPointerDown={function(e) { onSlotPointerDown(e, dayIdx); }}>
+                <div key={k} className={"week-day-col" + (isSel ? " is-sel" : "")}
+                  onPointerDown={function(e) { onSlotPointerDown(e, dayIdx); }}>
                   {Array.from({ length: HOURS }, function(_, h) {
                     return (
-                      <div key={h} style={{
-                        position: "absolute", top: h * HOUR_H, left: 0, right: 0, height: HOUR_H,
-                        borderTop: h === 0 ? "none" : "1px solid rgba(255,255,255,0.04)",
-                        boxSizing: "border-box",
-                      }} />
+                      <div key={h} className="week-hour-line" style={{ top: h * HOUR_H, height: HOUR_H, borderTop: h === 0 ? "none" : undefined }} />
                     );
                   })}
                   {nowLine && nowLine.dayIdx === dayIdx && (
-                    <div style={{ position: "absolute", top: nowLine.top, left: 0, right: 0, height: 2, background: ACCENT, boxShadow: "0 0 12px " + ACCENT + "88", zIndex: 5, pointerEvents: "none" }}>
-                      <span style={{ position: "absolute", left: -4, top: -4, width: 8, height: 8, borderRadius: "50%", background: ACCENT, boxShadow: "0 0 8px " + ACCENT }} />
+                    <div className="week-now-line" style={{ top: nowLine.top }}>
+                      <span className="week-now-dot" />
                     </div>
                   )}
                   {list.map(function(seg) {
@@ -537,18 +523,19 @@ function WeekTimeGrid(props) {
                     return (
                       <div key={seg.sourceKey + ev.id + dayIdx}
                         title={eventTooltip(ev)}
+                        className="week-event-block"
                         onPointerDown={function(e) { onBlockPointerDown(e, ev, seg.sourceKey); }}
                         onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); if (props.onEventClick) props.onEventClick(ev, seg.sourceKey); }}
                         style={{
-                          position: "absolute",
-                          left: "calc(" + (col / cols * 100) + "% + 3px)",
-                          width: "calc(" + (100 / cols) + "% - 6px)",
+                          left: "calc(" + (col / cols * 100) + "% + 2px)",
+                          width: "calc(" + (100 / cols) + "% - 4px)",
                           top: top + 1, height: blockH,
-                          background: c + "28", border: "1px solid " + c + "55", borderRadius: 8,
-                          padding: compact ? "2px 4px" : "4px 6px", overflow: "hidden", cursor: props.readOnly ? "pointer" : "grab",
-                          zIndex: 10, boxShadow: "0 4px 12px " + c + "18",
-                          touchAction: "none", userSelect: "none",
-                          display: "flex", flexDirection: "column", justifyContent: compact ? "center" : "flex-start", minWidth: 0,
+                          background: c + "28", border: "1px solid " + c + "55",
+                          padding: compact ? "2px 4px" : "4px 6px",
+                          cursor: props.readOnly ? "pointer" : "grab",
+                          boxShadow: "0 4px 12px " + c + "18",
+                          touchAction: props.isMobile ? "auto" : "none",
+                          justifyContent: compact ? "center" : "flex-start",
                         }}>
                         {!compact && (
                           <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{seg.continuesBefore ? "↳ " : ""}{timeFromMinutes(seg.segmentStart)}-{timeFromMinutes(seg.segmentStart + seg.segmentDuration)} · {durationLabel(seg.segmentDuration)}{seg.continuesAfter ? " ↴" : ""}</p>
@@ -566,15 +553,200 @@ function WeekTimeGrid(props) {
         </div>
       </div>
       {!props.readOnly && !props.isMobile && (
-        <p style={{ margin: "12px 0 0", fontSize: 10, color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
-          Arrasta na grelha para criar um evento · Arrasta blocos para mudar dia e hora
-        </p>
+        <p className="week-foot-hint">Arrasta na grelha para criar um evento · Arrasta blocos para mudar dia e hora</p>
       )}
       {!props.readOnly && props.isMobile && (
-        <p style={{ margin: "8px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)", lineHeight: 1.5 }}>
-          Toca num horário e larga para criar · Usa + em baixo à esquerda
-        </p>
+        <p className="week-foot-hint week-foot-hint--mobile">Toca num horário e larga para criar · Usa + em baixo à esquerda</p>
       )}
+    </div>
+  );
+}
+
+function DayTimeGrid(props) {
+  var gridRef = useRef(null);
+  var scrollRef = useRef(null);
+  var createRef = useRef(null);
+  var dayKey = props.dayKey;
+
+  var allDayList = useMemo(function() {
+    return sortEvents((props.events[dayKey] || []).filter(function(ev) { return ev.allDay; }));
+  }, [dayKey, props.events]);
+
+  var timedSegments = useMemo(function() {
+    var out = [];
+    (props.events[dayKey] || []).forEach(function(ev) {
+      if (ev.allDay || !ev.time) return;
+      var start = timeToMin(ev.time);
+      var dur = evDuration(ev);
+      out.push({
+        ev: ev,
+        sourceKey: dayKey,
+        segmentStart: start,
+        segmentDuration: dur,
+        continuesBefore: false,
+        continuesAfter: false,
+      });
+    });
+    return layoutSegments(out);
+  }, [dayKey, props.events]);
+
+  function posFromPointer(clientX, clientY, duration) {
+    var el = gridRef.current;
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    var y = clientY - r.top;
+    var minutes = snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
+    minutes = Math.max(0, Math.min(HOURS * 60 - (duration || 15), minutes));
+    return { minutes: minutes, key: dayKey };
+  }
+
+  function onBlockPointerDown(e, ev) {
+    if (props.readOnly) return;
+    e.stopPropagation();
+    var tapStartX = e.clientX, tapStartY = e.clientY, tapMoved = false;
+    function onTapMove(pe) {
+      if (Math.abs(pe.clientX - tapStartX) + Math.abs(pe.clientY - tapStartY) > 12) tapMoved = true;
+    }
+    function onTapUp() {
+      window.removeEventListener("pointermove", onTapMove);
+      window.removeEventListener("pointerup", onTapUp);
+      if (!tapMoved && props.onEventClick) props.onEventClick(ev, dayKey);
+    }
+    window.addEventListener("pointermove", onTapMove);
+    window.addEventListener("pointerup", onTapUp);
+  }
+
+  function onSlotPointerDown(e) {
+    if (props.readOnly) return;
+    if (e.button && e.button !== 0) return;
+    var p = posFromPointer(e.clientX, e.clientY, 15);
+    if (!p) return;
+    createRef.current = { minutes: p.minutes, moved: false, startX: e.clientX, startY: e.clientY };
+    function onMove(pe) {
+      if (!createRef.current) return;
+      if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > 14) {
+        createRef.current.moved = true;
+      }
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (!createRef.current) return;
+      var mins = createRef.current.minutes;
+      var moved = createRef.current.moved;
+      createRef.current = null;
+      if (!moved && props.onSlotClick) props.onSlotClick(dayKey, mins);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  var nowTickS = useState(0);
+  var nowTick = nowTickS[0], setNowTick = nowTickS[1];
+  useEffect(function() {
+    var id = setInterval(function() { setNowTick(Date.now()); }, 60000);
+    return function() { clearInterval(id); };
+  }, []);
+
+  var nowLine = useMemo(function() {
+    if (dayKey !== props.todayKey) return null;
+    var t = new Date();
+    return { top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
+  }, [dayKey, props.todayKey, nowTick]);
+
+  useEffect(function() {
+    var el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = SCROLL_START_HOUR * HOUR_H;
+  }, [dayKey]);
+
+  return (
+    <div className="day-grid-wrap">
+      {allDayList.length > 0 && (
+        <div className="day-allday-row">
+          <div className="day-allday-label">Dia todo</div>
+          <div className="day-allday-events">
+            {allDayList.map(function(ev) {
+              var c = ev.color || ACCENT;
+              return (
+                <button type="button" key={ev.id} title={eventTooltip(ev)}
+                  onClick={function() { if (props.onEventClick) props.onEventClick(ev, dayKey); }}
+                  style={{ fontSize: 10, padding: "5px 8px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0 }}>
+                  <EventTitleLine title={ev.title} style={{ fontSize: 10, color: c }} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <div ref={scrollRef} className="day-grid-scroll">
+        <div style={{ display: "flex", position: "relative" }}>
+          <div className="day-time-gutter" style={{ position: "relative", height: HOURS * HOUR_H }}>
+            {Array.from({ length: HOURS }, function(_, h) {
+              return (
+                <div key={h} style={{
+                  position: "absolute", top: h * HOUR_H - 7, right: 8, fontSize: 9,
+                  fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.2)",
+                }}>{pad(h) + ":00"}</div>
+              );
+            })}
+            {nowLine && (
+              <span className="day-now-time-label" style={{ top: nowLine.top - 7 }}>
+                {pad(new Date().getHours()) + ":" + pad(new Date().getMinutes())}
+              </span>
+            )}
+          </div>
+          <div ref={gridRef} className="day-grid-col" style={{ height: HOURS * HOUR_H }} onPointerDown={onSlotPointerDown}>
+            {Array.from({ length: HOURS }, function(_, h) {
+              return (
+                <div key={h} style={{
+                  position: "absolute", top: h * HOUR_H, left: 0, right: 0, height: HOUR_H,
+                  borderTop: h === 0 ? "none" : "1px solid rgba(255,255,255,0.04)",
+                  boxSizing: "border-box",
+                }} />
+              );
+            })}
+            {nowLine && (
+              <div className="day-now-line" style={{ top: nowLine.top }}>
+                <span className="day-now-dot" />
+              </div>
+            )}
+            {timedSegments.map(function(seg) {
+              var ev = seg.ev;
+              var top = (seg.segmentStart / 60) * HOUR_H;
+              var h = (seg.segmentDuration / 60) * HOUR_H - 2;
+              var c = ev.color || ACCENT;
+              var cols = Math.max(1, seg.columns || 1);
+              var col = Math.min(cols - 1, seg.column || 0);
+              var blockH = Math.max(h, 22);
+              var compact = blockH < 34;
+              return (
+                <div key={ev.id}
+                  title={eventTooltip(ev)}
+                  onPointerDown={function(e) { onBlockPointerDown(e, ev); }}
+                  style={{
+                    position: "absolute",
+                    left: "calc(" + (col / cols * 100) + "% + 4px)",
+                    width: "calc(" + (100 / cols) + "% - 8px)",
+                    top: top + 1, height: blockH,
+                    background: c + "28", border: "1px solid " + c + "55", borderRadius: 8,
+                    padding: compact ? "3px 6px" : "5px 8px", overflow: "hidden", cursor: "pointer",
+                    zIndex: 10, boxShadow: "0 4px 12px " + c + "18",
+                    touchAction: "manipulation", userSelect: "none",
+                    display: "flex", flexDirection: "column", justifyContent: compact ? "center" : "flex-start", minWidth: 0,
+                  }}>
+                  {!compact && (
+                    <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {ev.time}-{eventEndTime(ev)} · {durationLabel(seg.segmentDuration)}
+                    </p>
+                  )}
+                  <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 10 : 11, color: "#fff", fontWeight: 500, flex: 1, minHeight: 0 }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1076,32 +1248,62 @@ export default function Calendar() {
 
   var selectedDow = (new Date(parseKey(selected).y, parseKey(selected).m, parseKey(selected).d).getDay() + 6) % 7;
 
+  var monthTitle = useMemo(function() {
+    var p = parseKey(selected);
+    return new Date(p.y, p.m, p.d).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  }, [selected]);
+
+  var isSelectedToday = selected === todayKey;
+
   return (
-    <div className="cal-page" data-scrollable style={{ minHeight: "100vh", height: "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className={"cal-page" + (isMobile ? " cal-page--mobile" : "")} data-scrollable style={{ minHeight: "100vh", height: "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-top-sticky{flex-shrink:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,15,0.98),rgba(10,10,15,0.92));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.04)}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-header-sticky{flex-shrink:0;background:rgba(10,12,18,0.92)}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}.cal-fab-create{position:fixed;left:14px;bottom:16px;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,255,200,0.55);background:rgba(0,255,200,0.2);color:#00FFC8;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 14px 50px rgba(0,255,200,0.22);backdrop-filter:blur(14px)}@media(max-width:719px){.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0 10px 12px;min-height:0}.cal-grid-panel{border-radius:14px;padding:10px 8px 12px;min-height:0;border:none;background:transparent}.cal-week-label{margin:0;padding:10px 4px 8px;font-size:clamp(14px,3.5vw,18px)}.week-wrap{min-width:640px}.cal-grid-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.cal-header-actions{flex:1;justify-content:flex-end}.cal-fab-create{bottom:max(16px,env(safe-area-inset-bottom))}}"}</style>
+      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-top-sticky{flex-shrink:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,15,0.98),rgba(10,10,15,0.92));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.04)}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-header-sticky{position:sticky;top:0;z-index:12;background:rgba(10,12,18,0.97);backdrop-filter:blur(10px);padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.05)}.week-cols{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));width:100%;align-items:stretch}.week-cols--head{margin-bottom:6px}.week-cols--allday{margin-bottom:8px;min-height:32px}.week-day-head{min-width:0;box-sizing:border-box;padding:6px 2px;border:none;border-bottom:2px solid transparent;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;background:transparent;text-align:center}.week-day-head.is-sel{border-bottom-color:#00FFC8;background:rgba(0,255,200,0.1)}.week-day-head.is-today .week-day-head__num{font-weight:600}.week-day-head__dow{display:block;font-size:9px;opacity:0.5}.week-day-head__num{display:block;font-size:15px}.week-time-gutter{font-size:9px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace;text-align:right;padding-right:8px}.week-time-gutter--label{padding-top:6px}.week-allday-col{min-width:0;padding:2px 4px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(255,255,255,0.04)}.week-time-labels{position:relative}.week-time-label{position:absolute;right:8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.2)}.week-days-track{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}.week-day-col{position:relative;overflow:hidden;min-width:0;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y}.week-day-col.is-sel{background:rgba(0,255,200,0.04)}.week-hour-line{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.week-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.53);z-index:5;pointer-events:none}.week-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.week-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0;user-select:none}.week-foot-hint{margin:12px 0 0;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.5}.week-foot-hint--mobile{margin:8px 0 0;color:rgba(255,255,255,0.22)}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}.cal-fab-create{position:fixed;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,255,200,0.55);background:rgba(0,255,200,0.2);color:#00FFC8;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 14px 50px rgba(0,255,200,0.22);backdrop-filter:blur(14px)}.cal-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}.cal-mobile-menu,.cal-mobile-month,.cal-mobile-today,.cal-mobile-day-badge{flex-shrink:0;border-radius:10px;cursor:pointer;font-family:'JetBrains Mono',monospace}.cal-mobile-menu,.cal-mobile-today{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}.cal-mobile-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0}.cal-mobile-month{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:transparent;border:none;color:rgba(255,255,255,0.92);font-size:15px;font-weight:500;text-transform:capitalize}.cal-mobile-month-chevron{font-size:10px;opacity:0.45}.cal-mobile-today{padding:8px 14px;font-size:12px;border-color:rgba(0,255,200,0.35);color:#00FFC8;background:rgba(0,255,200,0.1)}.cal-mobile-day-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;border:1px solid rgba(0,255,200,0.5);color:#00FFC8;background:rgba(0,255,200,0.14);padding:0}.cal-day-ribbon{display:flex;gap:4px;padding:0 10px 10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}.cal-day-ribbon::-webkit-scrollbar{display:none}.cal-day-ribbon-btn{flex:0 0 auto;min-width:48px;padding:8px 10px 10px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:4px}.cal-day-ribbon-btn--sel{background:rgba(0,255,200,0.14);color:#00FFC8;box-shadow:inset 0 -2px 0 #00FFC8}.cal-day-ribbon-btn--today:not(.cal-day-ribbon-btn--sel){color:rgba(0,255,200,0.75)}.cal-day-ribbon-dow{font-size:10px;opacity:0.55}.cal-day-ribbon-num{font-size:17px;font-weight:500;line-height:1}.cal-drawer-nav{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cal-drawer-hub{width:100%;margin-bottom:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}.day-grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.day-allday-row{display:flex;gap:8px;padding:0 10px 8px;flex-shrink:0;align-items:flex-start}.day-allday-label{width:44px;flex-shrink:0;font-size:8px;color:rgba(255,255,255,0.25);font-family:'JetBrains Mono',monospace;text-align:right;padding-top:8px;line-height:1.2}.day-allday-events{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.day-grid-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.day-time-gutter{width:44px;flex-shrink:0}.day-grid-col{flex:1;position:relative;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y;min-width:0}.day-hour-slot{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.day-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.55);z-index:5;pointer-events:none}.day-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.day-now-time-label{position:absolute;right:4px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#00FFC8;font-weight:600;z-index:6;pointer-events:none}@media(max-width:719px){.cal-page--mobile{height:100dvh;min-height:100dvh}.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0;min-height:0;flex:1;display:flex;flex-direction:column}.cal-grid-panel{border-radius:0;padding:0;min-height:0;border:none;background:transparent;flex:1}.cal-grid-scroll{overflow:hidden;flex:1;min-height:0}.cal-fab-create{right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom))}}"}</style>
       <div style={{ position: "fixed", top: "-15%", right: "-5%", width: 480, height: 480, background: "radial-gradient(circle,rgba(0,255,200,0.04),transparent 65%)", pointerEvents: "none" }} />
 
       <div className="cal-top-sticky">
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: isMobile ? 8 : 12, padding: isMobile ? "10px 12px" : "12px 18px", background: "transparent", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
-          <h1 style={{ margin: 0, fontSize: isMobile ? 14 : 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap" }}>Calendário</h1>
-        </div>
-        <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          {isMobile && (
-            <button type="button" onClick={function() { setSidebarOpen(!sidebarOpen); }} style={{ background: sidebarOpen ? ACCENT + "18" : "rgba(255,255,255,0.03)", border: "1px solid " + (sidebarOpen ? ACCENT + "45" : "rgba(255,255,255,0.08)"), borderRadius: 10, color: sidebarOpen ? ACCENT : "rgba(255,255,255,0.55)", fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>☰ Menu</button>
-          )}
-          {!isMobile && (
+      {isMobile ? (
+        <>
+          <div className="cal-mobile-top">
+            <button type="button" className="cal-mobile-menu" onClick={function() { setSidebarOpen(!sidebarOpen); }} aria-label="Menu" title="Menu">☰</button>
+            <button type="button" className="cal-mobile-month" onClick={function() { setSidebarOpen(true); }} title="Abrir calendário">
+              <span>{monthTitle}</span>
+              <span className="cal-mobile-month-chevron">▼</span>
+            </button>
+            {isSelectedToday ? (
+              <span className="cal-mobile-day-badge" title="Hoje">{today.getDate()}</span>
+            ) : (
+              <button type="button" className="cal-mobile-today" onClick={goToday}>Hoje</button>
+            )}
+          </div>
+          <div className="cal-day-ribbon" role="tablist" aria-label="Dias da semana">
+            {weekDays.map(function(k, i) {
+              var p = parseKey(k);
+              var isSel = k === selected;
+              var isToday = k === todayKey;
+              var cls = "cal-day-ribbon-btn" + (isSel ? " cal-day-ribbon-btn--sel" : "") + (isToday ? " cal-day-ribbon-btn--today" : "");
+              return (
+                <button type="button" key={k} role="tab" aria-selected={isSel} className={cls} onClick={function() { selectDay(k, null); }}>
+                  <span className="cal-day-ribbon-dow">{WEEKDAYS[i]}</span>
+                  <span className="cal-day-ribbon-num">{p.d}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, padding: "12px 18px", background: "transparent", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
+            <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap" }}>Calendário</h1>
+          </div>
+          <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <ModePill label={sidebarOpen ? "Ocultar painel" : "Mostrar painel"} active={sidebarOpen} onClick={function() { setSidebarOpen(!sidebarOpen); }} />
-          )}
-          <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
-          <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
-          <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
-        </div>
-      </header>
-      {isMobile && (
-        <h2 className="cal-week-label" style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.9)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{weekLabel}</h2>
+            <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
+            <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
+            <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
+          </div>
+        </header>
       )}
       </div>
 
@@ -1112,6 +1314,16 @@ export default function Calendar() {
 
         {sidebarOpen && (
           <aside className="cal-sidebar" data-scrollable>
+            {isMobile && (
+              <>
+                <button type="button" className="cal-drawer-hub" onClick={function() { navigate("/"); }}>← Hub</button>
+                <div className="cal-drawer-nav">
+                  <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
+                  <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
+                  <button type="button" onClick={goToday} style={{ flex: 1, background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Hoje</button>
+                </div>
+              </>
+            )}
             <MiniCalendar
               view={view}
               selected={selected}
@@ -1158,19 +1370,30 @@ export default function Calendar() {
           )}
           <div className="cal-grid-panel">
             <div className="cal-grid-scroll">
-              <WeekTimeGrid
-                weekDays={weekDays}
-                events={events}
-                selected={selected}
-                todayKey={todayKey}
-                readOnly={readOnly}
-                isMobile={isMobile}
-                onSelectDay={function(k) { selectDay(k, null); }}
-                onEventClick={onEventClick}
-                onMove={isMobile ? null : moveTimedEvent}
-                onSlotClick={onWeekSlotClick}
-                onRangeCreate={isMobile ? null : createRangeEvent}
-              />
+              {isMobile ? (
+                <DayTimeGrid
+                  dayKey={selected}
+                  events={events}
+                  todayKey={todayKey}
+                  readOnly={readOnly}
+                  onEventClick={onEventClick}
+                  onSlotClick={onWeekSlotClick}
+                />
+              ) : (
+                <WeekTimeGrid
+                  weekDays={weekDays}
+                  events={events}
+                  selected={selected}
+                  todayKey={todayKey}
+                  readOnly={readOnly}
+                  isMobile={false}
+                  onSelectDay={function(k) { selectDay(k, null); }}
+                  onEventClick={onEventClick}
+                  onMove={moveTimedEvent}
+                  onSlotClick={onWeekSlotClick}
+                  onRangeCreate={createRangeEvent}
+                />
+              )}
             </div>
           </div>
         </section>
