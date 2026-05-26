@@ -385,8 +385,7 @@ function WeekTimeGrid(props) {
       } else if (moved && props.onRangeCreate) {
         props.onRangeCreate(
           props.weekDays[Math.floor(s / 1440)], s % 1440,
-          props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s,
-          pe.clientX, pe.clientY
+          props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s
         );
       }
     }
@@ -478,6 +477,7 @@ function WeekTimeGrid(props) {
                       var c = ev.color || ACCENT;
                       return (
                         <button type="button" key={ev.id} title={eventTooltip(ev)} onClick={function() { props.onSelectDay(props.weekDays[i]); if (props.onEventClick) props.onEventClick(ev, props.weekDays[i]); }}
+                          className={"cal-allday-event" + (props.highlightEventId === ev.id ? " is-editing" : "")}
                           style={{ fontSize: 9, padding: "4px 6px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, display: "block" }}>
                           <EventTitleLine title={ev.title} style={{ fontSize: 9, color: c }} />
                         </button>
@@ -525,10 +525,11 @@ function WeekTimeGrid(props) {
                     var col = Math.min(cols - 1, seg.column || 0);
                     var blockH = Math.max(h, 20);
                     var compact = blockH < 34;
+                    var isEditing = props.highlightEventId === ev.id;
                     return (
                       <div key={seg.sourceKey + ev.id + dayIdx}
                         title={eventTooltip(ev)}
-                        className="week-event-block"
+                        className={"week-event-block" + (isEditing ? " is-editing" : "")}
                         onPointerDown={function(e) { onBlockPointerDown(e, ev, seg.sourceKey); }}
                         onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); if (props.onEventClick) props.onEventClick(ev, seg.sourceKey); }}
                         style={{
@@ -676,6 +677,7 @@ function DayTimeGrid(props) {
               var c = ev.color || ACCENT;
               return (
                 <button type="button" key={ev.id} title={eventTooltip(ev)}
+                  className={"cal-allday-event" + (props.highlightEventId === ev.id ? " is-editing" : "")}
                   onClick={function() { if (props.onEventClick) props.onEventClick(ev, dayKey); }}
                   style={{ fontSize: 10, padding: "5px 8px", borderRadius: 6, border: "none", background: c + "22", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0 }}>
                   <EventTitleLine title={ev.title} style={{ fontSize: 10, color: c }} />
@@ -726,9 +728,11 @@ function DayTimeGrid(props) {
               var col = Math.min(cols - 1, seg.column || 0);
               var blockH = Math.max(h, 22);
               var compact = blockH < 34;
+              var isEditing = props.highlightEventId === ev.id;
               return (
                 <div key={ev.id}
                   title={eventTooltip(ev)}
+                  className={"day-event-block" + (isEditing ? " is-editing" : "")}
                   onPointerDown={function(e) { onBlockPointerDown(e, ev); }}
                   style={{
                     position: "absolute",
@@ -893,8 +897,7 @@ function EventPopup(props) {
 
   var parsed = parseKey(p.dayKey);
   var baseDow = (new Date(parsed.y, parsed.m, parsed.d).getDay() + 6) % 7;
-  var left = Math.max(12, Math.min((p.anchor && p.anchor.x) || window.innerWidth / 2 - 160, window.innerWidth - 332));
-  var top = Math.max(12, Math.min((p.anchor && p.anchor.y) || 80, window.innerHeight - 420));
+  var isEdit = !!p.isEdit;
 
   function toggleRepeat(i) {
     setRepeatDays(function(prev) {
@@ -932,14 +935,17 @@ function EventPopup(props) {
   var timeStyle = Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: color });
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 90 }} onClick={p.onClose}>
-      <div style={{
-        position: "fixed", left: left, top: top, width: "min(320px, calc(100vw - 24px))",
-        background: "rgba(10,12,20,0.98)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px " + color + "22",
-        padding: 14, maxHeight: "calc(100vh - 24px)", overflow: "auto",
-      }} onClick={function(e) { e.stopPropagation(); }}>
-        <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: color, letterSpacing: 1, textTransform: "uppercase" }}>Novo evento</p>
+    <div className="cal-event-popup-overlay" onClick={p.onClose}>
+      <div className="cal-event-popup-panel" onClick={function(e) { e.stopPropagation(); }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, gap: 10 }}>
+          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: color, letterSpacing: 1, textTransform: "uppercase" }}>
+            {isEdit ? "Editar evento" : "Novo evento"}
+          </p>
+          <button type="button" onClick={p.onClose} aria-label="Fechar"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.45)", width: 34, height: 34, cursor: "pointer", fontSize: 18, lineHeight: 1, flexShrink: 0 }}>
+            ×
+          </button>
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <input value={title} onChange={function(e) { setTitle(e.target.value); }} placeholder="Título do evento"
             autoFocus
@@ -993,13 +999,21 @@ function EventPopup(props) {
         </div>
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <button type="button" onClick={save}
-            style={{ flex: 1, background: color + "22", border: "1px solid " + color + "55", borderRadius: 10, color: color, padding: "10px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, fontWeight: 600 }}>
-            Adicionar
+            style={{ flex: 1, background: color + "22", border: "1px solid " + color + "55", borderRadius: 10, color: color, padding: "11px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, fontWeight: 600 }}>
+            {isEdit ? "Guardar" : "Adicionar"}
           </button>
-          <button type="button" onClick={p.onClose}
-            style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "10px 14px", cursor: "pointer", fontSize: 12 }}>
-            Cancelar
-          </button>
+          {isEdit && p.onDelete && (
+            <button type="button" onClick={function() { p.onDelete(ev.id); }}
+              style={{ background: "rgba(255,61,90,0.08)", border: "1px solid rgba(255,61,90,0.25)", borderRadius: 10, color: "#FF3D5A", padding: "11px 14px", cursor: "pointer", fontSize: 12 }}>
+              Apagar
+            </button>
+          )}
+          {!isEdit && (
+            <button type="button" onClick={p.onClose}
+              style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "11px 14px", cursor: "pointer", fontSize: 12 }}>
+              Cancelar
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1245,15 +1259,16 @@ export default function Calendar() {
     setAllDay(false);
   }
 
-  function createRangeEvent(startKey, startMin, endKey, endMin, dur, anchorX, anchorY) {
+  function createRangeEvent(startKey, startMin, endKey, endMin, dur) {
     if (readOnly) return;
     var p = parseKey(startKey);
     var d = Math.max(SNAP_MIN, dur || 60);
+    setEditId(null);
     setSelected(startKey);
     setView({ y: p.y, m: p.m });
     setPopup({
       dayKey: startKey,
-      anchor: { x: anchorX || window.innerWidth / 2, y: anchorY || 120 },
+      isEdit: false,
       event: {
         id: uid(),
         title: "",
@@ -1272,8 +1287,15 @@ export default function Calendar() {
     weekDays.forEach(function(k, i) {
       if (repeatDaysForPopup[i] && k !== dayKey) targets.push(k);
     });
+    var isEdit = popup && popup.isEdit;
     setEvents(function(prev) {
       var next = Object.assign({}, prev);
+      if (isEdit) {
+        Object.keys(next).forEach(function(k) {
+          next[k] = (next[k] || []).filter(function(e) { return e.id !== item.id; });
+          if (!next[k].length) delete next[k];
+        });
+      }
       targets.forEach(function(k) {
         var copy = Object.assign({}, item, { id: k === dayKey ? item.id : uid() });
         next[k] = sortEvents((next[k] || []).concat([copy]));
@@ -1281,6 +1303,12 @@ export default function Calendar() {
       return next;
     });
     setPopup(null);
+    setEditId(null);
+  }
+
+  function closePopup() {
+    setPopup(null);
+    setEditId(null);
   }
   function onEventClick(ev, dayKey) {
     startEdit(ev, dayKey);
@@ -1380,12 +1408,19 @@ export default function Calendar() {
 
   function startEdit(ev, dayKey) {
     if (readOnly) return;
-    if (dayKey) {
-      setSelected(dayKey);
-      var dp = parseKey(dayKey);
-      setView({ y: dp.y, m: dp.m });
-    }
+    var key = dayKey || selected;
+    setSelected(key);
+    var dp = parseKey(key);
+    setView({ y: dp.y, m: dp.m });
     setEditId(ev.id);
+    if (!isMobile) {
+      setPopup({
+        dayKey: key,
+        isEdit: true,
+        event: Object.assign({}, ev),
+      });
+      return;
+    }
     setTitle(ev.title);
     setAllDay(!!ev.allDay);
     setTime(ev.time || "09:00");
@@ -1419,7 +1454,7 @@ export default function Calendar() {
   return (
     <div className={"cal-page" + (isMobile ? " cal-page--mobile" : "")} data-scrollable style={{ minHeight: "100vh", height: "100vh", background: "linear-gradient(160deg, #0A0A0F 0%, #0D1218 45%, #0A0A0F 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-top-sticky{flex-shrink:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,15,0.98),rgba(10,10,15,0.92));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.04)}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-header-sticky{position:sticky;top:0;z-index:12;background:rgba(10,12,18,0.97);backdrop-filter:blur(10px);padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.05)}.week-cols{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));width:100%;align-items:stretch}.week-cols--head{margin-bottom:6px}.week-cols--allday{margin-bottom:8px;min-height:32px}.week-day-head{min-width:0;box-sizing:border-box;padding:6px 2px;border:none;border-bottom:2px solid transparent;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;background:transparent;text-align:center}.week-day-head.is-sel{border-bottom-color:#00FFC8;background:rgba(0,255,200,0.1)}.week-day-head.is-today .week-day-head__num{font-weight:600}.week-day-head__dow{display:block;font-size:9px;opacity:0.5}.week-day-head__num{display:block;font-size:15px}.week-time-gutter{font-size:9px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace;text-align:right;padding-right:8px}.week-time-gutter--label{padding-top:6px}.week-allday-col{min-width:0;padding:2px 4px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(255,255,255,0.04)}.week-time-labels{position:relative}.week-time-label{position:absolute;right:8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.2)}.week-days-track{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}.week-day-col{position:relative;overflow:hidden;min-width:0;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y}.week-day-col.is-sel{background:rgba(0,255,200,0.04)}.week-hour-line{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.week-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.53);z-index:5;pointer-events:none}.week-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.week-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0;user-select:none}.week-foot-hint{margin:12px 0 0;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.5}.week-foot-hint--mobile{margin:8px 0 0;color:rgba(255,255,255,0.22)}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}.cal-fab-create{position:fixed;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,255,200,0.55);background:rgba(0,255,200,0.2);color:#00FFC8;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 14px 50px rgba(0,255,200,0.22);backdrop-filter:blur(14px)}.cal-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}.cal-mobile-menu,.cal-mobile-month,.cal-mobile-today,.cal-mobile-day-badge{flex-shrink:0;border-radius:10px;cursor:pointer;font-family:'JetBrains Mono',monospace}.cal-mobile-menu,.cal-mobile-today{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}.cal-mobile-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0}.cal-mobile-month{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:transparent;border:none;color:rgba(255,255,255,0.92);font-size:15px;font-weight:500;text-transform:capitalize}.cal-mobile-month-chevron{font-size:10px;opacity:0.45}.cal-mobile-today{padding:8px 14px;font-size:12px;border-color:rgba(0,255,200,0.35);color:#00FFC8;background:rgba(0,255,200,0.1)}.cal-mobile-day-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;border:1px solid rgba(0,255,200,0.5);color:#00FFC8;background:rgba(0,255,200,0.14);padding:0}.cal-day-ribbon{display:flex;gap:4px;padding:0 10px 10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}.cal-day-ribbon::-webkit-scrollbar{display:none}.cal-day-ribbon-btn{flex:0 0 auto;min-width:48px;padding:8px 10px 10px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:4px}.cal-day-ribbon-btn--sel{background:rgba(0,255,200,0.14);color:#00FFC8;box-shadow:inset 0 -2px 0 #00FFC8}.cal-day-ribbon-btn--today:not(.cal-day-ribbon-btn--sel){color:rgba(0,255,200,0.75)}.cal-day-ribbon-dow{font-size:10px;opacity:0.55}.cal-day-ribbon-num{font-size:17px;font-weight:500;line-height:1}.cal-drawer-nav{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cal-drawer-hub{width:100%;margin-bottom:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}.day-grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.day-allday-row{display:flex;gap:8px;padding:0 10px 8px;flex-shrink:0;align-items:flex-start}.day-allday-label{width:44px;flex-shrink:0;font-size:8px;color:rgba(255,255,255,0.25);font-family:'JetBrains Mono',monospace;text-align:right;padding-top:8px;line-height:1.2}.day-allday-events{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.day-grid-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.day-time-gutter{width:44px;flex-shrink:0}.day-grid-col{flex:1;position:relative;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y;min-width:0}.day-hour-slot{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.day-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.55);z-index:5;pointer-events:none}.day-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.day-now-time-label{position:absolute;right:4px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#00FFC8;font-weight:600;z-index:6;pointer-events:none}@media(max-width:719px){.cal-page--mobile{height:100dvh;min-height:100dvh}.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0;min-height:0;flex:1;display:flex;flex-direction:column}.cal-grid-panel{border-radius:0;padding:0;min-height:0;border:none;background:transparent;flex:1}.cal-grid-scroll{overflow:hidden;flex:1;min-height:0}.cal-fab-create{right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom))}}"}</style>
+      <style>{"@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-top-sticky{flex-shrink:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,15,0.98),rgba(10,10,15,0.92));backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.04)}.cal-shell{flex:1;display:flex;min-height:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(240px,22vw,320px);flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding:16px 14px;border-right:1px solid rgba(255,255,255,0.05);background:rgba(8,10,14,0.55);backdrop-filter:blur(14px);overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:16px 18px 20px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:16px 14px 18px;backdrop-filter:blur(12px);overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-header-sticky{position:sticky;top:0;z-index:12;background:rgba(10,12,18,0.97);backdrop-filter:blur(10px);padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.05)}.week-cols{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));width:100%;align-items:stretch}.week-cols--head{margin-bottom:6px}.week-cols--allday{margin-bottom:8px;min-height:32px}.week-day-head{min-width:0;box-sizing:border-box;padding:6px 2px;border:none;border-bottom:2px solid transparent;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;background:transparent;text-align:center}.week-day-head.is-sel{border-bottom-color:#00FFC8;background:rgba(0,255,200,0.1)}.week-day-head.is-today .week-day-head__num{font-weight:600}.week-day-head__dow{display:block;font-size:9px;opacity:0.5}.week-day-head__num{display:block;font-size:15px}.week-time-gutter{font-size:9px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace;text-align:right;padding-right:8px}.week-time-gutter--label{padding-top:6px}.week-allday-col{min-width:0;padding:2px 4px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(255,255,255,0.04)}.week-time-labels{position:relative}.week-time-label{position:absolute;right:8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.2)}.week-days-track{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}.week-day-col{position:relative;overflow:hidden;min-width:0;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y}.week-day-col.is-sel{background:rgba(0,255,200,0.04)}.week-hour-line{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.week-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.53);z-index:5;pointer-events:none}.week-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.week-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0;user-select:none}.week-event-block.is-editing,.day-event-block.is-editing{z-index:25;border:2px solid #00FFC8!important;box-shadow:0 0 0 2px rgba(0,255,200,0.35),0 8px 28px rgba(0,255,200,0.35)!important}.day-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0}.cal-allday-event.is-editing{outline:2px solid #00FFC8;outline-offset:1px;box-shadow:0 0 16px rgba(0,255,200,0.35)}.cal-event-popup-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:18px}.cal-event-popup-panel{width:min(440px,94vw);max-height:90vh;overflow:auto;background:rgba(10,12,20,0.98);border:1px solid rgba(255,255,255,0.08);border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,0.55);padding:18px}.week-foot-hint{margin:12px 0 0;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.5}.week-foot-hint--mobile{margin:8px 0 0;color:rgba(255,255,255,0.22)}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:45}.cal-fab-create{position:fixed;z-index:55;width:52px;height:52px;border-radius:50%;border:1px solid rgba(0,255,200,0.55);background:rgba(0,255,200,0.2);color:#00FFC8;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 14px 50px rgba(0,255,200,0.22);backdrop-filter:blur(14px)}.cal-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}.cal-mobile-menu,.cal-mobile-month,.cal-mobile-today,.cal-mobile-day-badge{flex-shrink:0;border-radius:10px;cursor:pointer;font-family:'JetBrains Mono',monospace}.cal-mobile-menu,.cal-mobile-today{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}.cal-mobile-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0}.cal-mobile-month{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:transparent;border:none;color:rgba(255,255,255,0.92);font-size:15px;font-weight:500;text-transform:capitalize}.cal-mobile-month-chevron{font-size:10px;opacity:0.45}.cal-mobile-today{padding:8px 14px;font-size:12px;border-color:rgba(0,255,200,0.35);color:#00FFC8;background:rgba(0,255,200,0.1)}.cal-mobile-day-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;border:1px solid rgba(0,255,200,0.5);color:#00FFC8;background:rgba(0,255,200,0.14);padding:0}.cal-day-ribbon{display:flex;gap:4px;padding:0 10px 10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}.cal-day-ribbon::-webkit-scrollbar{display:none}.cal-day-ribbon-btn{flex:0 0 auto;min-width:48px;padding:8px 10px 10px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:4px}.cal-day-ribbon-btn--sel{background:rgba(0,255,200,0.14);color:#00FFC8;box-shadow:inset 0 -2px 0 #00FFC8}.cal-day-ribbon-btn--today:not(.cal-day-ribbon-btn--sel){color:rgba(0,255,200,0.75)}.cal-day-ribbon-dow{font-size:10px;opacity:0.55}.cal-day-ribbon-num{font-size:17px;font-weight:500;line-height:1}.cal-drawer-nav{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cal-drawer-hub{width:100%;margin-bottom:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}.day-grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.day-allday-row{display:flex;gap:8px;padding:0 10px 8px;flex-shrink:0;align-items:flex-start}.day-allday-label{width:44px;flex-shrink:0;font-size:8px;color:rgba(255,255,255,0.25);font-family:'JetBrains Mono',monospace;text-align:right;padding-top:8px;line-height:1.2}.day-allday-events{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.day-grid-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.day-time-gutter{width:44px;flex-shrink:0}.day-grid-col{flex:1;position:relative;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y;min-width:0}.day-hour-slot{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.day-now-line{position:absolute;left:0;right:0;height:2px;background:#00FFC8;box-shadow:0 0 12px rgba(0,255,200,0.55);z-index:5;pointer-events:none}.day-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#00FFC8;box-shadow:0 0 8px #00FFC8}.day-now-time-label{position:absolute;right:4px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#00FFC8;font-weight:600;z-index:6;pointer-events:none}@media(max-width:719px){.cal-page--mobile{height:100dvh;min-height:100dvh}.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0;min-height:0;flex:1;display:flex;flex-direction:column}.cal-grid-panel{border-radius:0;padding:0;min-height:0;border:none;background:transparent;flex:1}.cal-grid-scroll{overflow:hidden;flex:1;min-height:0}.cal-fab-create{right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom))}}"}</style>
       <div style={{ position: "fixed", top: "-15%", right: "-5%", width: 480, height: 480, background: "radial-gradient(circle,rgba(0,255,200,0.04),transparent 65%)", pointerEvents: "none" }} />
 
       <div className="cal-top-sticky">
@@ -1538,6 +1573,7 @@ export default function Calendar() {
                   events={events}
                   todayKey={todayKey}
                   readOnly={readOnly}
+                  highlightEventId={editId}
                   onEventClick={onEventClick}
                   onSlotClick={onWeekSlotClick}
                 />
@@ -1549,6 +1585,7 @@ export default function Calendar() {
                   todayKey={todayKey}
                   readOnly={readOnly}
                   isMobile={false}
+                  highlightEventId={editId}
                   onSelectDay={function(k) { selectDay(k, null); }}
                   onEventClick={onEventClick}
                   onMove={moveTimedEvent}
@@ -1567,9 +1604,10 @@ export default function Calendar() {
         <EventPopup
           event={popup.event}
           dayKey={popup.dayKey}
-          anchor={popup.anchor}
-          onClose={function() { setPopup(null); }}
+          isEdit={!!popup.isEdit}
+          onClose={closePopup}
           onSave={savePopup}
+          onDelete={function(id) { deleteEvent(id); closePopup(); }}
         />
       )}
     </div>
