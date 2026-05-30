@@ -18,11 +18,11 @@ var MODES = [
 var FOCUS_CSS = [
   "@keyframes fxFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
   "@keyframes fxGlow{0%,100%{opacity:.85}50%{opacity:1}}",
-  ".fx-page{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#0e1018 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif}",
+  ".fx-page{min-height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#0e1018 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif;-webkit-overflow-scrolling:touch}",
   ".fx-head{position:sticky;top:0;z-index:20;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,7,13,0.8);backdrop-filter:blur(16px)}",
   ".fx-hbtn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;font-size:12px;font-family:inherit}",
   ".fx-hbtn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}",
-  ".fx-grid{flex:1;display:grid;grid-template-columns:340px minmax(0,1fr) 320px;gap:16px;padding:18px;max-width:1340px;width:100%;margin:0 auto;box-sizing:border-box;align-items:start}",
+  ".fx-grid{display:grid;grid-template-columns:340px minmax(0,1fr) 320px;gap:16px;padding:18px 18px 32px;max-width:1340px;width:100%;margin:0 auto;box-sizing:border-box;align-items:start}",
   ".fx-panel{border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.04),rgba(255,255,255,0.012));padding:18px;animation:fxFade .35s ease;box-sizing:border-box}",
   ".fx-title{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;letter-spacing:.6px;display:flex;align-items:center;gap:9px}",
   ".fx-modes{display:flex;gap:6px;margin-bottom:16px}",
