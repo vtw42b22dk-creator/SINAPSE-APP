@@ -50,6 +50,20 @@ var MODULE_CSS = [
   ".pm-empty{padding:44px 20px;text-align:center;border-radius:16px;border:1px dashed rgba(255,255,255,0.12);background:rgba(255,255,255,0.015);color:rgba(255,255,255,0.4);font-size:13px}",
   ".pm-notes{width:100%;min-height:min(66vh,560px);background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.09);border-radius:17px;color:#fff;padding:20px 22px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.75;outline:none;resize:vertical;box-sizing:border-box;transition:border-color .18s}",
   ".pm-notes:focus{border-color:var(--mc)}",
+  ".pm-notes-grid{display:grid;grid-template-columns:236px 1fr;gap:16px;align-items:start}",
+  ".pm-notes-aside{display:flex;flex-direction:column;gap:7px}",
+  ".pm-note-item{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.022);cursor:pointer;transition:all .15s}",
+  ".pm-note-item:hover{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.04)}",
+  ".pm-note-item.on{border-color:var(--mc);background:var(--mcf)}",
+  ".pm-note-item h4{margin:0;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:18px}",
+  ".pm-note-item p{margin:0;font-size:10px;color:rgba(255,255,255,0.36);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".pm-note-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,0.3);cursor:pointer;font-size:13px;opacity:0;transition:all .15s}",
+  ".pm-note-item:hover .pm-note-del{opacity:1}",
+  ".pm-note-del:hover{background:rgba(255,61,90,0.16);color:#FF3D5A}",
+  ".pm-seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,0.09);background:rgba(0,0,0,0.25);gap:3px}",
+  ".pm-seg button{padding:8px 16px;border-radius:9px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}",
+  ".pm-seg button.on{color:#0b0b12}",
+  "@media(max-width:719px){.pm-notes-grid{grid-template-columns:1fr}}",
   ".pm-hero{display:flex;align-items:center;gap:20px;padding:20px 22px;border-radius:17px;margin-bottom:8px;flex-wrap:wrap}",
   ".pm-hero-ring{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
   ".pm-hero-ring i{width:60px;height:60px;border-radius:50%;background:#070d0c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;font-family:'JetBrains Mono',monospace}",
@@ -69,6 +83,10 @@ var STATUS_META = {
   acquired: { label: "Adquirido", color: "#34D399" },
   depleted: { label: "Esgotado", color: "#FF3D5A" },
 };
+
+function localId(prefix) {
+  return (prefix || "n") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
 
 function fmtEuro(n) {
   return (n || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
@@ -257,44 +275,115 @@ export function ProjectInvestments(props) {
   );
 }
 
+function parseNotesList(body) {
+  if (!body) return [];
+  if (body.charAt(0) === "[") {
+    try {
+      var arr = JSON.parse(body);
+      if (Array.isArray(arr)) {
+        return arr.map(function(n) {
+          return { id: n.id || localId("note"), title: n.title || "Sem título", body: n.body || "", updated: n.updated || Date.now() };
+        });
+      }
+    } catch (e) {}
+  }
+  // Conteúdo antigo (texto simples) → uma única nota
+  return [{ id: localId("note"), title: "Nota", body: body, updated: Date.now() }];
+}
+
 export function ProjectNotes(props) {
   var projectId = props.projectId;
   var mc = MC.notes;
-  var bodyS = useState("");
-  var body = bodyS[0], setBody = bodyS[1];
+  var notesS = useState([]);
+  var notes = notesS[0], setNotes = notesS[1];
+  var activeS = useState(null);
+  var activeId = activeS[0], setActiveId = activeS[1];
   var savedS = useState(true);
   var saved = savedS[0], setSaved = savedS[1];
   var saveTimer = useRef(null);
 
   useEffect(function() {
-    projectModuleStore.loadNotes(projectId).then(function(d) { setBody(d.body || ""); setSaved(true); });
+    projectModuleStore.loadNotes(projectId).then(function(d) {
+      var list = parseNotesList(d.body || "");
+      setNotes(list);
+      setActiveId(list.length ? list[0].id : null);
+      setSaved(true);
+    });
   }, [projectId]);
 
-  function onChange(val) {
-    setBody(val);
+  function persist(next) {
+    setNotes(next);
     setSaved(false);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
-      projectModuleStore.saveNotes(projectId, { body: val });
+      projectModuleStore.saveNotes(projectId, { body: JSON.stringify(next) });
       setSaved(true);
     }, 500);
   }
 
-  var words = body.trim() ? body.trim().split(/\s+/).length : 0;
+  function addNote() {
+    var n = { id: localId("note"), title: "Nova nota", body: "", updated: Date.now() };
+    var next = [n].concat(notes);
+    persist(next);
+    setActiveId(n.id);
+  }
+
+  function updateNote(id, patch) {
+    persist(notes.map(function(n) { return n.id === id ? Object.assign({}, n, patch, { updated: Date.now() }) : n; }));
+  }
+
+  function removeNote(e, id) {
+    e.stopPropagation();
+    if (!window.confirm("Apagar esta nota?")) return;
+    var next = notes.filter(function(n) { return n.id !== id; });
+    persist(next);
+    if (activeId === id) setActiveId(next.length ? next[0].id : null);
+  }
+
+  var active = notes.find(function(n) { return n.id === activeId; }) || null;
+  var words = active && active.body.trim() ? active.body.trim().split(/\s+/).length : 0;
 
   return (
-    <ModuleShell mc={mc} icon="✎" title="Notas · Wiki" subtitle="Documentação, esquemas e progresso em Markdown"
+    <ModuleShell mc={mc} icon="✎" title="Notas · Wiki" subtitle={notes.length + (notes.length === 1 ? " nota" : " notas") + " · Markdown simples"}
       action={(
-        <span className="pm-badge" style={{ color: saved ? "#34D399" : mc, background: (saved ? "#34D399" : mc) + "18" }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: saved ? "#34D399" : mc }} />
-          {saved ? "Guardado" : "A guardar…"}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="pm-badge" style={{ color: saved ? "#34D399" : mc, background: (saved ? "#34D399" : mc) + "18" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: saved ? "#34D399" : mc }} />
+            {saved ? "Guardado" : "A guardar…"}
+          </span>
+          <PrimaryBtn mc={mc} onClick={addNote}>+ Nota</PrimaryBtn>
+        </div>
       )}>
-      <textarea className="pm-notes" value={body} onChange={function(e) { onChange(e.target.value); }}
-        placeholder={"# Título do projeto\n\n- Ideia\n- Tarefa\n- Link"} />
-      <p style={{ margin: "12px 2px 0", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)" }}>
-        {words} palavras · {body.length} caracteres
-      </p>
+      {notes.length === 0 ? (
+        <div className="pm-empty">Sem notas ainda. Cria a primeira com "+ Nota".</div>
+      ) : (
+        <div className="pm-notes-grid">
+          <div className="pm-notes-aside">
+            {notes.map(function(n) {
+              var preview = (n.body || "").replace(/[#*`>\-]/g, "").trim().slice(0, 40) || "Vazia";
+              return (
+                <div key={n.id} className={"pm-note-item" + (n.id === activeId ? " on" : "")} onClick={function() { setActiveId(n.id); }}>
+                  <button type="button" className="pm-note-del" onClick={function(e) { removeNote(e, n.id); }} title="Apagar">×</button>
+                  <h4>{n.title || "Sem título"}</h4>
+                  <p>{preview}</p>
+                </div>
+              );
+            })}
+          </div>
+          {active && (
+            <div>
+              <input className="pm-input" value={active.title} onChange={function(e) { updateNote(active.id, { title: e.target.value }); }}
+                placeholder="Título da nota" style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, fontSize: 15, marginBottom: 12 }} />
+              <textarea className="pm-notes" style={{ minHeight: "min(58vh,480px)" }} value={active.body}
+                onChange={function(e) { updateNote(active.id, { body: e.target.value }); }}
+                placeholder={"# " + (active.title || "Nota") + "\n\n- Ideia\n- Tarefa\n- Link"} />
+              <p style={{ margin: "12px 2px 0", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)" }}>
+                {words} palavras · {active.body.length} caracteres
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </ModuleShell>
   );
 }
@@ -334,13 +423,13 @@ export function ProjectAnalytics(props) {
   var hasFin = fin.injected > 0 || fin.returned > 0;
 
   var invStats = useMemo(function() {
-    var totalUnits = 0, totalCost = 0, missing = 0;
+    var capital = 0, circ = 0, missing = 0;
     items.forEach(function(r) {
-      totalUnits += r.quantity || 0;
-      totalCost += (r.quantity || 0) * (r.unitCost || 0);
+      var v = (r.quantity || 0) * (r.unitCost || 0);
+      if (r.category === "capital") capital += v; else circ += v;
       if (r.status === "missing") missing++;
     });
-    return { count: items.length, totalUnits: totalUnits, totalCost: totalCost, missing: missing };
+    return { count: items.length, capital: capital, circ: circ, total: capital + circ, missing: missing };
   }, [items]);
 
   var kpiOverview = useMemo(function() {
@@ -397,9 +486,9 @@ export function ProjectAnalytics(props) {
         <>
           <p className="pm-sec">INVENTÁRIO</p>
           <div className="pm-stats" style={{ marginBottom: 0 }}>
-            <Stat label="Itens" value={invStats.count} />
-            <Stat label="Unidades" value={invStats.totalUnits} />
-            <Stat label="Valor stock" value={fmtEuro(invStats.totalCost)} color={mc} />
+            <Stat label="Capital fixo" value={fmtEuro(invStats.capital)} color="#34D399" />
+            <Stat label="Stock circulante" value={fmtEuro(invStats.circ)} color="#6B8AFF" />
+            <Stat label="Valor total" value={fmtEuro(invStats.total)} color={mc} />
             <Stat label="Em falta" value={invStats.missing} color={invStats.missing > 0 ? "#FFB800" : "rgba(255,255,255,0.85)"} />
           </div>
         </>
@@ -447,14 +536,18 @@ export function ProjectAnalytics(props) {
   );
 }
 
+var INV_CATS = {
+  circulating: { label: "Stock circulante", color: "#6B8AFF", hint: "Custo por produto / consumíveis" },
+  capital: { label: "Capital", color: "#34D399", hint: "Equipamento e ativos fixos" },
+};
+
 export function ProjectInventory(props) {
   var projectId = props.projectId;
   var mc = MC.inventory;
   var rowsS = useState([]);
   var rows = rowsS[0], setRows = rowsS[1];
-  var pageS = useState(0);
-  var page = pageS[0], setPage = pageS[1];
-  var PAGE = 14;
+  var catS = useState("circulating");
+  var cat = catS[0], setCat = catS[1];
 
   useEffect(function() {
     projectModuleStore.loadInventory(projectId).then(setRows);
@@ -464,35 +557,51 @@ export function ProjectInventory(props) {
     setRows(next);
     projectModuleStore.saveInventory(projectId, next);
   }
-  function addItem() { persist([projectModuleStore.newInventoryItem({ name: "Novo item" })].concat(rows)); setPage(0); }
+  function addItem() { persist([projectModuleStore.newInventoryItem({ name: "Novo item", category: cat })].concat(rows)); }
   function updateItem(id, patch) { persist(rows.map(function(r) { return r.id === id ? Object.assign({}, r, patch) : r; })); }
   function removeItem(id) { persist(rows.filter(function(r) { return r.id !== id; })); }
 
-  var stats = useMemo(function() {
-    var units = 0, cost = 0, missing = 0;
+  var totals = useMemo(function() {
+    var capital = 0, circ = 0, missing = 0;
     rows.forEach(function(r) {
-      units += r.quantity || 0;
-      cost += (r.quantity || 0) * (r.unitCost || 0);
+      var v = (r.quantity || 0) * (r.unitCost || 0);
+      if (r.category === "capital") capital += v; else circ += v;
       if (r.status === "missing") missing++;
     });
-    return { units: units, cost: cost, missing: missing };
+    return { capital: capital, circ: circ, missing: missing, total: capital + circ };
   }, [rows]);
 
-  var pages = Math.max(1, Math.ceil(rows.length / PAGE));
-  var slice = rows.slice(page * PAGE, page * PAGE + PAGE);
+  var catMeta = INV_CATS[cat];
+  var visible = rows.filter(function(r) { return (r.category || "circulating") === cat; });
 
   return (
-    <ModuleShell mc={mc} icon="▦" title="Inventário · Stock" subtitle="Componentes, materiais e custos"
-      action={<PrimaryBtn mc={mc} onClick={addItem}>+ Item</PrimaryBtn>}>
+    <ModuleShell mc={mc} icon="▦" title="Inventário · Stock" subtitle="Capital fixo e stock circulante"
+      action={<PrimaryBtn mc={mc} onClick={addItem}>+ Item em {catMeta.label}</PrimaryBtn>}>
       <div className="pm-stats">
-        <Stat label="Itens" value={rows.length} />
-        <Stat label="Unidades" value={stats.units} />
-        <Stat label="Valor total" value={fmtEuro(stats.cost)} color={mc} />
-        <Stat label="Em falta" value={stats.missing} color={stats.missing > 0 ? "#FFB800" : "rgba(255,255,255,0.85)"} />
+        <Stat label="Capital (fixo)" value={fmtEuro(totals.capital)} color={INV_CATS.capital.color} />
+        <Stat label="Stock circulante" value={fmtEuro(totals.circ)} color={INV_CATS.circulating.color} />
+        <Stat label="Valor total" value={fmtEuro(totals.total)} color={mc} />
+        <Stat label="Em falta" value={totals.missing} color={totals.missing > 0 ? "#FFB800" : "rgba(255,255,255,0.85)"} />
       </div>
 
-      {rows.length === 0 ? (
-        <div className="pm-empty">Sem itens. Adiciona o primeiro com "+ Item".</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <div className="pm-seg">
+          {["circulating", "capital"].map(function(c) {
+            var m = INV_CATS[c];
+            var on = cat === c;
+            return (
+              <button type="button" key={c} className={on ? "on" : ""} onClick={function() { setCat(c); }}
+                style={on ? { background: m.color, boxShadow: "0 0 16px " + m.color + "55" } : null}>
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", fontFamily: "'JetBrains Mono',monospace" }}>{catMeta.hint}</span>
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="pm-empty">Sem itens em "{catMeta.label}". Adiciona o primeiro acima.</div>
       ) : (
         <div className="pm-tablecard">
           <table className="pm-table">
@@ -501,32 +610,28 @@ export function ProjectInventory(props) {
               <col style={{ width: 84 }} />
               <col style={{ width: 142 }} />
               <col style={{ width: 110 }} />
+              <col style={{ width: 100 }} />
               <col style={{ width: 56 }} />
             </colgroup>
             <thead>
-              <tr><th>Item</th><th>Qtd</th><th>Estado</th><th style={{ textAlign: "right" }}>Custo un.</th><th></th></tr>
+              <tr><th>Item</th><th>Qtd</th><th>Estado</th><th style={{ textAlign: "right" }}>Custo un.</th><th style={{ textAlign: "right" }}>Subtotal</th><th></th></tr>
             </thead>
             <tbody>
-              {slice.map(function(r) {
+              {visible.map(function(r) {
+                var sub = (r.quantity || 0) * (r.unitCost || 0);
                 return (
                   <tr key={r.id}>
                     <td><input className="pm-input" value={r.name} onChange={function(e) { updateItem(r.id, { name: e.target.value }); }} style={{ padding: "8px 11px", fontSize: 13 }} /></td>
                     <td><input type="number" min={0} className="pm-input" value={r.quantity} onChange={function(e) { updateItem(r.id, { quantity: +e.target.value }); }} style={{ padding: "8px 10px", fontFamily: "'JetBrains Mono',monospace", textAlign: "center" }} /></td>
                     <td><StatusSelect value={r.status} onChange={function(v) { updateItem(r.id, { status: v }); }} /></td>
                     <td><input type="number" min={0} step="0.01" className="pm-input" value={r.unitCost} onChange={function(e) { updateItem(r.id, { unitCost: +e.target.value }); }} style={{ padding: "8px 10px", fontFamily: "'JetBrains Mono',monospace", textAlign: "right" }} /></td>
+                    <td className="pm-num" style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>{fmtEuro(sub)}</td>
                     <td style={{ textAlign: "center" }}><button type="button" className="pm-del" onClick={function() { removeItem(r.id); }}>×</button></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        </div>
-      )}
-      {pages > 1 && (
-        <div className="pm-pager">
-          <button type="button" disabled={page <= 0} onClick={function() { setPage(page - 1); }}>‹</button>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'JetBrains Mono',monospace" }}>{page + 1} / {pages}</span>
-          <button type="button" disabled={page >= pages - 1} onClick={function() { setPage(page + 1); }}>›</button>
         </div>
       )}
     </ModuleShell>

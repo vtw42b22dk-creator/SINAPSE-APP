@@ -106,14 +106,30 @@ function invFromDb(r) {
   return normInvestment(r);
 }
 
+function parseInventoryMeta(row) {
+  // Categoria e nota livre são guardadas no campo `notes` (texto) para evitar
+  // alterar o esquema do Supabase. Formato: JSON {"c":"capital","n":"..."}.
+  if (row.category) return { category: row.category === "capital" ? "capital" : "circulating", note: row.notes || "" };
+  var raw = row.notes;
+  if (raw && typeof raw === "string" && raw.charAt(0) === "{") {
+    try {
+      var obj = JSON.parse(raw);
+      return { category: obj.c === "capital" ? "capital" : "circulating", note: obj.n || "" };
+    } catch (e) {}
+  }
+  return { category: "circulating", note: raw || "" };
+}
+
 function normInventory(row) {
+  var meta = parseInventoryMeta(row);
   return {
     id: row.id || uid("pv"),
     name: row.name || "",
     quantity: Number(row.quantity) || 0,
     status: row.status === "acquired" ? "acquired" : row.status === "depleted" ? "depleted" : "missing",
     unitCost: Number(row.unit_cost != null ? row.unit_cost : row.unitCost) || 0,
-    notes: row.notes || "",
+    category: meta.category,
+    notes: meta.note,
     created: row.created || (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
     updated: rowUpdated(row) || Date.now(),
   };
@@ -127,7 +143,7 @@ function inventoryToDb(r, projectId) {
     quantity: r.quantity,
     status: r.status,
     unit_cost: r.unitCost,
-    notes: r.notes || "",
+    notes: JSON.stringify({ c: r.category === "capital" ? "capital" : "circulating", n: r.notes || "" }),
   };
 }
 
@@ -285,7 +301,7 @@ export function newInvestment(partial) {
 }
 
 export function newInventoryItem(partial) {
-  return normInventory(Object.assign({ status: "missing", quantity: 1 }, partial || {}));
+  return normInventory(Object.assign({ status: "missing", quantity: 1, category: "circulating" }, partial || {}));
 }
 
 export function newKpi(partial) {

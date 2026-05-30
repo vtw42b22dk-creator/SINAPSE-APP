@@ -19,12 +19,36 @@ var MODULE_ICONS = {
 
 var PIN_KEY = "sinapse-pinned-projects-v1";
 var VIEW_KEY = "sinapse-projects-view-v1";
+var FILTER_KEY = "sinapse-project-filters-v1";
+
+var DEFAULT_FILTERS = [
+  { id: "cf_hw", label: "Hardware", kw: "hardware" },
+  { id: "cf_resale", label: "Resale", kw: "resale" },
+  { id: "cf_dev", label: "Dev", kw: "software" },
+];
+
+var PRESETS = [
+  { id: "full", label: "Completo", mods: { documents: true, investments: true, notes: true, analytics: true, inventory: true } },
+  { id: "fin", label: "Financeiro", mods: { documents: true, investments: true, notes: false, analytics: true, inventory: true } },
+  { id: "simple", label: "Sem finanças", mods: { documents: true, investments: false, notes: true, analytics: false, inventory: false } },
+];
 
 function loadPins() {
   try { return JSON.parse(localStorage.getItem(PIN_KEY) || "[]"); } catch (e) { return []; }
 }
 function savePins(arr) {
   try { localStorage.setItem(PIN_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+function loadFilters() {
+  try {
+    var v = localStorage.getItem(FILTER_KEY);
+    if (v === null) return DEFAULT_FILTERS.slice();
+    var arr = JSON.parse(v);
+    return Array.isArray(arr) ? arr : DEFAULT_FILTERS.slice();
+  } catch (e) { return DEFAULT_FILTERS.slice(); }
+}
+function saveFilters(arr) {
+  try { localStorage.setItem(FILTER_KEY, JSON.stringify(arr)); } catch (e) {}
 }
 
 var PROJ_CSS = [
@@ -53,6 +77,14 @@ var PROJ_CSS = [
   ".pj-chip{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.42);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .16s}",
   ".pj-chip:hover{color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.16)}",
   ".pj-chip.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.13);color:#FF3D8A}",
+  ".pj-chip-cf{display:inline-flex;align-items:center;gap:6px}",
+  ".pj-chip-cf b{font-weight:inherit}",
+  ".pj-chip-x{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:5px;background:rgba(255,255,255,0.08);font-size:11px;line-height:1;cursor:pointer}",
+  ".pj-chip-x:hover{background:rgba(255,61,90,0.3);color:#fff}",
+  ".pj-chip-add{border-style:dashed;color:rgba(255,255,255,0.45)}",
+  ".pj-preset{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}",
+  ".pj-preset button{flex:1;min-width:90px;padding:9px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s}",
+  ".pj-preset button.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.12);color:#FF3D8A}",
   ".pj-scroll{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 28px;-webkit-overflow-scrolling:touch}",
   ".pj-sech{margin:6px 2px 10px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.3);letter-spacing:1.5px;display:flex;align-items:center;gap:8px}",
   ".pj-sech::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}",
@@ -271,6 +303,12 @@ export default function Projects() {
   var view = viewS[0], setView = viewS[1];
   var pinsS = useState(loadPins);
   var pins = pinsS[0], setPins = pinsS[1];
+  var cfS = useState(loadFilters);
+  var customFilters = cfS[0], setCustomFilters = cfS[1];
+  var manageS = useState(false);
+  var manageFilters = manageS[0], setManageFilters = manageS[1];
+  var presetS = useState("full");
+  var preset = presetS[0], setPreset = presetS[1];
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
@@ -317,6 +355,35 @@ export default function Projects() {
 
   function setViewPersist(v) { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch (e) {} }
 
+  function addFilter() {
+    var label = window.prompt("Nome do novo filtro:");
+    if (!label || !label.trim()) return;
+    var kw = window.prompt("Palavra-chave a procurar (no nome, descrição ou tipo):", label.trim());
+    if (kw === null) return;
+    var f = { id: "cf_" + Date.now().toString(36), label: label.trim(), kw: (kw || "").trim().toLowerCase() };
+    var next = customFilters.concat([f]);
+    setCustomFilters(next); saveFilters(next);
+  }
+  function editFilter(e, f) {
+    e.stopPropagation();
+    var label = window.prompt("Nome do filtro:", f.label);
+    if (label === null) return;
+    var kw = window.prompt("Palavra-chave:", f.kw);
+    if (kw === null) return;
+    var next = customFilters.map(function(x) { return x.id === f.id ? Object.assign({}, x, { label: label.trim() || x.label, kw: (kw || "").trim().toLowerCase() }) : x; });
+    setCustomFilters(next); saveFilters(next);
+  }
+  function deleteFilter(e, id) {
+    e.stopPropagation();
+    var next = customFilters.filter(function(x) { return x.id !== id; });
+    setCustomFilters(next); saveFilters(next);
+    if (filter === id) setFilter("all");
+  }
+  function applyPreset(pr) {
+    setPreset(pr.id);
+    setModules(Object.assign({}, synapseStore.DEFAULT_MODULES, pr.mods));
+  }
+
   function togglePin(e, id) {
     e.stopPropagation();
     setPins(function(prev) {
@@ -345,18 +412,18 @@ export default function Projects() {
 
   var filtered = useMemo(function() {
     var q = query.trim().toLowerCase();
+    var cf = customFilters.find(function(x) { return x.id === filter; });
     var list = projects.filter(function(p) {
       var meta = projectTypeMeta(p);
-      if (filter === "hardware" && meta.tag !== "Hardware") return false;
-      if (filter === "resale" && meta.tag !== "Resale") return false;
-      if (filter === "software" && meta.tag !== "Software") return false;
+      var text = ((p.name || "") + " " + (p.description || "") + " " + meta.tag).toLowerCase();
       if (filter === "pinned" && pins.indexOf(p.id) < 0) return false;
       if (filter === "active") {
         var st = stats[p.id] || {};
         if (!st.pending && !st.total) return false;
       }
+      if (cf && cf.kw && text.indexOf(cf.kw) < 0) return false;
       if (!q) return true;
-      return ((p.name || "") + " " + (p.description || "") + " " + meta.tag).toLowerCase().indexOf(q) >= 0;
+      return text.indexOf(q) >= 0;
     });
     function score(p) {
       var st = stats[p.id] || {};
@@ -374,9 +441,10 @@ export default function Projects() {
       if (typeof sa === "string") return sa.localeCompare(sb);
       return sa - sb;
     });
-  }, [projects, query, filter, stats, sort, pins]);
+  }, [projects, query, filter, stats, sort, pins, customFilters]);
 
   function toggleModule(id) {
+    setPreset("custom");
     setModules(function(prev) {
       var next = Object.assign({}, prev);
       next[id] = !next[id];
@@ -387,6 +455,8 @@ export default function Projects() {
 
   function openModal() {
     setColor(PALETTE[projects.length % PALETTE.length]);
+    setPreset("full");
+    setModules(Object.assign({}, synapseStore.DEFAULT_MODULES));
     setModalOpen(true);
   }
 
@@ -490,12 +560,26 @@ export default function Projects() {
           { id: "all", label: "Todos" },
           { id: "pinned", label: "★ Fixados" },
           { id: "active", label: "Ativos" },
-          { id: "hardware", label: "Hardware" },
-          { id: "resale", label: "Resale" },
-          { id: "software", label: "Dev" },
         ].map(function(f) {
           return <button type="button" key={f.id} className={"pj-chip" + (filter === f.id ? " on" : "")} onClick={function() { setFilter(f.id); }}>{f.label}</button>;
         })}
+        {customFilters.map(function(f) {
+          return (
+            <button type="button" key={f.id} className={"pj-chip pj-chip-cf" + (filter === f.id ? " on" : "")} onClick={function() { setFilter(f.id); }}>
+              <b>{f.label}</b>
+              {manageFilters && (
+                <>
+                  <span className="pj-chip-x" title="Editar" onClick={function(e) { editFilter(e, f); }}>✎</span>
+                  <span className="pj-chip-x" title="Apagar" onClick={function(e) { deleteFilter(e, f.id); }}>×</span>
+                </>
+              )}
+            </button>
+          );
+        })}
+        {manageFilters && <button type="button" className="pj-chip pj-chip-add" onClick={addFilter}>+ Filtro</button>}
+        <button type="button" className={"pj-chip" + (manageFilters ? " on" : "")} onClick={function() { setManageFilters(!manageFilters); }} title="Gerir filtros">
+          {manageFilters ? "✓ Concluir" : "✎ Filtros"}
+        </button>
       </div>
 
       <div className="pj-scroll">
@@ -537,6 +621,14 @@ export default function Projects() {
                 style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") createProject(); }} autoFocus />
               <textarea value={description} onChange={function(e) { setDescription(e.target.value); }} placeholder="Descrição — ex: Resale sneakers, SaaS, hardware..."
                 rows={2} style={Object.assign({}, inputStyle(), { resize: "none", lineHeight: 1.45, fontSize: 13 })} />
+              <div>
+                <p style={lblMini()}>TIPO DE PROJETO</p>
+                <div className="pj-preset">
+                  {PRESETS.map(function(pr) {
+                    return <button type="button" key={pr.id} className={preset === pr.id ? "on" : ""} onClick={function() { applyPreset(pr); }}>{pr.label}</button>;
+                  })}
+                </div>
+              </div>
               <div>
                 <p style={lblMini()}>COR</p>
                 <div className="pj-pal">
