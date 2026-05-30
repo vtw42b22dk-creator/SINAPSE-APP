@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as changelog from "../lib/changelog";
 
 var MODULE_PATHS = {
-  synapse: "/synapse",
+  synapse: "/projects",
   journal: "/journal",
   calendar: "/calendar",
   tasks: "/tasks",

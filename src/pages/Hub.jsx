@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import * as dataRecovery from "../lib/dataRecovery";
+import { ProjectsIcon } from "./Projects";
 
 function ParticleField() {
   const ref = useRef(null);
@@ -52,22 +53,6 @@ function ParticleField() {
     return function() { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
   }, []);
   return <canvas ref={ref} style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",zIndex:0,pointerEvents:"none"}} />;
-}
-
-function SynapseIcon() {
-  return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="24" r="5" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="38" cy="14" r="3" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="10" cy="36" r="3" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="38" cy="34" r="3" stroke="currentColor" strokeWidth="1.5"/>
-      <line x1="20" y1="20" x2="14" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="28" y1="21" x2="36" y2="15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="20" y1="28" x2="12" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="28" y1="27" x2="36" y2="33" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
 }
 
 function CalendarIcon() {
@@ -130,7 +115,7 @@ var MODULES = [
   {id:"calendar", name:"Calendário", desc:"Visualiza e organiza o teu tempo", Icon:CalendarIcon, accent:"#00FFC8", glow:"rgba(0,255,200,0.3)", path:"/calendar"},
   {id:"tasks", name:"Tarefas", desc:"Captura, prioriza, conquista", Icon:TasksIcon, accent:"#7B61FF", glow:"rgba(123,97,255,0.3)", path:"/tasks"},
   {id:"journal", name:"Diário", desc:"Blocos de escrita para tudo o que vem à cabeça", Icon:JournalIcon, accent:"#FFB800", glow:"rgba(255,184,0,0.25)", path:"/journal"},
-  {id:"synapse", name:"Sinapse", desc:"Mapeia o teu universo criativo", Icon:SynapseIcon, accent:"#FF3D8A", glow:"rgba(255,61,138,0.3)", path:"/synapse"},
+  {id:"projects", name:"Projetos", desc:"Workspaces modulares com finanças, notas e sinapses", Icon:ProjectsIcon, accent:"#FF3D8A", glow:"rgba(255,61,138,0.3)", path:"/projects"},
   {id:"wishlist", name:"Wishlist", desc:"Lista o que queres comprar ou fazer", Icon:WishlistIcon, accent:"#34D399", glow:"rgba(52,211,153,0.28)", path:"/wishlist"},
   {id:"finance", name:"Financeiro", desc:"Gastos, recursos e orçamento mensal", Icon:FinanceIcon, accent:"#38BDF8", glow:"rgba(56,189,248,0.28)", path:"/finance"},
 ];

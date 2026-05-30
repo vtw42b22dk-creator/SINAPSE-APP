@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
 
 var ACCENT = "#00FFC8";
-var SK = "sinapse-calendar-v2";
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 var COLORS = ["#00FFC8", "#7B61FF", "#FF3D8A", "#FFB800", "#00AAFF", "#FF6B35"];
 
@@ -16,34 +15,6 @@ function parseKey(k) {
   return { y: +p[0], m: +p[1] - 1, d: +p[2] };
 }
 
-function loadEvents() {
-  try {
-    var raw = localStorage.getItem(SK);
-    if (!raw) {
-      var old = localStorage.getItem("sinapse-calendar-v1");
-      if (old) {
-        var parsed = JSON.parse(old);
-        Object.keys(parsed).forEach(function(k) {
-          parsed[k] = (parsed[k] || []).map(function(ev) {
-            return { id: ev.id, title: ev.title, color: ev.color, time: ev.time || null, allDay: !ev.time, notes: "", duration: 60 };
-          });
-        });
-        return parsed;
-      }
-      return {};
-    }
-    var data = JSON.parse(raw);
-    Object.keys(data).forEach(function(k) {
-      data[k] = (data[k] || []).map(function(ev) {
-        return Object.assign({}, ev, { duration: ev.duration || 60, notes: ev.notes || "" });
-      });
-    });
-    return data;
-  } catch (e) { return {}; }
-}
-function saveEvents(data) {
-  try { localStorage.setItem(SK, JSON.stringify(data)); } catch (e) {}
-}
 function weekKeys(anchorKey) {
   var p = parseKey(anchorKey);
   var d = new Date(p.y, p.m, p.d);
@@ -1129,7 +1100,7 @@ export default function Calendar() {
   var view = vS[0], setView = vS[1];
   var selS = useState(todayKey);
   var selected = selS[0], setSelected = selS[1];
-  var evS = useState(loadEvents);
+  var evS = useState({});
   var events = evS[0], setEvents = evS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
@@ -1176,7 +1147,6 @@ export default function Calendar() {
 
   useEffect(function() {
     if (!loaded) return;
-    saveEvents(events);
     calendarStore.saveEvents(events);
   }, [events, loaded]);
 

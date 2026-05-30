@@ -1,10 +1,38 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { readLocal, selectRows, upsertRows, uid, getUser } from "./cloudStore";
 import { hydrateSynapseNodes, stripFileForSave } from "./attachmentsStore";
+import { deleteProjectModules } from "./projectModuleStore";
 import { supabase } from "./supabase";
 
 var PROJECTS = "sinapse-projects-v1";
 var DATA = "sinapse-project-data-v1";
+
+export var DEFAULT_MODULES = {
+  investments: true,
+  notes: true,
+  analytics: true,
+  inventory: true,
+  documents: true,
+};
+
+export var MODULE_META = [
+  { id: "documents", label: "Documentos", desc: "Mapa mental e ficheiros" },
+  { id: "investments", label: "Investimentos", desc: "Ledger financeiro do projeto" },
+  { id: "notes", label: "Notas", desc: "Wiki técnica e documentação" },
+  { id: "analytics", label: "Analytics", desc: "KPIs e metas" },
+  { id: "inventory", label: "Inventário", desc: "Stock e componentes" },
+];
+
+function normalizeProject(p) {
+  return {
+    id: p.id || uid("sp"),
+    name: p.name || "Projeto",
+    description: p.description || "",
+    color: p.color || "#FF3D8A",
+    collapsed: p.collapsed || [],
+    modules: Object.assign({}, DEFAULT_MODULES, p.modules || {}),
+  };
+}
 
 function mergeNodes(localNodes, remoteNodes) {
   var map = {};
@@ -31,14 +59,20 @@ function stripNodesForCloud(nodes) {
 
 export async function loadProjects() {
   var rows = await selectRows("synapse_projects", PROJECTS, []);
-  return (rows || []).map(function(p) {
-    return { id: p.id || uid("sp"), name: p.name || "Projeto", color: p.color || "#FF3D8A", collapsed: p.collapsed || [] };
-  });
+  return (rows || []).map(normalizeProject);
 }
 
 export async function saveProjects(projects) {
   return upsertRows("synapse_projects", PROJECTS, projects.map(function(p) {
-    return { id: p.id, name: p.name, color: p.color || "#FF3D8A", collapsed: p.collapsed || [] };
+    var n = normalizeProject(p);
+    return {
+      id: n.id,
+      name: n.name,
+      description: n.description,
+      color: n.color,
+      collapsed: n.collapsed,
+      modules: n.modules,
+    };
   }));
 }
 
@@ -115,6 +149,7 @@ export async function saveProjectData(projectId, data) {
 
 export async function deleteProject(projectId, projects) {
   try { localStorage.removeItem(DATA + ":" + projectId); } catch (e) {}
+  await deleteProjectModules(projectId);
   var next = (projects || []).filter(function(p) { return p.id !== projectId; });
   await saveProjects(next);
   var user = await getUser();
@@ -126,6 +161,14 @@ export async function deleteProject(projectId, projects) {
   return next;
 }
 
-export function newProject(name) {
-  return { id: uid("sp"), name: name || "Novo projeto", color: "#FF3D8A", collapsed: [] };
+export function newProject(name, opts) {
+  var o = opts || {};
+  return normalizeProject({
+    id: uid("sp"),
+    name: name || "Novo projeto",
+    description: o.description || "",
+    color: o.color || "#FF3D8A",
+    collapsed: [],
+    modules: Object.assign({}, DEFAULT_MODULES, o.modules || {}),
+  });
 }

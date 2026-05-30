@@ -720,7 +720,9 @@ function DocPanel(props) {
 // ══════════════════════════════════════════════
 // MAIN
 // ══════════════════════════════════════════════
-export default function Synapse() {
+export default function Synapse(props) {
+  var embedded = !!(props && props.embedded);
+  var routeProjectId = props && props.projectId;
   var navigate = useNavigate();
   var device = useDevice();
   var isMob = device==="mobile", isTab = device==="tablet";
@@ -778,6 +780,12 @@ export default function Synapse() {
       });
     });
   }, []);
+
+  useEffect(function() {
+    if (!routeProjectId || !projects.length) return;
+    var match = projects.find(function(p) { return p.id === routeProjectId; });
+    if (match) setActiveProject(match);
+  }, [routeProjectId, projects]);
 
   var refreshProjectData = useCallback(function(silent) {
     if (!activeProject) return Promise.resolve();
@@ -1205,7 +1213,16 @@ export default function Synapse() {
 
   var selectedNode = sel ? nodes.find(function(n) { return n.id === sel; }) : null;
 
-  if (!activeProject) return (
+  if (!activeProject) {
+    if (embedded && routeProjectId) {
+      return (
+        <div style={{ width: "100%", height: "100%", background: "#06060C", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ fontFamily: "'JetBrains Mono',monospace", color: "#FF3D8A", fontSize: 14, opacity: 0.5 }}>A carregar...</p>
+        </div>
+      );
+    }
+    if (embedded) return null;
+    return (
     <div data-scrollable style={{minHeight:"100vh",background:"linear-gradient(160deg,#06060C,#12101B)",color:"#fff",fontFamily:"'IBM Plex Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",padding:isMob?16:24,overflow:"auto"}}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <div style={{width:"min(920px,94vw)"}}>
@@ -1231,22 +1248,28 @@ export default function Synapse() {
         </div>
       </div>
     </div>
-  );
+    );
+  }
+
+  var canvasW = embedded ? "100%" : "100vw";
+  var canvasH = embedded ? "100%" : "100vh";
 
   return (
-    <div ref={workspaceRef} style={{width:"100vw",height:"100vh",background:"#06060C",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
+    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#06060C",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <style>{"*{margin:0;padding:0;box-sizing:border-box}@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes breathe{0%,100%{opacity:0.25}50%{opacity:0.7}}@keyframes gridDrift{0%{transform:translate(0,0)}100%{transform:translate(30px,30px)}}@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}body{overflow:hidden}"}</style>
 
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,255,200,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,200,0.02) 1px,transparent 1px)",backgroundSize:"32px 32px",animation:"gridDrift 10s linear infinite",opacity:0.4,pointerEvents:"none"}}/>
       <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:"min(900px,150vw)",height:"min(900px,150vh)",background:"radial-gradient(circle,rgba(123,97,255,0.015) 0%,transparent 55%)",pointerEvents:"none"}}/>
 
-      <div data-no-canvas-zoom style={{position:"absolute",top:0,left:0,right:0,height:isMob?58:52,background:"linear-gradient(180deg,rgba(6,6,12,0.99) 70%,transparent 100%)",display:"flex",alignItems:"center",justifyContent:"space-between",padding:isMob?"0 10px":"0 16px",zIndex:isMob?85:20,pointerEvents:"auto"}}>
+      <div data-no-canvas-zoom style={{position:"absolute",top:0,left:0,right:0,height:isMob?58:52,background:embedded?"transparent":"linear-gradient(180deg,rgba(6,6,12,0.99) 70%,transparent 100%)",display:"flex",alignItems:"center",justifyContent:embedded?"flex-end":"space-between",padding:isMob?"0 10px":"0 16px",zIndex:isMob?85:20,pointerEvents:"auto"}}>
+        {!embedded && (
         <div style={{display:"flex",alignItems:"center",gap:isMob?10:14}}>
           <button onClick={function(){setActiveProject(null);}} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.55)",padding:isMob?"8px 10px":"5px 10px",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "← Projetos" : "\u2190"}</button>
           {isMob && <button onClick={function(){navigate("/");}} style={{background:"rgba(255,61,138,0.10)",border:"1px solid rgba(255,61,138,0.22)",borderRadius:12,color:"#FF3D8A",padding:"8px 10px",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>Hub</button>}
           <h1 style={{fontSize:isMob?12:15,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:"#FF3D8A",letterSpacing:1,maxWidth:isMob?110:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
+        )}
         <div style={{display:"flex",gap:isMob?3:5,alignItems:"center"}}>
           {!touchUI && (
             <>

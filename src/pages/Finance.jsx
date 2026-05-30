@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as financeStore from "../lib/financeStore";
 import * as incomeStore from "../lib/incomeStore";
@@ -47,6 +47,24 @@ export default function Finance() {
   var isMobile = viewportW < 720;
   var tabS = useState("expense");
   var tab = tabS[0], setTab = tabS[1];
+  var balanceS = useState({ income: 0, expense: 0, loading: true });
+  var balance = balanceS[0], setBalance = balanceS[1];
+
+  useEffect(function() {
+    Promise.all([financeStore.loadExpenses(), incomeStore.loadIncomes()]).then(function(res) {
+      var expenses = res[0] || [];
+      var incomes = res[1] || [];
+      var expenseTotal = expenses.reduce(function(s, r) { return s + (Number(r.amount) || 0); }, 0);
+      var incomeTotal = incomes.reduce(function(s, r) { return s + (Number(r.amount) || 0); }, 0);
+      setBalance({ income: incomeTotal, expense: expenseTotal, loading: false });
+    }).catch(function() {
+      setBalance({ income: 0, expense: 0, loading: false });
+    });
+  }, [tab]);
+
+  var saldo = useMemo(function() {
+    return balance.income - balance.expense;
+  }, [balance]);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -75,6 +93,33 @@ export default function Finance() {
         </div>
       </header>
       <main className="mod-main" data-scrollable style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px" }}>
+        <div style={{
+          marginBottom: 22,
+          padding: isMobile ? "18px 16px" : "22px 24px",
+          borderRadius: 18,
+          border: "1px solid " + (saldo >= 0 ? "rgba(0,255,200,0.35)" : "rgba(255,107,53,0.35)"),
+          background: saldo >= 0
+            ? "linear-gradient(145deg, rgba(0,255,200,0.12), rgba(0,255,200,0.03))"
+            : "linear-gradient(145deg, rgba(255,107,53,0.14), rgba(255,61,90,0.04))",
+          boxShadow: saldo >= 0 ? "0 12px 40px rgba(0,255,200,0.12)" : "0 12px 40px rgba(255,107,53,0.1)",
+        }}>
+          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo Atual</p>
+          <p style={{
+            margin: "8px 0 0",
+            fontSize: "clamp(28px, 6vw, 40px)",
+            fontFamily: "'JetBrains Mono',monospace",
+            fontWeight: 600,
+            color: balance.loading ? "rgba(255,255,255,0.3)" : (saldo >= 0 ? "#00FFC8" : "#FF6B35"),
+            textShadow: balance.loading ? "none" : (saldo >= 0 ? "0 0 24px rgba(0,255,200,0.35)" : "0 0 20px rgba(255,107,53,0.25)"),
+          }}>
+            {balance.loading ? "…" : saldo.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
+          </p>
+          {!balance.loading && (
+            <p style={{ margin: "10px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace" }}>
+              Recursos {balance.income.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })} − Gastos {balance.expense.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
+            </p>
+          )}
+        </div>
         <FinanceLedger
           key={tab}
           store={tab === "income" ? incomeAdapter : expenseAdapter}

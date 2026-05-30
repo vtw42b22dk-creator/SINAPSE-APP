@@ -1,5 +1,7 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import Hub from './pages/Hub'
+import Projects from './pages/Projects'
+import ProjectWorkspace from './pages/ProjectWorkspace'
 import Synapse from './pages/Synapse'
 import Calendar from './pages/Calendar'
 import Tasks from './pages/Tasks'
@@ -18,7 +20,10 @@ export default function App() {
           <HashRouter>
             <Routes>
               <Route path="/" element={<Hub />} />
-              <Route path="/synapse" element={<Synapse />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:projectId" element={<ProjectWorkspace />} />
+              <Route path="/projects/:projectId/:moduleId" element={<ProjectWorkspace />} />
+              <Route path="/synapse" element={<Projects />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/tasks" element={<Tasks />} />
               <Route path="/journal" element={<Journal />} />
