@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as synapseStore from "../lib/synapseStore";
+import * as projectModuleStore from "../lib/projectModuleStore";
+import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 
@@ -18,6 +20,14 @@ function ProjectsIcon() {
 }
 
 export { ProjectsIcon };
+
+function projectTypeMeta(p) {
+  var t = ((p.name || "") + " " + (p.description || "")).toLowerCase();
+  if (/hardware|chip|pcb|arduino|component|invent/i.test(t)) return { icon: "◈", tag: "Hardware", color: "#00FFC8" };
+  if (/resale|sneaker|sapatilha|venda|flip|streetwear|stock/i.test(t)) return { icon: "◇", tag: "Resale", color: "#FF3D8A" };
+  if (/software|app|web|code|dev|saas/i.test(t)) return { icon: "⌘", tag: "Software", color: "#6B8AFF" };
+  return { icon: "✦", tag: "Projeto", color: p.color || ACCENT };
+}
 
 function moduleToggleStyle(on, color) {
   return {
@@ -51,6 +61,8 @@ export default function Projects() {
   var description = descS[0], setDescription = descS[1];
   var modulesS = useState(Object.assign({}, synapseStore.DEFAULT_MODULES));
   var modules = modulesS[0], setModules = modulesS[1];
+  var statsS = useState({});
+  var stats = statsS[0], setStats = statsS[1];
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
@@ -71,6 +83,34 @@ export default function Projects() {
       setLoaded(true);
     });
   }, []);
+
+  useEffect(function() {
+    if (!projects.length) return;
+    Promise.all([
+      tasksStore.loadTasks(),
+      Promise.all(projects.map(function(p) {
+        return projectModuleStore.loadInvestments(p.id).then(function(rows) {
+          return { id: p.id, totals: projectModuleStore.investmentTotals(rows) };
+        });
+      })),
+    ]).then(function(results) {
+      var tasks = results[0];
+      var invRows = results[1];
+      var next = {};
+      projects.forEach(function(p) {
+        var inv = invRows.find(function(d) { return d.id === p.id; });
+        var projTasks = tasks.filter(function(t) { return t.synapse_project_id === p.id; });
+        var pending = projTasks.filter(function(t) { return t.column !== "done"; }).length;
+        next[p.id] = {
+          roi: inv ? inv.totals.roi : 0,
+          hasInvestments: inv ? inv.totals.injected > 0 || inv.totals.returned > 0 : false,
+          pending: pending,
+          total: projTasks.length,
+        };
+      });
+      setStats(next);
+    });
+  }, [projects]);
 
   function toggleModule(id) {
     setModules(function(prev) {
@@ -120,10 +160,10 @@ export default function Projects() {
   return (
     <div data-scrollable style={{ minHeight: "100vh", background: "linear-gradient(160deg,#06060C 0%,#0D1218 45%,#06060C 100%)", color: text, fontFamily: "'IBM Plex Sans',sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{MODULE_ENTRY_CSS + ".proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}.proj-card{position:relative;border-radius:20px;padding:20px;text-align:left;cursor:pointer;transition:transform .25s,box-shadow .25s;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))}.proj-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,0.35)}"}</style>
+      <style>{MODULE_ENTRY_CSS + ".proj-hub{max-width:1152px;margin:0 auto}.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}.proj-card{position:relative;border-radius:16px;padding:16px 16px 14px;text-align:left;cursor:pointer;transition:transform .22s,box-shadow .22s;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));display:flex;flex-direction:column;min-height:148px}.proj-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.35)}.proj-card-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}.proj-card-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}.proj-card-tag{font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;opacity:.7;margin-top:2px}.proj-card-progress{height:4px;border-radius:999px;background:rgba(255,255,255,0.06);overflow:hidden;margin-top:auto}.proj-card-progress-fill{height:100%;border-radius:999px;transition:width .3s}.proj-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}"}</style>
 
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(6,6,12,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "12px" : "14px 24px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div className="proj-hub" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
             <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 16, color: ACCENT, letterSpacing: 1 }}>PROJETOS</h1>
@@ -134,7 +174,7 @@ export default function Projects() {
         </div>
       </header>
 
-      <main className="mod-main" style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "16px 12px 80px" : "28px 24px" }}>
+      <main className="mod-main proj-hub" style={{ padding: isMobile ? "16px 12px 80px" : "24px 24px 48px" }}>
         {formOpen && (
           <div style={{ marginBottom: 24, padding: 20, borderRadius: 18, border: "1px solid rgba(255,61,138,0.25)", background: "rgba(255,61,138,0.06)" }}>
             <p style={{ margin: "0 0 14px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>NOVO PROJETO</p>
@@ -168,17 +208,40 @@ export default function Projects() {
           <div className="proj-grid">
             {projects.map(function(p) {
               var activeMods = synapseStore.MODULE_META.filter(function(m) { return p.modules && p.modules[m.id]; });
+              var meta = projectTypeMeta(p);
+              var st = stats[p.id] || {};
+              var donePct = st.total > 0 ? Math.round(((st.total - st.pending) / st.total) * 100) : 0;
               return (
                 <div key={p.id} className="proj-card" onClick={function() { openProject(p); }}
-                  style={{ borderColor: (p.color || ACCENT) + "35", boxShadow: "0 8px 32px " + (p.color || ACCENT) + "12" }}>
+                  style={{ borderColor: meta.color + "30", boxShadow: "0 6px 28px " + meta.color + "10" }}>
                   <button type="button" onClick={function(e) { removeProject(e, p); }} title="Apagar"
-                    style={{ position: "absolute", top: 12, right: 12, width: 28, height: 28, borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.2)", color: "rgba(255,255,255,0.35)", cursor: "pointer" }}>×</button>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: (p.color || ACCENT) + "18", color: p.color || ACCENT, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14, fontSize: 18 }}>✦</div>
-                  <h2 style={{ margin: "0 0 6px", fontFamily: "'JetBrains Mono',monospace", fontSize: 17, paddingRight: 28 }}>{p.name}</h2>
-                  {p.description && <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.45 }}>{p.description}</p>}
-                  <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.28)" }}>
-                    {activeMods.length ? activeMods.map(function(m) { return m.label; }).join(" · ") : "Sem módulos"}
-                  </p>
+                    style={{ position: "absolute", top: 10, right: 10, width: 26, height: 26, borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.25)", color: "rgba(255,255,255,0.32)", cursor: "pointer", fontSize: 13 }}>×</button>
+                  <div className="proj-card-head">
+                    <div className="proj-card-icon" style={{ background: meta.color + "16", color: meta.color, boxShadow: "0 0 12px " + meta.color + "22" }}>{meta.icon}</div>
+                    <div style={{ minWidth: 0, flex: 1, paddingRight: 22 }}>
+                      <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
+                      <p className="proj-card-tag" style={{ margin: 0, color: meta.color }}>{meta.tag}</p>
+                    </div>
+                  </div>
+                  {p.description && <p style={{ margin: "0 0 8px", fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.description}</p>}
+                  {st.total > 0 && (
+                    <div style={{ marginBottom: 6 }}>
+                      <div className="proj-card-progress">
+                        <div className="proj-card-progress-fill" style={{ width: donePct + "%", background: meta.color, boxShadow: "0 0 6px " + meta.color + "88" }} />
+                      </div>
+                      <p style={{ margin: "4px 0 0", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)" }}>{st.pending} pendentes · {st.total} tarefas</p>
+                    </div>
+                  )}
+                  <div className="proj-card-foot">
+                    <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.26)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                      {activeMods.length ? activeMods.map(function(m) { return m.label; }).join(" · ") : "Sem módulos"}
+                    </p>
+                    {st.hasInvestments && (
+                      <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: st.roi >= 0 ? "#34D399" : "#FF6B35", flexShrink: 0 }}>
+                        ROI {(st.roi >= 0 ? "+" : "") + st.roi.toFixed(0) + "%"}
+                      </p>
+                    )}
+                  </div>
                 </div>
               );
             })}

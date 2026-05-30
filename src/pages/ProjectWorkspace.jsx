@@ -15,6 +15,8 @@ var MODULE_ICONS = {
   inventory: "▦",
 };
 
+var SIDEBAR_CSS = ".proj-workspace-shell{flex:1;display:flex;min-height:0}.proj-sidebar{width:clamp(188px,16vw,240px);flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding:10px 8px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(8,10,14,0.88);backdrop-filter:blur(14px);overflow-y:auto;transition:width .22s ease,padding .22s ease}.proj-sidebar--closed{width:0;padding:0;border:none;overflow:hidden}.proj-sidebar--icon-only{width:52px;padding:8px 6px;align-items:center}.proj-sidebar--icon-only .proj-sidebar-label,.proj-sidebar--icon-only .proj-sidebar-section,.proj-sidebar--icon-only .proj-sidebar-desc{display:none}.proj-sidebar-section{margin:0 0 6px 10px;font-size:8px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.22);letter-spacing:1px}.proj-sidebar-link{position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:9px;border:1px solid transparent;background:transparent;color:rgba(255,255,255,0.48);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:left;transition:all .18s;overflow:hidden}.proj-sidebar--icon-only .proj-sidebar-link{justify-content:center;padding:9px 0;width:40px;margin:0 auto}.proj-sidebar-link:hover{color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.03)}.proj-sidebar-link--active{border-color:rgba(255,61,138,0.35);background:rgba(255,61,138,0.1);color:#FF3D8A;box-shadow:inset 3px 0 0 #FF3D8A,0 0 20px rgba(255,61,138,0.08)}.proj-sidebar-link--active .proj-sidebar-icon{text-shadow:0 0 10px rgba(255,61,138,0.6)}.proj-sidebar-icon{width:22px;text-align:center;opacity:.85;flex-shrink:0;font-size:13px}.proj-sidebar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proj-sidebar-collapse{align-self:flex-end;margin:4px 4px 8px;width:32px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.4);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .18s}.proj-sidebar-collapse:hover{border-color:rgba(255,61,138,0.35);color:#FF3D8A}.proj-sidebar--icon-only .proj-sidebar-collapse{align-self:center;margin:6px auto 8px}.proj-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}.proj-main-inner{flex:1;min-height:0;overflow:hidden}.proj-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:40}@media(max-width:719px){.proj-sidebar{position:fixed;top:52px;left:0;bottom:0;z-index:50;width:min(88vw,260px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.proj-sidebar--icon-only{width:min(88vw,260px);padding:10px 8px}}";
+
 function firstActiveModule(modules) {
   var order = ["documents", "investments", "notes", "analytics", "inventory"];
   for (var i = 0; i < order.length; i++) {
@@ -34,6 +36,8 @@ export default function ProjectWorkspace() {
   var loaded = loadedS[0], setLoaded = loadedS[1];
   var sidebarS = useState(true);
   var sidebarOpen = sidebarS[0], setSidebarOpen = sidebarS[1];
+  var navCollapsedS = useState(false);
+  var navCollapsed = navCollapsedS[0], setNavCollapsed = navCollapsedS[1];
   var vwS = useState(window.innerWidth);
   var isMobile = vwS[0] < 720;
 
@@ -104,6 +108,23 @@ export default function ProjectWorkspace() {
     if (isMobile) setSidebarOpen(false);
   }
 
+  function toggleSidebar() {
+    if (isMobile) {
+      setSidebarOpen(!sidebarOpen);
+      return;
+    }
+    if (sidebarOpen && !navCollapsed) {
+      setNavCollapsed(true);
+      return;
+    }
+    if (sidebarOpen && navCollapsed) {
+      setNavCollapsed(false);
+      return;
+    }
+    setSidebarOpen(true);
+    setNavCollapsed(false);
+  }
+
   function renderModule() {
     if (moduleId === "documents") {
       return <Synapse projectId={projectId} embedded />;
@@ -116,36 +137,46 @@ export default function ProjectWorkspace() {
   }
 
   var isFullBleed = moduleId === "documents";
+  var sidebarClass = "proj-sidebar";
+  if (!sidebarOpen) sidebarClass += " proj-sidebar--closed";
+  else if (navCollapsed && !isMobile) sidebarClass += " proj-sidebar--icon-only";
 
   return (
     <div className={"proj-workspace" + (isMobile ? " proj-workspace--mobile" : "")} style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#06060C", color: "#fff", overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-      <style>{".proj-workspace-shell{flex:1;display:flex;min-height:0}.proj-sidebar{width:clamp(200px,18vw,260px);flex-shrink:0;display:flex;flex-direction:column;gap:4px;padding:14px 10px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(8,10,14,0.85);backdrop-filter:blur(14px);overflow-y:auto}.proj-sidebar--closed{width:0;padding:0;border:none;overflow:hidden}.proj-sidebar-link{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;text-align:left;transition:all .2s}.proj-sidebar-link--active{border-color:rgba(255,61,138,0.45);background:rgba(255,61,138,0.12);color:#FF3D8A}.proj-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}.proj-main-inner{flex:1;min-height:0;overflow:hidden}.proj-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:40}@media(max-width:719px){.proj-sidebar{position:fixed;top:52px;left:0;bottom:0;z-index:50;width:min(88vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}}"}</style>
+      <style>{SIDEBAR_CSS}</style>
 
-      <header style={{ flexShrink: 0, height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(6,6,12,0.95)", backdropFilter: "blur(12px)", zIndex: 30 }}>
+      <header style={{ flexShrink: 0, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(6,6,12,0.95)", backdropFilter: "blur(12px)", zIndex: 30 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <button type="button" onClick={function() { navigate("/projects"); }} style={hdrBtn()}>←</button>
-          <button type="button" onClick={function() { setSidebarOpen(!sidebarOpen); }} style={hdrBtn()} title="Menu">{sidebarOpen && !isMobile ? "◀" : "☰"}</button>
-          <h1 style={{ margin: 0, fontSize: 13, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
+          <button type="button" onClick={toggleSidebar} style={hdrBtn()} title="Menu de módulos">
+            {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
+          </button>
+          <h1 style={{ margin: 0, fontSize: 12, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
         </div>
         <button type="button" onClick={function() { navigate("/"); }} style={hdrBtn()}>Hub</button>
       </header>
 
       <div className="proj-workspace-shell">
         {sidebarOpen && isMobile && <div className="proj-backdrop" onClick={function() { setSidebarOpen(false); }} />}
-        <aside className={"proj-sidebar" + (!sidebarOpen ? " proj-sidebar--closed" : "")}>
-          <p style={{ margin: "0 0 8px 12px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>MÓDULOS</p>
+        <aside className={sidebarClass}>
+          {!isMobile && sidebarOpen && (
+            <button type="button" className="proj-sidebar-collapse" onClick={function() { setNavCollapsed(!navCollapsed); }} title={navCollapsed ? "Expandir" : "Colapsar"}>
+              {navCollapsed ? "▸" : "◂"}
+            </button>
+          )}
+          <p className="proj-sidebar-section">MÓDULOS</p>
           {activeModules.map(function(m) {
             var active = moduleId === m.id;
             return (
-              <button type="button" key={m.id} className={"proj-sidebar-link" + (active ? " proj-sidebar-link--active" : "")} onClick={function() { goModule(m.id); }}>
-                <span style={{ width: 22, textAlign: "center", opacity: 0.8 }}>{MODULE_ICONS[m.id] || "·"}</span>
-                {m.label}
+              <button type="button" key={m.id} className={"proj-sidebar-link" + (active ? " proj-sidebar-link--active" : "")} onClick={function() { goModule(m.id); }} title={m.label}>
+                <span className="proj-sidebar-icon">{MODULE_ICONS[m.id] || "·"}</span>
+                <span className="proj-sidebar-label">{m.label}</span>
               </button>
             );
           })}
           {project.description && (
-            <p style={{ margin: "16px 12px 0", fontSize: 10, color: "rgba(255,255,255,0.28)", lineHeight: 1.45 }}>{project.description}</p>
+            <p className="proj-sidebar-desc" style={{ margin: "14px 10px 0", fontSize: 9, color: "rgba(255,255,255,0.26)", lineHeight: 1.45 }}>{project.description}</p>
           )}
         </aside>
         <main className="proj-main">
@@ -159,5 +190,5 @@ export default function ProjectWorkspace() {
 }
 
 function hdrBtn() {
-  return { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.55)", padding: "6px 10px", cursor: "pointer", fontSize: 11, fontFamily: "inherit", flexShrink: 0 };
+  return { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9, color: "rgba(255,255,255,0.55)", padding: "5px 9px", cursor: "pointer", fontSize: 11, fontFamily: "inherit", flexShrink: 0 };
 }

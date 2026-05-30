@@ -111,7 +111,7 @@ function normInventory(row) {
     id: row.id || uid("pv"),
     name: row.name || "",
     quantity: Number(row.quantity) || 0,
-    status: row.status === "acquired" ? "acquired" : "missing",
+    status: row.status === "acquired" ? "acquired" : row.status === "depleted" ? "depleted" : "missing",
     unitCost: Number(row.unit_cost != null ? row.unit_cost : row.unitCost) || 0,
     notes: row.notes || "",
     created: row.created || (row.created_at ? new Date(row.created_at).getTime() : Date.now()),
