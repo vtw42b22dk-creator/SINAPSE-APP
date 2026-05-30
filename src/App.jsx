@@ -8,6 +8,7 @@ import Tasks from './pages/Tasks'
 import Journal from './pages/Journal'
 import Wishlist from './pages/Wishlist'
 import Finance from './pages/Finance'
+import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
 import { AuthProvider } from './lib/AuthContext'
 import { ThemeProvider } from './lib/ThemeContext'
@@ -29,6 +30,7 @@ export default function App() {
               <Route path="/journal" element={<Journal />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/finance" element={<Finance />} />
+              <Route path="/focus" element={<Focus />} />
             </Routes>
           </HashRouter>
         </AuthGate>

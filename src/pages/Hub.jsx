@@ -111,8 +111,21 @@ function JournalIcon() {
   );
 }
 
+function FocusIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="26" r="15" stroke="currentColor" strokeWidth="2"/>
+      <path d="M24 26 L24 17" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M24 26 L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M18 7H30" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"/>
+      <circle cx="24" cy="26" r="2" fill="currentColor"/>
+    </svg>
+  );
+}
+
 var MODULES = [
   {id:"calendar", name:"Calendário", desc:"Visualiza e organiza o teu tempo", Icon:CalendarIcon, accent:"#00FFC8", glow:"rgba(0,255,200,0.3)", path:"/calendar"},
+  {id:"focus", name:"Estúdio de Foco", desc:"Sessões de estudo, ideias e métricas diárias", Icon:FocusIcon, accent:"#22D3EE", glow:"rgba(34,211,238,0.3)", path:"/focus"},
   {id:"tasks", name:"Tarefas", desc:"Captura, prioriza, conquista", Icon:TasksIcon, accent:"#7B61FF", glow:"rgba(123,97,255,0.3)", path:"/tasks"},
   {id:"journal", name:"Diário", desc:"Blocos de escrita para tudo o que vem à cabeça", Icon:JournalIcon, accent:"#FFB800", glow:"rgba(255,184,0,0.25)", path:"/journal"},
   {id:"projects", name:"Projetos", desc:"Workspaces modulares com finanças, notas e sinapses", Icon:ProjectsIcon, accent:"#FF3D8A", glow:"rgba(255,61,138,0.3)", path:"/projects"},
