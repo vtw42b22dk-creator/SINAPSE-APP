@@ -15,7 +15,43 @@ var MODULE_ICONS = {
   inventory: "▦",
 };
 
-var SIDEBAR_CSS = ".proj-workspace-shell{flex:1;display:flex;min-height:0}.proj-sidebar{width:clamp(188px,16vw,240px);flex-shrink:0;display:flex;flex-direction:column;gap:2px;padding:10px 8px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(8,10,14,0.88);backdrop-filter:blur(14px);overflow-y:auto;transition:width .22s ease,padding .22s ease}.proj-sidebar--closed{width:0;padding:0;border:none;overflow:hidden}.proj-sidebar--icon-only{width:52px;padding:8px 6px;align-items:center}.proj-sidebar--icon-only .proj-sidebar-label,.proj-sidebar--icon-only .proj-sidebar-section,.proj-sidebar--icon-only .proj-sidebar-desc{display:none}.proj-sidebar-section{margin:0 0 6px 10px;font-size:8px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.22);letter-spacing:1px}.proj-sidebar-link{position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:9px;border:1px solid transparent;background:transparent;color:rgba(255,255,255,0.48);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;text-align:left;transition:all .18s;overflow:hidden}.proj-sidebar--icon-only .proj-sidebar-link{justify-content:center;padding:9px 0;width:40px;margin:0 auto}.proj-sidebar-link:hover{color:rgba(255,255,255,0.75);background:rgba(255,255,255,0.03)}.proj-sidebar-link--active{border-color:rgba(255,61,138,0.35);background:rgba(255,61,138,0.1);color:#FF3D8A;box-shadow:inset 3px 0 0 #FF3D8A,0 0 20px rgba(255,61,138,0.08)}.proj-sidebar-link--active .proj-sidebar-icon{text-shadow:0 0 10px rgba(255,61,138,0.6)}.proj-sidebar-icon{width:22px;text-align:center;opacity:.85;flex-shrink:0;font-size:13px}.proj-sidebar-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proj-sidebar-collapse{align-self:flex-end;margin:4px 4px 8px;width:32px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.4);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .18s}.proj-sidebar-collapse:hover{border-color:rgba(255,61,138,0.35);color:#FF3D8A}.proj-sidebar--icon-only .proj-sidebar-collapse{align-self:center;margin:6px auto 8px}.proj-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}.proj-main-inner{flex:1;min-height:0;overflow:hidden}.proj-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:40}@media(max-width:719px){.proj-sidebar{position:fixed;top:52px;left:0;bottom:0;z-index:50;width:min(88vw,260px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.proj-sidebar--icon-only{width:min(88vw,260px);padding:10px 8px}}";
+var MODULE_COLORS = {
+  documents: "#FF3D8A",
+  investments: "#34D399",
+  notes: "#FFB800",
+  analytics: "#00FFC8",
+  inventory: "#6B8AFF",
+};
+
+var SIDEBAR_CSS = [
+  ".pw{height:100vh;display:flex;flex-direction:column;background:radial-gradient(120% 90% at 80% -10%,#10111b 0%,#08080f 55%,#060609 100%);color:#fff;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
+  ".pw-head{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,7,13,0.78);backdrop-filter:blur(16px);z-index:30}",
+  ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:34px;min-width:34px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0;transition:all .16s}",
+  ".pw-hbtn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}",
+  ".pw-shell{flex:1;display:flex;min-height:0}",
+  ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:14px 12px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(8,9,14,0.6);backdrop-filter:blur(14px);overflow-y:auto;transition:width .22s ease,padding .22s ease}",
+  ".pw-side--closed{width:0;padding:0;border:none;overflow:hidden}",
+  ".pw-side--mini{width:66px;padding:14px 8px;align-items:center}",
+  ".pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:none}",
+  ".pw-pcard{display:flex;align-items:center;gap:11px;padding:11px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012));margin-bottom:14px}",
+  ".pw-side--mini .pw-pcard{padding:0;border:none;background:none;justify-content:center;margin-bottom:16px}",
+  ".pw-pic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}",
+  ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".pw-pcard-meta{margin:3px 0 0;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.38);letter-spacing:.4px}",
+  ".pw-sec{margin:2px 4px 8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.26);letter-spacing:1.4px}",
+  ".pw-link{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin-bottom:3px;border-radius:11px;border:1px solid transparent;background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:left;transition:all .16s;overflow:hidden}",
+  ".pw-side--mini .pw-link{justify-content:center;padding:11px 0;width:46px;margin:0 auto 6px}",
+  ".pw-link:hover{color:#fff;background:rgba(255,255,255,0.04)}",
+  ".pw-link.on{color:#fff;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1)}",
+  ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--lc);box-shadow:0 0 12px var(--lc)}",
+  ".pw-lic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .16s}",
+  ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
+  ".pw-foot{margin-top:auto;padding:12px 8px 4px;font-size:9px;color:rgba(255,255,255,0.24);line-height:1.5}",
+  ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}",
+  ".pw-main-in{flex:1;min-height:0;overflow:hidden}",
+  ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:40}",
+  "@media(max-width:719px){.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:14px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:11px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012));justify-content:flex-start}.pw-side--mini .pw-link{justify-content:flex-start;padding:11px 12px;width:100%;margin:0 0 3px}}",
+].join("");
 
 function firstActiveModule(modules) {
   var order = ["documents", "investments", "notes", "analytics", "inventory"];
@@ -137,58 +173,61 @@ export default function ProjectWorkspace() {
   }
 
   var isFullBleed = moduleId === "documents";
-  var sidebarClass = "proj-sidebar";
-  if (!sidebarOpen) sidebarClass += " proj-sidebar--closed";
-  else if (navCollapsed && !isMobile) sidebarClass += " proj-sidebar--icon-only";
+  var pColor = project.color || ACCENT;
+  var sidebarClass = "pw-side";
+  if (!sidebarOpen) sidebarClass += " pw-side--closed";
+  else if (navCollapsed && !isMobile) sidebarClass += " pw-side--mini";
 
   return (
-    <div className={"proj-workspace" + (isMobile ? " proj-workspace--mobile" : "")} style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#06060C", color: "#fff", overflow: "hidden" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <div className="pw">
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{SIDEBAR_CSS}</style>
 
-      <header style={{ flexShrink: 0, height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 12px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(6,6,12,0.95)", backdropFilter: "blur(12px)", zIndex: 30 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <button type="button" onClick={function() { navigate("/projects"); }} style={hdrBtn()}>←</button>
-          <button type="button" onClick={toggleSidebar} style={hdrBtn()} title="Menu de módulos">
+      <header className="pw-head">
+        <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+          <button type="button" className="pw-hbtn" onClick={function() { navigate("/projects"); }} title="Projetos">←</button>
+          <button type="button" className="pw-hbtn" onClick={toggleSidebar} title="Menu de módulos">
             {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
           </button>
-          <h1 style={{ margin: 0, fontSize: 12, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, marginLeft: 4 }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: pColor, boxShadow: "0 0 10px " + pColor, flexShrink: 0 }} />
+            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
+          </div>
         </div>
-        <button type="button" onClick={function() { navigate("/"); }} style={hdrBtn()}>Hub</button>
+        <button type="button" className="pw-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
       </header>
 
-      <div className="proj-workspace-shell">
-        {sidebarOpen && isMobile && <div className="proj-backdrop" onClick={function() { setSidebarOpen(false); }} />}
+      <div className="pw-shell">
+        {sidebarOpen && isMobile && <div className="pw-bk" onClick={function() { setSidebarOpen(false); }} />}
         <aside className={sidebarClass}>
-          {!isMobile && sidebarOpen && (
-            <button type="button" className="proj-sidebar-collapse" onClick={function() { setNavCollapsed(!navCollapsed); }} title={navCollapsed ? "Expandir" : "Colapsar"}>
-              {navCollapsed ? "▸" : "◂"}
-            </button>
-          )}
-          <p className="proj-sidebar-section">MÓDULOS</p>
+          <div className="pw-pcard">
+            <div className="pw-pic" style={{ background: pColor + "1a", color: pColor, boxShadow: "0 0 16px " + pColor + "26" }}>✦</div>
+            <div style={{ minWidth: 0 }}>
+              <p className="pw-pname">{project.name}</p>
+              <p className="pw-pcard-meta">{activeModules.length} módulos</p>
+            </div>
+          </div>
+          <p className="pw-sec">MÓDULOS</p>
           {activeModules.map(function(m) {
             var active = moduleId === m.id;
+            var lc = MODULE_COLORS[m.id] || ACCENT;
             return (
-              <button type="button" key={m.id} className={"proj-sidebar-link" + (active ? " proj-sidebar-link--active" : "")} onClick={function() { goModule(m.id); }} title={m.label}>
-                <span className="proj-sidebar-icon">{MODULE_ICONS[m.id] || "·"}</span>
-                <span className="proj-sidebar-label">{m.label}</span>
+              <button type="button" key={m.id} className={"pw-link" + (active ? " on" : "")} onClick={function() { goModule(m.id); }} title={m.label} style={{ "--lc": lc }}>
+                <span className="pw-lic" style={active ? { background: lc + "22", color: lc, boxShadow: "0 0 12px " + lc + "33" } : { color: "rgba(255,255,255,0.5)" }}>{MODULE_ICONS[m.id] || "·"}</span>
+                <span className="pw-lbl">{m.label}</span>
               </button>
             );
           })}
           {project.description && (
-            <p className="proj-sidebar-desc" style={{ margin: "14px 10px 0", fontSize: 9, color: "rgba(255,255,255,0.26)", lineHeight: 1.45 }}>{project.description}</p>
+            <p className="pw-foot">{project.description}</p>
           )}
         </aside>
-        <main className="proj-main">
-          <div className="proj-main-inner" style={isFullBleed ? { padding: 0 } : { overflow: "auto" }}>
+        <main className="pw-main">
+          <div className="pw-main-in" style={isFullBleed ? { padding: 0 } : null}>
             {renderModule()}
           </div>
         </main>
       </div>
     </div>
   );
-}
-
-function hdrBtn() {
-  return { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9, color: "rgba(255,255,255,0.55)", padding: "5px 9px", cursor: "pointer", fontSize: 11, fontFamily: "inherit", flexShrink: 0 };
 }
