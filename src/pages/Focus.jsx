@@ -18,7 +18,7 @@ var MODES = [
 var FOCUS_CSS = [
   "@keyframes fxFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
   "@keyframes fxGlow{0%,100%{opacity:.85}50%{opacity:1}}",
-  ".fx-page{min-height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#0e1018 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif;-webkit-overflow-scrolling:touch}",
+  ".fx-page{height:100vh;max-height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#0e1018 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif;-webkit-overflow-scrolling:touch}",
   ".fx-head{position:sticky;top:0;z-index:20;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,7,13,0.8);backdrop-filter:blur(16px)}",
   ".fx-hbtn{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;font-size:12px;font-family:inherit}",
   ".fx-hbtn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}",
@@ -372,7 +372,7 @@ export default function Focus() {
               {ideas.length === 0 ? (
                 <p className="fx-note">Sem ideias registadas. Escreve algo e prime Enter.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: "52vh", overflowY: "auto" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {ideas.map(function(it) {
                     return (
                       <div key={it.id} className="fx-idea">
