@@ -325,9 +325,9 @@ export default function Hub() {
   return (
     <div>
       <style>{"@keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:0.2}}@keyframes floatBubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}@keyframes pulseDot{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}"}</style>
-      <div data-scrollable style={{minHeight:"100vh", background:"linear-gradient(160deg, #0A0A0F 0%, #0D0E18 40%, #0A0A0F 100%)",
+      <div data-scrollable style={{height:"100vh", maxHeight:"100vh", background:"linear-gradient(160deg, #0A0A0F 0%, #0D0E18 40%, #0A0A0F 100%)",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start",
-        padding:isMobile?"72px 14px 100px":"48px 24px 56px", position:"relative", overflow:"auto", WebkitOverflowScrolling:"touch"}}>
+        padding:isMobile?"72px 14px 100px":"48px 24px 56px", position:"relative", overflowY:"auto", overflowX:"hidden", WebkitOverflowScrolling:"touch"}}>
         <ParticleField />
         <div style={{position:"fixed",top:isMobile?12:18,right:isMobile?12:18,zIndex:4,display:"flex",gap:8}}>
           <button onClick={function(){auth.signOut();}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.45)",fontSize:12,padding:"8px 12px",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif"}}>Sair</button>

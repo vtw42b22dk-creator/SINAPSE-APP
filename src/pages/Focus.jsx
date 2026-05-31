@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import * as focusStore from "../lib/focusStore";
@@ -8,6 +8,7 @@ var CYAN = "#00FFC8";
 var PINK = "#FF3D8A";
 var AMBER = "#FFB800";
 var REVIEW_DRAFT_KEY = "study-review-draft-v1";
+var TIMER_PREFS_KEY = "study-timer-prefs-v1";
 
 var MODES = [
   { id: "pomodoro", label: "Pomodoro", focus: 25, brk: 5 },
@@ -109,6 +110,8 @@ export default function Focus() {
 
   var metricsS = useState([]);
   var metrics = metricsS[0], setMetrics = metricsS[1];
+  var metricsRef = useRef([]);
+  var ideasRef = useRef([]);
 
   var tabS = useState("ideas");
   var tab = tabS[0], setTab = tabS[1];
@@ -149,6 +152,8 @@ export default function Focus() {
     } catch (e) {}
     Promise.all([focusStore.loadIdeas(), focusStore.loadMetrics()]).then(function(res) {
       if (!alive) return;
+      ideasRef.current = res[0];
+      metricsRef.current = res[1];
       setIdeas(res[0]);
       setMetrics(res[1]);
     }).finally(function() {
@@ -158,17 +163,49 @@ export default function Focus() {
     return function() { alive = false; };
   }, []);
 
+  useEffect(function() { metricsRef.current = metrics; }, [metrics]);
+  useEffect(function() { ideasRef.current = ideas; }, [ideas]);
+
+  // Lembra as preferências do cronómetro entre sessões.
+  useEffect(function() {
+    try {
+      var raw = localStorage.getItem(TIMER_PREFS_KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        if (p.modeId) setModeId(p.modeId);
+        if (p.customFocus) setCustomFocus(p.customFocus);
+        if (p.customBreak) setCustomBreak(p.customBreak);
+        var m = MODES.find(function(x) { return x.id === p.modeId; }) || MODES[0];
+        var f = p.modeId === "custom" ? Math.max(1, p.customFocus || 1) : m.focus;
+        setSecsLeft(f * 60);
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(function() {
+    try {
+      localStorage.setItem(TIMER_PREFS_KEY, JSON.stringify({ modeId: modeId, customFocus: customFocus, customBreak: customBreak }));
+    } catch (e) {}
+  }, [modeId, customFocus, customBreak]);
+
+  function commitMetrics(next) {
+    metricsRef.current = next;
+    setMetrics(next);
+    focusStore.saveMetrics(next);
+  }
+
   var addStudiedMinutes = useCallback(function(min) {
-    setMetrics(function(prev) {
-      var cur = prev.find(function(m) { return m.day_key === today; });
-      var base = cur ? cur.minutes : 0;
-      var patch = { minutes: base + min };
-      var next = cur
-        ? prev.map(function(m) { return m.day_key === today ? Object.assign({}, m, patch, { updated: Date.now() }) : m; })
-        : prev.concat([Object.assign(focusStore.newMetric(today), patch)]);
-      focusStore.saveMetrics(next);
-      return next;
-    });
+    var prev = metricsRef.current;
+    var cur = prev.find(function(m) { return m.day_key === today; });
+    var base = cur ? cur.minutes : 0;
+    var patch = { minutes: base + min };
+    var next = cur
+      ? prev.map(function(m) { return m.day_key === today ? Object.assign({}, m, patch, { updated: Date.now() }) : m; })
+      : prev.concat([Object.assign(focusStore.newMetric(today), patch)]);
+    metricsRef.current = next;
+    setMetrics(next);
+    focusStore.saveMetrics(next);
   }, [today]);
 
   // Ciclo do cronómetro
@@ -222,7 +259,8 @@ export default function Focus() {
   function addIdea() {
     if (!isHydrated || !ideaInput.trim()) return;
     var n = focusStore.newIdea(ideaInput.trim());
-    var next = [n].concat(ideas);
+    var next = [n].concat(ideasRef.current);
+    ideasRef.current = next;
     setIdeas(next);
     setIdeaInput("");
     focusStore.saveIdeas(next);
@@ -230,7 +268,10 @@ export default function Focus() {
 
   function removeIdea(id) {
     if (!isHydrated) return;
-    focusStore.deleteIdea(ideas, id).then(setIdeas);
+    focusStore.deleteIdea(ideasRef.current, id).then(function(next) {
+      ideasRef.current = next;
+      setIdeas(next);
+    });
   }
 
   function onReviewChange(val) {
@@ -256,14 +297,12 @@ export default function Focus() {
 
   function updateToday(patch) {
     if (!isHydrated) return;
-    setMetrics(function(prev) {
-      var cur = prev.find(function(m) { return m.day_key === today; });
-      var next = cur
-        ? prev.map(function(m) { return m.day_key === today ? Object.assign({}, m, patch, { updated: Date.now() }) : m; })
-        : prev.concat([Object.assign(focusStore.newMetric(today), patch)]);
-      focusStore.saveMetrics(next);
-      return next;
-    });
+    var prev = metricsRef.current;
+    var cur = prev.find(function(m) { return m.day_key === today; });
+    var next = cur
+      ? prev.map(function(m) { return m.day_key === today ? Object.assign({}, m, patch, { updated: Date.now() }) : m; })
+      : prev.concat([Object.assign(focusStore.newMetric(today), patch)]);
+    commitMetrics(next);
   }
 
   var todayMetric = useMemo(function() {
