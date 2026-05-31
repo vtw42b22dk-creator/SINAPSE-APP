@@ -6,6 +6,12 @@ function monthKeyFromDate(d) {
   return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
 }
 
+function defaultDayForMonth(store, monthKey) {
+  var current = monthKeyFromDate(new Date());
+  if (monthKey === current) return store.todayKey();
+  return monthKey + "-01";
+}
+
 export default function FinanceLedger(props) {
   var store = props.store;
   var accent = props.accent;
@@ -20,9 +26,11 @@ export default function FinanceLedger(props) {
   var sessionWarnS = useState("");
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
   var isHydratedRef = useRef(false);
-  var monthS = useState(monthKeyFromDate(new Date()));
-  var month = monthS[0], setMonth = monthS[1];
-  var draftS = useState({ title: "", amount: "", categories: [], day: store.todayKey(), notes: "" });
+  var internalMonthS = useState(monthKeyFromDate(new Date()));
+  var month = props.month != null ? props.month : internalMonthS[0];
+  var setMonth = props.onMonthChange || internalMonthS[1];
+  var onDataChange = props.onDataChange || function() {};
+  var draftS = useState({ title: "", amount: "", categories: [], day: defaultDayForMonth(store, month), notes: "" });
   var draft = draftS[0], setDraft = draftS[1];
   var manageCatS = useState(false);
   var manageCat = manageCatS[0], setManageCat = manageCatS[1];
@@ -56,6 +64,7 @@ export default function FinanceLedger(props) {
       setCategories(res[0]);
       setRows(res[1]);
       setTimeout(function() { skipSaveRef.current = false; }, 150);
+      onDataChange();
     }).catch(function() {});
   }, [store]);
 
@@ -79,6 +88,7 @@ export default function FinanceLedger(props) {
     isHydratedRef.current = true;
     setIsHydrated(true);
     setTimeout(function() { skipSaveRef.current = false; }, 200);
+    onDataChange();
   }
 
   useEffect(function() {
@@ -118,6 +128,11 @@ export default function FinanceLedger(props) {
 
   useEffect(function() { categoriesRef.current = categories; }, [categories]);
   useEffect(function() { rowsRef.current = rows; }, [rows]);
+
+  // Ao mudar de mês, a data do novo registo passa a apontar para esse mês.
+  useEffect(function() {
+    setDraft(function(d) { return Object.assign({}, d, { day: defaultDayForMonth(store, month) }); });
+  }, [month, store]);
 
   function reportSave(res) {
     if (!res) return;
@@ -200,10 +215,11 @@ export default function FinanceLedger(props) {
       rowsRef.current = next;
       persistRows(next).finally(function() {
         setTimeout(function() { skipSaveRef.current = false; }, 80);
+        onDataChange();
       });
       return next;
     });
-    setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: store.todayKey(), notes: "" });
+    setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: defaultDayForMonth(store, month), notes: "" });
   }
 
   async function removeRow(id) {
@@ -217,6 +233,7 @@ export default function FinanceLedger(props) {
     if (store.deleteRow) await store.deleteRow(id);
     await persistRows(next);
     setTimeout(function() { skipSaveRef.current = false; }, 200);
+    onDataChange();
   }
 
   function shiftMonth(delta) {

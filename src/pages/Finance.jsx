@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as financeStore from "../lib/financeStore";
 import * as incomeStore from "../lib/incomeStore";
@@ -9,6 +9,15 @@ import { pageBg, pageText } from "../lib/ThemeContext";
 
 var EXPENSE_ACCENT = "#38BDF8";
 var INCOME_ACCENT = "#34D399";
+
+function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+function monthKeyFromDate(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1); }
+function monthLabel(monthKey) {
+  var p = monthKey.split("-");
+  var d = new Date(+p[0], +p[1] - 1, 1);
+  return d.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+}
+function eur(v) { return (Number(v) || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR" }); }
 
 var expenseAdapter = {
   loadCategories: financeStore.loadCategoriesLocal,
@@ -47,24 +56,59 @@ export default function Finance() {
   var isMobile = viewportW < 720;
   var tabS = useState("expense");
   var tab = tabS[0], setTab = tabS[1];
-  var balanceS = useState({ income: 0, expense: 0, loading: true });
-  var balance = balanceS[0], setBalance = balanceS[1];
+  var monthS = useState(monthKeyFromDate(new Date()));
+  var month = monthS[0], setMonth = monthS[1];
+  var dataS = useState({ expenses: [], incomes: [], loading: true });
+  var data = dataS[0], setData = dataS[1];
+  var tickS = useState(0);
+  var tick = tickS[0], setTick = tickS[1];
+
+  var refreshData = useCallback(function() { setTick(function(t) { return t + 1; }); }, []);
 
   useEffect(function() {
+    var alive = true;
     Promise.all([financeStore.loadExpenses(), incomeStore.loadIncomes()]).then(function(res) {
-      var expenses = res[0] || [];
-      var incomes = res[1] || [];
-      var expenseTotal = expenses.reduce(function(s, r) { return s + (Number(r.amount) || 0); }, 0);
-      var incomeTotal = incomes.reduce(function(s, r) { return s + (Number(r.amount) || 0); }, 0);
-      setBalance({ income: incomeTotal, expense: expenseTotal, loading: false });
+      if (!alive) return;
+      setData({ expenses: res[0] || [], incomes: res[1] || [], loading: false });
     }).catch(function() {
-      setBalance({ income: 0, expense: 0, loading: false });
+      if (!alive) return;
+      setData({ expenses: [], incomes: [], loading: false });
     });
-  }, [tab]);
+    return function() { alive = false; };
+  }, [tick]);
 
-  var saldo = useMemo(function() {
-    return balance.income - balance.expense;
-  }, [balance]);
+  useEffect(function() {
+    function onFocus() { refreshData(); }
+    window.addEventListener("focus", onFocus);
+    return function() { window.removeEventListener("focus", onFocus); };
+  }, []);
+
+  // Saldo dependente do mês: acumulado até ao fim do mês selecionado
+  // (o dinheiro transita de mês para mês) + movimentos desse mês.
+  var stats = useMemo(function() {
+    var cut = month + "-31"; // datas "YYYY-MM-DD" comparam-se lexicograficamente
+    var monthExpense = 0, monthIncome = 0, accExpense = 0, accIncome = 0;
+    (data.expenses || []).forEach(function(e) {
+      var a = Number(e.amount) || 0;
+      if (!e.day) return;
+      if (e.day.indexOf(month) === 0) monthExpense += a;
+      if (e.day <= cut) accExpense += a;
+    });
+    (data.incomes || []).forEach(function(r) {
+      var a = Number(r.amount) || 0;
+      if (!r.day) return;
+      if (r.day.indexOf(month) === 0) monthIncome += a;
+      if (r.day <= cut) accIncome += a;
+    });
+    return {
+      monthExpense: monthExpense,
+      monthIncome: monthIncome,
+      monthNet: monthIncome - monthExpense,
+      saldo: accIncome - accExpense,
+    };
+  }, [data, month]);
+
+  var saldo = stats.saldo;
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -103,21 +147,27 @@ export default function Finance() {
             : "linear-gradient(145deg, rgba(255,107,53,0.14), rgba(255,61,90,0.04))",
           boxShadow: saldo >= 0 ? "0 12px 40px rgba(0,255,200,0.12)" : "0 12px 40px rgba(255,107,53,0.1)",
         }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo Atual</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo acumulado</p>
+            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.5)", textTransform: "capitalize" }}>{monthLabel(month)}</span>
+          </div>
           <p style={{
             margin: "8px 0 0",
             fontSize: "clamp(28px, 6vw, 40px)",
             fontFamily: "'JetBrains Mono',monospace",
             fontWeight: 600,
-            color: balance.loading ? "rgba(255,255,255,0.3)" : (saldo >= 0 ? "#00FFC8" : "#FF6B35"),
-            textShadow: balance.loading ? "none" : (saldo >= 0 ? "0 0 24px rgba(0,255,200,0.35)" : "0 0 20px rgba(255,107,53,0.25)"),
+            color: data.loading ? "rgba(255,255,255,0.3)" : (saldo >= 0 ? "#00FFC8" : "#FF6B35"),
+            textShadow: data.loading ? "none" : (saldo >= 0 ? "0 0 24px rgba(0,255,200,0.35)" : "0 0 20px rgba(255,107,53,0.25)"),
           }}>
-            {balance.loading ? "…" : saldo.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
+            {data.loading ? "…" : eur(saldo)}
           </p>
-          {!balance.loading && (
-            <p style={{ margin: "10px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace" }}>
-              Recursos {balance.income.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })} − Gastos {balance.expense.toLocaleString("pt-PT", { style: "currency", currency: "EUR" })}
-            </p>
+          {!data.loading && (
+            <div style={{ margin: "12px 0 0", display: "flex", gap: 18, flexWrap: "wrap", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>
+              <span style={{ color: "rgba(255,255,255,0.4)" }}>Este mês:</span>
+              <span style={{ color: INCOME_ACCENT }}>+{eur(stats.monthIncome)} recursos</span>
+              <span style={{ color: EXPENSE_ACCENT }}>−{eur(stats.monthExpense)} gastos</span>
+              <span style={{ color: stats.monthNet >= 0 ? "#00FFC8" : "#FF6B35" }}>= {eur(stats.monthNet)} líquido</span>
+            </div>
           )}
         </div>
         <FinanceLedger
@@ -127,6 +177,9 @@ export default function Finance() {
           isMobile={isMobile}
           label={tab === "income" ? "Registar entrada" : "Registar gasto"}
           loader={<PageLoader accent={accent} lines={4} />}
+          month={month}
+          onMonthChange={setMonth}
+          onDataChange={refreshData}
         />
       </main>
     </div>
