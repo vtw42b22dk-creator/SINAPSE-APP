@@ -71,8 +71,8 @@ export default function FinanceLedger(props) {
   function pushToCloud() {
     skipSaveRef.current = true;
     return Promise.all([
-      persistCats(categoriesRef.current),
-      persistRows(rowsRef.current),
+      saveCatsNow(categoriesRef.current),
+      saveRowsNow(rowsRef.current),
     ]).finally(function() {
       lastSaveAt.current = Date.now();
       setTimeout(function() { skipSaveRef.current = false; }, 150);
@@ -148,12 +148,22 @@ export default function FinanceLedger(props) {
     }
   }
 
+  // Gravação reativa (debounce/sync): respeita skipSaveRef.
   function persistCats(cats) {
     if (!isHydratedRef.current || skipSaveRef.current) return Promise.resolve();
     return store.saveCategories(cats || categoriesRef.current).then(reportSave);
   }
   function persistRows(rws) {
     if (!isHydratedRef.current || skipSaveRef.current) return Promise.resolve();
+    return store.saveRows(rws || rowsRef.current).then(reportSave);
+  }
+  // Gravação explícita (adicionar/remover/sair): grava sempre.
+  function saveCatsNow(cats) {
+    if (!isHydratedRef.current) return Promise.resolve();
+    return store.saveCategories(cats || categoriesRef.current).then(reportSave);
+  }
+  function saveRowsNow(rws) {
+    if (!isHydratedRef.current) return Promise.resolve();
     return store.saveRows(rws || rowsRef.current).then(reportSave);
   }
 
@@ -210,14 +220,12 @@ export default function FinanceLedger(props) {
     var row = store.newRow(draft.title.trim(), Number(draft.amount), cats, draft.day);
     clearTimeout(saveRowsTimer.current);
     skipSaveRef.current = true;
-    setRows(function(prev) {
-      var next = prev.concat([row]);
-      rowsRef.current = next;
-      persistRows(next).finally(function() {
-        setTimeout(function() { skipSaveRef.current = false; }, 80);
-        onDataChange();
-      });
-      return next;
+    var next = rowsRef.current.concat([row]);
+    rowsRef.current = next;
+    setRows(next);
+    saveRowsNow(next).finally(function() {
+      setTimeout(function() { skipSaveRef.current = false; }, 80);
+      onDataChange();
     });
     setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: defaultDayForMonth(store, month), notes: "" });
   }
@@ -231,7 +239,7 @@ export default function FinanceLedger(props) {
     rowsRef.current = next;
     setRows(next);
     if (store.deleteRow) await store.deleteRow(id);
-    await persistRows(next);
+    await saveRowsNow(next);
     setTimeout(function() { skipSaveRef.current = false; }, 200);
     onDataChange();
   }
@@ -245,29 +253,36 @@ export default function FinanceLedger(props) {
   function saveCategory() {
     if (!isHydrated) return;
     if (!catDraft.name.trim()) return;
+    skipSaveRef.current = true;
     if (catDraft.id) {
-      var old = categories.find(function(c) { return c.id === catDraft.id; });
+      var old = categoriesRef.current.find(function(c) { return c.id === catDraft.id; });
       var oldName = old ? old.name : "";
       var newName = catDraft.name.trim();
-      setCategories(function(prev) {
-        return prev.map(function(c) { return c.id === catDraft.id ? Object.assign({}, c, { name: newName }) : c; });
-      });
+      var nextCats = categoriesRef.current.map(function(c) { return c.id === catDraft.id ? Object.assign({}, c, { name: newName }) : c; });
+      categoriesRef.current = nextCats;
+      setCategories(nextCats);
+      saveCatsNow(nextCats);
       if (oldName && oldName !== newName) {
-        setRows(function(prev) {
-          return prev.map(function(e) {
-            return Object.assign({}, e, {
-              categories: (e.categories || []).map(function(c) { return c === oldName ? newName : c; }),
-              category: e.category === oldName ? newName : e.category,
-            });
+        var nextRows = rowsRef.current.map(function(e) {
+          return Object.assign({}, e, {
+            categories: (e.categories || []).map(function(c) { return c === oldName ? newName : c; }),
+            category: e.category === oldName ? newName : e.category,
           });
         });
+        rowsRef.current = nextRows;
+        setRows(nextRows);
+        saveRowsNow(nextRows);
       }
     } else {
       var nc = store.newCategory(catDraft.name.trim());
-      nc.order_index = categories.length;
-      setCategories(function(prev) { return prev.concat([nc]); });
+      nc.order_index = categoriesRef.current.length;
+      var added = categoriesRef.current.concat([nc]);
+      categoriesRef.current = added;
+      setCategories(added);
+      saveCatsNow(added);
     }
     setCatDraft({ id: null, name: "" });
+    setTimeout(function() { skipSaveRef.current = false; }, 80);
   }
 
   async function removeCategory(cat) {
@@ -293,8 +308,9 @@ export default function FinanceLedger(props) {
     setRows(nextRows);
     if (catDraft.id === cat.id) setCatDraft({ id: null, name: "" });
     if (store.deleteCategory) await store.deleteCategory(cat.id);
-    await Promise.all([persistCats(nextCats), persistRows(nextRows)]);
+    await Promise.all([saveCatsNow(nextCats), saveRowsNow(nextRows)]);
     setTimeout(function() { skipSaveRef.current = false; }, 120);
+    onDataChange();
   }
 
   if (!isHydrated) return props.loader || null;

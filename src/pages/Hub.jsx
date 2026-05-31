@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
-import * as dataRecovery from "../lib/dataRecovery";
 import { ProjectsIcon } from "./Projects";
 
 function ParticleField() {
@@ -200,127 +199,17 @@ function getGreeting() {
   return "Boa noite";
 }
 
-function formatBytes(bytes) {
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-}
-
-function getAppStorageUsage() {
-  try {
-    var total = 0;
-    var keys = 0;
-    for (var i = 0; i < localStorage.length; i++) {
-      var key = localStorage.key(i) || "";
-      var lk = key.toLowerCase();
-      if (lk.indexOf("sinapse") < 0 && lk.indexOf("journal") < 0 && lk.indexOf("wishlist") < 0 && lk.indexOf("expense") < 0) continue;
-      var value = localStorage.getItem(key) || "";
-      total += (key.length + value.length) * 2;
-      keys++;
-    }
-    return { bytes: total, keys: keys };
-  } catch (e) {
-    return { bytes: 0, keys: 0 };
-  }
-}
-
-function estimateLocalPhotos(bytes) {
-  var avg = 450 * 1024;
-  return Math.max(0, Math.floor(bytes / avg));
-}
-
-function StorageBar(props) {
-  var usage = props.usage;
-  var limit = 5 * 1024 * 1024;
-  var pct = Math.min(100, Math.round((usage.bytes / limit) * 100));
-  var color = pct >= 90 ? "#FF3D5A" : pct >= 70 ? "#FFB800" : "#00FFC8";
-  var estPhotos = estimateLocalPhotos(usage.bytes);
-  return (
-    <div style={{width:"min(420px,100%)",padding:"14px 16px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.03)",animation:"fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s both",flexShrink:0}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:8}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:"rgba(255,255,255,0.35)",letterSpacing:1,textTransform:"uppercase"}}>Espaço neste dispositivo</span>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:color}}>{formatBytes(usage.bytes)} / 5 MB</span>
-      </div>
-      <div style={{height:7,borderRadius:999,background:"rgba(255,255,255,0.06)",overflow:"hidden",border:"1px solid rgba(255,255,255,0.04)"}}>
-        <div style={{height:"100%",width:Math.max(pct, usage.bytes > 0 ? 4 : 0)+"%",background:"linear-gradient(90deg,"+color+","+color+"88)",borderRadius:999,transition:"width .35s ease"}} />
-      </div>
-      <p style={{margin:"8px 0 0",fontSize:10,color:"rgba(255,255,255,0.28)",textAlign:"center",lineHeight:1.5}}>
-        {usage.bytes < 50000
-          ? "Quase vazio aqui."
-          : estPhotos > 0
-            ? "Cópias locais ~" + estPhotos + " foto(s) de tamanho médio."
-            : "Texto e dados da app neste browser."}
-      </p>
-    </div>
-  );
-}
-
-function recoverBtnStyle() {
-  return {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 8,
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 10,
-    padding: "6px 12px",
-    cursor: "pointer",
-    fontFamily: "'JetBrains Mono',monospace",
-  };
-}
-
 export default function Hub() {
   var navigate = useNavigate();
   var auth = useAuth();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
-  var stS = useState(getAppStorageUsage);
-  var storageUsage = stS[0], setStorageUsage = stS[1];
-  var recoverMsgS = useState("");
-  var recoverMsg = recoverMsgS[0], setRecoverMsg = recoverMsgS[1];
-  var recoverBusyS = useState(false);
-  var recoverBusy = recoverBusyS[0], setRecoverBusy = recoverBusyS[1];
 
-  async function runRecover(which) {
-    setRecoverBusy(true);
-    setRecoverMsg("A procurar cópias de segurança e nuvem…");
-    try {
-      var res;
-      if (which === "all") {
-        res = await dataRecovery.recoverAll();
-        setRecoverMsg(
-          res.journal.summary + " · " + res.wishlist.summary + " · " + res.finance.summary +
-          " Se já tens o Diário aberto, fecha e volta a abrir (ou recarrega a página)."
-        );
-      } else if (which === "journal") {
-        res = await dataRecovery.recoverJournal();
-        setRecoverMsg(res.summary + " — Abre o Diário.");
-      } else if (which === "finance") {
-        res = await dataRecovery.recoverFinance();
-        setRecoverMsg(res.summary + " — Abre o Financeiro.");
-      } else {
-        res = await dataRecovery.recoverWishlist();
-        setRecoverMsg(res.summary + " — Abre a Wishlist.");
-      }
-    } catch (e) {
-      setRecoverMsg("Erro: " + (e.message || String(e)));
-    }
-    setRecoverBusy(false);
-  }
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
-  }, []);
-  useEffect(function() {
-    function refreshStorage() { setStorageUsage(getAppStorageUsage()); }
-    refreshStorage();
-    window.addEventListener("focus", refreshStorage);
-    document.addEventListener("visibilitychange", refreshStorage);
-    return function() {
-      window.removeEventListener("focus", refreshStorage);
-      document.removeEventListener("visibilitychange", refreshStorage);
-    };
   }, []);
   return (
     <div>
@@ -349,23 +238,6 @@ export default function Hub() {
             {MODULES.map(function(mod, i) {
               return <ModuleCard key={mod.id} module={mod} compact={isMobile} index={i} onClick={function() { if (mod.path) navigate(mod.path); }} />;
             })}
-          </div>
-          <div style={{position:"sticky",bottom:isMobile?72:24,zIndex:2,width:"100%",display:"flex",flexDirection:"column",alignItems:"center",gap:8,paddingTop:8}}>
-            <StorageBar usage={storageUsage} loggedIn={!!auth.user} />
-            {auth.user ? (
-              <div style={{ textAlign: "center", maxWidth: 440, marginTop: 4 }}>
-                <p style={{ margin: "0 0 8px", fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-                  Perdeste texto ou listas? Tenta recuperar da nuvem ou de cópias antigas neste browser.
-                </p>
-                <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("journal"); }} style={recoverBtnStyle()}>Recuperar Diário</button>
-                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("wishlist"); }} style={recoverBtnStyle()}>Recuperar Wishlist</button>
-                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("finance"); }} style={recoverBtnStyle()}>Recuperar Financeiro</button>
-                  <button type="button" disabled={recoverBusy} onClick={function() { runRecover("all"); }} style={recoverBtnStyle()}>Recuperar tudo</button>
-                </div>
-                {recoverMsg ? <p style={{ margin: "10px 0 0", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#34D399", lineHeight: 1.55 }}>{recoverMsg}</p> : null}
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
