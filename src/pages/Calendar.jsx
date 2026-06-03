@@ -1520,6 +1520,10 @@ export default function Calendar() {
       ) : (
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, padding: "8px 18px", background: "transparent", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <button type="button" onClick={function() { setSidebarOpen(!sidebarOpen); }} title={sidebarOpen ? "Recolher menu" : "Mostrar menu"} aria-label={sidebarOpen ? "Recolher menu" : "Mostrar menu"}
+              style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, border: "1px solid " + (sidebarOpen ? ACCENT + "45" : "rgba(255,255,255,0.08)"), background: sidebarOpen ? ACCENT + "14" : "rgba(255,255,255,0.03)", color: sidebarOpen ? ACCENT : "rgba(255,255,255,0.55)", cursor: "pointer", fontSize: 16, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace" }}>
+              {sidebarOpen ? "⟨" : "⟩"}
+            </button>
             <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
             <div style={{ minWidth: 0 }}>
               <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap", lineHeight: 1.2 }}>Calendário</h1>
@@ -1527,7 +1531,6 @@ export default function Calendar() {
             </div>
           </div>
           <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <ModePill label={(sidebarOpen ? "⟨ " : "⟩ ") + (sidebarOpen ? "Recolher menu" : "Mostrar menu")} active={sidebarOpen} onClick={function() { setSidebarOpen(!sidebarOpen); }} />
             <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
             <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
             <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>

@@ -536,6 +536,11 @@ export default function Journal() {
             <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:9,color:color,padding:"4px 10px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10,letterSpacing:JOURNAL_LETTER_SPACING}}>+ Bloco</button>
           </div>
           <div data-scrollable style={{display:"flex",flexDirection:"column",gap:12,maxHeight:isMobile?"none":"62vh",overflowY:isMobile?"visible":"auto",paddingRight:isMobile?0:2}}>
+            {noteGroups.ungrouped.length > 0 ? (
+              <div {...dropZoneProps(null)} style={{display:"flex",flexDirection:"column",gap:6,borderRadius:14,padding:dragOverTarget==="__none__"?8:0,border:dragOverTarget==="__none__"?("1px dashed "+color+"55"):"none",background:dragOverTarget==="__none__"?color+"10":"transparent",transition:"border-color .15s,background .15s"}}>
+                {noteGroups.ungrouped.map(renderNoteItem)}
+              </div>
+            ) : null}
             {noteBlocks.blocks.map(function(blk) {
               var items = noteGroups.byBlock[blk.id] || [];
               var collapsed = !!noteBlocks.collapsed[blk.id];
@@ -555,12 +560,6 @@ export default function Journal() {
                 </div>
               );
             })}
-            <div {...dropZoneProps(null)} style={{borderRadius:14,padding:noteBlocks.blocks.length?8:0,border:noteBlocks.blocks.length?("1px dashed "+(dragOverTarget==="__none__"?color+"55":"rgba(255,255,255,0.08)")):"none",background:dragOverTarget==="__none__"?color+"10":"transparent",transition:"border-color .15s,background .15s"}}>
-              {noteBlocks.blocks.length ? <p style={{margin:"0 0 8px",fontSize:10,color:"rgba(255,255,255,0.35)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING}}>SEM BLOCO</p> : null}
-              <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {noteGroups.ungrouped.length ? noteGroups.ungrouped.map(renderNoteItem) : (noteBlocks.blocks.length ? <p style={{margin:0,padding:"4px 8px",fontSize:10,color:"rgba(255,255,255,0.25)",fontFamily:JOURNAL_FONT}}>—</p> : null)}
-              </div>
-            </div>
           </div>
           <div style={{display:"flex",gap:8,marginTop:14}}>
             <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova nota..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
