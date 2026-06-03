@@ -83,33 +83,21 @@ export default function Finance() {
     return function() { window.removeEventListener("focus", onFocus); };
   }, []);
 
-  // Saldo dependente do mês: acumulado até ao fim do mês selecionado
-  // (o dinheiro transita de mês para mês) + movimentos desse mês.
+  // Saldo por mês: cada mês começa do zero (não transita saldo entre meses).
   var stats = useMemo(function() {
-    // Datas "YYYY-MM-DD" comparam-se lexicograficamente.
-    var startOfMonth = month + "-01"; // tudo < isto = meses anteriores (transitado)
     var monthExpense = 0, monthIncome = 0;
-    var prevExpense = 0, prevIncome = 0;
     (data.expenses || []).forEach(function(e) {
-      var a = Number(e.amount) || 0;
-      if (!e.day) return;
-      if (e.day.indexOf(month) === 0) monthExpense += a;
-      else if (e.day < startOfMonth) prevExpense += a;
+      if (e.day && e.day.indexOf(month) === 0) monthExpense += Number(e.amount) || 0;
     });
     (data.incomes || []).forEach(function(r) {
-      var a = Number(r.amount) || 0;
-      if (!r.day) return;
-      if (r.day.indexOf(month) === 0) monthIncome += a;
-      else if (r.day < startOfMonth) prevIncome += a;
+      if (r.day && r.day.indexOf(month) === 0) monthIncome += Number(r.amount) || 0;
     });
-    var carry = prevIncome - prevExpense; // saldo transitado dos meses anteriores
     var monthNet = monthIncome - monthExpense;
     return {
       monthExpense: monthExpense,
       monthIncome: monthIncome,
       monthNet: monthNet,
-      carry: carry,
-      saldo: carry + monthNet, // saldo acumulado no fim do mês selecionado
+      saldo: monthNet, // saldo do mês (sem transitar)
     };
   }, [data, month]);
 
@@ -153,7 +141,7 @@ export default function Finance() {
           boxShadow: saldo >= 0 ? "0 12px 40px rgba(0,255,200,0.12)" : "0 12px 40px rgba(255,107,53,0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo no fim de</p>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo de</p>
             <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: accent, textTransform: "capitalize" }}>{monthLabel(month)}</span>
           </div>
           <p style={{
@@ -168,11 +156,6 @@ export default function Finance() {
           </p>
           {!data.loading && (
             <div style={{ margin: "12px 0 0", display: "flex", flexDirection: "column", gap: 8, fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                <span style={{ color: "rgba(255,255,255,0.4)" }}>Transitado:</span>
-                <span style={{ color: stats.carry >= 0 ? "rgba(0,255,200,0.85)" : "rgba(255,107,53,0.85)" }}>{eur(stats.carry)}</span>
-                <span style={{ color: "rgba(255,255,255,0.25)" }}>+ líquido do mês {stats.monthNet >= 0 ? "+" : ""}{eur(stats.monthNet)}</span>
-              </div>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                 <span style={{ color: "rgba(255,255,255,0.4)" }}>Este mês:</span>
                 <span style={{ color: INCOME_ACCENT }}>+{eur(stats.monthIncome)} recursos</span>

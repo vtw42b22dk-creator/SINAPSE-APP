@@ -20,6 +20,30 @@ var JOURNAL_TEXT = {
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
 var SAVE_DEBOUNCE_MS = 1800;
+var NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
+
+function loadNoteBlocks() {
+  try {
+    var raw = localStorage.getItem(NOTE_BLOCKS_KEY);
+    if (!raw) return { blocks: [], assign: {}, collapsed: {} };
+    var v = JSON.parse(raw) || {};
+    return {
+      blocks: Array.isArray(v.blocks) ? v.blocks : [],
+      assign: v.assign && typeof v.assign === "object" ? v.assign : {},
+      collapsed: v.collapsed && typeof v.collapsed === "object" ? v.collapsed : {},
+    };
+  } catch (e) {
+    return { blocks: [], assign: {}, collapsed: {} };
+  }
+}
+
+function persistNoteBlocks(v) {
+  try { localStorage.setItem(NOTE_BLOCKS_KEY, JSON.stringify(v)); } catch (e) {}
+}
+
+function newNoteBlockId() {
+  return "nb" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
 
 function escapeHtml(text) {
   return String(text)
@@ -59,6 +83,11 @@ export default function Journal() {
   var isHydrated = hydratedS[0], setIsHydrated = hydratedS[1];
   var sessionWarnS = useState("");
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
+  var noteBlocksS = useState(loadNoteBlocks);
+  var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
+  var dragNoteRef = useRef(null);
+  var dragOverS = useState(null);
+  var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
   var saveSpacesTimer = useRef(null);
   var saveBlocksTimer = useRef(null);
   var blocksRef = useRef([]);
@@ -241,6 +270,7 @@ export default function Journal() {
 
   useEffect(function() { blocksRef.current = blocks; }, [blocks]);
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
+  useEffect(function() { persistNoteBlocks(noteBlocks); }, [noteBlocks]);
 
   useEffect(function() {
     if (!isHydrated || skipSaveRef.current) return;
@@ -287,6 +317,22 @@ export default function Journal() {
   var activeBlocks = useMemo(function() {
     return blocks.filter(function(b) { return b.space_id === active; }).sort(function(a, b) { return a.order_index - b.order_index; });
   }, [blocks, active]);
+  var noteGroups = useMemo(function() {
+    var valid = {};
+    noteBlocks.blocks.forEach(function(b) { valid[b.id] = true; });
+    var byBlock = {};
+    var ungrouped = [];
+    spaces.forEach(function(s) {
+      var bid = noteBlocks.assign[s.id];
+      if (bid && valid[bid]) {
+        if (!byBlock[bid]) byBlock[bid] = [];
+        byBlock[bid].push(s);
+      } else {
+        ungrouped.push(s);
+      }
+    });
+    return { byBlock: byBlock, ungrouped: ungrouped };
+  }, [spaces, noteBlocks]);
 
   function createSpace() {
     if (!isHydrated) return;
@@ -301,7 +347,7 @@ export default function Journal() {
 
   async function removeSpace(space) {
     if (!space) return;
-    if (!window.confirm("Eliminar a pasta \"" + space.title + "\" e todas as notas dentro dela?")) return;
+    if (!window.confirm("Eliminar a nota \"" + space.title + "\" e todo o seu conteúdo?")) return;
     var nextSpaces = spaces.filter(function(s) { return s.id !== space.id; });
     if (!nextSpaces.length) nextSpaces = [{ id: journalStore.newBlock("x").id.replace("jb", "js"), title: "Livre", color: ACCENT }];
     blocks.filter(function(b) { return b.space_id === space.id && b.meta && b.meta.attachment; }).forEach(function(b) {
@@ -351,18 +397,95 @@ export default function Journal() {
     setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
-  function moveBlock(id, targetSpaceId) {
-    if (!isHydrated || !targetSpaceId) return;
-    flushAllEditors();
-    var maxOrder = 0;
-    blocksRef.current.forEach(function(b) {
-      if (b.space_id === targetSpaceId && b.order_index > maxOrder) maxOrder = b.order_index;
+  function addNoteBlock() {
+    var name = window.prompt("Nome do bloco:");
+    if (name === null) return;
+    name = name.trim();
+    if (!name) return;
+    setNoteBlocks(function(prev) {
+      return Object.assign({}, prev, { blocks: prev.blocks.concat([{ id: newNoteBlockId(), name: name }]) });
     });
-    var next = blocksRef.current.map(function(b) {
-      return b.id === id ? Object.assign({}, b, { space_id: targetSpaceId, order_index: maxOrder + 1, updated: Date.now() }) : b;
+  }
+
+  function renameNoteBlock(id) {
+    var blk = noteBlocks.blocks.find(function(x) { return x.id === id; });
+    if (!blk) return;
+    var name = window.prompt("Nome do bloco:", blk.name);
+    if (name === null) return;
+    name = name.trim();
+    setNoteBlocks(function(prev) {
+      return Object.assign({}, prev, {
+        blocks: prev.blocks.map(function(x) { return x.id === id ? Object.assign({}, x, { name: name || x.name }) : x; }),
+      });
     });
-    setBlocks(next);
-    persistBlocks(next);
+  }
+
+  function deleteNoteBlock(id) {
+    if (!window.confirm("Eliminar este bloco? As notas dentro dele voltam para \"Sem bloco\".")) return;
+    setNoteBlocks(function(prev) {
+      var assign = Object.assign({}, prev.assign);
+      Object.keys(assign).forEach(function(sid) { if (assign[sid] === id) delete assign[sid]; });
+      var collapsed = Object.assign({}, prev.collapsed);
+      delete collapsed[id];
+      return { blocks: prev.blocks.filter(function(x) { return x.id !== id; }), assign: assign, collapsed: collapsed };
+    });
+  }
+
+  function assignNoteToBlock(spaceId, blockId) {
+    setNoteBlocks(function(prev) {
+      var assign = Object.assign({}, prev.assign);
+      if (blockId) assign[spaceId] = blockId; else delete assign[spaceId];
+      return Object.assign({}, prev, { assign: assign });
+    });
+  }
+
+  function toggleNoteBlockCollapse(id) {
+    setNoteBlocks(function(prev) {
+      var collapsed = Object.assign({}, prev.collapsed);
+      collapsed[id] = !collapsed[id];
+      return Object.assign({}, prev, { collapsed: collapsed });
+    });
+  }
+
+  function dropZoneProps(blockId) {
+    var key = blockId || "__none__";
+    return {
+      onDragOver: function(e) {
+        if (!dragNoteRef.current) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragOverTarget !== key) setDragOverTarget(key);
+      },
+      onDrop: function(e) {
+        e.preventDefault();
+        var sid = dragNoteRef.current || (e.dataTransfer && e.dataTransfer.getData("text/plain"));
+        if (sid) assignNoteToBlock(sid, blockId || null);
+        dragNoteRef.current = null;
+        setDragOverTarget(null);
+      },
+    };
+  }
+
+  function renderNoteItem(s) {
+    var on = active === s.id;
+    return (
+      <div
+        key={s.id}
+        draggable={!isMobile}
+        onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
+        onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
+        style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "rgba(255,255,255,0.25)", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
+        <button type="button" onClick={function() { setActive(s.id); }} style={{ flex: 1, minWidth: 0, textAlign: "left", padding: "10px 12px", borderRadius: 12, border: "1px solid " + (on ? s.color + "45" : "rgba(255,255,255,0.06)"), background: on ? s.color + "12" : "transparent", color: on ? s.color : "#FFFFFF", cursor: "pointer", fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.title}</button>
+        {isMobile ? (
+          <select value={noteBlocks.assign[s.id] || ""} onChange={function(e) { assignNoteToBlock(s.id, e.target.value || null); }} title="Mover para bloco" style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.55)", fontSize: 11, fontFamily: JOURNAL_FONT, padding: "4px", maxWidth: 92 }}>
+            <option value="">Sem bloco</option>
+            {noteBlocks.blocks.map(function(b) { return <option key={b.id} value={b.id}>{b.name}</option>; })}
+          </select>
+        ) : null}
+        <button type="button" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" style={{ width: 28, height: 28, borderRadius: 9, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", color: "rgba(255,255,255,0.35)", cursor: "pointer", flexShrink: 0, fontSize: 15, lineHeight: 1 }} aria-label="Eliminar nota">×</button>
+      </div>
+    );
   }
 
   function format(cmd, value) {
@@ -407,26 +530,47 @@ export default function Journal() {
         {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
-        <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",position:isMobile?"sticky":"static",top:isMobile?78:"auto",zIndex:isMobile?10:1,backdropFilter:"blur(14px)"}}>
-          <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, margin: "0 0 12px" }}>PASTAS</p>
-          <div data-scrollable style={{display:"flex",flexDirection:isMobile?"row":"column",gap:8,overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0}}>
-            {spaces.map(function(s) {
-              var on = active === s.id;
-              return <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                <button type="button" onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"#FFFFFF",cursor:"pointer",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT,whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
-                <button type="button" onClick={function(e){e.stopPropagation(); removeSpace(s);}} title="Eliminar pasta" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.35)",cursor:"pointer",flexShrink:0,fontSize:16,lineHeight:1}} aria-label="Eliminar pasta">×</button>
-              </div>;
+        <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",backdropFilter:"blur(14px)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 12px"}}>
+            <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, margin: 0 }}>NOTAS</p>
+            <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:9,color:color,padding:"4px 10px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10,letterSpacing:JOURNAL_LETTER_SPACING}}>+ Bloco</button>
+          </div>
+          <div data-scrollable style={{display:"flex",flexDirection:"column",gap:12,maxHeight:isMobile?"none":"62vh",overflowY:isMobile?"visible":"auto",paddingRight:isMobile?0:2}}>
+            {noteBlocks.blocks.map(function(blk) {
+              var items = noteGroups.byBlock[blk.id] || [];
+              var collapsed = !!noteBlocks.collapsed[blk.id];
+              var hot = dragOverTarget === blk.id;
+              return (
+                <div key={blk.id} {...dropZoneProps(blk.id)} style={{border:"1px solid "+(hot?color+"55":"rgba(255,255,255,0.06)"),background:hot?color+"10":"rgba(255,255,255,0.015)",borderRadius:14,padding:8,transition:"border-color .15s,background .15s"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:collapsed?0:8}}>
+                    <button type="button" onClick={function(){toggleNoteBlockCollapse(blk.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",cursor:"pointer",fontSize:11,width:16,padding:0,lineHeight:1}}>{collapsed?"▸":"▾"}</button>
+                    <button type="button" onClick={function(){renameNoteBlock(blk.id);}} title="Renomear bloco" style={{flex:1,minWidth:0,textAlign:"left",background:"none",border:"none",color:"rgba(255,255,255,0.82)",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:11,letterSpacing:JOURNAL_LETTER_SPACING,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{blk.name} <span style={{color:"rgba(255,255,255,0.3)",fontWeight:400}}>· {items.length}</span></button>
+                    <button type="button" onClick={function(){deleteNoteBlock(blk.id);}} title="Eliminar bloco" style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
+                  </div>
+                  {!collapsed ? (
+                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                      {items.length ? items.map(renderNoteItem) : <p style={{margin:0,padding:"8px 10px",fontSize:10,color:"rgba(255,255,255,0.3)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING}}>Arrasta notas para aqui</p>}
+                    </div>
+                  ) : null}
+                </div>
+              );
             })}
+            <div {...dropZoneProps(null)} style={{borderRadius:14,padding:noteBlocks.blocks.length?8:0,border:noteBlocks.blocks.length?("1px dashed "+(dragOverTarget==="__none__"?color+"55":"rgba(255,255,255,0.08)")):"none",background:dragOverTarget==="__none__"?color+"10":"transparent",transition:"border-color .15s,background .15s"}}>
+              {noteBlocks.blocks.length ? <p style={{margin:"0 0 8px",fontSize:10,color:"rgba(255,255,255,0.35)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING}}>SEM BLOCO</p> : null}
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {noteGroups.ungrouped.length ? noteGroups.ungrouped.map(renderNoteItem) : (noteBlocks.blocks.length ? <p style={{margin:0,padding:"4px 8px",fontSize:10,color:"rgba(255,255,255,0.25)",fontFamily:JOURNAL_FONT}}>—</p> : null)}
+              </div>
+            </div>
           </div>
           <div style={{display:"flex",gap:8,marginTop:14}}>
-            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova pasta..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
+            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova nota..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
             <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
           </div>
         </aside>
 
         <section style={{minWidth:0}}>
           <div style={{marginBottom:16}}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>PASTA</p>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>NOTA</p>
             <h2 style={{ margin: "6px 0 0", fontSize: "clamp(28px,5vw,48px)", fontFamily: JOURNAL_FONT, color: "#FFFFFF", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
@@ -446,8 +590,6 @@ export default function Journal() {
                     key={b.id}
                     block={b}
                     color={color}
-                    spaces={spaces}
-                    onMove={moveBlock}
                     onChange={updateBlock}
                     onDelete={removeBlock}
                     onEditStart={function(id) { editingBlockRef.current = id; }}
@@ -535,23 +677,9 @@ function JournalBlock(props) {
 
   return (
     <div style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:18,padding:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,gap:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
         <span style={{ fontSize: 10, fontFamily: JOURNAL_FONT, color: props.color, letterSpacing: JOURNAL_LETTER_SPACING }}>{b.type.toUpperCase()}</span>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {(props.spaces || []).length > 1 ? (
-            <select
-              value=""
-              onChange={function(e){ var v=e.target.value; e.target.value=""; if(v && props.onMove) props.onMove(b.id, v); }}
-              title="Mover para outra pasta"
-              style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"rgba(255,255,255,0.55)",fontSize:10,fontFamily:JOURNAL_FONT,padding:"4px 6px",cursor:"pointer",outline:"none",maxWidth:140}}>
-              <option value="">⇄ Mover…</option>
-              {(props.spaces || []).filter(function(s){ return s.id !== b.space_id; }).map(function(s){
-                return <option key={s.id} value={s.id}>{s.title}</option>;
-              })}
-            </select>
-          ) : null}
-          <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer",fontSize:16,lineHeight:1}}>×</button>
-        </div>
+        <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer",fontSize:16,lineHeight:1}}>×</button>
       </div>
       {uploadMsg ? <p style={{margin:"0 0 8px",fontSize:11,color:props.color,opacity:0.85}}>{uploadMsg}</p> : null}
       {b.type === "image" ? (
