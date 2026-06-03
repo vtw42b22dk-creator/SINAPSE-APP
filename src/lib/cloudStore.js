@@ -206,6 +206,9 @@ export function mergePullFromRemote(local, remote, deletedIds) {
   var rem = remote || [];
   var deleted = deletedSet(deletedIds);
   if (!rem.length) {
+    if (loc.length && Object.keys(deleted).length) {
+      return loc.filter(function(l) { return l && l.id && !deleted[l.id]; });
+    }
     return loc.length ? loc.slice() : [];
   }
   var map = {};
@@ -344,7 +347,7 @@ export async function replaceRows(table, localKey, rows, options) {
 
     if (options.pruneOrphans === true) {
       var ids = stamped.map(function(r) { return r.id; });
-      var existing = await supabase.from(table).select("id").eq("user_id", user.id);
+      var existing = await supabase.from(table).select("id").eq("user_id", session.user.id);
       if (existing.error) throw existing.error;
       var orphanIds = (existing.data || [])
         .map(function(r) { return r.id; })
@@ -374,16 +377,41 @@ export async function deleteRow(table, localKey, rows, id) {
   return next;
 }
 
+/**
+ * Remove ids do array local. Ao contrário de writeLocal, permite ficar vazio
+ * porque é uma eliminação intencional (não um wipe acidental).
+ */
+export async function removeLocalIds(localKey, ids) {
+  if (!localKey || !ids || !ids.length) return;
+  try {
+    var sk = await scopedKey(localKey);
+    var arr = [];
+    try {
+      var raw = localStorage.getItem(sk);
+      if (raw) arr = JSON.parse(raw);
+    } catch (e) {}
+    if (!Array.isArray(arr) || !arr.length) return;
+    var del = deletedSet(ids);
+    var next = arr.filter(function(r) { return r && r.id && !del[r.id]; });
+    if (next.length === arr.length) return;
+    await backupBeforeWrite(sk, arr);
+    localStorage.setItem(sk, JSON.stringify(next));
+  } catch (e) {}
+}
+
 /** Apaga linhas na nuvem por id (eliminar tema, grupo, etc.). */
 export async function deleteRemoteIds(table, ids, localKey) {
   if (!ids || !ids.length) return { ok: true };
+  if (localKey) {
+    await removeLocalIds(localKey, ids);
+    await markLocalDeleted(localKey, ids);
+  }
   var user = await getUser();
-  if (!supabase || !user) return { ok: false, error: "Sem ligação" };
+  if (!supabase || !user) return { ok: true, cloud: false };
   try {
     var res = await supabase.from(table).delete().eq("user_id", user.id).in("id", ids);
     if (res.error) throw res.error;
-    if (localKey) await markLocalDeleted(localKey, ids);
-    return { ok: true };
+    return { ok: true, cloud: true };
   } catch (e) {
     return { ok: false, error: cloudErrorMessage(e) };
   }

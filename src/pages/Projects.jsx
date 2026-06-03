@@ -6,7 +6,6 @@ import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 
 var ACCENT = "#FF3D8A";
-var CYAN = "#00FFC8";
 var PALETTE = ["#FF3D8A", "#00FFC8", "#6B8AFF", "#FFB800", "#34D399", "#FF6B35", "#B36BFF"];
 
 var MODULE_ICONS = {
@@ -19,13 +18,6 @@ var MODULE_ICONS = {
 
 var PIN_KEY = "sinapse-pinned-projects-v1";
 var VIEW_KEY = "sinapse-projects-view-v1";
-var FILTER_KEY = "sinapse-project-filters-v1";
-
-var DEFAULT_FILTERS = [
-  { id: "cf_hw", label: "Hardware", kw: "hardware" },
-  { id: "cf_resale", label: "Resale", kw: "resale" },
-  { id: "cf_dev", label: "Dev", kw: "software" },
-];
 
 var PRESETS = [
   { id: "full", label: "Completo", mods: { documents: true, investments: true, notes: true, analytics: true, inventory: true } },
@@ -38,17 +30,6 @@ function loadPins() {
 }
 function savePins(arr) {
   try { localStorage.setItem(PIN_KEY, JSON.stringify(arr)); } catch (e) {}
-}
-function loadFilters() {
-  try {
-    var v = localStorage.getItem(FILTER_KEY);
-    if (v === null) return DEFAULT_FILTERS.slice();
-    var arr = JSON.parse(v);
-    return Array.isArray(arr) ? arr : DEFAULT_FILTERS.slice();
-  } catch (e) { return DEFAULT_FILTERS.slice(); }
-}
-function saveFilters(arr) {
-  try { localStorage.setItem(FILTER_KEY, JSON.stringify(arr)); } catch (e) {}
 }
 
 var PROJ_CSS = [
@@ -68,20 +49,6 @@ var PROJ_CSS = [
   ".pj-viewtog button.on{background:rgba(255,61,138,0.14);color:#FF3D8A}",
   ".pj-new{padding:9px 16px;border-radius:10px;border:1px solid rgba(255,61,138,0.5);background:linear-gradient(135deg,rgba(255,61,138,0.25),rgba(255,61,138,0.08));color:#FF3D8A;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}",
   ".pj-new:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,61,138,0.22)}",
-  ".pj-strip{flex-shrink:0;display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px 0}",
-  ".pj-kpi{flex:1;min-width:120px;display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:13px;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012))}",
-  ".pj-kpi-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}",
-  ".pj-kpi-v{margin:0;font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;line-height:1}",
-  ".pj-kpi-l{margin:3px 0 0;font-size:8px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.34);letter-spacing:.6px;text-transform:uppercase}",
-  ".pj-chips{flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 4px}",
-  ".pj-chip{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.42);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .16s}",
-  ".pj-chip:hover{color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.16)}",
-  ".pj-chip.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.13);color:#FF3D8A}",
-  ".pj-chip-cf{display:inline-flex;align-items:center;gap:6px}",
-  ".pj-chip-cf b{font-weight:inherit}",
-  ".pj-chip-x{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:5px;background:rgba(255,255,255,0.08);font-size:11px;line-height:1;cursor:pointer}",
-  ".pj-chip-x:hover{background:rgba(255,61,90,0.3);color:#fff}",
-  ".pj-chip-add{border-style:dashed;color:rgba(255,255,255,0.45)}",
   ".pj-preset{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}",
   ".pj-preset button{flex:1;min-width:90px;padding:9px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s}",
   ".pj-preset button.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.12);color:#FF3D8A}",
@@ -295,18 +262,10 @@ export default function Projects() {
   var stats = statsS[0], setStats = statsS[1];
   var queryS = useState("");
   var query = queryS[0], setQuery = queryS[1];
-  var filterS = useState("all");
-  var filter = filterS[0], setFilter = filterS[1];
-  var sortS = useState("destaque");
-  var sort = sortS[0], setSort = sortS[1];
   var viewS = useState(function() { try { return localStorage.getItem(VIEW_KEY) || "grid"; } catch (e) { return "grid"; } });
   var view = viewS[0], setView = viewS[1];
   var pinsS = useState(loadPins);
   var pins = pinsS[0], setPins = pinsS[1];
-  var cfS = useState(loadFilters);
-  var customFilters = cfS[0], setCustomFilters = cfS[1];
-  var manageS = useState(false);
-  var manageFilters = manageS[0], setManageFilters = manageS[1];
   var presetS = useState("full");
   var preset = presetS[0], setPreset = presetS[1];
 
@@ -355,30 +314,6 @@ export default function Projects() {
 
   function setViewPersist(v) { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch (e) {} }
 
-  function addFilter() {
-    var label = window.prompt("Nome do novo filtro:");
-    if (!label || !label.trim()) return;
-    var kw = window.prompt("Palavra-chave a procurar (no nome, descrição ou tipo):", label.trim());
-    if (kw === null) return;
-    var f = { id: "cf_" + Date.now().toString(36), label: label.trim(), kw: (kw || "").trim().toLowerCase() };
-    var next = customFilters.concat([f]);
-    setCustomFilters(next); saveFilters(next);
-  }
-  function editFilter(e, f) {
-    e.stopPropagation();
-    var label = window.prompt("Nome do filtro:", f.label);
-    if (label === null) return;
-    var kw = window.prompt("Palavra-chave:", f.kw);
-    if (kw === null) return;
-    var next = customFilters.map(function(x) { return x.id === f.id ? Object.assign({}, x, { label: label.trim() || x.label, kw: (kw || "").trim().toLowerCase() }) : x; });
-    setCustomFilters(next); saveFilters(next);
-  }
-  function deleteFilter(e, id) {
-    e.stopPropagation();
-    var next = customFilters.filter(function(x) { return x.id !== id; });
-    setCustomFilters(next); saveFilters(next);
-    if (filter === id) setFilter("all");
-  }
   function applyPreset(pr) {
     setPreset(pr.id);
     setModules(Object.assign({}, synapseStore.DEFAULT_MODULES, pr.mods));
@@ -393,55 +328,20 @@ export default function Projects() {
     });
   }
 
-  var totals = useMemo(function() {
-    var pending = 0, totalTasks = 0, roiSum = 0, roiCount = 0;
-    projects.forEach(function(p) {
-      var st = stats[p.id] || {};
-      pending += st.pending || 0;
-      totalTasks += st.total || 0;
-      if (st.hasInvestments) { roiSum += st.roi; roiCount++; }
-    });
-    return {
-      count: projects.length,
-      pending: pending,
-      donePct: totalTasks > 0 ? Math.round(((totalTasks - pending) / totalTasks) * 100) : 0,
-      hasTasks: totalTasks > 0,
-      avgRoi: roiCount ? roiSum / roiCount : null,
-    };
-  }, [projects, stats]);
-
   var filtered = useMemo(function() {
     var q = query.trim().toLowerCase();
-    var cf = customFilters.find(function(x) { return x.id === filter; });
     var list = projects.filter(function(p) {
+      if (!q) return true;
       var meta = projectTypeMeta(p);
       var text = ((p.name || "") + " " + (p.description || "") + " " + meta.tag).toLowerCase();
-      if (filter === "pinned" && pins.indexOf(p.id) < 0) return false;
-      if (filter === "active") {
-        var st = stats[p.id] || {};
-        if (!st.pending && !st.total) return false;
-      }
-      if (cf && cf.kw && text.indexOf(cf.kw) < 0) return false;
-      if (!q) return true;
       return text.indexOf(q) >= 0;
     });
-    function score(p) {
-      var st = stats[p.id] || {};
-      var done = st.total > 0 ? (st.total - st.pending) / st.total : 0;
-      if (sort === "nome") return p.name.toLowerCase();
-      if (sort === "pendentes") return -(st.pending || 0);
-      if (sort === "progresso") return -done;
-      if (sort === "roi") return -(st.hasInvestments ? st.roi : -9999);
-      return -((st.pending || 0) * 2 + (st.total || 0) + (st.hasInvestments ? 3 : 0));
-    }
     return list.slice().sort(function(a, b) {
       var pa = pins.indexOf(a.id) >= 0, pb = pins.indexOf(b.id) >= 0;
       if (pa !== pb) return pa ? -1 : 1;
-      var sa = score(a), sb = score(b);
-      if (typeof sa === "string") return sa.localeCompare(sb);
-      return sa - sb;
+      return (b.created || 0) - (a.created || 0) || (a.name || "").localeCompare(b.name || "");
     });
-  }, [projects, query, filter, stats, sort, pins, customFilters]);
+  }, [projects, query, pins]);
 
   function toggleModule(id) {
     setPreset("custom");
@@ -511,18 +411,11 @@ export default function Projects() {
 
       <header className="pj-top">
         <button type="button" onClick={function() { navigate("/"); }} className="pj-ghost">← Hub</button>
-        <div className="pj-brand"><h1>PROJETOS</h1><span>{totals.count}</span></div>
+        <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
         <div className="pj-search">
           <SearchIcon />
           <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar projeto..." />
         </div>
-        <select className="pj-select" value={sort} onChange={function(e) { setSort(e.target.value); }} title="Ordenar">
-          <option value="destaque">Destaque</option>
-          <option value="nome">Nome A–Z</option>
-          <option value="progresso">Progresso</option>
-          <option value="pendentes">Mais pendentes</option>
-          <option value="roi">Melhor ROI</option>
-        </select>
         <div className="pj-viewtog">
           <button type="button" className={view === "grid" ? "on" : ""} onClick={function() { setViewPersist("grid"); }} title="Grelha"><GridIcon /></button>
           <button type="button" className={view === "list" ? "on" : ""} onClick={function() { setViewPersist("list"); }} title="Lista"><ListIcon /></button>
@@ -530,68 +423,16 @@ export default function Projects() {
         <button type="button" className="pj-new" onClick={openModal}>+ Novo</button>
       </header>
 
-      {projects.length > 0 && (
-        <div className="pj-strip">
-          <div className="pj-kpi">
-            <div className="pj-kpi-ic" style={{ background: ACCENT + "1a", color: ACCENT }}>◫</div>
-            <div><p className="pj-kpi-v">{totals.count}</p><p className="pj-kpi-l">Projetos</p></div>
-          </div>
-          <div className="pj-kpi">
-            <div className="pj-kpi-ic" style={{ background: "#7B61FF22", color: "#7B61FF" }}>◎</div>
-            <div><p className="pj-kpi-v">{totals.pending}</p><p className="pj-kpi-l">Por fazer</p></div>
-          </div>
-          {totals.hasTasks && (
-            <div className="pj-kpi">
-              <div className="pj-kpi-ic" style={{ background: CYAN + "1a", color: CYAN }}>✓</div>
-              <div><p className="pj-kpi-v" style={{ color: CYAN }}>{totals.donePct}%</p><p className="pj-kpi-l">Concluído</p></div>
-            </div>
-          )}
-          {totals.avgRoi != null && (
-            <div className="pj-kpi">
-              <div className="pj-kpi-ic" style={{ background: "rgba(52,211,153,0.12)", color: "#34D399" }}>€</div>
-              <div><p className="pj-kpi-v" style={{ color: totals.avgRoi >= 0 ? "#34D399" : "#FF6B35" }}>{(totals.avgRoi >= 0 ? "+" : "") + totals.avgRoi.toFixed(0) + "%"}</p><p className="pj-kpi-l">ROI médio</p></div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="pj-chips">
-        {[
-          { id: "all", label: "Todos" },
-          { id: "pinned", label: "★ Fixados" },
-          { id: "active", label: "Ativos" },
-        ].map(function(f) {
-          return <button type="button" key={f.id} className={"pj-chip" + (filter === f.id ? " on" : "")} onClick={function() { setFilter(f.id); }}>{f.label}</button>;
-        })}
-        {customFilters.map(function(f) {
-          return (
-            <button type="button" key={f.id} className={"pj-chip pj-chip-cf" + (filter === f.id ? " on" : "")} onClick={function() { setFilter(f.id); }}>
-              <b>{f.label}</b>
-              {manageFilters && (
-                <>
-                  <span className="pj-chip-x" title="Editar" onClick={function(e) { editFilter(e, f); }}>✎</span>
-                  <span className="pj-chip-x" title="Apagar" onClick={function(e) { deleteFilter(e, f.id); }}>×</span>
-                </>
-              )}
-            </button>
-          );
-        })}
-        {manageFilters && <button type="button" className="pj-chip pj-chip-add" onClick={addFilter}>+ Filtro</button>}
-        <button type="button" className={"pj-chip" + (manageFilters ? " on" : "")} onClick={function() { setManageFilters(!manageFilters); }} title="Gerir filtros">
-          {manageFilters ? "✓ Concluir" : "✎ Filtros"}
-        </button>
-      </div>
-
       <div className="pj-scroll">
         {filtered.length === 0 ? (
           <div className="pj-empty">
             <p style={{ margin: "0 0 6px", fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: ACCENT }}>Nenhum projeto encontrado</p>
             <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-              {query || filter !== "all" ? "Ajusta a pesquisa ou filtros." : "Cria o teu primeiro workspace modular."}
+              {query ? "Ajusta a pesquisa." : "Cria o teu primeiro workspace modular."}
             </p>
             <button type="button" className="pj-new" onClick={openModal}>+ Criar projeto</button>
           </div>
-        ) : pinnedItems.length > 0 && filter === "all" && !query ? (
+        ) : pinnedItems.length > 0 && !query ? (
           <>
             <p className="pj-sech">FIXADOS</p>
             <div className={view === "list" ? "pj-list" : "pj-grid"} style={{ marginBottom: 18 }}>

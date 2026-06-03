@@ -86,25 +86,30 @@ export default function Finance() {
   // Saldo dependente do mês: acumulado até ao fim do mês selecionado
   // (o dinheiro transita de mês para mês) + movimentos desse mês.
   var stats = useMemo(function() {
-    var cut = month + "-31"; // datas "YYYY-MM-DD" comparam-se lexicograficamente
-    var monthExpense = 0, monthIncome = 0, accExpense = 0, accIncome = 0;
+    // Datas "YYYY-MM-DD" comparam-se lexicograficamente.
+    var startOfMonth = month + "-01"; // tudo < isto = meses anteriores (transitado)
+    var monthExpense = 0, monthIncome = 0;
+    var prevExpense = 0, prevIncome = 0;
     (data.expenses || []).forEach(function(e) {
       var a = Number(e.amount) || 0;
       if (!e.day) return;
       if (e.day.indexOf(month) === 0) monthExpense += a;
-      if (e.day <= cut) accExpense += a;
+      else if (e.day < startOfMonth) prevExpense += a;
     });
     (data.incomes || []).forEach(function(r) {
       var a = Number(r.amount) || 0;
       if (!r.day) return;
       if (r.day.indexOf(month) === 0) monthIncome += a;
-      if (r.day <= cut) accIncome += a;
+      else if (r.day < startOfMonth) prevIncome += a;
     });
+    var carry = prevIncome - prevExpense; // saldo transitado dos meses anteriores
+    var monthNet = monthIncome - monthExpense;
     return {
       monthExpense: monthExpense,
       monthIncome: monthIncome,
-      monthNet: monthIncome - monthExpense,
-      saldo: accIncome - accExpense,
+      monthNet: monthNet,
+      carry: carry,
+      saldo: carry + monthNet, // saldo acumulado no fim do mês selecionado
     };
   }, [data, month]);
 
@@ -148,8 +153,8 @@ export default function Finance() {
           boxShadow: saldo >= 0 ? "0 12px 40px rgba(0,255,200,0.12)" : "0 12px 40px rgba(255,107,53,0.1)",
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo acumulado</p>
-            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.5)", textTransform: "capitalize" }}>{monthLabel(month)}</span>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo no fim de</p>
+            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: accent, textTransform: "capitalize" }}>{monthLabel(month)}</span>
           </div>
           <p style={{
             margin: "8px 0 0",
@@ -162,11 +167,17 @@ export default function Finance() {
             {data.loading ? "…" : eur(saldo)}
           </p>
           {!data.loading && (
-            <div style={{ margin: "12px 0 0", display: "flex", gap: 18, flexWrap: "wrap", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>
-              <span style={{ color: "rgba(255,255,255,0.4)" }}>Este mês:</span>
-              <span style={{ color: INCOME_ACCENT }}>+{eur(stats.monthIncome)} recursos</span>
-              <span style={{ color: EXPENSE_ACCENT }}>−{eur(stats.monthExpense)} gastos</span>
-              <span style={{ color: stats.monthNet >= 0 ? "#00FFC8" : "#FF6B35" }}>= {eur(stats.monthNet)} líquido</span>
+            <div style={{ margin: "12px 0 0", display: "flex", flexDirection: "column", gap: 8, fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)" }}>Transitado:</span>
+                <span style={{ color: stats.carry >= 0 ? "rgba(0,255,200,0.85)" : "rgba(255,107,53,0.85)" }}>{eur(stats.carry)}</span>
+                <span style={{ color: "rgba(255,255,255,0.25)" }}>+ líquido do mês {stats.monthNet >= 0 ? "+" : ""}{eur(stats.monthNet)}</span>
+              </div>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                <span style={{ color: "rgba(255,255,255,0.4)" }}>Este mês:</span>
+                <span style={{ color: INCOME_ACCENT }}>+{eur(stats.monthIncome)} recursos</span>
+                <span style={{ color: EXPENSE_ACCENT }}>−{eur(stats.monthExpense)} gastos</span>
+              </div>
             </div>
           )}
         </div>

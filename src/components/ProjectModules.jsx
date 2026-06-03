@@ -55,11 +55,15 @@ var MODULE_CSS = [
   ".pm-note-item{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.022);cursor:pointer;transition:all .15s}",
   ".pm-note-item:hover{border-color:rgba(255,255,255,0.16);background:rgba(255,255,255,0.04)}",
   ".pm-note-item.on{border-color:var(--mc);background:var(--mcf)}",
-  ".pm-note-item h4{margin:0;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:18px}",
+  ".pm-note-item h4{margin:0;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:44px}",
   ".pm-note-item p{margin:0;font-size:10px;color:rgba(255,255,255,0.36);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".pm-note-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,0.3);cursor:pointer;font-size:13px;opacity:0;transition:all .15s}",
   ".pm-note-item:hover .pm-note-del{opacity:1}",
   ".pm-note-del:hover{background:rgba(255,61,90,0.16);color:#FF3D5A}",
+  ".pm-note-fav{position:absolute;top:8px;right:32px;width:22px;height:22px;border-radius:7px;border:none;background:transparent;color:rgba(255,255,255,0.22);cursor:pointer;font-size:12px;line-height:1;opacity:0;transition:all .15s}",
+  ".pm-note-item:hover .pm-note-fav{opacity:1}",
+  ".pm-note-fav.on{opacity:1;color:#FFB800;text-shadow:0 0 8px rgba(255,184,0,0.5)}",
+  ".pm-note-fav:hover{color:#FFB800}",
   ".pm-seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,0.09);background:rgba(0,0,0,0.25);gap:3px}",
   ".pm-seg button{padding:8px 16px;border-radius:9px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}",
   ".pm-seg button.on{color:#0b0b12}",
@@ -282,7 +286,7 @@ function parseNotesList(body) {
       var arr = JSON.parse(body);
       if (Array.isArray(arr)) {
         return arr.map(function(n) {
-          return { id: n.id || localId("note"), title: n.title || "Sem título", body: n.body || "", updated: n.updated || Date.now() };
+          return { id: n.id || localId("note"), title: n.title || "Sem título", body: n.body || "", updated: n.updated || Date.now(), fav: !!n.fav };
         });
       }
     } catch (e) {}
@@ -332,6 +336,11 @@ export function ProjectNotes(props) {
     persist(notes.map(function(n) { return n.id === id ? Object.assign({}, n, patch, { updated: Date.now() }) : n; }));
   }
 
+  function toggleFav(e, id) {
+    e.stopPropagation();
+    persist(notes.map(function(n) { return n.id === id ? Object.assign({}, n, { fav: !n.fav }) : n; }));
+  }
+
   function removeNote(e, id) {
     e.stopPropagation();
     if (!window.confirm("Apagar esta nota?")) return;
@@ -342,9 +351,11 @@ export function ProjectNotes(props) {
 
   var active = notes.find(function(n) { return n.id === activeId; }) || null;
   var words = active && active.body.trim() ? active.body.trim().split(/\s+/).length : 0;
+  var displayNotes = notes.slice().sort(function(a, b) { return (b.fav ? 1 : 0) - (a.fav ? 1 : 0); });
+  var favCount = notes.filter(function(n) { return n.fav; }).length;
 
   return (
-    <ModuleShell mc={mc} icon="✎" title="Notas · Wiki" subtitle={notes.length + (notes.length === 1 ? " nota" : " notas") + " · Markdown simples"}
+    <ModuleShell mc={mc} icon="✎" title="Notas · Wiki" subtitle={notes.length + (notes.length === 1 ? " nota" : " notas") + (favCount ? " · ★ " + favCount : "") + " · Markdown simples"}
       action={(
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span className="pm-badge" style={{ color: saved ? "#34D399" : mc, background: (saved ? "#34D399" : mc) + "18" }}>
@@ -359,10 +370,11 @@ export function ProjectNotes(props) {
       ) : (
         <div className="pm-notes-grid">
           <div className="pm-notes-aside">
-            {notes.map(function(n) {
+            {displayNotes.map(function(n) {
               var preview = (n.body || "").replace(/[#*`>\-]/g, "").trim().slice(0, 40) || "Vazia";
               return (
                 <div key={n.id} className={"pm-note-item" + (n.id === activeId ? " on" : "")} onClick={function() { setActiveId(n.id); }}>
+                  <button type="button" className={"pm-note-fav" + (n.fav ? " on" : "")} onClick={function(e) { toggleFav(e, n.id); }} title={n.fav ? "Remover favorito" : "Favoritar"}>{n.fav ? "★" : "☆"}</button>
                   <button type="button" className="pm-note-del" onClick={function(e) { removeNote(e, n.id); }} title="Apagar">×</button>
                   <h4>{n.title || "Sem título"}</h4>
                   <p>{preview}</p>

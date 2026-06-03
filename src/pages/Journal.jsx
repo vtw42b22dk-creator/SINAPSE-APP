@@ -301,7 +301,7 @@ export default function Journal() {
 
   async function removeSpace(space) {
     if (!space) return;
-    if (!window.confirm("Eliminar o tema \"" + space.title + "\" e todos os blocos dentro dele?")) return;
+    if (!window.confirm("Eliminar a pasta \"" + space.title + "\" e todas as notas dentro dela?")) return;
     var nextSpaces = spaces.filter(function(s) { return s.id !== space.id; });
     if (!nextSpaces.length) nextSpaces = [{ id: journalStore.newBlock("x").id.replace("jb", "js"), title: "Livre", color: ACCENT }];
     blocks.filter(function(b) { return b.space_id === space.id && b.meta && b.meta.attachment; }).forEach(function(b) {
@@ -351,6 +351,20 @@ export default function Journal() {
     setTimeout(function() { skipSaveRef.current = false; }, 200);
   }
 
+  function moveBlock(id, targetSpaceId) {
+    if (!isHydrated || !targetSpaceId) return;
+    flushAllEditors();
+    var maxOrder = 0;
+    blocksRef.current.forEach(function(b) {
+      if (b.space_id === targetSpaceId && b.order_index > maxOrder) maxOrder = b.order_index;
+    });
+    var next = blocksRef.current.map(function(b) {
+      return b.id === id ? Object.assign({}, b, { space_id: targetSpaceId, order_index: maxOrder + 1, updated: Date.now() }) : b;
+    });
+    setBlocks(next);
+    persistBlocks(next);
+  }
+
   function format(cmd, value) {
     document.execCommand(cmd, false, value || null);
   }
@@ -394,25 +408,25 @@ export default function Journal() {
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",position:isMobile?"sticky":"static",top:isMobile?78:"auto",zIndex:isMobile?10:1,backdropFilter:"blur(14px)"}}>
-          <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, margin: "0 0 12px" }}>TEMAS</p>
+          <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, margin: "0 0 12px" }}>PASTAS</p>
           <div data-scrollable style={{display:"flex",flexDirection:isMobile?"row":"column",gap:8,overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?4:0}}>
             {spaces.map(function(s) {
               var on = active === s.id;
               return <div key={s.id} style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                 <button type="button" onClick={function(){setActive(s.id);}} style={{flex:1,textAlign:"left",padding:"12px 14px",borderRadius:14,border:"1px solid "+(on?s.color+"45":"rgba(255,255,255,0.06)"),background:on?s.color+"12":"transparent",color:on?s.color:"#FFFFFF",cursor:"pointer",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT,whiteSpace:isMobile?"nowrap":"normal",minWidth:isMobile?120:0}}>{s.title}</button>
-                <button type="button" onClick={function(e){e.stopPropagation(); removeSpace(s);}} title="Eliminar tema" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.35)",cursor:"pointer",flexShrink:0,fontSize:16,lineHeight:1}} aria-label="Eliminar tema">×</button>
+                <button type="button" onClick={function(e){e.stopPropagation(); removeSpace(s);}} title="Eliminar pasta" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",color:"rgba(255,255,255,0.35)",cursor:"pointer",flexShrink:0,fontSize:16,lineHeight:1}} aria-label="Eliminar pasta">×</button>
               </div>;
             })}
           </div>
           <div style={{display:"flex",gap:8,marginTop:14}}>
-            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Novo tema..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
+            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova pasta..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
             <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
           </div>
         </aside>
 
         <section style={{minWidth:0}}>
           <div style={{marginBottom:16}}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>ESPAÇO</p>
+            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>PASTA</p>
             <h2 style={{ margin: "6px 0 0", fontSize: "clamp(28px,5vw,48px)", fontFamily: JOURNAL_FONT, color: "#FFFFFF", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
           <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
@@ -432,6 +446,8 @@ export default function Journal() {
                     key={b.id}
                     block={b}
                     color={color}
+                    spaces={spaces}
+                    onMove={moveBlock}
                     onChange={updateBlock}
                     onDelete={removeBlock}
                     onEditStart={function(id) { editingBlockRef.current = id; }}
@@ -519,9 +535,23 @@ function JournalBlock(props) {
 
   return (
     <div style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:18,padding:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,gap:8}}>
         <span style={{ fontSize: 10, fontFamily: JOURNAL_FONT, color: props.color, letterSpacing: JOURNAL_LETTER_SPACING }}>{b.type.toUpperCase()}</span>
-        <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer"}}>×</button>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {(props.spaces || []).length > 1 ? (
+            <select
+              value=""
+              onChange={function(e){ var v=e.target.value; e.target.value=""; if(v && props.onMove) props.onMove(b.id, v); }}
+              title="Mover para outra pasta"
+              style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,color:"rgba(255,255,255,0.55)",fontSize:10,fontFamily:JOURNAL_FONT,padding:"4px 6px",cursor:"pointer",outline:"none",maxWidth:140}}>
+              <option value="">⇄ Mover…</option>
+              {(props.spaces || []).filter(function(s){ return s.id !== b.space_id; }).map(function(s){
+                return <option key={s.id} value={s.id}>{s.title}</option>;
+              })}
+            </select>
+          ) : null}
+          <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer",fontSize:16,lineHeight:1}}>×</button>
+        </div>
       </div>
       {uploadMsg ? <p style={{margin:"0 0 8px",fontSize:11,color:props.color,opacity:0.85}}>{uploadMsg}</p> : null}
       {b.type === "image" ? (
