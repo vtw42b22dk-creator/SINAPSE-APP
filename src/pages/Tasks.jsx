@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
@@ -15,6 +15,8 @@ var PRIORITIES = [
   { id: "med", label: "Média", color: "#FFB800" },
   { id: "high", label: "Alta", color: "#FF3D8A" },
 ];
+
+var SAVE_DEBOUNCE_MS = 900;
 
 function uid() { return "t" + Date.now() + Math.random().toString(36).slice(2, 7); }
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -109,11 +111,46 @@ export default function Tasks() {
   var showFormS = useState(false);
   var showForm = showFormS[0], setShowForm = showFormS[1];
 
+  var tasksRef = useRef([]);
+  var isHydratedRef = useRef(false);
+  var skipSaveRef = useRef(false);
+  var saveTimerRef = useRef(null);
+
+  function commitTasks(next) {
+    tasksRef.current = next;
+    setTasks(next);
+  }
+
+  function persistDebounced() {
+    if (!isHydratedRef.current || skipSaveRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(function() {
+      if (skipSaveRef.current) return;
+      taskStore.saveTasks(tasksRef.current);
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  function persistNow(next) {
+    if (!isHydratedRef.current) return Promise.resolve();
+    var list = next || tasksRef.current;
+    tasksRef.current = list;
+    setTasks(list);
+    return taskStore.saveTasksNow(list);
+  }
+
   useEffect(function() {
+    var alive = true;
+    skipSaveRef.current = true;
+    isHydratedRef.current = false;
     taskStore.loadTasks().then(function(list) {
+      if (!alive) return;
+      tasksRef.current = list;
       setTasks(list);
       setLoaded(true);
+      isHydratedRef.current = true;
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
     });
+    return function() { alive = false; };
   }, []);
 
   useEffect(function() {
@@ -123,9 +160,25 @@ export default function Tasks() {
   }, []);
 
   useEffect(function() {
-    if (!loaded) return;
-    taskStore.saveTasks(tasks);
+    if (!loaded || !isHydratedRef.current) return;
+    tasksRef.current = tasks;
+    persistDebounced();
+    return function() { clearTimeout(saveTimerRef.current); };
   }, [tasks, loaded]);
+
+  useEffect(function() {
+    if (!loaded) return;
+    function flush() {
+      if (!isHydratedRef.current) return;
+      clearTimeout(saveTimerRef.current);
+      taskStore.saveTasksNow(tasksRef.current);
+    }
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "hidden") flush();
+    });
+    return function() { window.removeEventListener("beforeunload", flush); };
+  }, [loaded]);
 
   var stats = useMemo(function() {
     var done = tasks.filter(function(t) { return t.column === "done"; }).length;
@@ -156,23 +209,33 @@ export default function Tasks() {
     setShowForm(false);
   }, []);
 
-  function saveTask() {
-    if (!draft.title.trim()) return;
-    var tags = draft.tags.split(",").map(function(s) { return s.trim(); }).filter(Boolean).slice(0, 4);
+  function saveTask(fromDraft) {
+    var d = fromDraft || draft;
+    if (!d.title.trim()) return;
+    var tags = d.tags.split(",").map(function(s) { return s.trim(); }).filter(Boolean).slice(0, 4);
     var item = {
       id: editId || uid(),
-      title: draft.title.trim(),
-      notes: draft.notes.trim(),
-      priority: draft.priority,
-      due: draft.due || null,
+      title: d.title.trim(),
+      notes: d.notes.trim(),
+      priority: d.priority,
+      due: d.due || null,
       tags: tags,
-      subtasks: draft.subtasks || [],
-      column: draft.column,
+      subtasks: d.subtasks || [],
+      column: d.column,
       created: editId ? undefined : Date.now(),
     };
-    setTasks(function(prev) {
-      if (editId) return prev.map(function(t) { return t.id === editId ? Object.assign({}, t, item) : t; });
-      return prev.concat([Object.assign({}, item, { created: Date.now() })]);
+    var next;
+    if (editId) {
+      next = tasksRef.current.map(function(t) {
+        return t.id === editId ? Object.assign({}, t, item) : t;
+      });
+    } else {
+      next = tasksRef.current.concat([Object.assign({}, item, { created: Date.now() })]);
+    }
+    skipSaveRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    persistNow(next).finally(function() {
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
     });
     resetDraft();
   }
@@ -192,10 +255,16 @@ export default function Tasks() {
   }
 
   function deleteTask(id) {
-    var next = tasks.filter(function(t) { return t.id !== id; });
-    setTasks(next);
+    if (!window.confirm("Apagar esta tarefa?")) return;
+    var prev = tasksRef.current;
+    var next = prev.filter(function(t) { return t.id !== id; });
+    skipSaveRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    commitTasks(next);
     if (editId === id) resetDraft();
-    taskStore.deleteTaskById(next, id).catch(function() {});
+    taskStore.deleteTaskById(prev, id).finally(function() {
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
+    });
   }
 
   function toggleDone(id) {
@@ -322,7 +391,7 @@ export default function Tasks() {
               <button type="button" onClick={saveTask} style={{ background: ACCENT + "22", border: "1px solid " + ACCENT + "50", borderRadius: 10, color: ACCENT, padding: "9px 18px", fontSize: 12, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Guardar</button>
               <button type="button" onClick={resetDraft} style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "9px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
               {!editId && (
-                <button type="button" onClick={function() { setDraft(Object.assign({}, draft, { column: "today", due: tk })); saveTask(); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
+                <button type="button" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk })); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
                   Guardar em «Hoje»
                 </button>
               )}

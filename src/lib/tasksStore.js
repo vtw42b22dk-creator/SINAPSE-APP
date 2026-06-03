@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { deleteRemoteIds, replaceRows, selectRowsMerged, uid } from "./cloudStore";
+import { deleteRemoteIds, replaceRows, selectRowsMerged, writeLocal, uid } from "./cloudStore";
 
 var TABLE = "tasks";
 var KEY = "sinapse-tasks-v2";
@@ -63,15 +63,27 @@ export async function loadTasks() {
 }
 
 export async function saveTasks(tasks) {
-  return replaceRows(TABLE, KEY, tasks.map(toDb));
+  return replaceRows(TABLE, KEY, (tasks || []).map(toDb), { pruneOrphans: false });
+}
+
+/** Gravação imediata (criar/editar/mover) — não depende de debounce na UI. */
+export async function saveTasksNow(tasks) {
+  var list = tasks || [];
+  var dbRows = list.map(toDb);
+  await writeLocal(KEY, dbRows);
+  return replaceRows(TABLE, KEY, dbRows, { pruneOrphans: false });
 }
 
 /** Remove tarefa localmente e na nuvem (evita reaparecer ao sincronizar). */
 export async function deleteTaskById(tasks, taskId) {
-  if (!taskId) return tasks;
+  if (!taskId) return (tasks || []).slice();
   var next = (tasks || []).filter(function(t) { return t.id !== taskId; });
   await deleteRemoteIds(TABLE, [taskId], KEY);
-  await replaceRows(TABLE, KEY, next.map(toDb), { pruneOrphans: false });
+  var dbRows = next.map(toDb);
+  await writeLocal(KEY, dbRows);
+  if (dbRows.length) {
+    await replaceRows(TABLE, KEY, dbRows, { pruneOrphans: false });
+  }
   return next;
 }
 
@@ -93,6 +105,6 @@ export async function createLinkedTask(tasks, source) {
     created: existing ? existing.created : Date.now(),
   });
   var next = existing ? tasks.map(function(t) { return t.id === existing.id ? nextTask : t; }) : tasks.concat([nextTask]);
-  await saveTasks(next);
+  await saveTasksNow(next);
   return next;
 }
