@@ -210,13 +210,13 @@ export default function Tasks() {
   }, []);
 
   function saveTask(fromDraft) {
-    var d = fromDraft || draft;
-    if (!d.title.trim()) return;
-    var tags = d.tags.split(",").map(function(s) { return s.trim(); }).filter(Boolean).slice(0, 4);
+    var d = fromDraft && typeof fromDraft.title === "string" ? fromDraft : draft;
+    if (!d.title || !d.title.trim()) return;
+    var tags = (d.tags || "").split(",").map(function(s) { return s.trim(); }).filter(Boolean).slice(0, 4);
     var item = {
       id: editId || uid(),
       title: d.title.trim(),
-      notes: d.notes.trim(),
+      notes: (d.notes || "").trim(),
       priority: d.priority,
       due: d.due || null,
       tags: tags,
@@ -388,7 +388,7 @@ export default function Tasks() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={saveTask} style={{ background: ACCENT + "22", border: "1px solid " + ACCENT + "50", borderRadius: 10, color: ACCENT, padding: "9px 18px", fontSize: 12, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Guardar</button>
+              <button type="button" onClick={function() { saveTask(); }} style={{ background: ACCENT + "22", border: "1px solid " + ACCENT + "50", borderRadius: 10, color: ACCENT, padding: "9px 18px", fontSize: 12, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Guardar</button>
               <button type="button" onClick={resetDraft} style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "9px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
               {!editId && (
                 <button type="button" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk })); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
