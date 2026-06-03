@@ -34,33 +34,50 @@ function savePins(arr) {
 
 var PROJ_CSS = [
   "@keyframes pjFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:radial-gradient(120% 80% at 50% -10%,#11121c 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif}",
-  ".pj-top{flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,8,14,0.7);backdrop-filter:blur(18px);z-index:10}",
+  "@keyframes pjGlow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.75;transform:scale(1.04)}}",
+  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:#06060b;color:#fff;font-family:'IBM Plex Sans',sans-serif}",
+  ".pj-page::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 0%,rgba(255,61,138,0.11) 0%,transparent 55%),radial-gradient(45% 40% at 85% 75%,rgba(0,255,200,0.05) 0%,transparent 50%),linear-gradient(180deg,#0c0c14 0%,#06060b 100%);z-index:0}",
+  ".pj-page::after{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 20%,transparent 75%);z-index:0}",
+  ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,8,14,0.82);backdrop-filter:blur(18px)}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
-  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;color:#FF3D8A;letter-spacing:1.5px}",
-  ".pj-brand span{font-size:11px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.3)}",
-  ".pj-search{flex:1;min-width:140px;max-width:340px;position:relative;display:flex;align-items:center}",
+  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#FF3D8A;letter-spacing:1.5px}",
+  ".pj-brand span{font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.28);padding:2px 7px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03)}",
+  ".pj-search{flex:1;min-width:140px;max-width:300px;position:relative;display:flex;align-items:center}",
   ".pj-search svg{position:absolute;left:11px;opacity:.35;pointer-events:none}",
-  ".pj-search input{width:100%;padding:8px 12px 8px 32px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);color:#fff;font-size:12px;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}",
+  ".pj-search input{width:100%;padding:7px 12px 7px 32px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);color:#fff;font-size:12px;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}",
   ".pj-search input:focus{border-color:rgba(255,61,138,0.45);box-shadow:0 0 0 3px rgba(255,61,138,0.1)}",
-  ".pj-select{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);color:rgba(255,255,255,0.7);font-size:11px;font-family:'JetBrains Mono',monospace;outline:none;cursor:pointer}",
   ".pj-viewtog{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,0.08);overflow:hidden}",
-  ".pj-viewtog button{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all .18s}",
+  ".pj-viewtog button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all .18s}",
   ".pj-viewtog button.on{background:rgba(255,61,138,0.14);color:#FF3D8A}",
-  ".pj-new{padding:9px 16px;border-radius:10px;border:1px solid rgba(255,61,138,0.5);background:linear-gradient(135deg,rgba(255,61,138,0.25),rgba(255,61,138,0.08));color:#FF3D8A;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}",
+  ".pj-new{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,61,138,0.5);background:linear-gradient(135deg,rgba(255,61,138,0.25),rgba(255,61,138,0.08));color:#FF3D8A;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}",
   ".pj-new:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,61,138,0.22)}",
   ".pj-preset{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}",
   ".pj-preset button{flex:1;min-width:90px;padding:9px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s}",
   ".pj-preset button.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.12);color:#FF3D8A}",
-  ".pj-scroll{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 28px;-webkit-overflow-scrolling:touch}",
-  ".pj-sech{margin:6px 2px 10px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.3);letter-spacing:1.5px;display:flex;align-items:center;gap:8px}",
+  ".pj-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:0 18px 24px;-webkit-overflow-scrolling:touch}",
+  ".pj-body{width:100%;max-width:920px;margin:0 auto;padding-top:18px}",
+  ".pj-body.dense{max-width:1180px}",
+  ".pj-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:16px 18px;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(135deg,rgba(255,61,138,0.08),rgba(255,255,255,0.02));position:relative;overflow:hidden}",
+  ".pj-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(255,61,138,0.22),transparent 70%);animation:pjGlow 6s ease-in-out infinite}",
+  ".pj-hero h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(18px,3vw,24px);font-weight:600;letter-spacing:-.02em}",
+  ".pj-hero p{margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.42);line-height:1.45;max-width:420px}",
+  ".pj-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
+  ".pj-chip{padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.28);font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.55);white-space:nowrap}",
+  ".pj-chip strong{color:#fff;font-weight:600}",
+  ".pj-sech{margin:0 0 10px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.28);letter-spacing:1.5px;display:flex;align-items:center;gap:8px}",
   ".pj-sech::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}",
-  ".pj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px;align-content:start}",
-  ".pj-list{display:flex;flex-direction:column;gap:8px}",
-  ".pj-card{position:relative;border-radius:15px;cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.052),rgba(255,255,255,0.014));transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s;animation:pjFade .4s ease both}",
+  ".pj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;align-content:start;justify-content:center}",
+  ".pj-grid.sparse{grid-template-columns:repeat(auto-fit,minmax(280px,420px));justify-content:center;gap:14px}",
+  ".pj-grid.sparse .pj-card{border-radius:18px}",
+  ".pj-grid.sparse .pj-card-in{min-height:148px;padding:16px 17px 15px;gap:11px}",
+  ".pj-grid.sparse .pj-card-ic{width:48px;height:48px;font-size:21px;border-radius:14px}",
+  ".pj-grid.sparse .pj-card-name{font-size:16px}",
+  ".pj-grid.sparse .pj-card-desc{font-size:12px;-webkit-line-clamp:3}",
+  ".pj-list{display:flex;flex-direction:column;gap:8px;max-width:760px;margin:0 auto}",
+  ".pj-card{position:relative;border-radius:15px;cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.055),rgba(255,255,255,0.014));transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s;animation:pjFade .4s ease both}",
   ".pj-card:hover{transform:translateY(-3px);border-color:var(--pcb);box-shadow:0 16px 38px rgba(0,0,0,0.4)}",
   ".pj-card-bar{height:3px;background:var(--pc)}",
-  ".pj-card-in{padding:13px 14px 12px;display:flex;flex-direction:column;gap:9px;min-height:128px}",
+  ".pj-card-in{padding:13px 14px 12px;display:flex;flex-direction:column;gap:9px;min-height:118px}",
   ".pj-card-row{display:flex;align-items:flex-start;gap:11px}",
   ".pj-card-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}",
   ".pj-card-name{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
@@ -73,15 +90,19 @@ var PROJ_CSS = [
   ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0b0b12;display:flex;align-items:center;justify-content:center;font-size:8px;font-style:normal;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.6)}",
   ".pj-roi{padding:3px 9px;border-radius:999px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:600}",
   ".pj-act{position:absolute;top:9px;right:9px;display:flex;gap:5px;opacity:0;transition:opacity .18s;z-index:2}",
-  ".pj-card:hover .pj-act{opacity:1}",
+  ".pj-card:hover .pj-act,.pj-rowcard:hover .pj-act{opacity:1}",
   ".pj-act button{width:25px;height:25px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.45);color:rgba(255,255,255,0.5);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}",
   ".pj-act button:hover{color:#fff;border-color:rgba(255,255,255,0.25)}",
   ".pj-act button.del:hover{background:rgba(255,61,90,0.18);color:#FF3D5A;border-color:rgba(255,61,90,0.4)}",
   ".pj-pin{position:absolute;top:9px;left:9px;font-size:11px;color:#FFB800;z-index:1;text-shadow:0 0 8px rgba(255,184,0,0.5)}",
+  ".pj-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:148px;border-radius:18px;border:1px dashed rgba(255,61,138,0.32);background:rgba(255,61,138,0.04);cursor:pointer;transition:all .18s;color:rgba(255,255,255,0.45);animation:pjFade .4s ease both}",
+  ".pj-addcard:hover{border-color:rgba(255,61,138,0.55);background:rgba(255,61,138,0.09);color:#FF3D8A;transform:translateY(-2px)}",
+  ".pj-addcard span:first-child{font-size:28px;line-height:1;color:#FF3D8A;opacity:.85}",
+  ".pj-addcard span:last-child{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px}",
   ".pj-rowcard{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:13px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(120deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s;animation:pjFade .4s ease both;position:relative;overflow:hidden}",
   ".pj-rowcard:hover{transform:translateX(3px);border-color:var(--pcb);box-shadow:0 10px 26px rgba(0,0,0,0.34)}",
   ".pj-rowcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc)}",
-  ".pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 20px;border-radius:18px;border:1px dashed rgba(255,61,138,0.25);background:rgba(255,61,138,0.04);text-align:center}",
+  ".pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;border-radius:18px;border:1px dashed rgba(255,61,138,0.25);background:rgba(255,61,138,0.04);text-align:center;max-width:480px;margin:40px auto 0}",
   ".pj-mbk{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.66);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;animation:pjFade .22s ease}",
   ".pj-modal{width:min(450px,100%);border-radius:17px;border:1px solid rgba(255,61,138,0.3);background:linear-gradient(160deg,#11111b,#0a0a12);box-shadow:0 30px 80px rgba(0,0,0,0.55);padding:18px;animation:pjFade .28s ease}",
   ".pj-mods-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}",
@@ -90,8 +111,8 @@ var PROJ_CSS = [
   ".pj-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".pj-pal button{width:26px;height:26px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s}",
   ".pj-pal button:hover{transform:scale(1.12)}",
-  ".pj-ghost{padding:9px 13px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:11px;cursor:pointer}",
-  "@media(max-width:719px){.pj-strip{padding:10px 12px 0}.pj-kpi{min-width:calc(50% - 5px)}.pj-search{order:5;max-width:none;flex-basis:100%}.pj-grid{grid-template-columns:1fr}}",
+  ".pj-ghost{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:11px;cursor:pointer}",
+  "@media(max-width:719px){.pj-scroll{padding:0 12px 20px}.pj-body{padding-top:12px}.pj-hero{padding:14px;margin-bottom:12px}.pj-search{order:5;max-width:none;flex-basis:100%}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr}.pj-chips{width:100%}}",
 ].join("");
 
 function ProjectsIcon() {
@@ -343,6 +364,18 @@ export default function Projects() {
     });
   }, [projects, query, pins]);
 
+  var overview = useMemo(function() {
+    var pending = 0, total = 0, withRoi = 0;
+    filtered.forEach(function(p) {
+      var st = stats[p.id];
+      if (!st) return;
+      pending += st.pending || 0;
+      total += st.total || 0;
+      if (st.hasInvestments) withRoi += 1;
+    });
+    return { pending: pending, total: total, withRoi: withRoi };
+  }, [filtered, stats]);
+
   function toggleModule(id) {
     setPreset("custom");
     setModules(function(prev) {
@@ -390,6 +423,18 @@ export default function Projects() {
 
   var pinnedItems = filtered.filter(function(p) { return pins.indexOf(p.id) >= 0; });
   var otherItems = filtered.filter(function(p) { return pins.indexOf(p.id) < 0; });
+  var isSparse = filtered.length > 0 && filtered.length <= 4 && !query;
+  var showSplitSections = pinnedItems.length > 0 && !query && filtered.length > 4;
+
+  function renderAddCard(idx) {
+    if (!isSparse || view === "list") return null;
+    return (
+      <button type="button" key="add-card" className="pj-addcard" style={{ animationDelay: (idx * 0.04) + "s" }} onClick={openModal}>
+        <span>+</span>
+        <span>Novo projeto</span>
+      </button>
+    );
+  }
 
   function renderItem(p, idx) {
     var meta = projectTypeMeta(p);
@@ -424,30 +469,47 @@ export default function Projects() {
       </header>
 
       <div className="pj-scroll">
-        {filtered.length === 0 ? (
-          <div className="pj-empty">
-            <p style={{ margin: "0 0 6px", fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: ACCENT }}>Nenhum projeto encontrado</p>
-            <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-              {query ? "Ajusta a pesquisa." : "Cria o teu primeiro workspace modular."}
-            </p>
-            <button type="button" className="pj-new" onClick={openModal}>+ Criar projeto</button>
-          </div>
-        ) : pinnedItems.length > 0 && !query ? (
-          <>
-            <p className="pj-sech">FIXADOS</p>
-            <div className={view === "list" ? "pj-list" : "pj-grid"} style={{ marginBottom: 18 }}>
-              {pinnedItems.map(function(p, idx) { return renderItem(p, idx); })}
+        <div className={"pj-body" + (isSparse ? "" : " dense")}>
+          {filtered.length > 0 && isSparse ? (
+            <div className="pj-hero">
+              <div>
+                <h2>{filtered.length === 1 ? "O teu workspace" : filtered.length + " workspaces"}</h2>
+                <p>{filtered.length === 1 ? "Abre o projeto ou cria mais um workspace modular." : "Escolhe um projeto para continuar ou cria outro."}</p>
+              </div>
+              <div className="pj-chips">
+                <span className="pj-chip"><strong>{overview.pending}</strong> tarefas por fazer</span>
+                {overview.total > 0 ? <span className="pj-chip"><strong>{overview.total}</strong> no total</span> : null}
+                {overview.withRoi > 0 ? <span className="pj-chip"><strong>{overview.withRoi}</strong> com ROI</span> : null}
+              </div>
             </div>
-            <p className="pj-sech">TODOS OS PROJETOS</p>
-            <div className={view === "list" ? "pj-list" : "pj-grid"}>
-              {otherItems.map(function(p, idx) { return renderItem(p, idx); })}
+          ) : null}
+
+          {filtered.length === 0 ? (
+            <div className="pj-empty">
+              <p style={{ margin: "0 0 6px", fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: ACCENT }}>Nenhum projeto encontrado</p>
+              <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                {query ? "Ajusta a pesquisa." : "Cria o teu primeiro workspace modular."}
+              </p>
+              <button type="button" className="pj-new" onClick={openModal}>+ Criar projeto</button>
             </div>
-          </>
-        ) : (
-          <div className={view === "list" ? "pj-list" : "pj-grid"}>
-            {filtered.map(function(p, idx) { return renderItem(p, idx); })}
-          </div>
-        )}
+          ) : showSplitSections ? (
+            <>
+              <p className="pj-sech">FIXADOS</p>
+              <div className={view === "list" ? "pj-list" : "pj-grid"} style={{ marginBottom: 16 }}>
+                {pinnedItems.map(function(p, idx) { return renderItem(p, idx); })}
+              </div>
+              <p className="pj-sech">TODOS OS PROJETOS</p>
+              <div className={view === "list" ? "pj-list" : "pj-grid"}>
+                {otherItems.map(function(p, idx) { return renderItem(p, idx); })}
+              </div>
+            </>
+          ) : (
+            <div className={(view === "list" ? "pj-list" : "pj-grid") + (isSparse && view !== "list" ? " sparse" : "")}>
+              {filtered.map(function(p, idx) { return renderItem(p, idx); })}
+              {renderAddCard(filtered.length)}
+            </div>
+          )}
+        </div>
       </div>
 
       {modalOpen && (
