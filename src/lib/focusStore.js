@@ -103,6 +103,37 @@ export async function deleteProject(rows, id) {
   return next;
 }
 
+export function clearProjectLocalData(projectId) {
+  if (!projectId) return;
+  try { localStorage.removeItem("focus-review-draft:" + projectId); } catch (e) {}
+  if (loadActiveProjectId() === projectId) saveActiveProjectId("");
+}
+
+/** Elimina projeto e todos os dados associados (ideias, métricas, tarefas) com persistência local + nuvem. */
+export async function deleteProjectFull(projectId, projects, ideas, metrics, tasks) {
+  if (!projectId) return { projects: projects || [], ideas: ideas || [], metrics: metrics || [], tasks: tasks || [] };
+  var nextProjects = (projects || []).filter(function(p) { return p.id !== projectId; });
+  var removedIdeas = (ideas || []).filter(function(r) { return r.project_id === projectId; });
+  var removedMetrics = (metrics || []).filter(function(r) { return r.project_id === projectId; });
+  var removedTasks = (tasks || []).filter(function(r) { return r.project_id === projectId; });
+  var nextIdeas = (ideas || []).filter(function(r) { return r.project_id !== projectId; });
+  var nextMetrics = (metrics || []).filter(function(r) { return r.project_id !== projectId; });
+  var nextTasks = (tasks || []).filter(function(r) { return r.project_id !== projectId; });
+
+  await deleteRemoteIds(PROJECTS_TABLE, [projectId], PROJECTS_KEY);
+  if (removedIdeas.length) await deleteRemoteIds(IDEAS_TABLE, removedIdeas.map(function(r) { return r.id; }), IDEAS_KEY);
+  if (removedMetrics.length) await deleteRemoteIds(METRICS_TABLE, removedMetrics.map(function(r) { return r.id; }), METRICS_KEY);
+  if (removedTasks.length) await deleteRemoteIds(TASKS_TABLE, removedTasks.map(function(r) { return r.id; }), TASKS_KEY);
+
+  await replaceRows(PROJECTS_TABLE, PROJECTS_KEY, nextProjects.map(projectToDb), { pruneOrphans: false });
+  await replaceRows(IDEAS_TABLE, IDEAS_KEY, nextIdeas.map(ideaToDb), { pruneOrphans: false });
+  await replaceRows(METRICS_TABLE, METRICS_KEY, nextMetrics.map(metricToDb), { pruneOrphans: false });
+  await replaceRows(TASKS_TABLE, TASKS_KEY, nextTasks.map(taskToDb), { pruneOrphans: false });
+
+  clearProjectLocalData(projectId);
+  return { projects: nextProjects, ideas: nextIdeas, metrics: nextMetrics, tasks: nextTasks };
+}
+
 export function loadActiveProjectId() {
   try { return localStorage.getItem(ACTIVE_PROJECT_KEY) || ""; } catch (e) { return ""; }
 }

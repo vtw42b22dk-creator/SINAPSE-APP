@@ -48,9 +48,12 @@ var FX_CSS = [
   ".fx-btn:hover:not(:disabled){transform:translateY(-1px)}",
   ".fx-btn:disabled{opacity:.4;cursor:not-allowed}",
   ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:920px;margin:0 auto}",
-  ".fx-proj{border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));padding:16px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;position:relative;overflow:hidden}",
+  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));padding:16px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
   ".fx-proj:hover{transform:translateY(-3px);border-color:var(--pc);box-shadow:0 14px 36px rgba(0,0,0,0.35)}",
   ".fx-proj::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pc)}",
+  ".fx-proj-del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.35);color:rgba(255,255,255,0.35);cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;z-index:2}",
+  ".fx-proj:hover .fx-proj-del{opacity:1}",
+  ".fx-proj-del:hover{background:rgba(255,61,90,0.18);color:#FF3D5A;border-color:rgba(255,61,90,0.4)}",
   ".fx-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:130px;border:1px dashed rgba(0,255,200,0.3);background:rgba(0,255,200,0.04);border-radius:16px;cursor:pointer;color:rgba(255,255,255,0.45);transition:all .18s}",
   ".fx-addcard:hover{border-color:rgba(0,255,200,0.55);color:#00FFC8;background:rgba(0,255,200,0.08)}",
   ".fx-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px}",
@@ -101,7 +104,7 @@ var FX_CSS = [
   ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:10px;font-family:'JetBrains Mono',monospace}",
   ".fx-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".fx-pal button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:44px;flex-direction:row;gap:6px;font-size:13px}.fx-nav span{font-size:8px}.fx-main{order:1}}",
+  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:44px;flex-direction:row;gap:6px;font-size:13px}.fx-nav span{font-size:8px}.fx-main{order:1}.fx-proj-del{opacity:1}}",
 ].join("");
 
 function playBeep(freq) {
@@ -243,6 +246,15 @@ function ProjectPicker(props) {
     props.onSelect(p);
   }
 
+  function removeProject(e, p) {
+    e.stopPropagation();
+    if (!props.onDelete) return;
+    var studied = fmtHours(focusStore.totalMinutes(props.metricsByProject[p.id] || []));
+    var msg = "Eliminar o projeto \"" + p.name + "\"?\n\nSerão apagados também os registos de estudo (" + studied + "), notas e tarefas associados. Esta acção fica guardada.";
+    if (!window.confirm(msg)) return;
+    props.onDelete(p);
+  }
+
   return (
     <div className="fx-root" data-scrollable>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -260,7 +272,8 @@ function ProjectPicker(props) {
             var prog = focusStore.goalProgress(p, props.metricsByProject[p.id] || []);
             return (
               <article key={p.id} className="fx-proj" style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }} onClick={function() { props.onSelect(p); }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                <button type="button" className="fx-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { removeProject(e, p); }}>×</button>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, paddingRight: 28 }}>
                   <span style={{ width: 44, height: 44, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: p.color + "18", color: p.color, boxShadow: "0 0 16px " + p.color + "22" }}>{p.icon}</span>
                   <div style={{ minWidth: 0 }}>
                     <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
@@ -477,6 +490,33 @@ export default function Focus() {
     focusStore.saveProjects(next);
   }
 
+  async function removeProject(p) {
+    if (!p || !p.id) return;
+    var res = await focusStore.deleteProjectFull(
+      p.id,
+      projectsRef.current,
+      ideasRef.current,
+      metricsRef.current,
+      tasksRef.current
+    );
+    projectsRef.current = res.projects;
+    ideasRef.current = res.ideas;
+    metricsRef.current = res.metrics;
+    tasksRef.current = res.tasks;
+    setProjects(res.projects);
+    setAllIdeas(res.ideas);
+    setAllMetrics(res.metrics);
+    setAllTasks(res.tasks);
+    if (activeProject && activeProject.id === p.id) {
+      setActiveProject(null);
+      focusStore.saveActiveProjectId("");
+    }
+    if (focusTimer.getState().projectId === p.id) {
+      focusTimer.resetTimer();
+      focusTimer.bindProject(null);
+    }
+  }
+
   function selectMode(id) {
     focusTimer.configureTimer({ modeId: id, running: false, phase: "focus" });
     var presets = focusTimer.getModePresets();
@@ -587,6 +627,7 @@ export default function Focus() {
         metricsByProject={metricsByProject}
         onSelect={selectProject}
         onCreate={createProject}
+        onDelete={removeProject}
       />
     );
   }
@@ -624,6 +665,12 @@ export default function Focus() {
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: timer.running ? accent : "#34D399", animation: timer.running ? "fxPulse 1.2s ease infinite" : "none" }} />
           {timer.running ? "A contar" : (auth.user ? "Sync" : "Local")}
         </span>
+        <button type="button" className="fx-hbtn" title="Eliminar este projeto"
+          onClick={function() {
+            if (!window.confirm("Eliminar \"" + activeProject.name + "\" e todos os dados associados?")) return;
+            removeProject(activeProject);
+          }}
+          style={{ color: "rgba(255,107,90,0.75)", borderColor: "rgba(255,107,90,0.25)" }}>×</button>
       </header>
 
       <div className="fx-shell">
