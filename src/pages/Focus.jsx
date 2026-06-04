@@ -38,8 +38,11 @@ var FX_CSS = [
   ".fx-nav{width:48px;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;transition:all .18s}",
   ".fx-nav span{font-size:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;line-height:1}",
   ".fx-nav.on{border-color:var(--ac);background:var(--ac)14;color:var(--ac);box-shadow:0 0 18px var(--ac)33}",
-  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:16px 18px 24px;-webkit-overflow-scrolling:touch}",
-  ".fx-panel{border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));padding:18px;animation:fxIn .35s ease}",
+  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:12px 14px 18px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
+  ".fx-panel{flex:1;width:100%;min-height:0;border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));padding:20px 22px;animation:fxIn .35s ease;box-sizing:border-box;display:flex;flex-direction:column}",
+  ".fx-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 118px);padding:24px 28px}",
+  ".fx-panel--clock .fx-modes{justify-content:center;max-width:720px;width:100%}",
+  ".fx-panel--clock .fx-clock-wrap{flex:0 0 auto;width:100%;max-width:720px}",
   ".fx-title{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.8px;display:flex;align-items:center;gap:8px}",
   ".fx-input{width:100%;background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.1);border-radius:11px;color:#fff;padding:10px 12px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}",
   ".fx-input:focus{border-color:rgba(0,255,200,0.45)}",
@@ -47,8 +50,8 @@ var FX_CSS = [
   ".fx-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:11px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:transform .15s}",
   ".fx-btn:hover:not(:disabled){transform:translateY(-1px)}",
   ".fx-btn:disabled{opacity:.4;cursor:not-allowed}",
-  ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:920px;margin:0 auto}",
-  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));padding:16px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
+  ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;width:100%;flex:1;align-content:start}",
+  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));padding:18px;min-height:148px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
   ".fx-proj:hover{transform:translateY(-3px);border-color:var(--pc);box-shadow:0 14px 36px rgba(0,0,0,0.35)}",
   ".fx-proj::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pc)}",
   ".fx-proj-del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.35);color:rgba(255,255,255,0.35);cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;z-index:2}",
@@ -61,33 +64,35 @@ var FX_CSS = [
   ".fx-modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}",
   ".fx-mode{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer}",
   ".fx-mode.on{color:#0b0b12}",
-  ".fx-clock-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0 16px}",
-  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:clamp(52px,12vw,96px);line-height:1;letter-spacing:3px;transition:color .4s,text-shadow .4s}",
-  ".fx-prog{width:100%;max-width:360px;height:6px;border-radius:999px;background:rgba(255,255,255,0.07);overflow:hidden}",
+  ".fx-clock-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:12px 0 8px;width:100%}",
+  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:clamp(64px,14vw,112px);line-height:1;letter-spacing:3px;transition:color .4s,text-shadow .4s}",
+  ".fx-prog{width:100%;max-width:520px;height:8px;border-radius:999px;background:rgba(255,255,255,0.07);overflow:hidden}",
   ".fx-prog i{display:block;height:100%;border-radius:999px;transition:width 1s linear}",
-  ".fx-tcontrols{display:flex;gap:10px;width:100%;max-width:360px}",
-  ".fx-tbtn{flex:1;padding:13px;border-radius:13px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;background:transparent}",
+  ".fx-tcontrols{display:flex;gap:12px;width:100%;max-width:520px}",
+  ".fx-tbtn{flex:1;padding:15px;border-radius:13px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;cursor:pointer;background:transparent}",
   ".fx-styletog{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}",
   ".fx-stybtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);color:rgba(255,255,255,0.45);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer}",
   ".fx-stybtn.on{border-color:var(--ac);color:var(--ac);background:var(--ac)12}",
-  ".fx-analog{width:min(280px,70vw);height:min(280px,70vw);position:relative}",
+  ".fx-analog{width:min(360px,52vw);height:min(360px,52vw);position:relative}",
   ".fx-analog-face{width:100%;height:100%;border-radius:50%;border:2px solid rgba(255,255,255,0.12);background:radial-gradient(circle at 50% 35%,rgba(255,255,255,0.06),rgba(0,0,0,0.35));position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,0.4),0 0 30px var(--ac)22}",
   ".fx-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:999px;background:var(--ac);box-shadow:0 0 8px var(--ac)}",
-  ".fx-ring{width:min(260px,65vw);height:min(260px,65vw);position:relative;display:flex;align-items:center;justify-content:center}",
-  ".fx-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}",
-  ".fx-blocks{display:flex;gap:5px;align-items:center}",
-  ".fx-block{width:clamp(28px,6vw,42px);height:clamp(48px,10vw,72px);border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(20px,5vw,32px);font-weight:600;color:var(--ac);text-shadow:0 0 12px var(--ac)88;transition:background .3s,box-shadow .3s}",
+  ".fx-ring{width:min(360px,52vw);height:min(360px,52vw);position:relative;display:flex;align-items:center;justify-content:center;overflow:visible}",
+  ".fx-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}",
+  ".fx-ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:8}",
+  ".fx-ring-progress{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .9s linear}",
+  ".fx-blocks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}",
+  ".fx-block{width:clamp(36px,7vw,56px);height:clamp(60px,12vw,88px);border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(24px,6vw,40px);font-weight:600;color:var(--ac);text-shadow:0 0 12px var(--ac)88;transition:background .3s,box-shadow .3s}",
   ".fx-block.on{background:var(--ac)18;box-shadow:0 0 16px var(--ac)44,inset 0 0 12px var(--ac)22}",
-  ".fx-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}",
-  ".fx-stat{padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.22)}",
+  ".fx-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}",
+  ".fx-stat{padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.22)}",
   ".fx-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.38);letter-spacing:.5px}",
   ".fx-stat strong{display:block;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600}",
   ".fx-goal{margin:16px 0;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2)}",
   ".fx-goal-bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.07);overflow:hidden;margin-top:10px}",
   ".fx-goal-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--ac),var(--ac)cc);box-shadow:0 0 14px var(--ac)55;transition:width .6s ease}",
-  ".fx-chart{display:flex;gap:8px;align-items:flex-end;height:160px;margin:12px 0}",
-  ".fx-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}",
-  ".fx-bar{width:100%;max-width:28px;border-radius:6px 6px 0 0;min-height:3px;background:var(--ac);box-shadow:0 0 10px var(--ac)44;transition:height .4s}",
+  ".fx-chart{display:flex;gap:10px;align-items:flex-end;height:min(220px,28vh);margin:14px 0;flex:1;min-height:160px}",
+  ".fx-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}",
+  ".fx-bar{width:100%;max-width:40px;border-radius:8px 8px 0 0;min-height:4px;background:var(--ac);box-shadow:0 0 12px var(--ac)44;transition:height .4s}",
   ".fx-table{width:100%;border-collapse:collapse;font-size:12px}",
   ".fx-table th,.fx-table td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'JetBrains Mono',monospace}",
   ".fx-table th{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:.5px;text-transform:uppercase}",
@@ -100,11 +105,11 @@ var FX_CSS = [
   ".fx-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07)}",
   ".fx-tab{padding:9px 14px;border:none;background:none;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}",
   ".fx-tab.on{color:#fff}",
-  ".fx-area{width:100%;min-height:200px;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.09);border-radius:13px;color:#fff;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box}",
+  ".fx-area{width:100%;min-height:min(360px,42vh);background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.09);border-radius:13px;color:#fff;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box;flex:1}",
   ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:10px;font-family:'JetBrains Mono',monospace}",
   ".fx-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".fx-pal button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:44px;flex-direction:row;gap:6px;font-size:13px}.fx-nav span{font-size:8px}.fx-main{order:1}.fx-proj-del{opacity:1}}",
+  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:44px;flex-direction:row;gap:6px;font-size:13px}.fx-nav span{font-size:8px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}}",
 ].join("");
 
 function playBeep(freq) {
@@ -174,16 +179,35 @@ function AnalogClock(props) {
 }
 
 function RingClock(props) {
-  var r = 54, c = 2 * Math.PI * r;
+  var r = 52;
+  var c = 2 * Math.PI * r;
   var pct = props.total > 0 ? props.secs / props.total : 0;
+  var glowId = "fx-ring-glow";
   return (
     <div className="fx-ring" style={{ "--ac": props.color }}>
-      <svg viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke={props.color} strokeWidth="6" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c * (1 - pct)} style={{ filter: "drop-shadow(0 0 8px " + props.color + ")" }} />
+      <svg viewBox="0 0 140 140" aria-hidden="true">
+        <defs>
+          <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <circle className="fx-ring-track" cx="70" cy="70" r={r} />
+        <circle
+          className="fx-ring-progress"
+          cx="70"
+          cy="70"
+          r={r}
+          stroke={props.color}
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct)}
+          filter={"url(#" + glowId + ")"}
+        />
       </svg>
-      <div className="fx-digital" style={{ fontSize: "clamp(36px,8vw,52px)", color: props.color, textShadow: "0 0 16px " + props.color + "66" }}>
+      <div className="fx-digital" style={{ fontSize: "clamp(40px,9vw,64px)", color: props.color, textShadow: "0 0 16px " + props.color + "66" }}>
         {focusTimer.fmtClock(props.secs)}
       </div>
     </div>
@@ -688,8 +712,8 @@ export default function Focus() {
 
         <main className="fx-main" data-scrollable>
           {sidebarTab === "clock" && (
-            <section className="fx-panel" style={{ maxWidth: 520, margin: "0 auto", borderColor: phaseColor + "30" }}>
-              <h3 className="fx-title" style={{ color: phaseColor }}><span>◷</span> Relógio · {timer.phase === "focus" ? "Foco" : "Pausa"}</h3>
+            <section className="fx-panel fx-panel--clock" style={{ borderColor: phaseColor + "30" }}>
+              <h3 className="fx-title" style={{ color: phaseColor, alignSelf: "flex-start", width: "100%", maxWidth: 720 }}><span>◷</span> Relógio · {timer.phase === "focus" ? "Foco" : "Pausa"}</h3>
               <div className="fx-modes">
                 {presets.map(function(m) {
                   var on = timer.modeId === m.id;
@@ -735,21 +759,21 @@ export default function Focus() {
                   <button type="button" className="fx-tbtn" disabled={dis} onClick={handleReset}
                     style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}>↺ Reset</button>
                 </div>
-                <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)", textAlign: "center", lineHeight: 1.5 }}>
-                  O cronómetro continua mesmo ao mudares de aba ou módulo.<br />Pausa/reset creditam os minutos de foco já decorridos.
+                <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)", textAlign: "center", lineHeight: 1.5, maxWidth: 520 }}>
+                  O cronómetro continua ao mudares de aba ou módulo.<br />Só conta tempo com o cronómetro a correr — pausas não entram no total.
                 </p>
               </div>
             </section>
           )}
 
           {sidebarTab === "time" && (
-            <section className="fx-panel" style={{ maxWidth: 560, margin: "0 auto" }}>
+            <section className="fx-panel" style={{ minHeight: "calc(100vh - 118px)" }}>
               <h3 className="fx-title" style={{ color: accent }}><span>⏱</span> Tempo Estudado</h3>
               <div className="fx-statgrid">
                 <div className="fx-stat"><p>Hoje</p><strong style={{ color: accent }}>{todayMetric.minutes} min</strong></div>
                 <div className="fx-stat"><p>Total projeto</p><strong style={{ color: AMBER }}>{fmtHours(goal.studied)}</strong></div>
                 <div className="fx-stat"><p>Páginas hoje</p><strong>{todayMetric.pages}</strong></div>
-                <div className="fx-stat"><p>Sessão activa</p><strong style={{ color: timer.running && timer.phase === "focus" ? accent : "rgba(255,255,255,0.4)" }}>{timer.running && timer.phase === "focus" ? focusTimer.elapsedFocusMinutes(timer) + " min" : "—"}</strong></div>
+                <div className="fx-stat"><p>Sessão actual</p><strong style={{ color: timer.phase === "focus" ? accent : "rgba(255,255,255,0.4)" }}>{timer.phase === "focus" ? focusTimer.elapsedFocusMinutes(timer) + " min" : "—"}</strong></div>
               </div>
               <label className="fx-label">Minutos hoje (ajuste manual)</label>
               <input type="number" min={0} className="fx-input" value={todayMetric.minutes} disabled={dis}
@@ -763,13 +787,13 @@ export default function Focus() {
               <input className="fx-input" value={todayMetric.subject} disabled={dis} placeholder="Ex: Cálculo, Português…"
                 onChange={function(e) { updateTodayMetric({ subject: e.target.value }); }} />
               <p style={{ margin: "14px 0 0", fontSize: 10, color: "rgba(255,255,255,0.32)", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
-                Cada sessão de foco concluída, pausa ou reset creditam minutos automaticamente neste projeto.
+                Cada minuto creditado corresponde só ao tempo com o cronómetro em foco a correr (pausas não contam).
               </p>
             </section>
           )}
 
           {sidebarTab === "notes" && (
-            <section className="fx-panel" style={{ maxWidth: 640, margin: "0 auto" }}>
+            <section className="fx-panel" style={{ minHeight: "calc(100vh - 118px)" }}>
               <div className="fx-tabs">
                 <button type="button" className={"fx-tab" + (notesTab === "ideas" ? " on" : "")} onClick={function() { setNotesTab("ideas"); }}
                   style={notesTab === "ideas" ? { borderBottomColor: accent, color: accent } : null}>Ideias espontâneas</button>
@@ -777,7 +801,7 @@ export default function Focus() {
                   style={notesTab === "review" ? { borderBottomColor: PINK, color: PINK } : null}>Notas de revisão</button>
               </div>
               {notesTab === "ideas" ? (
-                <div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                   <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                     <input className="fx-input" value={ideaInput} disabled={dis} placeholder="Captura rápida sem perder o foco…"
                       onChange={function(e) { setIdeaInput(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addIdea("idea"); }} />
@@ -801,7 +825,7 @@ export default function Focus() {
                   )}
                 </div>
               ) : (
-                <div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                   <textarea className="fx-area" value={reviewText} disabled={dis}
                     placeholder={"Resumo importante da matéria…\n\nEnvia para o Diário quando estiveres pronto."}
                     onChange={function(e) { onReviewChange(e.target.value); }} />
@@ -818,7 +842,7 @@ export default function Focus() {
           )}
 
           {sidebarTab === "analytics" && (
-            <section className="fx-panel">
+            <section className="fx-panel" style={{ minHeight: "calc(100vh - 118px)" }}>
               <h3 className="fx-title" style={{ color: PURPLE }}><span>◈</span> Analytics · {activeProject.name}</h3>
               <div className="fx-statgrid">
                 <div className="fx-stat"><p>Total estudado</p><strong style={{ color: accent }}>{fmtHours(goal.studied)}</strong></div>
@@ -882,7 +906,7 @@ export default function Focus() {
           )}
 
           {sidebarTab === "tasks" && (
-            <section className="fx-panel" style={{ maxWidth: 560, margin: "0 auto" }}>
+            <section className="fx-panel" style={{ minHeight: "calc(100vh - 118px)" }}>
               <h3 className="fx-title" style={{ color: accent }}><span>☑</span> Tarefas</h3>
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                 <input className="fx-input" value={taskInput} disabled={dis} placeholder="Nova tarefa…"

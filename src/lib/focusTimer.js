@@ -15,7 +15,7 @@ var DEFAULT_STATE = {
   endAt: null,
   secsLeft: 25 * 60,
   clockStyle: "digital",
-  focusStartedAt: null,
+  focusCreditedSecs: 0,
 };
 
 function readRaw() {
@@ -74,8 +74,36 @@ function syncSecsLeft(state) {
   return state;
 }
 
+/** Segundos efectivos de foco nesta fase (só tempo com cronómetro a correr). */
+function studiedFocusSecs(state) {
+  if (state.phase !== "focus") return 0;
+  var total = phaseTotalSecs(state);
+  var left = state.running && state.endAt
+    ? Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000))
+    : state.secsLeft;
+  return Math.max(0, total - left);
+}
+
+/** Credita apenas minutos novos desde a última pausa/crédito (evita duplicar ou contar tempo em pausa). */
+function creditUncreditedFocus(state) {
+  state = syncSecsLeft(state);
+  if (state.phase !== "focus") return 0;
+  var studied = studiedFocusSecs(state);
+  var credited = state.focusCreditedSecs || 0;
+  var delta = studied - credited;
+  if (delta < 60) return 0;
+  var mins = Math.floor(delta / 60);
+  state.focusCreditedSecs = credited + mins * 60;
+  return mins;
+}
+
+function resetFocusCredits(state) {
+  state.focusCreditedSecs = 0;
+}
+
 export function getState() {
   var s = readRaw() || Object.assign({}, DEFAULT_STATE);
+  if (s.focusCreditedSecs == null) s.focusCreditedSecs = 0;
   return syncSecsLeft(s);
 }
 
@@ -100,6 +128,7 @@ export function configureTimer(patch) {
     var total = phaseTotalSecs(s);
     s.secsLeft = total;
     s.endAt = null;
+    resetFocusCredits(s);
   }
   writeRaw(s);
   notify();
@@ -118,23 +147,15 @@ export function bindProject(projectId) {
   return s;
 }
 
-/** Minutos de foco decorridos na fase actual (para creditar em pausa/reset). */
+/** Minutos de foco efectivos na fase actual (não inclui tempo em pausa). */
 export function elapsedFocusMinutes(state) {
-  state = state || getState();
-  if (state.phase !== "focus") return 0;
-  var total = phaseTotalSecs(state);
-  var left = state.running && state.endAt
-    ? Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000))
-    : state.secsLeft;
-  var elapsed = Math.max(0, total - left);
-  return Math.floor(elapsed / 60);
+  return Math.floor(studiedFocusSecs(state || getState()) / 60);
 }
 
 export function startTimer() {
   var s = getState();
   s.running = true;
   s.endAt = Date.now() + s.secsLeft * 1000;
-  if (s.phase === "focus" && !s.focusStartedAt) s.focusStartedAt = Date.now();
   writeRaw(s);
   notify();
   ensureTick();
@@ -142,10 +163,9 @@ export function startTimer() {
 
 export function pauseTimer() {
   var s = syncSecsLeft(getState());
-  var credit = elapsedFocusMinutes(s);
+  var credit = creditUncreditedFocus(s);
   s.running = false;
   s.endAt = null;
-  s.focusStartedAt = null;
   writeRaw(s);
   notify();
   return credit;
@@ -153,11 +173,11 @@ export function pauseTimer() {
 
 export function resetTimer() {
   var s = syncSecsLeft(getState());
-  var credit = s.phase === "focus" ? elapsedFocusMinutes(s) : 0;
+  var credit = s.phase === "focus" ? creditUncreditedFocus(s) : 0;
   s.running = false;
   s.phase = "focus";
   s.endAt = null;
-  s.focusStartedAt = null;
+  resetFocusCredits(s);
   s.secsLeft = modeFocusMin(s) * 60;
   writeRaw(s);
   notify();
@@ -167,18 +187,18 @@ export function resetTimer() {
 export function completePhase(onFocusComplete) {
   var s = syncSecsLeft(getState());
   if (s.phase === "focus") {
-    if (onFocusComplete) onFocusComplete(modeFocusMin(s));
+    var credit = creditUncreditedFocus(s);
+    if (credit > 0 && onFocusComplete) onFocusComplete(credit);
     s.phase = "break";
     s.secsLeft = modeBreakMin(s) * 60;
-    s.focusStartedAt = null;
+    resetFocusCredits(s);
   } else {
     s.phase = "focus";
     s.secsLeft = modeFocusMin(s) * 60;
-    s.focusStartedAt = Date.now();
+    resetFocusCredits(s);
   }
   s.running = true;
   s.endAt = Date.now() + s.secsLeft * 1000;
-  if (s.phase === "focus") s.focusStartedAt = Date.now();
   writeRaw(s);
   notify();
   return s;
@@ -212,10 +232,7 @@ function ensureTick() {
   tickTimer = setInterval(function() {
     var s = getState();
     if (!s.running) return;
-    var result = tickOnce();
-    if (result === "phase_done") {
-      // handled by React listener via subscribe + phase_done event
-    }
+    tickOnce();
   }, 1000);
 }
 
