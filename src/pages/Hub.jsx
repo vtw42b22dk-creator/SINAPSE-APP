@@ -137,6 +137,7 @@ function ModuleCard(props) {
   var hS = useState(false); var hov = hS[0], setHov = hS[1];
   var ok = !!mod.path;
   var compact = props.compact;
+  var mob = compact;
   return (
     <button onClick={function() { if (ok) onClick(mod); }}
       onMouseEnter={function() { setHov(true); }} onMouseLeave={function() { setHov(false); }}
@@ -144,22 +145,22 @@ function ModuleCard(props) {
         position:"relative",
         background: hov ? "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" : "linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))",
         border: "1px solid " + (hov ? mod.accent + "60" : "rgba(255,255,255,0.06)"),
-        borderRadius: 20, padding: compact ? "24px 20px" : "40px 32px", cursor: ok ? "pointer" : "default",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 20,
+        borderRadius: 20, padding: compact ? "28px 22px" : "40px 32px", cursor: ok ? "pointer" : "default",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 16 : 20,
         transition: "all 0.4s cubic-bezier(0.16,1,0.3,1)",
         transform: hov && ok && !compact ? "translateY(-6px) scale(1.02)" : "none",
         boxShadow: hov && ok ? "0 20px 60px " + mod.glow : "0 4px 20px rgba(0,0,0,0.3)",
         backdropFilter: "blur(20px)", color: hov ? mod.accent : "rgba(255,255,255,0.7)",
-        width: "100%", maxWidth: compact ? 420 : 280,
+        width: "100%", maxWidth: compact ? "none" : 280,
         animation: "fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) " + (index * 0.12) + "s both",
         outline: "none", fontFamily: "inherit", opacity: ok ? 1 : 0.5,
       }}>
       <div style={{position:"relative", zIndex:1}}><mod.Icon /></div>
       <div style={{textAlign:"center", position:"relative", zIndex:1}}>
-        <h2 style={{margin:"0 0 8px", fontSize:18, fontWeight:600, letterSpacing:0.5,
+        <h2 style={{margin:"0 0 8px", fontSize: mob ? 22 : 18, fontWeight:600, letterSpacing:0.5,
           fontFamily:"'JetBrains Mono', monospace", color: hov ? mod.accent : "rgba(255,255,255,0.9)",
           transition:"color 0.3s"}}>{mod.name}</h2>
-        <p style={{margin:0, fontSize:13, fontWeight:400, lineHeight:1.5, color:"rgba(255,255,255,0.4)",
+        <p style={{margin:0, fontSize: mob ? 15 : 13, fontWeight:400, lineHeight:1.5, color:"rgba(255,255,255,0.4)",
           fontFamily:"'IBM Plex Sans', sans-serif"}}>{ok ? mod.desc : "Em breve"}</p>
       </div>
       <div style={{position:"absolute", bottom:0, left:"50%", transform:"translateX(-50%)",
@@ -219,13 +220,13 @@ export default function Hub() {
         padding:isMobile?"72px 14px 100px":"48px 24px 56px", position:"relative", overflowY:"auto", overflowX:"hidden", WebkitOverflowScrolling:"touch"}}>
         <ParticleField />
         <div style={{position:"fixed",top:isMobile?12:18,right:isMobile?12:18,zIndex:4,display:"flex",gap:8}}>
-          <button onClick={function(){auth.signOut();}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.45)",fontSize:12,padding:"8px 12px",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif"}}>Sair</button>
+          <button onClick={function(){auth.signOut();}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"rgba(255,255,255,0.45)",fontSize:isMobile?14:12,padding:isMobile?"10px 14px":"8px 12px",cursor:"pointer",fontFamily:"'IBM Plex Sans',sans-serif"}}>Sair</button>
         </div>
         <div style={{position:"fixed",top:"-20%",right:"-10%",width:500,height:500,background:"radial-gradient(circle, rgba(0,255,200,0.03), transparent 60%)",pointerEvents:"none"}} />
         <div style={{position:"fixed",bottom:"-10%",left:"-10%",width:400,height:400,background:"radial-gradient(circle, rgba(123,97,255,0.03), transparent 60%)",pointerEvents:"none"}} />
         <div style={{position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:isMobile?28:48, maxWidth:960, width:"100%", paddingTop:isMobile?8:32, paddingBottom:24}}>
           <div style={{textAlign:"center"}}>
-            <p style={{fontFamily:"'IBM Plex Sans', sans-serif", fontSize:14, fontWeight:300, color:"#00FFC8",
+            <p style={{fontFamily:"'IBM Plex Sans', sans-serif", fontSize: isMobile ? 16 : 14, fontWeight:300, color:"#00FFC8",
               letterSpacing:4, textTransform:"uppercase", marginBottom:24,
               animation:"fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0s both", opacity:0.7}}>
               {getGreeting()}{auth.user && auth.user.email ? ", " + auth.user.email.split("@")[0] : ", Martim"}
@@ -234,7 +235,7 @@ export default function Hub() {
           </div>
           <div style={{width:40, height:1, background:"linear-gradient(90deg, transparent, rgba(0,255,200,0.3), transparent)",
             animation:"fadeSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both"}} />
-          <div style={{display:"grid", gridTemplateColumns:isMobile?"1fr":"repeat(auto-fit,minmax(220px,1fr))", gap:isMobile?14:24, justifyItems:"center", width:"100%", maxWidth:isMobile?430:960}}>
+          <div style={{display:"grid", gridTemplateColumns:isMobile?"1fr":"repeat(auto-fit,minmax(220px,1fr))", gap:isMobile?14:24, justifyItems:"stretch", width:"100%", maxWidth:isMobile?"100%":960}}>
             {MODULES.map(function(mod, i) {
               return <ModuleCard key={mod.id} module={mod} compact={isMobile} index={i} onClick={function() { if (mod.path) navigate(mod.path); }} />;
             })}

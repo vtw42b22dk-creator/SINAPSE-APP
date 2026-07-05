@@ -112,7 +112,7 @@ var PROJ_CSS = [
   ".pj-pal button{width:26px;height:26px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s}",
   ".pj-pal button:hover{transform:scale(1.12)}",
   ".pj-ghost{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:11px;cursor:pointer}",
-  "@media(max-width:719px){.pj-scroll{padding:0 12px 20px}.pj-body{padding-top:12px}.pj-hero{padding:14px;margin-bottom:12px}.pj-search{order:5;max-width:none;flex-basis:100%}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr}.pj-chips{width:100%}}",
+  "@media(max-width:719px){.pj-scroll{padding:0 12px 20px}.pj-body{padding-top:12px}.pj-hero{padding:14px;margin-bottom:12px}.pj-search{order:5;max-width:none;flex-basis:100%}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr}.pj-chips{width:100%}.pj-title{font-size:1.35rem!important}.pj-card-title{font-size:1rem!important}.pj-card-meta{font-size:0.88rem!important}}",
 ].join("");
 
 function ProjectsIcon() {

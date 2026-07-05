@@ -121,11 +121,11 @@ export default function Finance() {
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
-            <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 16, color: accent, margin: 0 }}>Financeiro</h1>
+            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 20 : 16, color: accent, margin: 0 }}>Financeiro</h1>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={function() { setTab("expense"); }} style={tabBtn(tab === "expense", EXPENSE_ACCENT)}>Gastos</button>
-            <button onClick={function() { setTab("income"); }} style={tabBtn(tab === "income", INCOME_ACCENT)}>Recursos</button>
+          <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto" }}>
+            <button onClick={function() { setTab("expense"); }} style={Object.assign({}, tabBtn(tab === "expense", EXPENSE_ACCENT), isMobile ? { flex: 1, padding: "11px 14px", fontSize: 13 } : null)}>Gastos</button>
+            <button onClick={function() { setTab("income"); }} style={Object.assign({}, tabBtn(tab === "income", INCOME_ACCENT), isMobile ? { flex: 1, padding: "11px 14px", fontSize: 13 } : null)}>Recursos</button>
           </div>
         </div>
       </header>

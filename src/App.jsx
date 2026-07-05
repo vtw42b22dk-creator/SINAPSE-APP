@@ -12,12 +12,14 @@ import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
 import { AuthProvider } from './lib/AuthContext'
 import { ThemeProvider } from './lib/ThemeContext'
+import { MOBILE_GLOBAL_CSS } from './lib/mobileUi'
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <AuthGate>
+          <style>{MOBILE_GLOBAL_CSS}</style>
           <HashRouter>
             <Routes>
               <Route path="/" element={<Hub />} />

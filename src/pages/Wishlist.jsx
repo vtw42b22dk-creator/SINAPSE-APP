@@ -241,9 +241,9 @@ export default function Wishlist() {
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button" onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
-            <h1 style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 16, color: accent, margin: 0 }}>Wishlist</h1>
+            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 20 : 16, color: accent, margin: 0 }}>Wishlist</h1>
           </div>
-          <label style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: isMobile ? 14 : 12, color: "rgba(255,255,255,0.45)", display: "flex", alignItems: "center", gap: 8 }}>
             <input type="checkbox" checked={showDone} onChange={function(e) { setShowDone(e.target.checked); }} />
             Mostrar comprados
           </label>
@@ -253,17 +253,17 @@ export default function Wishlist() {
       <div className="mod-main" data-scrollable style={{ maxWidth: 1000, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "220px minmax(0,1fr)", gap: isMobile ? 14 : 22 }}>
         {!loaded ? <div style={{ gridColumn: "1 / -1" }}><PageLoader accent={accent} lines={6} /></div> : null}
         {loaded && <aside style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 18, padding: 14, background: "rgba(255,255,255,0.025)", height: "fit-content" }}>
-          <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>GRUPOS</p>
-          <div style={{ display: "flex", flexDirection: isMobile ? "row" : "column", gap: 8, overflowX: isMobile ? "auto" : "visible", paddingBottom: isMobile ? 4 : 0 }}>
+          <p className="mod-lbl" style={{ margin: "0 0 10px", fontSize: isMobile ? 11 : 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>GRUPOS</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {groups.map(function(g) {
               var on = activeG && g.id === activeG.id;
               return (
-                <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}>
                   <button type="button" onClick={function() { setActiveGroup(g.id); }} style={{
-                    flex: 1, textAlign: "left", padding: "10px 12px", borderRadius: 12,
+                    flex: 1, textAlign: "left", padding: isMobile ? "12px 14px" : "10px 12px", borderRadius: 12,
                     border: "1px solid " + (on ? g.color + "45" : "rgba(255,255,255,0.06)"),
                     background: on ? g.color + "12" : "transparent", color: on ? g.color : "rgba(255,255,255,0.55)",
-                    cursor: "pointer", fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 13, whiteSpace: "nowrap",
+                    cursor: "pointer", fontFamily: "'IBM Plex Sans',sans-serif", fontSize: isMobile ? 15 : 13,
                   }}>{g.name}</button>
                   {groups.length > 1 && <button type="button" onClick={function(e) { e.stopPropagation(); removeGroup(g); }} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 14 }} aria-label="Eliminar grupo">×</button>}
                 </div>
@@ -271,13 +271,13 @@ export default function Wishlist() {
             })}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <input value={newGroupName} onChange={function(e) { setNewGroupName(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addGroup(); }} placeholder="Novo grupo..." style={{ flex: 1, minWidth: 0, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "8px 10px", outline: "none", fontSize: 13 }} />
+            <input value={newGroupName} onChange={function(e) { setNewGroupName(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addGroup(); }} placeholder="Novo grupo..." style={{ flex: 1, minWidth: 0, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "10px 12px", outline: "none", fontSize: isMobile ? 16 : 13 }} />
             <button type="button" onClick={addGroup} style={{ background: accent + "14", border: "1px solid " + accent + "35", borderRadius: 10, color: accent, padding: "0 12px", cursor: "pointer" }}>+</button>
           </div>
         </aside>}
 
         {loaded && <main style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>
+          <p className="mod-stat" style={{ fontSize: isMobile ? 14 : 12, color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>
             {activeG ? activeG.name : "—"} · {visible.length} item(ns) · ~{totalPending.toFixed(2)} €
           </p>
 

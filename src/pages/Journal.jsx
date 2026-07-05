@@ -509,7 +509,7 @@ export default function Journal() {
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
-            <h1 style={{ fontFamily: JOURNAL_FONT, fontSize: 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>Diário</h1>
+            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 20 : 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>Diário</h1>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0}}>
             <button onClick={function(){addBlock("title");}} style={topBtn(color)}>+ Título</button>

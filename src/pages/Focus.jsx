@@ -109,7 +109,7 @@ var FX_CSS = [
   ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:10px;font-family:'JetBrains Mono',monospace}",
   ".fx-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".fx-pal button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:44px;flex-direction:row;gap:6px;font-size:13px}.fx-nav span{font-size:8px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}}",
+  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:6px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
 ].join("");
 
 function playBeep(freq) {

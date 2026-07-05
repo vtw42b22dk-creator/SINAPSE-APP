@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
+import { fs } from "../lib/mobileUi";
 
 var ACCENT = "#7B61FF";
 var COLUMNS = [
@@ -28,6 +29,7 @@ function todayKey() {
 function TaskCard(props) {
   var t = props.task, p = PRIORITIES.find(function(x) { return x.id === t.priority; }) || PRIORITIES[0];
   var overdue = t.due && t.due < todayKey() && props.col !== "done";
+  var mob = props.isMobile;
   return (
     <article
       draggable={!props.readOnly}
@@ -50,10 +52,10 @@ function TaskCard(props) {
           }}>{props.col === "done" ? "✓" : ""}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
-            margin: 0, fontSize: 13, color: props.col === "done" ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.88)",
+            margin: 0, fontSize: fs(mob, 13, 16), color: props.col === "done" ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.88)",
             textDecoration: props.col === "done" ? "line-through" : "none", lineHeight: 1.4,
           }}>{t.title}</p>
-          {t.notes && <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.45 }}>{t.notes}</p>}
+          {t.notes && <p style={{ margin: "6px 0 0", fontSize: fs(mob, 11, 14), color: "rgba(255,255,255,0.3)", lineHeight: 1.45 }}>{t.notes}</p>}
           {(t.subtasks || []).length > 0 && (
             <ul style={{ margin: "8px 0 0", padding: 0, listStyle: "none" }}>
               {t.subtasks.map(function(st) {
@@ -315,6 +317,24 @@ export default function Tasks() {
     setShowForm(true);
   }
 
+  function clearColumn(colId) {
+    var list = tasksInCol(colId);
+    if (!list.length) return;
+    var label = colId === "inbox" ? "Inbox" : "Concluídas";
+    if (!window.confirm("Apagar todas as " + list.length + " tarefas em «" + label + "»? Esta acção não pode ser desfeita.")) return;
+    var ids = list.map(function(t) { return t.id; });
+    var prev = tasksRef.current;
+    var next = prev.filter(function(t) { return ids.indexOf(t.id) < 0; });
+    skipSaveRef.current = true;
+    clearTimeout(saveTimerRef.current);
+    commitTasks(next);
+    if (editId && ids.indexOf(editId) >= 0) resetDraft();
+    taskStore.deleteTasksByIds(prev, ids).finally(function() {
+      lastDeleteAt.current = Date.now();
+      setTimeout(function() { skipSaveRef.current = false; }, 200);
+    });
+  }
+
   function deleteTask(id) {
     if (!window.confirm("Apagar esta tarefa?")) return;
     var prev = tasksRef.current;
@@ -372,7 +392,7 @@ export default function Tasks() {
   var tk = todayKey();
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(155deg, #0A0A12 0%, #12101F 50%, #0A0A12 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif" }}>
+    <div className="mod-main" style={{ minHeight: "100vh", background: "linear-gradient(155deg, #0A0A12 0%, #12101F 50%, #0A0A12 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{"@keyframes taskIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} .task-col{animation:taskIn .35s ease both}"}</style>
       <div style={{ position: "fixed", top: "-20%", left: "30%", width: 500, height: 500, background: "radial-gradient(circle,rgba(123,97,255,0.06),transparent 60%)", pointerEvents: "none" }} />
@@ -381,7 +401,7 @@ export default function Tasks() {
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
-            <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>Tarefas</h1>
+            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 20), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>Tarefas</h1>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: isMobile ? "none" : 360, minWidth: 180 }}>
             <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
@@ -422,11 +442,11 @@ export default function Tasks() {
               <textarea value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
                 style={{ gridColumn: "1 / -1", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "10px 12px", fontSize: isMobile ? 16 : 12, outline: "none", fontFamily: "inherit", resize: "vertical" }} />
               <select value={draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value })); }}
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: 12, fontFamily: "inherit" }}>
+                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: isMobile ? 16 : 12, fontFamily: "inherit" }}>
                 {COLUMNS.map(function(c) { return <option key={c.id} value={c.id}>{c.label}</option>; })}
               </select>
               <select value={draft.priority} onChange={function(e) { setDraft(Object.assign({}, draft, { priority: e.target.value })); }}
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: 12, fontFamily: "inherit" }}>
+                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: isMobile ? 16 : 12, fontFamily: "inherit" }}>
                 {PRIORITIES.map(function(p) { return <option key={p.id} value={p.id}>{p.label}</option>; })}
               </select>
               <input type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
@@ -473,13 +493,21 @@ export default function Tasks() {
               <div key={col.id} className="task-col" style={{ animationDelay: ci * 0.06 + "s" }}
                 onDragOver={function(e) { e.preventDefault(); }}
                 onDrop={function(e) { onDrop(col.id, e); }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px", gap: 8, flexWrap: "wrap" }}>
                   <div>
-                    <span style={{ fontSize: 14, marginRight: 8, opacity: 0.6 }}>{col.icon}</span>
-                    <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{col.label}</span>
-                    <span style={{ marginLeft: 8, fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono',monospace" }}>{list.length}</span>
+                    <span style={{ fontSize: fs(isMobile, 14, 18), marginRight: 8, opacity: 0.6 }}>{col.icon}</span>
+                    <span style={{ fontSize: fs(isMobile, 13, 17), fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{col.label}</span>
+                    <span style={{ marginLeft: 8, fontSize: fs(isMobile, 10, 12), color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono',monospace" }}>{list.length}</span>
                   </div>
-                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.15)", fontFamily: "'IBM Plex Sans',sans-serif" }}>{col.hint}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+                    {(col.id === "inbox" || col.id === "done") && list.length > 0 ? (
+                      <button type="button" onClick={function() { clearColumn(col.id); }}
+                        style={{ background: "rgba(255,61,90,0.08)", border: "1px solid rgba(255,61,90,0.28)", borderRadius: 8, color: "#FF3D5A", padding: isMobile ? "8px 12px" : "5px 10px", cursor: "pointer", fontSize: fs(isMobile, 10, 12), fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>
+                        Apagar tudo
+                      </button>
+                    ) : null}
+                    {!isMobile ? <span style={{ fontSize: 9, color: "rgba(255,255,255,0.15)", fontFamily: "'IBM Plex Sans',sans-serif" }}>{col.hint}</span> : null}
+                  </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 80 }}>
                   {list.length === 0 ? (
@@ -488,7 +516,7 @@ export default function Tasks() {
                     </p>
                   ) : list.map(function(t) {
                     return (
-                      <TaskCard key={t.id} task={t} col={col.id} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
+                      <TaskCard key={t.id} task={t} col={col.id} isMobile={isMobile} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
                     );
                   })}
                 </div>

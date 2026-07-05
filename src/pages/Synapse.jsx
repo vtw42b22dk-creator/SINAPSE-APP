@@ -1233,16 +1233,16 @@ export default function Synapse(props) {
           <input value={newProjectName} onChange={function(e){setNewProjectName(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createProject();}} placeholder="Nome do novo projeto..." style={{flex:1,minWidth:isMob?"100%":220,background:"rgba(0,0,0,0.25)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,color:"#fff",padding:"12px 14px",outline:"none",fontSize:isMob?16:14}}/>
           <button onClick={createProject} style={{background:"rgba(255,61,138,0.14)",border:"1px solid rgba(255,61,138,0.35)",borderRadius:14,color:"#FF3D8A",padding:"0 18px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>Criar</button>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax("+ (isMob ? "180px" : "220px") +",1fr))",gap:16}}>
-          {projects.map(function(p){return <div key={p.id} style={{position:"relative",minHeight:150,borderRadius:22,border:"1px solid "+(p.color||"#FF3D8A")+"35",background:"linear-gradient(145deg,"+(p.color||"#FF3D8A")+"12,rgba(255,255,255,0.02))",color:"#fff",padding:20,boxShadow:"0 16px 48px rgba(0,0,0,0.25)",overflow:"hidden"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMob?"1fr":"repeat(auto-fit,minmax(220px,1fr))",gap:16}}>
+          {projects.map(function(p){return <div key={p.id} style={{position:"relative",minHeight:isMob?130:150,borderRadius:22,border:"1px solid "+(p.color||"#FF3D8A")+"35",background:"linear-gradient(145deg,"+(p.color||"#FF3D8A")+"12,rgba(255,255,255,0.02))",color:"#fff",padding:isMob?18:20,boxShadow:"0 16px 48px rgba(0,0,0,0.25)",overflow:"hidden"}}>
             <div style={{position:"absolute",top:12,right:12,display:"flex",gap:6,zIndex:2}}>
               <button onClick={function(){renameProject(p);}} title="Renomear workspace" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.18)",color:"rgba(255,255,255,0.38)",cursor:"pointer",fontSize:12}}>✎</button>
               <button onClick={function(){removeProject(p);}} title="Apagar projeto" style={{width:30,height:30,borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(0,0,0,0.18)",color:"rgba(255,255,255,0.32)",cursor:"pointer"}}>×</button>
             </div>
             <button onClick={function(){setActiveProject(p);}} style={{width:"100%",height:"100%",textAlign:"left",background:"transparent",border:"none",color:"inherit",padding:0,cursor:"pointer"}}>
               <div style={{width:38,height:38,borderRadius:14,background:(p.color||"#FF3D8A")+"18",display:"flex",alignItems:"center",justifyContent:"center",color:p.color||"#FF3D8A",marginBottom:22}}>✦</div>
-              <h2 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:18,margin:"0 0 8px",paddingRight:70}}>{p.name}</h2>
-              <p style={{fontSize:12,color:"rgba(255,255,255,0.35)",margin:0}}>Entrar no workspace</p>
+              <h2 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:isMob?20:18,margin:"0 0 8px",paddingRight:70}}>{p.name}</h2>
+              <p style={{fontSize:isMob?14:12,color:"rgba(255,255,255,0.35)",margin:0}}>Entrar no workspace</p>
             </button>
           </div>;})}
         </div>

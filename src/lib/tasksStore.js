@@ -143,6 +143,21 @@ export async function saveTasksNow(tasks) {
   return pushTasks(tasks);
 }
 
+/** Remove várias tarefas localmente e na nuvem. */
+export async function deleteTasksByIds(tasks, ids) {
+  if (!ids || !ids.length) return (tasks || []).slice();
+  var del = {};
+  ids.forEach(function(id) { if (id) del[id] = true; });
+  var next = (tasks || []).filter(function(t) { return !del[t.id]; });
+  await deleteRemoteIds(TABLE, ids, KEY);
+  var dbRows = next.map(toDb);
+  await writeLocal(KEY, dbRows);
+  if (dbRows.length) {
+    await replaceRows(TABLE, KEY, dbRows, { pruneOrphans: false });
+  }
+  return next;
+}
+
 /** Remove tarefa localmente e na nuvem (evita reaparecer ao sincronizar). */
 export async function deleteTaskById(tasks, taskId) {
   if (!taskId) return (tasks || []).slice();
