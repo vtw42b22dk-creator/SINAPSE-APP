@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/AuthContext";
 import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
 
@@ -91,6 +92,7 @@ function TaskCard(props) {
 
 export default function Tasks() {
   var navigate = useNavigate();
+  var auth = useAuth();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
@@ -115,18 +117,48 @@ export default function Tasks() {
   var isHydratedRef = useRef(false);
   var skipSaveRef = useRef(false);
   var saveTimerRef = useRef(null);
+  var lastSaveAt = useRef(0);
+  var lastDeleteAt = useRef(0);
+  var syncWarnS = useState("");
+  var syncWarn = syncWarnS[0], setSyncWarn = syncWarnS[1];
 
   function commitTasks(next) {
     tasksRef.current = next;
     setTasks(next);
   }
 
+  function reportSave(res) {
+    if (!res) return;
+    if (res.emergency) {
+      setSyncWarn("Sessão expirada — tarefas guardadas neste dispositivo. Inicia sessão no Hub para sincronizar.");
+      return;
+    }
+    if (res.ok && res.cloud) {
+      lastSaveAt.current = Date.now();
+      setSyncWarn("");
+    } else if (res.error) {
+      setSyncWarn("Nuvem: " + res.error);
+    }
+  }
+
+  var syncFromCloud = useCallback(function() {
+    if (!isHydratedRef.current) return Promise.resolve();
+    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
+    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
+    return taskStore.pullTasks().then(function(merged) {
+      if (skipSaveRef.current) return;
+      skipSaveRef.current = true;
+      commitTasks(merged);
+      setTimeout(function() { skipSaveRef.current = false; }, 150);
+    }).catch(function() {});
+  }, []);
+
   function persistDebounced() {
     if (!isHydratedRef.current || skipSaveRef.current) return;
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(function() {
       if (skipSaveRef.current) return;
-      taskStore.saveTasks(tasksRef.current);
+      taskStore.saveTasks(tasksRef.current).then(reportSave);
     }, SAVE_DEBOUNCE_MS);
   }
 
@@ -135,23 +167,39 @@ export default function Tasks() {
     var list = next || tasksRef.current;
     tasksRef.current = list;
     setTasks(list);
-    return taskStore.saveTasksNow(list);
+    return taskStore.saveTasksNow(list).then(reportSave);
   }
 
   useEffect(function() {
     var alive = true;
     skipSaveRef.current = true;
     isHydratedRef.current = false;
-    taskStore.loadTasks().then(function(list) {
-      if (!alive) return;
-      tasksRef.current = list;
-      setTasks(list);
-      setLoaded(true);
-      isHydratedRef.current = true;
-      setTimeout(function() { skipSaveRef.current = false; }, 200);
-    });
+    taskStore.loadTasksLocal()
+      .then(function(local) {
+        if (!alive) return;
+        commitTasks(local);
+        return taskStore.pullTasks();
+      })
+      .then(function(merged) {
+        if (!alive) return;
+        commitTasks(merged || []);
+        return taskStore.pushTasks(merged || []).then(function(res) {
+          if (res && res.emergency) reportSave(res);
+        });
+      })
+      .finally(function() {
+        if (!alive) return;
+        setLoaded(true);
+        isHydratedRef.current = true;
+        setTimeout(function() { skipSaveRef.current = false; }, 200);
+      });
     return function() { alive = false; };
   }, []);
+
+  useEffect(function() {
+    if (!loaded || auth.loading) return;
+    syncFromCloud();
+  }, [auth.user && auth.user.id, loaded, syncFromCloud]);
 
   useEffect(function() {
     function onResize() { setViewportW(window.innerWidth); }
@@ -171,14 +219,26 @@ export default function Tasks() {
     function flush() {
       if (!isHydratedRef.current) return;
       clearTimeout(saveTimerRef.current);
-      taskStore.saveTasksNow(tasksRef.current);
+      taskStore.saveTasksNow(tasksRef.current).then(reportSave);
+    }
+    function onVis() {
+      if (!isHydratedRef.current) return;
+      if (document.visibilityState === "hidden") flush();
+      else syncFromCloud();
     }
     window.addEventListener("beforeunload", flush);
-    document.addEventListener("visibilitychange", function() {
-      if (document.visibilityState === "hidden") flush();
-    });
-    return function() { window.removeEventListener("beforeunload", flush); };
-  }, [loaded]);
+    window.addEventListener("focus", syncFromCloud);
+    document.addEventListener("visibilitychange", onVis);
+    var timer = setInterval(function() {
+      if (document.visibilityState === "visible") syncFromCloud();
+    }, 15000);
+    return function() {
+      window.removeEventListener("beforeunload", flush);
+      window.removeEventListener("focus", syncFromCloud);
+      document.removeEventListener("visibilitychange", onVis);
+      clearInterval(timer);
+    };
+  }, [loaded, syncFromCloud]);
 
   var stats = useMemo(function() {
     var done = tasks.filter(function(t) { return t.column === "done"; }).length;
@@ -223,11 +283,12 @@ export default function Tasks() {
       subtasks: d.subtasks || [],
       column: d.column,
       created: editId ? undefined : Date.now(),
+      updated: Date.now(),
     };
     var next;
     if (editId) {
       next = tasksRef.current.map(function(t) {
-        return t.id === editId ? Object.assign({}, t, item) : t;
+        return t.id === editId ? taskStore.touchTask(t, item) : t;
       });
     } else {
       next = tasksRef.current.concat([Object.assign({}, item, { created: Date.now() })]);
@@ -263,6 +324,7 @@ export default function Tasks() {
     commitTasks(next);
     if (editId === id) resetDraft();
     taskStore.deleteTaskById(prev, id).finally(function() {
+      lastDeleteAt.current = Date.now();
       setTimeout(function() { skipSaveRef.current = false; }, 200);
     });
   }
@@ -271,8 +333,8 @@ export default function Tasks() {
     setTasks(function(prev) {
       return prev.map(function(t) {
         if (t.id !== id) return t;
-        if (t.column === "done") return Object.assign({}, t, { column: "today" });
-        return Object.assign({}, t, { column: "done" });
+        if (t.column === "done") return taskStore.touchTask(t, { column: "today" });
+        return taskStore.touchTask(t, { column: "done" });
       });
     });
   }
@@ -289,7 +351,7 @@ export default function Tasks() {
     setTasks(function(prev) {
       return prev.map(function(t) {
         if (t.id !== taskId) return t;
-        return Object.assign({}, t, {
+        return taskStore.touchTask(t, {
           subtasks: (t.subtasks || []).map(function(s) {
             return s.id === subId ? Object.assign({}, s, { done: !s.done }) : s;
           }),
@@ -303,7 +365,7 @@ export default function Tasks() {
     var id = e.dataTransfer.getData("text/task-id");
     if (!id) return;
     setTasks(function(prev) {
-      return prev.map(function(t) { return t.id === id ? Object.assign({}, t, { column: col }) : t; });
+      return prev.map(function(t) { return t.id === id ? taskStore.touchTask(t, { column: col }) : t; });
     });
   }
 
@@ -337,6 +399,11 @@ export default function Tasks() {
       <div data-scrollable style={{ maxWidth: 1200, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "16px 20px" }}>
         {!loaded ? <PageLoader accent={ACCENT} lines={6} /> : (
         <>
+        {syncWarn ? (
+          <p style={{ margin: "0 0 14px", padding: "10px 12px", borderRadius: 10, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.28)", color: "#FFB800", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
+            {syncWarn}
+          </p>
+        ) : null}
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
             <div style={{ width: stats.pct + "%", height: "100%", background: "linear-gradient(90deg," + ACCENT + ",#00FFC8)", borderRadius: 3, transition: "width 0.4s ease" }} />
