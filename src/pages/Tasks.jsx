@@ -12,6 +12,11 @@ var COLUMNS = [
   { id: "doing", label: "A fazer", icon: "▸", hint: "Em progresso" },
   { id: "done", label: "Concluído", icon: "✓", hint: "Vitórias" },
 ];
+var MOBILE_VIEWS = [
+  { id: "inbox", label: "Inbox", icon: "◎", hint: "Captura rápida", columns: ["inbox"] },
+  { id: "today", label: "Hoje", icon: "◉", hint: "Foco e progresso", columns: ["today", "doing"] },
+  { id: "done", label: "Concluídas", icon: "✓", hint: "Vitórias", columns: ["done"] },
+];
 var PRIORITIES = [
   { id: "low", label: "Baixa", color: "rgba(255,255,255,0.35)" },
   { id: "med", label: "Média", color: "#FFB800" },
@@ -114,6 +119,8 @@ export default function Tasks() {
   var editId = editIdS[0], setEditId = editIdS[1];
   var showFormS = useState(false);
   var showForm = showFormS[0], setShowForm = showFormS[1];
+  var mobileTabS = useState(null);
+  var mobileTab = mobileTabS[0], setMobileTab = mobileTabS[1];
 
   var tasksRef = useRef([]);
   var isHydratedRef = useRef(false);
@@ -204,7 +211,11 @@ export default function Tasks() {
   }, [auth.user && auth.user.id, loaded, syncFromCloud]);
 
   useEffect(function() {
-    function onResize() { setViewportW(window.innerWidth); }
+    function onResize() {
+      var w = window.innerWidth;
+      setViewportW(w);
+      if (w >= 720) setMobileTab(null);
+    }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
@@ -263,6 +274,25 @@ export default function Tasks() {
       return (po[a.priority] || 1) - (po[b.priority] || 1);
     });
   }
+
+  function countMobileView(viewId) {
+    var v = MOBILE_VIEWS.find(function(x) { return x.id === viewId; });
+    if (!v) return 0;
+    return v.columns.reduce(function(n, col) { return n + tasksInCol(col).length; }, 0);
+  }
+
+  var activeMobileView = useMemo(function() {
+    if (!isMobile || !mobileTab) return null;
+    return MOBILE_VIEWS.find(function(v) { return v.id === mobileTab; }) || null;
+  }, [isMobile, mobileTab]);
+
+  var visibleColumns = useMemo(function() {
+    if (isMobile && activeMobileView) {
+      return COLUMNS.filter(function(c) { return activeMobileView.columns.indexOf(c.id) >= 0; });
+    }
+    if (isMobile && !mobileTab) return [];
+    return COLUMNS;
+  }, [isMobile, activeMobileView, mobileTab]);
 
   var resetDraft = useCallback(function() {
     setDraft({ title: "", notes: "", priority: "med", due: "", tags: "", column: "inbox", subtasks: [] });
@@ -400,9 +430,16 @@ export default function Tasks() {
       <header style={{ position: "sticky", top: 0, zIndex: 20, padding: isMobile ? "12px" : "14px 20px", background: "linear-gradient(180deg,rgba(10,10,18,0.97),rgba(10,10,18,0.75))", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
-            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 20), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>Tarefas</h1>
+            {isMobile && mobileTab ? (
+              <button type="button" onClick={function() { setMobileTab(null); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Voltar</button>
+            ) : (
+              <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
+            )}
+            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 20), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>
+              {isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
+            </h1>
           </div>
+          {!(isMobile && !mobileTab) ? (
           <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: isMobile ? "none" : 360, minWidth: 180 }}>
             <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
               style={{ flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "9px 12px", fontSize: isMobile ? 16 : 12, outline: "none", fontFamily: "inherit" }} />
@@ -411,8 +448,11 @@ export default function Tasks() {
               Foco hoje
             </button>
           </div>
-          <button type="button" onClick={function() { resetDraft(); setShowForm(true); setDraft(function(d) { return Object.assign({}, d, { column: "inbox" }); }); }}
+          ) : null}
+          {!(isMobile && !mobileTab) ? (
+          <button type="button" onClick={function() { resetDraft(); setShowForm(true); setDraft(function(d) { return Object.assign({}, d, { column: activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox" }); }); }}
             style={{ background: ACCENT + "18", border: "1px solid " + ACCENT + "45", borderRadius: 10, color: ACCENT, fontSize: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, width: isMobile ? "100%" : "auto" }}>+ Nova</button>
+          ) : null}
         </div>
       </header>
 
@@ -424,6 +464,7 @@ export default function Tasks() {
             {syncWarn}
           </p>
         ) : null}
+        {!(isMobile && !mobileTab) ? (
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
             <div style={{ width: stats.pct + "%", height: "100%", background: "linear-gradient(90deg," + ACCENT + ",#00FFC8)", borderRadius: 3, transition: "width 0.4s ease" }} />
@@ -432,8 +473,9 @@ export default function Tasks() {
             {stats.done}/{stats.total} concluídas · {stats.today} em foco hoje
           </p>
         </div>
+        ) : null}
 
-        {showForm && (
+        {showForm && !(isMobile && !mobileTab) ? (
           <div style={{ marginBottom: 24, padding: 18, borderRadius: 16, background: "rgba(123,97,255,0.06)", border: "1px solid " + ACCENT + "25", animation: "taskIn 0.25s ease" }}>
             <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
@@ -484,10 +526,34 @@ export default function Tasks() {
               )}
             </div>
           </div>
-        )}
+        ) : null}
 
+        {isMobile && !mobileTab ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>Onde queres começar?</p>
+            {MOBILE_VIEWS.map(function(v, vi) {
+              var n = countMobileView(v.id);
+              return (
+                <button key={v.id} type="button" onClick={function() { setMobileTab(v.id); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 16, width: "100%", textAlign: "left",
+                    padding: "20px 18px", borderRadius: 18, cursor: "pointer", fontFamily: "inherit",
+                    border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)",
+                    animation: "taskIn 0.3s ease " + (vi * 0.06) + "s both",
+                  }}>
+                  <span style={{ fontSize: 28, lineHeight: 1, opacity: 0.75, width: 36, textAlign: "center" }}>{v.icon}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.92)", fontWeight: 500 }}>{v.label}</p>
+                    <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 }}>{v.hint}</p>
+                  </div>
+                  <span style={{ fontSize: 15, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, padding: "6px 12px", borderRadius: 999, background: ACCENT + "14", border: "1px solid " + ACCENT + "30" }}>{n}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(240px,1fr))", gap: isMobile ? 18 : 16, alignItems: "start" }}>
-          {COLUMNS.map(function(col, ci) {
+          {visibleColumns.map(function(col, ci) {
             var list = tasksInCol(col.id);
             return (
               <div key={col.id} className="task-col" style={{ animationDelay: ci * 0.06 + "s" }}
@@ -524,6 +590,7 @@ export default function Tasks() {
             );
           })}
         </div>
+        )}
         </>
         )}
       </div>

@@ -83,6 +83,14 @@ create table if not exists public.journal_blocks (
   created_at timestamptz default now()
 );
 
+create table if not exists public.journal_note_layout (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  payload jsonb not null default '{"blocks":[],"assign":{},"collapsed":{}}'::jsonb,
+  updated_at timestamptz default now(),
+  created_at timestamptz default now()
+);
+
 create table if not exists public.attachments (
   id text primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -107,6 +115,7 @@ alter table public.synapse_nodes enable row level security;
 alter table public.synapse_connections enable row level security;
 alter table public.journal_spaces enable row level security;
 alter table public.journal_blocks enable row level security;
+alter table public.journal_note_layout enable row level security;
 alter table public.attachments enable row level security;
 
 create policy "own tasks" on public.tasks for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -116,6 +125,7 @@ create policy "own synapse nodes" on public.synapse_nodes for all using (auth.ui
 create policy "own synapse connections" on public.synapse_connections for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own journal spaces" on public.journal_spaces for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own journal blocks" on public.journal_blocks for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own journal note layout" on public.journal_note_layout for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own attachments" on public.attachments for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create table if not exists public.project_investments (

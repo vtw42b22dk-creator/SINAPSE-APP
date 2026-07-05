@@ -4,12 +4,67 @@ import {
   replaceRows,
   uid,
   writeLocal,
+  scopedKey,
 } from "./cloudStore";
 import { safePullMerge } from "./syncEngine";
 import { hydrateJournalBlocks, stripAttachmentRef } from "./attachmentsStore";
 
 var SPACES = "journal-spaces-v1";
 var BLOCKS = "journal-blocks-v1";
+var NOTE_LAYOUT_KEY = "journal-note-layout-v1";
+var NOTE_LAYOUT_TABLE = "journal_note_layout";
+var LAYOUT_ROW_ID = "layout";
+var LEGACY_NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
+
+function emptyNoteLayout() {
+  return { blocks: [], assign: {}, collapsed: {} };
+}
+
+function normalizeNoteLayoutRow(row) {
+  if (!row) return Object.assign({ id: LAYOUT_ROW_ID, updated: 0 }, emptyNoteLayout());
+  var p = row.payload || row.data || {};
+  if (typeof p === "string") {
+    try { p = JSON.parse(p); } catch (e) { p = {}; }
+  }
+  return {
+    id: row.id || LAYOUT_ROW_ID,
+    blocks: Array.isArray(p.blocks) ? p.blocks : [],
+    assign: p.assign && typeof p.assign === "object" ? p.assign : {},
+    collapsed: p.collapsed && typeof p.collapsed === "object" ? p.collapsed : {},
+    updated: row.updated || (row.updated_at ? new Date(row.updated_at).getTime() : 0),
+  };
+}
+
+function noteLayoutToDb(layout) {
+  var l = layout || emptyNoteLayout();
+  return {
+    id: LAYOUT_ROW_ID,
+    payload: {
+      blocks: l.blocks || [],
+      assign: l.assign || {},
+      collapsed: l.collapsed || {},
+    },
+    updated: l.updated || Date.now(),
+  };
+}
+
+function pickNewerLayout(a, b) {
+  var ta = (a && a.updated) || 0;
+  var tb = (b && b.updated) || 0;
+  return ta >= tb ? a : b;
+}
+
+async function migrateLegacyNoteLayout() {
+  try {
+    var sk = await scopedKey(NOTE_LAYOUT_KEY);
+    if (localStorage.getItem(sk)) return;
+    var raw = localStorage.getItem(LEGACY_NOTE_BLOCKS_KEY);
+    if (!raw) return;
+    var v = JSON.parse(raw);
+    var row = noteLayoutToDb(Object.assign(emptyNoteLayout(), v || {}, { updated: Date.now() }));
+    await writeLocal(NOTE_LAYOUT_KEY, [row]);
+  } catch (e) {}
+}
 
 function normalizeSpace(s) {
   return { id: s.id, title: s.title || "Tema", color: s.color || "#FFB800" };
@@ -221,6 +276,36 @@ export async function saveAll(spaces, blocks) {
   var s = await saveSpaces(spaces || []);
   var b = await saveBlocks(blocks || []);
   return { ok: s.ok && b.ok, error: s.error || b.error, spaces: s, blocks: b };
+}
+
+export async function loadNoteLayoutLocal() {
+  await migrateLegacyNoteLayout();
+  var rows = await readLocal(NOTE_LAYOUT_KEY, []);
+  var row = rows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+  if (!row) return Object.assign({ id: LAYOUT_ROW_ID, updated: 0 }, emptyNoteLayout());
+  return normalizeNoteLayoutRow(row);
+}
+
+export async function pullNoteLayout() {
+  try {
+    var localRows = await readLocal(NOTE_LAYOUT_KEY, []);
+    var localRow = localRows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+    var local = normalizeNoteLayoutRow(localRow);
+    var merged = await safePullMerge(NOTE_LAYOUT_KEY, NOTE_LAYOUT_TABLE, normalizeNoteLayoutRow);
+    var remoteRow = merged.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+    var remote = normalizeNoteLayoutRow(remoteRow);
+    var picked = pickNewerLayout(local, remote);
+    await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
+    return picked;
+  } catch (e) {
+    return loadNoteLayoutLocal();
+  }
+}
+
+export async function saveNoteLayout(layout) {
+  var row = noteLayoutToDb(Object.assign({}, layout || emptyNoteLayout(), { updated: Date.now() }));
+  await writeLocal(NOTE_LAYOUT_KEY, [row]);
+  return replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
 }
 
 /** Apaga tema e blocos na nuvem (para sincronizar eliminações). */

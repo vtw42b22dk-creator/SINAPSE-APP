@@ -20,26 +20,7 @@ var JOURNAL_TEXT = {
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
 var SAVE_DEBOUNCE_MS = 1800;
-var NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
-
-function loadNoteBlocks() {
-  try {
-    var raw = localStorage.getItem(NOTE_BLOCKS_KEY);
-    if (!raw) return { blocks: [], assign: {}, collapsed: {} };
-    var v = JSON.parse(raw) || {};
-    return {
-      blocks: Array.isArray(v.blocks) ? v.blocks : [],
-      assign: v.assign && typeof v.assign === "object" ? v.assign : {},
-      collapsed: v.collapsed && typeof v.collapsed === "object" ? v.collapsed : {},
-    };
-  } catch (e) {
-    return { blocks: [], assign: {}, collapsed: {} };
-  }
-}
-
-function persistNoteBlocks(v) {
-  try { localStorage.setItem(NOTE_BLOCKS_KEY, JSON.stringify(v)); } catch (e) {}
-}
+var NOTE_LAYOUT_DEBOUNCE_MS = 900;
 
 function newNoteBlockId() {
   return "nb" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -83,15 +64,19 @@ export default function Journal() {
   var isHydrated = hydratedS[0], setIsHydrated = hydratedS[1];
   var sessionWarnS = useState("");
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
-  var noteBlocksS = useState(loadNoteBlocks);
+  var noteBlocksS = useState(function() { return { blocks: [], assign: {}, collapsed: {} }; });
   var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
+  var mobileNoteOpenS = useState(false);
+  var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
   var dragNoteRef = useRef(null);
   var dragOverS = useState(null);
   var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
   var saveSpacesTimer = useRef(null);
   var saveBlocksTimer = useRef(null);
+  var saveNoteLayoutTimer = useRef(null);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
+  var noteBlocksRef = useRef({ blocks: [], assign: {}, collapsed: {} });
   var isHydratedRef = useRef(false);
   var editingBlockRef = useRef(null);
   var flushHandlersRef = useRef({});
@@ -103,6 +88,15 @@ export default function Journal() {
     var id = editingBlockRef.current;
     if (!id) return null;
     return blocksRef.current.find(function(b) { return b.id === id; }) || null;
+  }
+
+  function applyNoteLayout(layout) {
+    if (!layout) return;
+    setNoteBlocks({
+      blocks: layout.blocks || [],
+      assign: layout.assign || {},
+      collapsed: layout.collapsed || {},
+    });
   }
 
   function applyJournalData(spacesList, blocksList) {
@@ -120,13 +114,17 @@ export default function Journal() {
     return Promise.all([
       journalStore.loadSpacesLocal(),
       journalStore.loadBlocksLocal(),
+      journalStore.loadNoteLayoutLocal(),
     ]).then(function(local) {
       applyJournalData(local[0], local[1]);
+      applyNoteLayout(local[2]);
       return Promise.all([
         journalStore.pullSpaces(),
         journalStore.pullBlocks(getEditingSnapshot()),
+        journalStore.pullNoteLayout(),
       ]).then(function(sync) {
         applyJournalData(sync[0], sync[1]);
+        applyNoteLayout(sync[2]);
       });
     }).finally(function() {
       isHydratedRef.current = true;
@@ -143,8 +141,10 @@ export default function Journal() {
     return Promise.all([
       journalStore.pullSpaces(),
       journalStore.pullBlocks(getEditingSnapshot()),
+      journalStore.pullNoteLayout(),
     ]).then(function(sync) {
       applyJournalData(sync[0], sync[1]);
+      applyNoteLayout(sync[2]);
       setTimeout(function() { skipSaveRef.current = false; }, 150);
     }).catch(function() {
       skipSaveRef.current = false;
@@ -164,7 +164,10 @@ export default function Journal() {
     onPush: function() {
       flushAllEditors();
       skipSaveRef.current = true;
-      return persistAll().finally(function() {
+      return Promise.all([
+        persistAll(),
+        journalStore.saveNoteLayout(noteBlocksRef.current),
+      ]).finally(function() {
         lastSaveAt.current = Date.now();
         setTimeout(function() { skipSaveRef.current = false; }, 150);
       });
@@ -175,8 +178,9 @@ export default function Journal() {
     skipSaveRef.current = true;
     isHydratedRef.current = false;
     setIsHydrated(false);
-    return Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()]).then(function(local) {
+    return Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal(), journalStore.loadNoteLayoutLocal()]).then(function(local) {
       applyJournalData(local[0], local[1]);
+      applyNoteLayout(local[2]);
     }).finally(function() {
       isHydratedRef.current = true;
       setIsHydrated(true);
@@ -196,19 +200,25 @@ export default function Journal() {
     skipSaveRef.current = true;
     isHydratedRef.current = false;
     setIsHydrated(false);
-    Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal()])
+    Promise.all([journalStore.loadSpacesLocal(), journalStore.loadBlocksLocal(), journalStore.loadNoteLayoutLocal()])
       .then(function(local) {
         if (!alive) return;
         applyJournalData(local[0], local[1]);
+        applyNoteLayout(local[2]);
         if (shouldSkipCloudSync()) return null;
         return Promise.all([
           journalStore.pullSpaces(),
           journalStore.pullBlocks(getEditingSnapshot()),
+          journalStore.pullNoteLayout(),
         ]);
       })
       .then(function(sync) {
         if (!alive) return;
-        finishHydration(sync);
+        if (sync) {
+          applyJournalData(sync[0], sync[1]);
+          applyNoteLayout(sync[2]);
+        }
+        finishHydration(null);
       })
       .catch(function() {
         if (!alive) return;
@@ -263,14 +273,27 @@ export default function Journal() {
   }
 
   useEffect(function() {
-    function onResize() { setViewportW(window.innerWidth); }
+    function onResize() {
+      var w = window.innerWidth;
+      setViewportW(w);
+      if (w >= 720) setMobileNoteOpen(false);
+    }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
   useEffect(function() { blocksRef.current = blocks; }, [blocks]);
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
-  useEffect(function() { persistNoteBlocks(noteBlocks); }, [noteBlocks]);
+  useEffect(function() { noteBlocksRef.current = noteBlocks; }, [noteBlocks]);
+
+  useEffect(function() {
+    if (!isHydrated || skipSaveRef.current) return;
+    clearTimeout(saveNoteLayoutTimer.current);
+    saveNoteLayoutTimer.current = setTimeout(function() {
+      journalStore.saveNoteLayout(noteBlocks).then(reportSave);
+    }, NOTE_LAYOUT_DEBOUNCE_MS);
+    return function() { clearTimeout(saveNoteLayoutTimer.current); };
+  }, [noteBlocks, isHydrated]);
 
   useEffect(function() {
     if (!isHydrated || skipSaveRef.current) return;
@@ -342,6 +365,7 @@ export default function Journal() {
     setSpaces(next);
     setActive(s.id);
     setNewTitle("");
+    if (isMobile) setMobileNoteOpen(true);
     persistSpaces(next);
   }
 
@@ -466,6 +490,11 @@ export default function Journal() {
     };
   }
 
+  function openNote(spaceId) {
+    setActive(spaceId);
+    if (isMobile) setMobileNoteOpen(true);
+  }
+
   function renderNoteItem(s) {
     var on = active === s.id;
     return (
@@ -476,14 +505,8 @@ export default function Journal() {
         onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
         style={{ display: "flex", alignItems: "center", gap: 6 }}>
         {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "rgba(255,255,255,0.25)", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
-        <button type="button" onClick={function() { setActive(s.id); }} style={{ flex: 1, minWidth: 0, textAlign: "left", padding: "10px 12px", borderRadius: 12, border: "1px solid " + (on ? s.color + "45" : "rgba(255,255,255,0.06)"), background: on ? s.color + "12" : "transparent", color: on ? s.color : "#FFFFFF", cursor: "pointer", fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.title}</button>
-        {isMobile ? (
-          <select value={noteBlocks.assign[s.id] || ""} onChange={function(e) { assignNoteToBlock(s.id, e.target.value || null); }} title="Mover para bloco" style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.55)", fontSize: 11, fontFamily: JOURNAL_FONT, padding: "4px", maxWidth: 92 }}>
-            <option value="">Sem bloco</option>
-            {noteBlocks.blocks.map(function(b) { return <option key={b.id} value={b.id}>{b.name}</option>; })}
-          </select>
-        ) : null}
-        <button type="button" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" style={{ width: 28, height: 28, borderRadius: 9, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", color: "rgba(255,255,255,0.35)", cursor: "pointer", flexShrink: 0, fontSize: 15, lineHeight: 1 }} aria-label="Eliminar nota">×</button>
+        <button type="button" onClick={function() { openNote(s.id); }} style={{ flex: 1, minWidth: 0, textAlign: "left", padding: isMobile ? "14px 14px" : "10px 12px", borderRadius: 12, border: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? s.color + "45" : "rgba(255,255,255,0.06)"), background: on && (!isMobile || mobileNoteOpen) ? s.color + "12" : "transparent", color: on ? s.color : "#FFFFFF", cursor: "pointer", fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontSize: isMobile ? 16 : 13 }}>{s.title}</button>
+        <button type="button" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, borderRadius: 9, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", color: "rgba(255,255,255,0.35)", cursor: "pointer", flexShrink: 0, fontSize: isMobile ? 18 : 15, lineHeight: 1 }} aria-label="Eliminar nota">×</button>
       </div>
     );
   }
@@ -508,15 +531,21 @@ export default function Journal() {
       <header style={{position:"sticky",top:0,zIndex:20,background:"rgba(10,10,16,0.92)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(255,255,255,0.05)",padding:isMobile?"12px":"14px 20px"}}>
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
-            <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
-            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 20 : 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>Diário</h1>
+            {isMobile && mobileNoteOpen ? (
+              <button onClick={function(){setMobileNoteOpen(false);}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer",fontFamily:JOURNAL_FONT}}>← Notas</button>
+            ) : (
+              <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
+            )}
+            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 20 : 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
           </div>
-          <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0}}>
+          {(!isMobile || mobileNoteOpen) ? (
+          <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0,flexWrap:"wrap"}}>
             <button onClick={function(){addBlock("title");}} style={topBtn(color)}>+ Título</button>
             <button onClick={function(){addBlock("text");}} style={topBtn(color)}>+ Texto</button>
             <button onClick={function(){addBlock("image");}} style={topBtn(color)}>+ Imagem</button>
             <button onClick={function(){addBlock("document");}} style={topBtn(color)}>+ Documento</button>
           </div>
+          ) : null}
         </div>
       </header>
 
@@ -530,7 +559,8 @@ export default function Journal() {
         {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
-        <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?12:16,height:"fit-content",backdropFilter:"blur(14px)"}}>
+        {(!isMobile || !mobileNoteOpen) ? (
+        <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?14:16,height:"fit-content",backdropFilter:"blur(14px)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 12px"}}>
             <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, margin: 0 }}>NOTAS</p>
             <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:9,color:color,padding:"4px 10px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10,letterSpacing:JOURNAL_LETTER_SPACING}}>+ Bloco</button>
@@ -566,7 +596,9 @@ export default function Journal() {
             <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
           </div>
         </aside>
+        ) : null}
 
+        {(!isMobile || mobileNoteOpen) ? (
         <section style={{minWidth:0}}>
           <div style={{marginBottom:16}}>
             <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>NOTA</p>
@@ -602,6 +634,7 @@ export default function Journal() {
             </div>
           )}
         </section>
+        ) : null}
         </div>
         </div>
         )}

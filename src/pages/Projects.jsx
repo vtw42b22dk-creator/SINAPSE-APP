@@ -49,6 +49,7 @@ var PROJ_CSS = [
   ".pj-viewtog{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,0.08);overflow:hidden}",
   ".pj-viewtog button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all .18s}",
   ".pj-viewtog button.on{background:rgba(255,61,138,0.14);color:#FF3D8A}",
+  ".pj-top-actions{display:flex;align-items:center;gap:10px;margin-left:auto}",
   ".pj-new{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,61,138,0.5);background:linear-gradient(135deg,rgba(255,61,138,0.25),rgba(255,61,138,0.08));color:#FF3D8A;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}",
   ".pj-new:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,61,138,0.22)}",
   ".pj-preset{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}",
@@ -112,7 +113,7 @@ var PROJ_CSS = [
   ".pj-pal button{width:26px;height:26px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s}",
   ".pj-pal button:hover{transform:scale(1.12)}",
   ".pj-ghost{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:11px;cursor:pointer}",
-  "@media(max-width:719px){.pj-scroll{padding:0 12px 20px}.pj-body{padding-top:12px}.pj-hero{padding:14px;margin-bottom:12px}.pj-search{order:5;max-width:none;flex-basis:100%}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr}.pj-chips{width:100%}.pj-title{font-size:1.35rem!important}.pj-card-title{font-size:1rem!important}.pj-card-meta{font-size:0.88rem!important}}",
+  "@media(max-width:719px){.pj-top{flex-direction:column;align-items:stretch;padding:12px 14px;gap:12px}.pj-top>.pj-ghost{align-self:flex-start;padding:10px 14px;font-size:13px}.pj-top-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}.pj-brand h1{font-size:16px;letter-spacing:1px}.pj-brand span{font-size:11px;padding:3px 9px}.pj-search{order:unset;max-width:none;flex-basis:auto;width:100%}.pj-search input{font-size:16px;padding:12px 12px 12px 36px;border-radius:12px;min-height:46px}.pj-top-actions{display:flex;align-items:center;gap:10px;width:100%}.pj-top-actions .pj-new{flex:1;padding:13px 16px;font-size:13px;border-radius:12px}.pj-viewtog button{width:46px;height:46px}.pj-scroll{padding:0 12px 88px}.pj-body{padding-top:12px}.pj-hero{padding:14px;margin-bottom:12px}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr;gap:14px}.pj-chips{width:100%}.pj-card-in{min-height:130px;padding:15px 16px}.pj-card-name{font-size:16px}.pj-card-desc{font-size:13px;-webkit-line-clamp:3}.pj-card-ic{width:46px;height:46px;font-size:20px}.pj-act{opacity:1;top:11px;right:11px}.pj-act button{width:32px;height:32px;font-size:14px}.pj-rowcard{padding:14px 16px;gap:14px}.pj-empty{margin-top:24px;padding:40px 18px}.pj-modal{width:100%;max-width:100%;border-radius:16px;padding:16px}.pj-mods-grid{grid-template-columns:repeat(3,1fr);gap:8px}.pj-mods-grid button{font-size:10px;padding:12px 6px}.pj-preset button{min-width:0;padding:12px 8px;font-size:11px}}",
 ].join("");
 
 function ProjectsIcon() {
@@ -454,18 +455,26 @@ export default function Projects() {
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{MODULE_ENTRY_CSS + PROJ_CSS}</style>
 
-      <header className="pj-top">
+      <header className={"pj-top" + (isMobile ? " pj-top-mob" : "")}>
         <button type="button" onClick={function() { navigate("/"); }} className="pj-ghost">← Hub</button>
-        <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
+        {isMobile ? (
+          <div className="pj-top-head">
+            <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
+          </div>
+        ) : (
+          <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
+        )}
         <div className="pj-search">
           <SearchIcon />
           <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar projeto..." />
         </div>
-        <div className="pj-viewtog">
-          <button type="button" className={view === "grid" ? "on" : ""} onClick={function() { setViewPersist("grid"); }} title="Grelha"><GridIcon /></button>
-          <button type="button" className={view === "list" ? "on" : ""} onClick={function() { setViewPersist("list"); }} title="Lista"><ListIcon /></button>
+        <div className="pj-top-actions">
+          <div className="pj-viewtog">
+            <button type="button" className={view === "grid" ? "on" : ""} onClick={function() { setViewPersist("grid"); }} title="Grelha"><GridIcon /></button>
+            <button type="button" className={view === "list" ? "on" : ""} onClick={function() { setViewPersist("list"); }} title="Lista"><ListIcon /></button>
+          </div>
+          <button type="button" className="pj-new" onClick={openModal}>+ Novo</button>
         </div>
-        <button type="button" className="pj-new" onClick={openModal}>+ Novo</button>
       </header>
 
       <div className="pj-scroll">
