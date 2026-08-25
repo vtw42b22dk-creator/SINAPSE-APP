@@ -18,7 +18,7 @@ function normalizeGroup(row) {
   return {
     id: row.id || uid("wg"),
     name: row.name || DEFAULT_GROUP,
-    color: row.color || "#34D399",
+    color: row.color || "#8FB39B",
     order_index: row.order_index != null ? row.order_index : 0,
     updated: row.updated_at ? new Date(row.updated_at).getTime() : (row.updated || 0),
   };
@@ -72,12 +72,12 @@ export async function loadGroupsLocal() {
       if (it && it.group_id) seen[it.group_id] = true;
     });
     local = Object.keys(seen).map(function(id, i) {
-      return normalizeGroup({ id: id, name: "Recuperado", color: "#34D399", order_index: i });
+      return normalizeGroup({ id: id, name: "Recuperado", color: "#8FB39B", order_index: i });
     });
     if (local.length) await writeLocal(GROUPS_KEY, local);
   }
   if (!local.length) {
-    local = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+    local = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#8FB39B", order_index: 0 })];
   }
   return local;
 }
@@ -111,7 +111,7 @@ export async function loadGroups() {
   var groups = await selectRowsMerged(GROUPS_TABLE, GROUPS_KEY, [], normalizeGroup);
   groups = groups.sort(function(a, b) { return a.order_index - b.order_index; });
   if (!groups.length) {
-    groups = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#34D399", order_index: 0 })];
+    groups = [normalizeGroup({ id: uid("wg"), name: DEFAULT_GROUP, color: "#8FB39B", order_index: 0 })];
     await writeLocal(GROUPS_KEY, groups);
   }
   return groups;
@@ -126,7 +126,7 @@ export async function saveGroups(groups) {
       return {
         id: g.id,
         name: g.name,
-        color: g.color || "#34D399",
+        color: g.color || "#8FB39B",
         order_index: g.order_index || 0,
         updated: g.updated || Date.now(),
       };
@@ -168,7 +168,7 @@ export async function persistAll(groups, items) {
 }
 
 export function newGroup(name) {
-  return normalizeGroup({ id: uid("wg"), name: name || "Novo grupo", color: "#34D399", order_index: Math.floor(Date.now() / 1000) });
+  return normalizeGroup({ id: uid("wg"), name: name || "Novo grupo", color: "#8FB39B", order_index: Math.floor(Date.now() / 1000) });
 }
 
 export function newItem(title, groupId) {

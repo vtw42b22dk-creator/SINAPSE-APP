@@ -5,8 +5,8 @@ import * as projectModuleStore from "../lib/projectModuleStore";
 import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 
-var ACCENT = "#FF3D8A";
-var PALETTE = ["#FF3D8A", "#00FFC8", "#6B8AFF", "#FFB800", "#34D399", "#FF6B35", "#B36BFF"];
+var ACCENT = "#E6E6E9";
+var PALETTE = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
 
 var MODULE_ICONS = {
   documents: "✦",
@@ -34,37 +34,33 @@ function savePins(arr) {
 
 var PROJ_CSS = [
   "@keyframes pjFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  "@keyframes pjGlow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.75;transform:scale(1.04)}}",
-  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:#06060b;color:#fff;font-family:'IBM Plex Sans',sans-serif}",
-  ".pj-page::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 0%,rgba(255,61,138,0.11) 0%,transparent 55%),radial-gradient(45% 40% at 85% 75%,rgba(0,255,200,0.05) 0%,transparent 50%),linear-gradient(180deg,#0c0c14 0%,#06060b 100%);z-index:0}",
-  ".pj-page::after{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:28px 28px;mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 20%,transparent 75%);z-index:0}",
-  ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(8,8,14,0.82);backdrop-filter:blur(18px)}",
+  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
-  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#FF3D8A;letter-spacing:1.5px}",
+  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;color:#E6E6E9;letter-spacing:1.5px}",
   ".pj-brand span{font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.28);padding:2px 7px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03)}",
   ".pj-search{flex:1;min-width:140px;max-width:300px;position:relative;display:flex;align-items:center}",
   ".pj-search svg{position:absolute;left:11px;opacity:.35;pointer-events:none}",
-  ".pj-search input{width:100%;padding:7px 12px 7px 32px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.3);color:#fff;font-size:12px;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}",
-  ".pj-search input:focus{border-color:rgba(255,61,138,0.45);box-shadow:0 0 0 3px rgba(255,61,138,0.1)}",
-  ".pj-viewtog{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,0.08);overflow:hidden}",
-  ".pj-viewtog button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all .18s}",
-  ".pj-viewtog button.on{background:rgba(255,61,138,0.14);color:#FF3D8A}",
+  ".pj-search input{width:100%;padding:7px 12px 7px 32px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#EDEDEF;font-size:12px;outline:none;font-family:inherit;transition:border-color .2s}",
+  ".pj-search input:focus{border-color:rgba(255,255,255,0.2)}",
+  ".pj-viewtog{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,0.07);overflow:hidden}",
+  ".pj-viewtog button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#141416;border:none;color:#6E6E76;cursor:pointer;transition:background .18s,color .18s}",
+  ".pj-viewtog button.on{background:#1A1A1D;color:#EDEDEF}",
   ".pj-top-actions{display:flex;align-items:center;gap:10px;margin-left:auto}",
-  ".pj-new{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,61,138,0.5);background:linear-gradient(135deg,rgba(255,61,138,0.25),rgba(255,61,138,0.08));color:#FF3D8A;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;white-space:nowrap}",
-  ".pj-new:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,61,138,0.22)}",
+  ".pj-new{padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}",
+  ".pj-new:hover{background:#232326;border-color:rgba(255,255,255,0.22)}",
   ".pj-preset{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}",
   ".pj-preset button{flex:1;min-width:90px;padding:9px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s}",
-  ".pj-preset button.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.12);color:#FF3D8A}",
+  ".pj-preset button.on{border-color:rgba(255,255,255,0.22);background:#1A1A1D;color:#EDEDEF}",
   ".pj-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:0 18px 24px;-webkit-overflow-scrolling:touch}",
   ".pj-body{width:100%;max-width:920px;margin:0 auto;padding-top:18px}",
   ".pj-body.dense{max-width:1180px}",
-  ".pj-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:16px 18px;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(135deg,rgba(255,61,138,0.08),rgba(255,255,255,0.02));position:relative;overflow:hidden}",
-  ".pj-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(255,61,138,0.22),transparent 70%);animation:pjGlow 6s ease-in-out infinite}",
-  ".pj-hero h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(18px,3vw,24px);font-weight:600;letter-spacing:-.02em}",
-  ".pj-hero p{margin:6px 0 0;font-size:12px;color:rgba(255,255,255,0.42);line-height:1.45;max-width:420px}",
+  ".pj-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;position:relative;overflow:hidden}",
+  ".pj-hero h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(17px,3vw,22px);font-weight:500;letter-spacing:-.01em;color:#EDEDEF}",
+  ".pj-hero p{margin:6px 0 0;font-size:12px;color:#6E6E76;line-height:1.45;max-width:420px}",
   ".pj-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
-  ".pj-chip{padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.28);font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.55);white-space:nowrap}",
-  ".pj-chip strong{color:#fff;font-weight:600}",
+  ".pj-chip{padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;white-space:nowrap}",
+  ".pj-chip strong{color:#EDEDEF;font-weight:600}",
   ".pj-sech{margin:0 0 10px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.28);letter-spacing:1.5px;display:flex;align-items:center;gap:8px}",
   ".pj-sech::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}",
   ".pj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;align-content:start;justify-content:center}",
@@ -75,9 +71,9 @@ var PROJ_CSS = [
   ".pj-grid.sparse .pj-card-name{font-size:16px}",
   ".pj-grid.sparse .pj-card-desc{font-size:12px;-webkit-line-clamp:3}",
   ".pj-list{display:flex;flex-direction:column;gap:8px;max-width:760px;margin:0 auto}",
-  ".pj-card{position:relative;border-radius:15px;cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.055),rgba(255,255,255,0.014));transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s;animation:pjFade .4s ease both}",
-  ".pj-card:hover{transform:translateY(-3px);border-color:var(--pcb);box-shadow:0 16px 38px rgba(0,0,0,0.4)}",
-  ".pj-card-bar{height:3px;background:var(--pc)}",
+  ".pj-card{position:relative;border-radius:14px;cursor:pointer;overflow:hidden;border:1px solid rgba(255,255,255,0.07);background:#141416;transition:background .18s,border-color .18s;animation:pjFade .4s ease both}",
+  ".pj-card:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".pj-card-bar{height:2px;background:var(--pc);opacity:.55}",
   ".pj-card-in{padding:13px 14px 12px;display:flex;flex-direction:column;gap:9px;min-height:118px}",
   ".pj-card-row{display:flex;align-items:flex-start;gap:11px}",
   ".pj-card-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}",
@@ -88,27 +84,27 @@ var PROJ_CSS = [
   ".pj-mod{width:23px;height:23px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.22)}",
   ".pj-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}",
   ".pj-ring{position:relative;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
-  ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0b0b12;display:flex;align-items:center;justify-content:center;font-size:8px;font-style:normal;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.6)}",
+  ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0E0E10;display:flex;align-items:center;justify-content:center;font-size:8px;font-style:normal;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.6)}",
   ".pj-roi{padding:3px 9px;border-radius:999px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:600}",
   ".pj-act{position:absolute;top:9px;right:9px;display:flex;gap:5px;opacity:0;transition:opacity .18s;z-index:2}",
   ".pj-card:hover .pj-act,.pj-rowcard:hover .pj-act{opacity:1}",
   ".pj-act button{width:25px;height:25px;border-radius:7px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.45);color:rgba(255,255,255,0.5);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}",
   ".pj-act button:hover{color:#fff;border-color:rgba(255,255,255,0.25)}",
-  ".pj-act button.del:hover{background:rgba(255,61,90,0.18);color:#FF3D5A;border-color:rgba(255,61,90,0.4)}",
-  ".pj-pin{position:absolute;top:9px;left:9px;font-size:11px;color:#FFB800;z-index:1;text-shadow:0 0 8px rgba(255,184,0,0.5)}",
-  ".pj-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:148px;border-radius:18px;border:1px dashed rgba(255,61,138,0.32);background:rgba(255,61,138,0.04);cursor:pointer;transition:all .18s;color:rgba(255,255,255,0.45);animation:pjFade .4s ease both}",
-  ".pj-addcard:hover{border-color:rgba(255,61,138,0.55);background:rgba(255,61,138,0.09);color:#FF3D8A;transform:translateY(-2px)}",
-  ".pj-addcard span:first-child{font-size:28px;line-height:1;color:#FF3D8A;opacity:.85}",
+  ".pj-act button.del:hover{background:rgba(192,140,140,0.18);color:#C08C8C;border-color:rgba(192,140,140,0.4)}",
+  ".pj-pin{position:absolute;top:9px;left:9px;font-size:11px;color:#C4A57C;z-index:1;}",
+  ".pj-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:148px;border-radius:14px;border:1px dashed rgba(255,255,255,0.12);background:transparent;cursor:pointer;transition:background .18s,border-color .18s,color .18s;color:#6E6E76;animation:pjFade .4s ease both}",
+  ".pj-addcard:hover{border-color:rgba(255,255,255,0.22);background:#141416;color:#EDEDEF}",
+  ".pj-addcard span:first-child{font-size:24px;line-height:1;opacity:.7}",
   ".pj-addcard span:last-child{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px}",
-  ".pj-rowcard{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:13px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(120deg,rgba(255,255,255,0.045),rgba(255,255,255,0.012));cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s;animation:pjFade .4s ease both;position:relative;overflow:hidden}",
-  ".pj-rowcard:hover{transform:translateX(3px);border-color:var(--pcb);box-shadow:0 10px 26px rgba(0,0,0,0.34)}",
-  ".pj-rowcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc)}",
-  ".pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;border-radius:18px;border:1px dashed rgba(255,61,138,0.25);background:rgba(255,61,138,0.04);text-align:center;max-width:480px;margin:40px auto 0}",
-  ".pj-mbk{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.66);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;animation:pjFade .22s ease}",
-  ".pj-modal{width:min(450px,100%);border-radius:17px;border:1px solid rgba(255,61,138,0.3);background:linear-gradient(160deg,#11111b,#0a0a12);box-shadow:0 30px 80px rgba(0,0,0,0.55);padding:18px;animation:pjFade .28s ease}",
+  ".pj-rowcard{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;cursor:pointer;transition:background .16s,border-color .16s;animation:pjFade .4s ease both;position:relative;overflow:hidden}",
+  ".pj-rowcard:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".pj-rowcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--pc);opacity:.55}",
+  ".pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;border-radius:14px;border:1px dashed rgba(255,255,255,0.12);background:transparent;text-align:center;max-width:480px;margin:40px auto 0}",
+  ".pj-mbk{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px;animation:pjFade .22s ease}",
+  ".pj-modal{width:min(450px,100%);border-radius:16px;border:1px solid rgba(255,255,255,0.1);background:#141416;box-shadow:0 24px 60px rgba(0,0,0,0.5);padding:18px;animation:pjFade .28s ease}",
   ".pj-mods-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}",
   ".pj-mods-grid button{padding:9px 4px;border-radius:9px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.35);font-size:8px;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:all .15s}",
-  ".pj-mods-grid button.on{border-color:rgba(255,61,138,0.5);background:rgba(255,61,138,0.13);color:#FF3D8A}",
+  ".pj-mods-grid button.on{border-color:rgba(255,255,255,0.22);background:#1A1A1D;color:#EDEDEF}",
   ".pj-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".pj-pal button{width:26px;height:26px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s}",
   ".pj-pal button:hover{transform:scale(1.12)}",
@@ -176,9 +172,9 @@ function RoiPill(props) {
   var pos = roi >= 0;
   return (
     <span className="pj-roi" style={{
-      color: pos ? "#34D399" : "#FF6B35",
-      background: pos ? "rgba(52,211,153,0.1)" : "rgba(255,107,53,0.1)",
-      border: "1px solid " + (pos ? "rgba(52,211,153,0.25)" : "rgba(255,107,53,0.25)"),
+      color: pos ? "#8FB39B" : "#C08C8C",
+      background: pos ? "rgba(143,179,155,0.1)" : "rgba(192,140,140,0.1)",
+      border: "1px solid " + (pos ? "rgba(143,179,155,0.25)" : "rgba(192,140,140,0.25)"),
     }}>
       ROI {(pos ? "+" : "") + roi.toFixed(0) + "%"}
     </span>
@@ -193,12 +189,12 @@ function ProjectCard(props) {
       <div className="pj-card-bar" />
       {props.pinned && <span className="pj-pin" title="Fixado">★</span>}
       <div className="pj-act">
-        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin} style={props.pinned ? { color: "#FFB800", borderColor: "rgba(255,184,0,0.4)" } : null}>★</button>
+        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin} style={props.pinned ? { color: "#C4A57C", borderColor: "rgba(196,165,124,0.4)" } : null}>★</button>
         <button type="button" className="del" title="Apagar" onClick={props.onDelete}>×</button>
       </div>
       <div className="pj-card-in">
         <div className="pj-card-row">
-          <div className="pj-card-ic" style={{ background: meta.color + "1a", color: meta.color, boxShadow: "0 0 18px " + meta.color + "22" }}>{meta.icon}</div>
+          <div className="pj-card-ic" style={{ background: meta.color + "14", color: meta.color }}>{meta.icon}</div>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 44 }}>
             <h2 className="pj-card-name">{p.name}</h2>
             <span className="pj-card-tag" style={{ color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
@@ -234,7 +230,7 @@ function ProjectRow(props) {
       <div className="pj-card-ic" style={{ width: 36, height: 36, borderRadius: 10, background: meta.color + "1a", color: meta.color, fontSize: 16 }}>{meta.icon}</div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {props.pinned && <span style={{ color: "#FFB800", fontSize: 10 }}>★</span>}
+          {props.pinned && <span style={{ color: "#C4A57C", fontSize: 10 }}>★</span>}
           <h2 className="pj-card-name" style={{ fontSize: 13 }}>{p.name}</h2>
           <span className="pj-card-tag" style={{ marginTop: 0, color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
         </div>
@@ -254,7 +250,7 @@ function ProjectRow(props) {
       {st.hasInvestments && <RoiPill roi={st.roi} />}
       <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
         <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin}
-          style={{ width: 26, height: 26, borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.3)", color: props.pinned ? "#FFB800" : "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 12 }}>★</button>
+          style={{ width: 26, height: 26, borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.3)", color: props.pinned ? "#C4A57C" : "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 12 }}>★</button>
         <button type="button" title="Apagar" onClick={props.onDelete}
           style={{ width: 26, height: 26, borderRadius: 7, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 13 }}>×</button>
       </div>
@@ -416,7 +412,7 @@ export default function Projects() {
 
   if (!loaded) {
     return (
-      <div style={{ minHeight: "100vh", background: "#06060b", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ fontFamily: "'JetBrains Mono',monospace", color: ACCENT, opacity: 0.5 }}>A carregar projetos...</p>
       </div>
     );
@@ -545,7 +541,7 @@ export default function Projects() {
                 <p style={lblMini()}>COR</p>
                 <div className="pj-pal">
                   {PALETTE.map(function(c) {
-                    return <button type="button" key={c} onClick={function() { setColor(c); }} style={{ background: c + "33", borderColor: color === c ? c : "transparent", boxShadow: color === c ? "0 0 10px " + c + "66" : "none" }} title={c}>
+                    return <button type="button" key={c} onClick={function() { setColor(c); }} style={{ background: c + "33", borderColor: color === c ? c : "transparent" }} title={c}>
                       <span style={{ display: "block", width: "100%", height: "100%", borderRadius: 5, background: c }} />
                     </button>;
                   })}

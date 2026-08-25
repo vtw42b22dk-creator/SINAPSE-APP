@@ -47,14 +47,12 @@ export function UpdatesFloatingButton(props) {
         gap: 10,
         padding: isMobile ? "12px 16px" : "12px 18px 12px 14px",
         borderRadius: 999,
-        border: "1px solid rgba(0,255,200,0.35)",
-        background: "linear-gradient(135deg, rgba(0,255,200,0.14), rgba(123,97,255,0.12))",
-        backdropFilter: "blur(20px)",
-        boxShadow: "0 12px 40px rgba(0,0,0,0.45), 0 0 32px rgba(0,255,200,0.12)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        background: "#141416",
+        boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
         cursor: "pointer",
         fontFamily: "'IBM Plex Sans',sans-serif",
-        color: "#fff",
-        animation: "floatBubble 4s ease-in-out infinite",
+        color: "#EDEDEF",
         maxWidth: isMobile ? "calc(100vw - 28px)" : "none",
       }}
     >
@@ -63,8 +61,8 @@ export function UpdatesFloatingButton(props) {
         width: 36,
         height: 36,
         borderRadius: "50%",
-        background: "rgba(0,255,200,0.12)",
-        border: "1px solid rgba(0,255,200,0.3)",
+        background: "#1A1A1D",
+        border: "1px solid rgba(255,255,255,0.07)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -80,23 +78,22 @@ export function UpdatesFloatingButton(props) {
             width: 12,
             height: 12,
             borderRadius: "50%",
-            background: "#FF3D8A",
-            border: "2px solid #0A0A0F",
-            animation: "pulseDot 1.8s ease-in-out infinite",
+            background: "#E6E6E9",
+            border: "2px solid #0A0A0B",
           }} />
         ) : null}
       </span>
       <span style={{ textAlign: "left", minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#00FFC8", letterSpacing: 1 }}>NOVIDADES</span>
-        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.9)", whiteSpace: "nowrap" }}>Ver atualizações</span>
+        <span style={{ display: "block", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 1 }}>NOVIDADES</span>
+        <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#EDEDEF", whiteSpace: "nowrap" }}>Ver atualizações</span>
       </span>
       {unread && !isMobile ? (
         <span style={{
           fontSize: 9,
           fontFamily: "'JetBrains Mono',monospace",
-          color: "#FF3D8A",
-          background: "rgba(255,61,138,0.15)",
-          border: "1px solid rgba(255,61,138,0.35)",
+          color: "#EDEDEF",
+          background: "#1A1A1D",
+          border: "1px solid rgba(255,255,255,0.14)",
           borderRadius: 8,
           padding: "4px 8px",
         }}>NOVO</span>
@@ -155,8 +152,7 @@ export default function UpdatesChangelog(props) {
         position: "fixed",
         inset: 0,
         zIndex: 200,
-        background: "rgba(0,0,0,0.55)",
-        backdropFilter: "blur(10px)",
+        background: "rgba(0,0,0,0.7)",
         display: "flex",
         alignItems: isMobile ? "flex-end" : "center",
         justifyContent: "center",
@@ -166,11 +162,8 @@ export default function UpdatesChangelog(props) {
       }}
     >
       <style>{`
-        @keyframes floatBubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-        @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.85}}
         @keyframes sheetUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
         @keyframes panelIn{from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
       `}</style>
 
       <div
@@ -182,35 +175,33 @@ export default function UpdatesChangelog(props) {
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          background: "linear-gradient(165deg, rgba(14,15,28,0.98), rgba(8,9,16,0.99))",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 32px 100px rgba(0,0,0,0.6)",
+          background: "#141416",
+          border: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
           animation: isMobile ? "sheetUp 0.38s cubic-bezier(0.16,1,0.3,1)" : "panelIn 0.35s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         {isMobile ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}>
-            <div style={{ width: 40, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.15)" }} />
+            <div style={{ width: 40, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.14)" }} />
           </div>
         ) : null}
 
         <div style={{
           padding: isMobile ? "16px 18px 18px" : "22px 24px 20px",
-          background: "linear-gradient(120deg, rgba(0,255,200,0.08), rgba(123,97,255,0.06), rgba(255,61,138,0.05))",
-          backgroundSize: "200% 200%",
-          animation: "shimmer 8s ease infinite",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "#1A1A1D",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
           flexShrink: 0,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
             <div>
-              <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#00FFC8", letterSpacing: 2 }}>CHANGELOG · {data.dateLabel}</p>
+              <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 2 }}>CHANGELOG · {data.dateLabel}</p>
               <h2 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, lineHeight: 1.2 }}>{data.title}</h2>
-              <p style={{ margin: "8px 0 0", fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>{data.subtitle}</p>
+              <p style={{ margin: "8px 0 0", fontSize: 13, color: "#A0A0A8", lineHeight: 1.5 }}>{data.subtitle}</p>
             </div>
             <button type="button" onClick={closeAndSeen} style={{
-              width: 36, height: 36, borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", fontSize: 18, cursor: "pointer", flexShrink: 0,
+              width: 36, height: 36, borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)",
+              background: "#141416", color: "#A0A0A8", fontSize: 18, cursor: "pointer", flexShrink: 0,
             }}>×</button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
@@ -259,25 +250,25 @@ export default function UpdatesChangelog(props) {
                         style={{
                           borderRadius: 16,
                           padding: "14px 16px",
-                          border: "1px solid rgba(255,255,255,0.06)",
-                          background: "rgba(255,255,255,0.02)",
+                          border: "1px solid rgba(255,255,255,0.07)",
+                          background: "#0E0E10",
                           cursor: canGo ? "pointer" : "default",
                           transition: "border-color 0.2s, background 0.2s",
                         }}
                         onMouseEnter={canGo ? function(e) {
-                          e.currentTarget.style.borderColor = section.accent + "40";
-                          e.currentTarget.style.background = section.accent + "08";
+                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
+                          e.currentTarget.style.background = "#1A1A1D";
                         } : undefined}
                         onMouseLeave={canGo ? function(e) {
-                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
-                          e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                          e.currentTarget.style.background = "#0E0E10";
                         } : undefined}
                       >
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                           <Tag color={item.tagColor}>{item.tag}</Tag>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#fff" }}>{item.title}</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.42)", lineHeight: 1.55 }}>{item.desc}</p>
+                            <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#EDEDEF" }}>{item.title}</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "#A0A0A8", lineHeight: 1.55 }}>{item.desc}</p>
                             {canGo ? (
                               <p style={{ margin: "8px 0 0", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: section.accent }}>Abrir módulo →</p>
                             ) : null}
@@ -295,8 +286,8 @@ export default function UpdatesChangelog(props) {
         <div style={{
           flexShrink: 0,
           padding: isMobile ? "14px 16px max(18px, env(safe-area-inset-bottom))" : "16px 20px 20px",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(0,0,0,0.25)",
+          borderTop: "1px solid rgba(255,255,255,0.07)",
+          background: "#0E0E10",
         }}>
           <button
             type="button"
@@ -305,9 +296,9 @@ export default function UpdatesChangelog(props) {
               width: "100%",
               padding: "14px 20px",
               borderRadius: 14,
-              border: "1px solid rgba(0,255,200,0.4)",
-              background: "linear-gradient(90deg, rgba(0,255,200,0.15), rgba(123,97,255,0.12))",
-              color: "#00FFC8",
+              border: "1px solid rgba(255,255,255,0.14)",
+              background: "#1A1A1D",
+              color: "#EDEDEF",
               fontFamily: "'JetBrains Mono',monospace",
               fontSize: 12,
               letterSpacing: 1,

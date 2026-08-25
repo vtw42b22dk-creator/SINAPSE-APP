@@ -67,7 +67,7 @@ async function migrateLegacyNoteLayout() {
 }
 
 function normalizeSpace(s) {
-  return { id: s.id, title: s.title || "Tema", color: s.color || "#FFB800" };
+  return { id: s.id, title: s.title || "Tema", color: s.color || "#E6E6E9" };
 }
 
 function normalizeBlock(b) {
@@ -204,12 +204,12 @@ export async function loadSpacesLocal() {
         if (b && b.space_id) seen[b.space_id] = true;
       });
       local = Object.keys(seen).map(function(id) {
-        return { id: id, title: "Recuperado", color: "#FFB800", updated: Date.now() };
+        return { id: id, title: "Recuperado", color: "#E6E6E9", updated: Date.now() };
       });
       if (local.length) await writeLocal(SPACES, local);
     }
   }
-  if (!local.length) return [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+  if (!local.length) return [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
   return local;
 }
 
@@ -223,7 +223,7 @@ export async function pullSpaces() {
     var merged = await safePullMerge(SPACES, "journal_spaces", normalizeSpace);
     if (!merged.length) {
       var local = await readLocal(SPACES, []);
-      merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+      merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
       await writeLocal(SPACES, merged);
     }
     return merged;
@@ -245,7 +245,7 @@ export async function pullBlocks(editingBlock) {
 
 export async function loadSpaces() {
   var rows = await selectRowsMerged("journal_spaces", SPACES, [], normalizeSpace);
-  if (!rows.length) return [{ id: uid("js"), title: "Livre", color: "#FFB800" }];
+  if (!rows.length) return [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
   return rows;
 }
 
@@ -254,7 +254,7 @@ export async function saveSpaces(spaces) {
     "journal_spaces",
     SPACES,
     (spaces || []).map(function(s) {
-      return { id: s.id, title: s.title, color: s.color || "#FFB800", updated: Date.now() };
+      return { id: s.id, title: s.title, color: s.color || "#E6E6E9", updated: Date.now() };
     }),
     { pruneOrphans: false }
   );

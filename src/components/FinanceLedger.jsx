@@ -14,9 +14,9 @@ function defaultDayForMonth(store, monthKey) {
 
 export default function FinanceLedger(props) {
   var store = props.store;
-  var accent = props.accent;
   var isMobile = props.isMobile;
   var label = props.label || "Registo";
+  var kind = props.kind === "income" ? "income" : "expense";
   var categoriesS = useState([]);
   var categories = categoriesS[0], setCategories = categoriesS[1];
   var rowsS = useState([]);
@@ -318,29 +318,29 @@ export default function FinanceLedger(props) {
   return (
     <div style={{ pointerEvents: isHydrated ? "auto" : "none" }}>
       {sessionWarn ? (
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#FFB800", fontFamily: "'JetBrains Mono',monospace" }}>{sessionWarn}</p>
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#C4A57C", fontFamily: "'JetBrains Mono',monospace" }}>{sessionWarn}</p>
       ) : null}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-        <button onClick={function() { setManageCat(!manageCat); }} style={{ background: manageCat ? accent + "18" : "rgba(255,255,255,0.03)", border: "1px solid " + (manageCat ? accent + "45" : "rgba(255,255,255,0.08)"), borderRadius: 10, color: manageCat ? accent : "rgba(255,255,255,0.45)", padding: "7px 12px", cursor: "pointer", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>Categorias</button>
+        <button onClick={function() { setManageCat(!manageCat); }} style={{ background: manageCat ? "#1A1A1D" : "#141416", border: "1px solid " + (manageCat ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"), borderRadius: 10, color: manageCat ? "#EDEDEF" : "#A0A0A8", padding: "7px 12px", cursor: "pointer", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>Categorias</button>
         <button onClick={function() { shiftMonth(-1); }} style={navBtn()}>‹</button>
-        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: accent, minWidth: 90, textAlign: "center" }}>{month}</span>
+        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#EDEDEF", minWidth: 90, textAlign: "center" }}>{month}</span>
         <button onClick={function() { shiftMonth(1); }} style={navBtn()}>›</button>
       </div>
 
       {manageCat && (
-        <div style={{ marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid " + accent + "28", background: accent + "08" }}>
+        <div style={{ marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416" }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
             <input value={catDraft.name} onChange={function(e) { setCatDraft(Object.assign({}, catDraft, { name: e.target.value })); }} onKeyDown={function(e) { if (e.key === "Enter") saveCategory(); }} placeholder={catDraft.id ? "Novo nome" : "Nova categoria"} style={inputStyle()} />
-            <button onClick={saveCategory} style={{ background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>{catDraft.id ? "Guardar" : "+ Criar"}</button>
+            <button onClick={saveCategory} style={{ background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>{catDraft.id ? "Guardar" : "+ Criar"}</button>
           </div>
           {categories.map(function(cat) {
             return (
-              <div key={cat.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <div key={cat.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
                 <span>{cat.name}</span>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={function() { setCatDraft({ id: cat.id, name: cat.name }); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer" }}>✎</button>
+                  <button onClick={function() { setCatDraft({ id: cat.id, name: cat.name }); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }}>✎</button>
                   {categories.length > 1 ? (
-                    <button type="button" onClick={function() { removeCategory(cat); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer" }} aria-label={"Apagar " + cat.name}>×</button>
+                    <button type="button" onClick={function() { removeCategory(cat); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }} aria-label={"Apagar " + cat.name}>×</button>
                   ) : null}
                 </div>
               </div>
@@ -350,58 +350,58 @@ export default function FinanceLedger(props) {
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 20 }}>
-        <div style={{ borderRadius: 18, border: "1px solid " + accent + "30", background: accent + "10", padding: 18 }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)" }}>TOTAL DO MÊS</p>
-          <p style={{ margin: "6px 0 0", fontSize: 32, fontFamily: "'JetBrains Mono',monospace", color: accent }}>{total.toFixed(2)} €</p>
+        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: 18 }}>
+          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>TOTAL DO MÊS</p>
+          <p style={{ margin: "6px 0 0", fontSize: 32, fontFamily: "'JetBrains Mono',monospace", color: amountColor(total, kind) }}>{total.toFixed(2)} €</p>
         </div>
-        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", padding: 18 }}>
-          <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)" }}>POR CATEGORIA</p>
-          {byCategory.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Sem registos</p> : byCategory.map(function(c) {
+        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: 18 }}>
+          <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>POR CATEGORIA</p>
+          {byCategory.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: "#6E6E76" }}>Sem registos</p> : byCategory.map(function(c) {
             return <div key={c.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
-              <span style={{ color: "rgba(255,255,255,0.55)" }}>{c.name}</span>
-              <span style={{ color: accent, fontFamily: "'JetBrains Mono',monospace" }}>{c.total.toFixed(2)} €</span>
+              <span style={{ color: "#A0A0A8" }}>{c.name}</span>
+              <span style={{ color: amountColor(c.total, kind), fontFamily: "'JetBrains Mono',monospace" }}>{c.total.toFixed(2)} €</span>
             </div>;
           })}
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid " + accent + "22", background: accent + "06" }}>
+      <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416" }}>
         <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 140px 1fr", gap: 10 }}>
           <input value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
           <input type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={inputStyle()} />
         </div>
-        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace" }}>CATEGORIAS (máx. 2)</p>
+        <p style={{ margin: 0, fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>CATEGORIAS (máx. 2)</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {categoryNames.map(function(name) {
             var on = (draft.categories || []).indexOf(name) >= 0;
             var disabled = !on && (draft.categories || []).length >= 2;
             return (
               <button key={name} type="button" disabled={disabled} onClick={function() { toggleCategory(name); }}
-                style={{ border: "1px solid " + (on ? accent + "55" : "rgba(255,255,255,0.1)"), background: on ? accent + "18" : "transparent", color: on ? accent : disabled ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.5)", borderRadius: 10, padding: "6px 12px", cursor: disabled ? "not-allowed" : "pointer", fontSize: 11 }}>
+                style={{ border: "1px solid " + (on ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"), background: on ? "#1A1A1D" : "transparent", color: on ? "#EDEDEF" : disabled ? "#6E6E76" : "#A0A0A8", borderRadius: 10, padding: "6px 12px", cursor: disabled ? "not-allowed" : "pointer", fontSize: 11 }}>
                 {name}
               </button>
             );
           })}
         </div>
-        <button type="button" onClick={addRow} style={{ background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ {label}</button>
+        <button type="button" onClick={addRow} style={{ background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF", borderRadius: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ {label}</button>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {monthItems.length === 0 ? (
-          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.28)", padding: 40 }}>Sem registos neste mês.</p>
+          <p style={{ textAlign: "center", color: "#6E6E76", padding: 40 }}>Sem registos neste mês.</p>
         ) : monthItems.map(function(e, idx) {
           var cats = (e.categories || [e.category]).join(" · ");
           return (
-            <article key={e.id} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", padding: "14px 16px", animation: "modIn .35s ease " + (idx * 0.04) + "s both" }}>
+            <article key={e.id} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: "14px 16px", animation: "modIn .35s ease " + (idx * 0.04) + "s both" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <p style={{ margin: 0, fontSize: 15 }}>{e.title}</p>
-                  <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{e.day.split("-").reverse().join("/")} · {cats}</p>
+                  <p style={{ margin: "6px 0 0", fontSize: 11, color: "#6E6E76" }}>{e.day.split("-").reverse().join("/")} · {cats}</p>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: accent }}>{Number(e.amount).toFixed(2)} €</p>
-                  <button type="button" onClick={function() { removeRow(e.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer" }}>×</button>
+                  <p style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: amountColor(Number(e.amount), kind) }}>{Number(e.amount).toFixed(2)} €</p>
+                  <button type="button" onClick={function() { removeRow(e.id); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }}>×</button>
                 </div>
               </div>
             </article>
@@ -413,8 +413,13 @@ export default function FinanceLedger(props) {
 }
 
 function navBtn() {
-  return { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", width: 34, height: 34, cursor: "pointer" };
+  return { background: "#141416", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, color: "#EDEDEF", width: 34, height: 34, cursor: "pointer" };
 }
 function inputStyle() {
-  return { width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, color: "#fff", padding: "10px 12px", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", boxSizing: "border-box", minHeight: 44 };
+  return { width: "100%", background: "#0E0E10", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, color: "#EDEDEF", padding: "10px 12px", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", boxSizing: "border-box", minHeight: 44 };
+}
+/** Montantes são guardados sempre positivos; o sinal vem do tipo de registo. */
+function amountColor(v, kind) {
+  if (!v) return "#EDEDEF";
+  return kind === "income" ? "#8FB39B" : "#C08C8C";
 }

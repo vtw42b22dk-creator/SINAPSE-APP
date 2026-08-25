@@ -8,8 +8,8 @@ import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 
-var ACCENT = "#FFB800";
-var COLORS = ["#FFB800", "#00FFC8", "#7B61FF", "#FF3D8A", "#38BDF8", "#34D399"];
+var ACCENT = "#E6E6E9";
+var COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
 var JOURNAL_FONT = "'JetBrains Mono', monospace";
 var JOURNAL_LETTER_SPACING = "0.04em";
 var JOURNAL_LINE_HEIGHT = 1.75;
@@ -520,7 +520,7 @@ export default function Journal() {
       onCopyCapture={handleJournalCopy}
       style={{
         minHeight: "100vh",
-        background: isHydrated ? "radial-gradient(circle at 20% 0," + color + "0D,transparent 35%)," + pageBg() : pageBg(),
+        background: pageBg(),
         color: "#FFFFFF",
         fontFamily: JOURNAL_FONT,
         letterSpacing: JOURNAL_LETTER_SPACING,
@@ -528,7 +528,7 @@ export default function Journal() {
       }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
       <style>{MODULE_ENTRY_CSS}</style>
-      <header style={{position:"sticky",top:0,zIndex:20,background:"rgba(10,10,16,0.92)",backdropFilter:"blur(16px)",borderBottom:"1px solid rgba(255,255,255,0.05)",padding:isMobile?"12px":"14px 20px"}}>
+      <header style={{position:"sticky",top:0,zIndex:20,background:"#0A0A0B",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:isMobile?"12px":"14px 20px"}}>
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             {isMobile && mobileNoteOpen ? (
@@ -550,7 +550,7 @@ export default function Journal() {
       </header>
 
       {sessionWarn ? (
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#FFB800", fontFamily: JOURNAL_FONT }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#C4A57C", fontFamily: JOURNAL_FONT }}>
           {sessionWarn}
         </div>
       ) : null}
@@ -560,7 +560,7 @@ export default function Journal() {
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         {(!isMobile || !mobileNoteOpen) ? (
-        <aside style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:isMobile?18:22,padding:isMobile?14:16,height:"fit-content",backdropFilter:"blur(14px)"}}>
+        <aside style={{border:"1px solid rgba(255,255,255,0.07)",background:"#141416",borderRadius:14,padding:isMobile?14:16,height:"fit-content"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 12px"}}>
             <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, margin: 0 }}>NOTAS</p>
             <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:9,color:color,padding:"4px 10px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10,letterSpacing:JOURNAL_LETTER_SPACING}}>+ Bloco</button>

@@ -3,14 +3,14 @@ import { createContext, useContext, useEffect } from "react";
 
 var ThemeContext = createContext(null);
 
-/** Tema fixo escuro (neon). */
+/** Tema fixo: dark minimalista. */
 export function ThemeProvider(props) {
   useEffect(function() {
-    document.documentElement.setAttribute("data-theme", "neon");
-    try { localStorage.setItem("sinapse-theme-v1", "neon"); } catch (e) {}
+    document.documentElement.setAttribute("data-theme", "dark");
+    try { localStorage.setItem("sinapse-theme-v1", "dark"); } catch (e) {}
   }, []);
 
-  return <ThemeContext.Provider value={{ theme: "neon" }}>{props.children}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={{ theme: "dark" }}>{props.children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

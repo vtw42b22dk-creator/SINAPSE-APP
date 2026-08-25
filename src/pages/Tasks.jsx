@@ -5,7 +5,7 @@ import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
 import { fs } from "../lib/mobileUi";
 
-var ACCENT = "#7B61FF";
+var ACCENT = "#E6E6E9";
 var COLUMNS = [
   { id: "inbox", label: "Inbox", icon: "◎", hint: "Captura rápida" },
   { id: "today", label: "Hoje", icon: "◉", hint: "Foco do dia" },
@@ -19,8 +19,8 @@ var MOBILE_VIEWS = [
 ];
 var PRIORITIES = [
   { id: "low", label: "Baixa", color: "rgba(255,255,255,0.35)" },
-  { id: "med", label: "Média", color: "#FFB800" },
-  { id: "high", label: "Alta", color: "#FF3D8A" },
+  { id: "med", label: "Média", color: "#C4A57C" },
+  { id: "high", label: "Alta", color: "#E6E6E9" },
 ];
 
 var SAVE_DEBOUNCE_MS = 900;
@@ -41,7 +41,7 @@ function TaskCard(props) {
       onDragStart={function(e) { if (props.readOnly) return; e.dataTransfer.setData("text/task-id", t.id); }}
       style={{
         padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.03)",
-        border: "1px solid " + (overdue ? "#FF3D8A30" : "rgba(255,255,255,0.06)"),
+        border: "1px solid " + (overdue ? "#E6E6E930" : "rgba(255,255,255,0.06)"),
         cursor: props.readOnly ? "default" : "grab",
         transition: "transform 0.15s, box-shadow 0.15s",
       }}
@@ -77,7 +77,7 @@ function TaskCard(props) {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, alignItems: "center" }}>
             <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: p.color, letterSpacing: 0.5 }}>{p.label.toUpperCase()}</span>
             {t.due && (
-              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: overdue ? "#FF3D8A" : "rgba(255,255,255,0.25)" }}>
+              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: overdue ? "#E6E6E9" : "rgba(255,255,255,0.25)" }}>
                 {overdue ? "Atrasada · " : ""}{t.due.split("-").reverse().join("/")}
               </span>
             )}
@@ -422,12 +422,10 @@ export default function Tasks() {
   var tk = todayKey();
 
   return (
-    <div className="mod-main" style={{ minHeight: "100vh", background: "linear-gradient(155deg, #0A0A12 0%, #12101F 50%, #0A0A12 100%)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif" }}>
+    <div className="mod-main" style={{ minHeight: "100vh", background: "#0A0A0B", color: "#EDEDEF", fontFamily: "'IBM Plex Sans', sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{"@keyframes taskIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} .task-col{animation:taskIn .35s ease both}"}</style>
-      <div style={{ position: "fixed", top: "-20%", left: "30%", width: 500, height: 500, background: "radial-gradient(circle,rgba(123,97,255,0.06),transparent 60%)", pointerEvents: "none" }} />
-
-      <header style={{ position: "sticky", top: 0, zIndex: 20, padding: isMobile ? "12px" : "14px 20px", background: "linear-gradient(180deg,rgba(10,10,18,0.97),rgba(10,10,18,0.75))", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 20, padding: isMobile ? "12px" : "14px 20px", background: "#0A0A0B", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             {isMobile && mobileTab ? (
@@ -460,14 +458,14 @@ export default function Tasks() {
         {!loaded ? <PageLoader accent={ACCENT} lines={6} /> : (
         <>
         {syncWarn ? (
-          <p style={{ margin: "0 0 14px", padding: "10px 12px", borderRadius: 10, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.28)", color: "#FFB800", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
+          <p style={{ margin: "0 0 14px", padding: "10px 12px", borderRadius: 10, background: "rgba(196,165,124,0.1)", border: "1px solid rgba(196,165,124,0.28)", color: "#C4A57C", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
             {syncWarn}
           </p>
         ) : null}
         {!(isMobile && !mobileTab) ? (
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 200, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-            <div style={{ width: stats.pct + "%", height: "100%", background: "linear-gradient(90deg," + ACCENT + ",#00FFC8)", borderRadius: 3, transition: "width 0.4s ease" }} />
+            <div style={{ width: stats.pct + "%", height: "100%", background: "#E6E6E9", borderRadius: 3, transition: "width 0.4s ease" }} />
           </div>
           <p style={{ margin: 0, fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)" }}>
             {stats.done}/{stats.total} concluídas · {stats.today} em foco hoje
@@ -476,7 +474,7 @@ export default function Tasks() {
         ) : null}
 
         {showForm && !(isMobile && !mobileTab) ? (
-          <div style={{ marginBottom: 24, padding: 18, borderRadius: 16, background: "rgba(123,97,255,0.06)", border: "1px solid " + ACCENT + "25", animation: "taskIn 0.25s ease" }}>
+          <div style={{ marginBottom: 24, padding: 18, borderRadius: 16, background: "rgba(230,230,233,0.06)", border: "1px solid " + ACCENT + "25", animation: "taskIn 0.25s ease" }}>
             <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
               <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="O que tens de fazer?" autoFocus
@@ -568,7 +566,7 @@ export default function Tasks() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
                     {(col.id === "inbox" || col.id === "done") && list.length > 0 ? (
                       <button type="button" onClick={function() { clearColumn(col.id); }}
-                        style={{ background: "rgba(255,61,90,0.08)", border: "1px solid rgba(255,61,90,0.28)", borderRadius: 8, color: "#FF3D5A", padding: isMobile ? "8px 12px" : "5px 10px", cursor: "pointer", fontSize: fs(isMobile, 10, 12), fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>
+                        style={{ background: "rgba(192,140,140,0.08)", border: "1px solid rgba(192,140,140,0.28)", borderRadius: 8, color: "#C08C8C", padding: isMobile ? "8px 12px" : "5px 10px", cursor: "pointer", fontSize: fs(isMobile, 10, 12), fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>
                         Apagar tudo
                       </button>
                     ) : null}

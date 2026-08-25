@@ -41,14 +41,14 @@ function reconcileJournalSpaces(spaces, blocks) {
     spaces.push({
       id: b.space_id,
       title: "Recuperado",
-      color: "#FFB800",
+      color: "#E6E6E9",
       updated: Date.now(),
     });
     ids[b.space_id] = true;
   });
   if (!spaces.length && blocks.length) {
     var sid = uid("js");
-    spaces.push({ id: sid, title: "Recuperado", color: "#FFB800", updated: Date.now() });
+    spaces.push({ id: sid, title: "Recuperado", color: "#E6E6E9", updated: Date.now() });
     blocks = blocks.map(function(b) {
       return Object.assign({}, b, { space_id: sid });
     });
@@ -68,7 +68,7 @@ function reconcileWishlistGroups(groups, items) {
     groups.push({
       id: it.group_id,
       name: "Recuperado",
-      color: "#34D399",
+      color: "#8FB39B",
       order_index: groups.length,
       updated: Date.now(),
     });
@@ -76,7 +76,7 @@ function reconcileWishlistGroups(groups, items) {
   });
   if (!groups.length && items.length) {
     var gid = uid("wg");
-    groups.push({ id: gid, name: "Recuperado", color: "#34D399", order_index: 0, updated: Date.now() });
+    groups.push({ id: gid, name: "Recuperado", color: "#8FB39B", order_index: 0, updated: Date.now() });
     items = items.map(function(it) {
       return Object.assign({}, it, { group_id: gid });
     });

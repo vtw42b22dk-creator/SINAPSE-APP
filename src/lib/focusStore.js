@@ -21,7 +21,7 @@ var TASKS_KEY = "focus-tasks-v1";
 var ACTIVE_PROJECT_KEY = "focus-active-project-v1";
 var DIARY_SPACE_TITLE = "Estudo";
 
-export var PROJECT_COLORS = ["#00FFC8", "#FF3D8A", "#FFB800", "#6B8AFF", "#34D399", "#FF6B35", "#B36BFF"];
+export var PROJECT_COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
 
 export function dayKey(d) {
   d = d || new Date();
@@ -352,13 +352,13 @@ export async function syncNoteToDiary(text, projectName) {
       return (s.title || "").toLowerCase() === DIARY_SPACE_TITLE.toLowerCase();
     });
     if (!space) {
-      space = { id: uid("js"), title: DIARY_SPACE_TITLE, color: "#00FFC8" };
+      space = { id: uid("js"), title: DIARY_SPACE_TITLE, color: "#E6E6E9" };
       await journalStore.saveSpaces((spaces || []).concat([space]));
     }
     var dateStr = new Date().toLocaleDateString("pt-PT");
     var prefix = projectName ? "// " + projectName.toUpperCase() + " · " + dateStr : "// NOTA DE ESTUDO: " + dateStr;
     var safe = escapeHtml(text.trim()).replace(/\n/g, "<br/>");
-    var content = '<b style="color:#00FFC8">' + prefix + "</b><br/>" + safe;
+    var content = '<b style="color:#E6E6E9">' + prefix + "</b><br/>" + safe;
     var block = await journalStore.appendBlock(space.id, "text", content, { source: "focus_studio" });
     return { ok: true, blockId: block.id, space: space.title };
   } catch (e) {

@@ -7,12 +7,12 @@ import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 
-var ACCENT = "#34D399";
-var GROUP_COLORS = ["#34D399", "#FFB800", "#7B61FF", "#FF3D8A", "#38BDF8", "#00FFC8"];
+var ACCENT = "#E6E6E9";
+var GROUP_COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
 var PRIORITIES = [
   { id: "low", label: "Baixa", color: "rgba(255,255,255,0.35)" },
-  { id: "med", label: "Média", color: "#FFB800" },
-  { id: "high", label: "Alta", color: "#FF3D8A" },
+  { id: "med", label: "Média", color: "#C4A57C" },
+  { id: "high", label: "Alta", color: "#E6E6E9" },
 ];
 
 export default function Wishlist() {
@@ -237,7 +237,7 @@ export default function Wishlist() {
     <div style={{ minHeight: "100vh", background: pageBg(), color: pageText(), fontFamily: "'IBM Plex Sans',sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{MODULE_ENTRY_CSS}</style>
-      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(10,10,16,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: isMobile ? "12px" : "14px 20px" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: isMobile ? "12px" : "14px 20px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button type="button" onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
@@ -312,7 +312,7 @@ export default function Wishlist() {
                       <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: pr.color }}>{pr.label.toUpperCase()}</span>
                         {item.price != null && <span style={{ fontSize: 11, color: accent }}>{Number(item.price).toFixed(2)} €</span>}
-                        {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#38BDF8" }}>Abrir link</a>}
+                        {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#E6E6E9" }}>Abrir link</a>}
                       </div>
                     </div>
                     <button type="button" onClick={function() { removeItem(item.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: 16 }} aria-label="Eliminar">×</button>

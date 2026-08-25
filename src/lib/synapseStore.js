@@ -28,7 +28,7 @@ function normalizeProject(p) {
     id: p.id || uid("sp"),
     name: p.name || "Projeto",
     description: p.description || "",
-    color: p.color || "#FF3D8A",
+    color: p.color || "#E6E6E9",
     collapsed: p.collapsed || [],
     modules: Object.assign({}, DEFAULT_MODULES, p.modules || {}),
   };
@@ -167,7 +167,7 @@ export function newProject(name, opts) {
     id: uid("sp"),
     name: name || "Novo projeto",
     description: o.description || "",
-    color: o.color || "#FF3D8A",
+    color: o.color || "#E6E6E9",
     collapsed: [],
     modules: Object.assign({}, DEFAULT_MODULES, o.modules || {}),
   });

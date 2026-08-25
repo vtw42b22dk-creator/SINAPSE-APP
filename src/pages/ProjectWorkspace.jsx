@@ -5,7 +5,7 @@ import * as projectModuleStore from "../lib/projectModuleStore";
 import Synapse from "./Synapse";
 import { ProjectInvestments, ProjectNotes, ProjectAnalytics, ProjectInventory } from "../components/ProjectModules";
 
-var ACCENT = "#FF3D8A";
+var ACCENT = "#E6E6E9";
 
 var MODULE_ICONS = {
   documents: "✦",
@@ -16,24 +16,24 @@ var MODULE_ICONS = {
 };
 
 var MODULE_COLORS = {
-  documents: "#FF3D8A",
-  investments: "#34D399",
-  notes: "#FFB800",
-  analytics: "#00FFC8",
-  inventory: "#6B8AFF",
+  documents: "#E6E6E9",
+  investments: "#8FB39B",
+  notes: "#C4A57C",
+  analytics: "#E6E6E9",
+  inventory: "#E6E6E9",
 };
 
 var SIDEBAR_CSS = [
-  ".pw{height:100vh;display:flex;flex-direction:column;background:radial-gradient(120% 90% at 80% -10%,#10111b 0%,#08080f 55%,#060609 100%);color:#fff;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
-  ".pw-head{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,7,13,0.78);backdrop-filter:blur(16px);z-index:30}",
+  ".pw{height:100vh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
+  ".pw-head{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:30}",
   ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:34px;min-width:34px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0;transition:all .16s}",
   ".pw-hbtn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}",
   ".pw-shell{flex:1;display:flex;min-height:0}",
-  ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:14px 12px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(8,9,14,0.6);backdrop-filter:blur(14px);overflow-y:auto;transition:width .22s ease,padding .22s ease}",
+  ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:14px 12px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;transition:width .22s ease,padding .22s ease}",
   ".pw-side--closed{width:0;padding:0;border:none;overflow:hidden}",
   ".pw-side--mini{width:66px;padding:14px 8px;align-items:center}",
   ".pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:none}",
-  ".pw-pcard{display:flex;align-items:center;gap:11px;padding:11px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012));margin-bottom:14px}",
+  ".pw-pcard{display:flex;align-items:center;gap:11px;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;margin-bottom:14px}",
   ".pw-side--mini .pw-pcard{padding:0;border:none;background:none;justify-content:center;margin-bottom:16px}",
   ".pw-pic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}",
   ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
@@ -43,14 +43,14 @@ var SIDEBAR_CSS = [
   ".pw-side--mini .pw-link{justify-content:center;padding:11px 0;width:46px;margin:0 auto 6px}",
   ".pw-link:hover{color:#fff;background:rgba(255,255,255,0.04)}",
   ".pw-link.on{color:#fff;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1)}",
-  ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--lc);box-shadow:0 0 12px var(--lc)}",
+  ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:0 2px 2px 0;background:var(--lc);opacity:.7}",
   ".pw-lic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .16s}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
   ".pw-foot{margin-top:auto;padding:12px 8px 4px;font-size:9px;color:rgba(255,255,255,0.24);line-height:1.5}",
   ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}",
   ".pw-main-in{flex:1;min-height:0;overflow:hidden}",
-  ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:40}",
-  "@media(max-width:719px){.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:14px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:11px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(150deg,rgba(255,255,255,0.05),rgba(255,255,255,0.012));justify-content:flex-start}.pw-side--mini .pw-link{justify-content:flex-start;padding:12px 14px;width:100%;margin:0 0 3px;font-size:14px!important}.pw-lbl{font-size:11px!important}.pw-head-title{font-size:15px!important}}",
+  ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40}",
+  "@media(max-width:719px){.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:14px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:11px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-side--mini .pw-link{justify-content:flex-start;padding:12px 14px;width:100%;margin:0 0 3px;font-size:14px!important}.pw-lbl{font-size:11px!important}.pw-head-title{font-size:15px!important}}",
 ].join("");
 
 function firstActiveModule(modules) {
@@ -125,7 +125,7 @@ export default function ProjectWorkspace() {
 
   if (!loaded) {
     return (
-      <div style={{ minHeight: "100vh", background: "#06060C", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ fontFamily: "'JetBrains Mono',monospace", color: ACCENT, opacity: 0.5 }}>A carregar...</p>
       </div>
     );
@@ -190,7 +190,7 @@ export default function ProjectWorkspace() {
             {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, marginLeft: 4 }}>
-            <span style={{ width: 9, height: 9, borderRadius: "50%", background: pColor, boxShadow: "0 0 10px " + pColor, flexShrink: 0 }} />
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
             <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function ProjectWorkspace() {
         {sidebarOpen && isMobile && <div className="pw-bk" onClick={function() { setSidebarOpen(false); }} />}
         <aside className={sidebarClass}>
           <div className="pw-pcard">
-            <div className="pw-pic" style={{ background: pColor + "1a", color: pColor, boxShadow: "0 0 16px " + pColor + "26" }}>✦</div>
+            <div className="pw-pic" style={{ background: pColor + "14", color: pColor }}>✦</div>
             <div style={{ minWidth: 0 }}>
               <p className="pw-pname">{project.name}</p>
               <p className="pw-pcard-meta">{activeModules.length} módulos</p>
@@ -213,7 +213,7 @@ export default function ProjectWorkspace() {
             var lc = MODULE_COLORS[m.id] || ACCENT;
             return (
               <button type="button" key={m.id} className={"pw-link" + (active ? " on" : "")} onClick={function() { goModule(m.id); }} title={m.label} style={{ "--lc": lc }}>
-                <span className="pw-lic" style={active ? { background: lc + "22", color: lc, boxShadow: "0 0 12px " + lc + "33" } : { color: "rgba(255,255,255,0.5)" }}>{MODULE_ICONS[m.id] || "·"}</span>
+                <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "rgba(255,255,255,0.5)" }}>{MODULE_ICONS[m.id] || "·"}</span>
                 <span className="pw-lbl">{m.label}</span>
               </button>
             );

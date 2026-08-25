@@ -5,10 +5,9 @@ import * as focusStore from "../lib/focusStore";
 import * as focusTimer from "../lib/focusTimer";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 
-var CYAN = "#00FFC8";
-var PINK = "#FF3D8A";
-var AMBER = "#FFB800";
-var PURPLE = "#B36BFF";
+var CYAN = "#E6E6E9";
+var AMBER = "#C4A57C";
+var PURPLE = "#E6E6E9";
 
 var ICONS = ["◈", "◷", "✦", "◇", "⌘", "€", "▦", "◉", "✎", "◆"];
 var CLOCK_STYLES = [
@@ -28,88 +27,89 @@ var SIDEBAR = [
 
 var FX_CSS = [
   "@keyframes fxIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
-  "@keyframes fxPulse{0%,100%{opacity:.7}50%{opacity:1}}",
   "@keyframes fxSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}",
-  ".fx-root{height:100vh;max-height:100vh;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(120% 80% at 50% -10%,#0e1018 0%,#08080f 55%,#06060b 100%);color:#fff;font-family:'IBM Plex Sans',sans-serif}",
-  ".fx-head{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(7,7,13,0.88);backdrop-filter:blur(16px);z-index:20}",
-  ".fx-hbtn{height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);cursor:pointer;font-size:12px;font-family:inherit}",
+  ".fx-root{height:100vh;max-height:100vh;overflow:hidden;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".fx-head{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:20}",
+  ".fx-hbtn{height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;cursor:pointer;font-size:12px;font-family:inherit;transition:background .15s,border-color .15s,color .15s}",
+  ".fx-hbtn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
   ".fx-shell{flex:1;min-height:0;display:flex;overflow:hidden}",
-  ".fx-side{width:68px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.06);background:rgba(6,6,12,0.6)}",
-  ".fx-nav{width:48px;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;transition:all .18s}",
+  ".fx-side{width:68px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
+  ".fx-nav{width:48px;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;transition:background .18s,border-color .18s,color .18s}",
   ".fx-nav span{font-size:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;line-height:1}",
-  ".fx-nav.on{border-color:var(--ac);background:var(--ac)14;color:var(--ac);box-shadow:0 0 18px var(--ac)33}",
+  ".fx-nav:hover{background:#1A1A1D;color:#A0A0A8}",
+  ".fx-nav.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
   ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:12px 14px 18px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
-  ".fx-panel{flex:1;width:100%;min-height:0;border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:linear-gradient(155deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));padding:20px 22px;animation:fxIn .35s ease;box-sizing:border-box;display:flex;flex-direction:column}",
+  ".fx-panel{flex:1;width:100%;min-height:0;border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:20px 22px;animation:fxIn .35s ease;box-sizing:border-box;display:flex;flex-direction:column}",
   ".fx-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 118px);padding:24px 28px}",
   ".fx-panel--clock .fx-modes{justify-content:center;max-width:720px;width:100%}",
   ".fx-panel--clock .fx-clock-wrap{flex:0 0 auto;width:100%;max-width:720px}",
   ".fx-title{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.8px;display:flex;align-items:center;gap:8px}",
-  ".fx-input{width:100%;background:rgba(0,0,0,0.32);border:1px solid rgba(255,255,255,0.1);border-radius:11px;color:#fff;padding:10px 12px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}",
-  ".fx-input:focus{border-color:rgba(0,255,200,0.45)}",
-  ".fx-label{display:block;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.38);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}",
+  ".fx-input{width:100%;background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:11px;color:#EDEDEF;padding:10px 12px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}",
+  ".fx-input:focus{border-color:rgba(255,255,255,0.14)}",
+  ".fx-label{display:block;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}",
   ".fx-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:11px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:transform .15s}",
   ".fx-btn:hover:not(:disabled){transform:translateY(-1px)}",
   ".fx-btn:disabled{opacity:.4;cursor:not-allowed}",
   ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;width:100%;flex:1;align-content:start}",
-  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(145deg,rgba(255,255,255,0.045),rgba(255,255,255,0.01));padding:18px;min-height:148px;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
-  ".fx-proj:hover{transform:translateY(-3px);border-color:var(--pc);box-shadow:0 14px 36px rgba(0,0,0,0.35)}",
-  ".fx-proj::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--pc)}",
-  ".fx-proj-del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.35);color:rgba(255,255,255,0.35);cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;z-index:2}",
+  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:18px;min-height:148px;cursor:pointer;transition:transform .18s,background .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
+  ".fx-proj:hover{transform:translateY(-3px);background:#1A1A1D;border-color:rgba(255,255,255,0.14);box-shadow:0 12px 32px rgba(0,0,0,0.5)}",
+  ".fx-proj::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc)}",
+  ".fx-proj-del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;color:#6E6E76;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;z-index:2}",
   ".fx-proj:hover .fx-proj-del{opacity:1}",
-  ".fx-proj-del:hover{background:rgba(255,61,90,0.18);color:#FF3D5A;border-color:rgba(255,61,90,0.4)}",
-  ".fx-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:130px;border:1px dashed rgba(0,255,200,0.3);background:rgba(0,255,200,0.04);border-radius:16px;cursor:pointer;color:rgba(255,255,255,0.45);transition:all .18s}",
-  ".fx-addcard:hover{border-color:rgba(0,255,200,0.55);color:#00FFC8;background:rgba(0,255,200,0.08)}",
-  ".fx-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px}",
-  ".fx-modal{width:min(440px,100%);border-radius:18px;border:1px solid rgba(0,255,200,0.28);background:linear-gradient(160deg,#11111b,#0a0a12);padding:20px;animation:fxIn .28s ease}",
+  ".fx-proj-del:hover{background:rgba(192,140,140,0.14);color:#C08C8C;border-color:rgba(192,140,140,0.35)}",
+  ".fx-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:130px;border:1px dashed rgba(255,255,255,0.14);background:#141416;border-radius:16px;cursor:pointer;color:#6E6E76;transition:background .18s,border-color .18s,color .18s}",
+  ".fx-addcard:hover{border-color:rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D}",
+  ".fx-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:16px}",
+  ".fx-modal{width:min(440px,100%);border-radius:18px;border:1px solid rgba(255,255,255,0.14);background:#141416;box-shadow:0 16px 48px rgba(0,0,0,0.55);padding:20px;animation:fxIn .28s ease}",
   ".fx-modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}",
-  ".fx-mode{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.025);color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer}",
-  ".fx-mode.on{color:#0b0b12}",
+  ".fx-mode{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer}",
+  ".fx-mode.on{color:#0A0A0B}",
   ".fx-clock-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:12px 0 8px;width:100%}",
-  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:clamp(64px,14vw,112px);line-height:1;letter-spacing:3px;transition:color .4s,text-shadow .4s}",
-  ".fx-prog{width:100%;max-width:520px;height:8px;border-radius:999px;background:rgba(255,255,255,0.07);overflow:hidden}",
+  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:clamp(64px,14vw,112px);line-height:1;letter-spacing:3px;color:#EDEDEF}",
+  ".fx-prog{width:100%;max-width:520px;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden}",
   ".fx-prog i{display:block;height:100%;border-radius:999px;transition:width 1s linear}",
   ".fx-tcontrols{display:flex;gap:12px;width:100%;max-width:520px}",
   ".fx-tbtn{flex:1;padding:15px;border-radius:13px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;cursor:pointer;background:transparent}",
   ".fx-styletog{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}",
-  ".fx-stybtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);color:rgba(255,255,255,0.45);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer}",
-  ".fx-stybtn.on{border-color:var(--ac);color:var(--ac);background:var(--ac)12}",
+  ".fx-stybtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer}",
+  ".fx-stybtn.on{border-color:rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D}",
   ".fx-analog{width:min(360px,52vw);height:min(360px,52vw);position:relative}",
-  ".fx-analog-face{width:100%;height:100%;border-radius:50%;border:2px solid rgba(255,255,255,0.12);background:radial-gradient(circle at 50% 35%,rgba(255,255,255,0.06),rgba(0,0,0,0.35));position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,0.4),0 0 30px var(--ac)22}",
-  ".fx-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:999px;background:var(--ac);box-shadow:0 0 8px var(--ac)}",
+  ".fx-analog-face{width:100%;height:100%;border-radius:50%;border:2px solid rgba(255,255,255,0.08);background:#141416;position:relative;}",
+  ".fx-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:999px;background:#E6E6E9;}",
   ".fx-ring{width:min(360px,52vw);height:min(360px,52vw);position:relative;display:flex;align-items:center;justify-content:center;overflow:visible}",
   ".fx-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}",
-  ".fx-ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:8}",
-  ".fx-ring-progress{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .9s linear}",
+  ".fx-ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:6}",
+  ".fx-ring-progress{fill:none;stroke:#E6E6E9;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .9s linear}",
   ".fx-blocks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}",
-  ".fx-block{width:clamp(36px,7vw,56px);height:clamp(60px,12vw,88px);border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(24px,6vw,40px);font-weight:600;color:var(--ac);text-shadow:0 0 12px var(--ac)88;transition:background .3s,box-shadow .3s}",
-  ".fx-block.on{background:var(--ac)18;box-shadow:0 0 16px var(--ac)44,inset 0 0 12px var(--ac)22}",
+  ".fx-block{width:clamp(36px,7vw,56px);height:clamp(60px,12vw,88px);border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(24px,6vw,40px);font-weight:600;color:#EDEDEF;transition:background .3s,border-color .3s}",
+  ".fx-block.on{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
   ".fx-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}",
-  ".fx-stat{padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.22)}",
-  ".fx-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.38);letter-spacing:.5px}",
+  ".fx-stat{padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D}",
+  ".fx-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.5px}",
   ".fx-stat strong{display:block;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600}",
-  ".fx-goal{margin:16px 0;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2)}",
-  ".fx-goal-bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.07);overflow:hidden;margin-top:10px}",
-  ".fx-goal-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--ac),var(--ac)cc);box-shadow:0 0 14px var(--ac)55;transition:width .6s ease}",
+  ".fx-goal{margin:16px 0;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D}",
+  ".fx-goal-bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin-top:10px}",
+  ".fx-goal-bar i{display:block;height:100%;border-radius:999px;background:#E6E6E9;transition:width .6s ease}",
   ".fx-chart{display:flex;gap:10px;align-items:flex-end;height:min(220px,28vh);margin:14px 0;flex:1;min-height:160px}",
   ".fx-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}",
-  ".fx-bar{width:100%;max-width:40px;border-radius:8px 8px 0 0;min-height:4px;background:var(--ac);box-shadow:0 0 12px var(--ac)44;transition:height .4s}",
+  ".fx-bar{width:100%;max-width:40px;border-radius:8px 8px 0 0;min-height:4px;background:var(--ac);transition:height .4s}",
   ".fx-table{width:100%;border-collapse:collapse;font-size:12px}",
-  ".fx-table th,.fx-table td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'JetBrains Mono',monospace}",
-  ".fx-table th{font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:.5px;text-transform:uppercase}",
-  ".fx-idea{padding:10px 34px 10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.022);font-size:12px;line-height:1.5;white-space:pre-wrap;position:relative}",
-  ".fx-idea button{position:absolute;top:7px;right:7px;width:22px;height:22px;border:none;background:transparent;color:rgba(255,255,255,0.3);cursor:pointer}",
-  ".fx-task{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);transition:border-color .15s}",
+  ".fx-table th,.fx-table td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace}",
+  ".fx-table th{font-size:9px;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
+  ".fx-idea{padding:10px 34px 10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;font-size:12px;line-height:1.5;white-space:pre-wrap;position:relative}",
+  ".fx-idea button{position:absolute;top:7px;right:7px;width:22px;height:22px;border:none;background:transparent;color:#6E6E76;cursor:pointer}",
+  ".fx-task{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;transition:border-color .15s}",
   ".fx-task.done{opacity:.45}",
-  ".fx-task-check{width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}",
-  ".fx-task-check.on{border-color:var(--ac);background:var(--ac)18;color:var(--ac)}",
+  ".fx-task-check{width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,255,255,0.14);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}",
+  ".fx-task-check.on{border-color:#E6E6E9;background:#E6E6E9;color:#0A0A0B}",
   ".fx-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07)}",
-  ".fx-tab{padding:9px 14px;border:none;background:none;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}",
-  ".fx-tab.on{color:#fff}",
-  ".fx-area{width:100%;min-height:min(360px,42vh);background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.09);border-radius:13px;color:#fff;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box;flex:1}",
+  ".fx-tab{padding:9px 14px;border:none;background:none;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}",
+  ".fx-tab.on{color:#EDEDEF}",
+  ".fx-area{width:100%;min-height:min(360px,42vh);background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:13px;color:#EDEDEF;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box;flex:1}",
   ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:10px;font-family:'JetBrains Mono',monospace}",
   ".fx-pal{display:flex;gap:7px;flex-wrap:wrap}",
   ".fx-pal button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.06);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:6px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
+  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.07);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:6px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
 ].join("");
 
 function playBeep(freq) {
@@ -151,7 +151,7 @@ function reviewDraftKey(projectId) {
 
 function DigitalClock(props) {
   return (
-    <div className="fx-digital" style={{ color: props.color, textShadow: "0 0 24px " + props.color + "88, 0 0 8px " + props.color + "55" }}>
+    <div className="fx-digital">
       {focusTimer.fmtClock(props.secs)}
     </div>
   );
@@ -165,14 +165,14 @@ function AnalogClock(props) {
   var secAngle = (props.secs % 60) / 60 * 360;
   return (
     <div className="fx-analog">
-      <div className="fx-analog-face" style={{ "--ac": props.color }}>
+      <div className="fx-analog-face">
         {Array.from({ length: 12 }, function(_, i) {
           var a = (i / 12) * 360;
-          return <span key={i} style={{ position: "absolute", width: 2, height: i % 3 === 0 ? 10 : 6, background: "rgba(255,255,255,0.2)", left: "50%", top: 8, transform: "translateX(-50%) rotate(" + a + "deg)", transformOrigin: "50% 130px" }} />;
+          return <span key={i} style={{ position: "absolute", width: 2, height: i % 3 === 0 ? 10 : 6, background: "rgba(255,255,255,0.14)", left: "50%", top: 8, transform: "translateX(-50%) rotate(" + a + "deg)", transformOrigin: "50% 130px" }} />;
         })}
-        <div className="fx-hand" style={{ width: 4, height: "32%", transform: "translateX(-50%) rotate(" + minAngle + "deg)", "--ac": props.color }} />
-        <div className="fx-hand" style={{ width: 2, height: "42%", transform: "translateX(-50%) rotate(" + secAngle + "deg)", opacity: 0.7, "--ac": props.color }} />
-        <div style={{ position: "absolute", inset: "42%", borderRadius: "50%", background: props.color, boxShadow: "0 0 10px " + props.color }} />
+        <div className="fx-hand" style={{ width: 4, height: "32%", transform: "translateX(-50%) rotate(" + minAngle + "deg)" }} />
+        <div className="fx-hand" style={{ width: 2, height: "42%", transform: "translateX(-50%) rotate(" + secAngle + "deg)", opacity: 0.7 }} />
+        <div style={{ position: "absolute", inset: "42%", borderRadius: "50%", background: "#E6E6E9" }} />
       </div>
     </div>
   );
@@ -182,32 +182,20 @@ function RingClock(props) {
   var r = 52;
   var c = 2 * Math.PI * r;
   var pct = props.total > 0 ? props.secs / props.total : 0;
-  var glowId = "fx-ring-glow";
   return (
-    <div className="fx-ring" style={{ "--ac": props.color }}>
+    <div className="fx-ring">
       <svg viewBox="0 0 140 140" aria-hidden="true">
-        <defs>
-          <filter id={glowId} x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
         <circle className="fx-ring-track" cx="70" cy="70" r={r} />
         <circle
           className="fx-ring-progress"
           cx="70"
           cy="70"
           r={r}
-          stroke={props.color}
           strokeDasharray={c}
           strokeDashoffset={c * (1 - pct)}
-          filter={"url(#" + glowId + ")"}
         />
       </svg>
-      <div className="fx-digital" style={{ fontSize: "clamp(40px,9vw,64px)", color: props.color, textShadow: "0 0 16px " + props.color + "66" }}>
+      <div className="fx-digital" style={{ fontSize: "clamp(40px,9vw,64px)" }}>
         {focusTimer.fmtClock(props.secs)}
       </div>
     </div>
@@ -219,15 +207,15 @@ function BlocksClock(props) {
   return (
     <div className="fx-blocks">
       {str.split("").map(function(ch, i) {
-        if (ch === ":") return <span key={i} style={{ color: props.color, fontSize: 32, opacity: 0.6, animation: "fxPulse 1s ease infinite" }}>:</span>;
-        return <div key={i} className={"fx-block" + (props.running ? " on" : "")} style={{ "--ac": props.color }}>{ch}</div>;
+        if (ch === ":") return <span key={i} style={{ color: "#6E6E76", fontSize: 32 }}>:</span>;
+        return <div key={i} className={"fx-block" + (props.running ? " on" : "")}>{ch}</div>;
       })}
     </div>
   );
 }
 
 function ClockDisplay(props) {
-  var common = { secs: props.secs, total: props.total, color: props.color, running: props.running };
+  var common = { secs: props.secs, total: props.total, running: props.running };
   if (props.style === "analog") return <AnalogClock {...common} />;
   if (props.style === "ring") return <RingClock {...common} />;
   if (props.style === "blocks") return <BlocksClock {...common} />;
@@ -287,7 +275,7 @@ function ProjectPicker(props) {
         <button type="button" className="fx-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: CYAN, letterSpacing: 1.2 }}>ESTÚDIO DE FOCO</h1>
-          <p style={{ margin: "3px 0 0", fontSize: 11, color: "rgba(255,255,255,0.38)" }}>Escolhe ou cria um projeto de estudo</p>
+          <p style={{ margin: "3px 0 0", fontSize: 11, color: "#A0A0A8" }}>Escolhe ou cria um projeto de estudo</p>
         </div>
       </header>
       <main className="fx-main">
@@ -298,18 +286,18 @@ function ProjectPicker(props) {
               <article key={p.id} className="fx-proj" style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }} onClick={function() { props.onSelect(p); }}>
                 <button type="button" className="fx-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { removeProject(e, p); }}>×</button>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, paddingRight: 28 }}>
-                  <span style={{ width: 44, height: 44, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: p.color + "18", color: p.color, boxShadow: "0 0 16px " + p.color + "22" }}>{p.icon}</span>
+                  <span style={{ width: 44, height: 44, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "#1A1A1D", color: p.color }}>{p.icon}</span>
                   <div style={{ minWidth: 0 }}>
                     <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
-                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "rgba(255,255,255,0.38)", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#A0A0A8", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
                   </div>
                 </div>
                 {prog.goalMin > 0 ? (
-                  <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, boxShadow: "0 0 10px " + p.color + "55", borderRadius: 999 }} />
+                  <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, borderRadius: 999 }} />
                   </div>
                 ) : (
-                  <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.28)", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta definida</p>
+                  <p style={{ margin: 0, fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta definida</p>
                 )}
               </article>
             );
@@ -334,7 +322,7 @@ function ProjectPicker(props) {
                 <label className="fx-label">Ícone</label>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {ICONS.map(function(ic) {
-                    return <button key={ic} type="button" onClick={function() { setIcon(ic); }} style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid " + (icon === ic ? color : "rgba(255,255,255,0.1)"), background: icon === ic ? color + "18" : "transparent", color: icon === ic ? color : "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 16 }}>{ic}</button>;
+                    return <button key={ic} type="button" onClick={function() { setIcon(ic); }} style={{ width: 36, height: 36, borderRadius: 10, border: "1px solid " + (icon === ic ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"), background: icon === ic ? "#1A1A1D" : "transparent", color: icon === ic ? "#EDEDEF" : "#A0A0A8", cursor: "pointer", fontSize: 16 }}>{ic}</button>;
                   })}
                 </div>
               </div>
@@ -342,11 +330,11 @@ function ProjectPicker(props) {
                 <label className="fx-label">Cor</label>
                 <div className="fx-pal">
                   {focusStore.PROJECT_COLORS.map(function(c) {
-                    return <button key={c} type="button" onClick={function() { setColor(c); }} style={{ background: c + "44", borderColor: color === c ? c : "transparent", boxShadow: color === c ? "0 0 10px " + c : "none" }}><span style={{ display: "block", width: "100%", height: "100%", borderRadius: 5, background: c }} /></button>;
+                    return <button key={c} type="button" onClick={function() { setColor(c); }} style={{ background: "#1A1A1D", borderColor: color === c ? "rgba(255,255,255,0.55)" : "transparent" }}><span style={{ display: "block", width: "100%", height: "100%", borderRadius: 5, background: c }} /></button>;
                   })}
                 </div>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#A0A0A8", cursor: "pointer" }}>
                 <input type="checkbox" checked={hasGoal} onChange={function(e) { setHasGoal(e.target.checked); }} />
                 Definir meta de horas até uma data
               </label>
@@ -363,7 +351,7 @@ function ProjectPicker(props) {
                 </div>
               ) : null}
               <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                <button type="button" className="fx-btn" onClick={create} style={{ flex: 1, borderColor: CYAN + "55", color: CYAN, background: CYAN + "14" }}>Criar e abrir</button>
+                <button type="button" className="fx-btn" onClick={create} style={{ flex: 1, borderColor: "rgba(255,255,255,0.14)", color: "#EDEDEF", background: "#1A1A1D" }}>Criar e abrir</button>
                 <button type="button" className="fx-hbtn" onClick={function() { setModalOpen(false); }}>Cancelar</button>
               </div>
             </div>
@@ -418,7 +406,7 @@ export default function Focus() {
 
   var today = focusStore.dayKey();
   var accent = activeProject ? activeProject.color : CYAN;
-  var phaseColor = timer.phase === "focus" ? accent : PINK;
+  var phaseColor = timer.phase === "focus" ? accent : AMBER;
 
   var projectMetrics = useMemo(function() {
     if (!activeProject) return [];
@@ -638,8 +626,8 @@ export default function Focus() {
 
   if (!isHydrated) {
     return (
-      <div style={{ minHeight: "100vh", background: "#06060b", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'JetBrains Mono',monospace", color: CYAN, opacity: 0.5 }}>A carregar estúdio…</p>
+      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>A carregar estúdio…</p>
       </div>
     );
   }
@@ -677,16 +665,16 @@ export default function Focus() {
         <button type="button" className="fx-hbtn" onClick={exitProject} title="Trocar projeto">← Projetos</button>
         <button type="button" className="fx-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: accent + "18", color: accent, fontSize: 16 }}>{activeProject.icon}</span>
+          <span style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "#1A1A1D", color: accent, fontSize: 16 }}>{activeProject.icon}</span>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: accent, letterSpacing: 0.8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
-            <p style={{ margin: "2px 0 0", fontSize: 10, color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono',monospace" }}>
+            <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 13, color: "#EDEDEF", letterSpacing: 0.8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
+            <p style={{ margin: "2px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>
               {timer.running ? "● Sessão activa" : "Estúdio de Foco"} · hoje {todayMetric.minutes} min
             </p>
           </div>
         </div>
-        <span className="fx-badge" style={{ color: timer.running ? accent : "#34D399", background: (timer.running ? accent : "#34D399") + "18" }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: timer.running ? accent : "#34D399", animation: timer.running ? "fxPulse 1.2s ease infinite" : "none" }} />
+        <span className="fx-badge" style={{ color: timer.running ? "#8FB39B" : "#A0A0A8", background: timer.running ? "rgba(143,179,155,0.14)" : "#1A1A1D" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: timer.running ? "#8FB39B" : "#6E6E76" }} />
           {timer.running ? "A contar" : (auth.user ? "Sync" : "Local")}
         </span>
         <button type="button" className="fx-hbtn" title="Eliminar este projeto"
@@ -694,7 +682,7 @@ export default function Focus() {
             if (!window.confirm("Eliminar \"" + activeProject.name + "\" e todos os dados associados?")) return;
             removeProject(activeProject);
           }}
-          style={{ color: "rgba(255,107,90,0.75)", borderColor: "rgba(255,107,90,0.25)" }}>×</button>
+          style={{ color: "rgba(192,140,140,0.75)", borderColor: "rgba(192,140,140,0.25)" }}>×</button>
       </header>
 
       <div className="fx-shell">
@@ -702,7 +690,7 @@ export default function Focus() {
           {SIDEBAR.map(function(item) {
             var on = sidebarTab === item.id;
             return (
-              <button key={item.id} type="button" className={"fx-nav" + (on ? " on" : "")} style={{ "--ac": accent }}
+              <button key={item.id} type="button" className={"fx-nav" + (on ? " on" : "")}
                 onClick={function() { setSidebarTab(item.id); }} title={item.label}>
                 {item.icon}<span>{item.label}</span>
               </button>
@@ -712,14 +700,14 @@ export default function Focus() {
 
         <main className="fx-main" data-scrollable>
           {sidebarTab === "clock" && (
-            <section className="fx-panel fx-panel--clock" style={{ borderColor: phaseColor + "30" }}>
+            <section className="fx-panel fx-panel--clock">
               <h3 className="fx-title" style={{ color: phaseColor, alignSelf: "flex-start", width: "100%", maxWidth: 720 }}><span>◷</span> Relógio · {timer.phase === "focus" ? "Foco" : "Pausa"}</h3>
               <div className="fx-modes">
                 {presets.map(function(m) {
                   var on = timer.modeId === m.id;
                   return (
                     <button key={m.id} type="button" className={"fx-mode" + (on ? " on" : "")} onClick={function() { selectMode(m.id); }}
-                      style={on ? { background: phaseColor, boxShadow: "0 0 12px " + phaseColor + "55" } : null}>{m.label}</button>
+                      style={on ? { background: "#E6E6E9", borderColor: "#E6E6E9" } : null}>{m.label}</button>
                   );
                 })}
               </div>
@@ -741,25 +729,25 @@ export default function Focus() {
                 <div className="fx-styletog">
                   {CLOCK_STYLES.map(function(st) {
                     return (
-                      <button key={st.id} type="button" className={"fx-stybtn" + (timer.clockStyle === st.id ? " on" : "")} style={{ "--ac": phaseColor }}
+                      <button key={st.id} type="button" className={"fx-stybtn" + (timer.clockStyle === st.id ? " on" : "")}
                         onClick={function() { focusTimer.setClockStyle(st.id); }}>{st.label}</button>
                     );
                   })}
                 </div>
-                <ClockDisplay style={timer.clockStyle} secs={timer.secsLeft} total={phaseTotal} color={phaseColor} running={timer.running} />
+                <ClockDisplay style={timer.clockStyle} secs={timer.secsLeft} total={phaseTotal} running={timer.running} />
                 <p style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: phaseColor, letterSpacing: 2, textTransform: "uppercase" }}>
                   {timer.phase === "focus" ? "● Foco" : "❚❚ Pausa"} · {timer.phase === "focus" ? focusMin : breakMin} min
                 </p>
-                <div className="fx-prog"><i style={{ width: progress + "%", background: phaseColor, boxShadow: "0 0 10px " + phaseColor }} /></div>
+                <div className="fx-prog"><i style={{ width: progress + "%", background: "#E6E6E9" }} /></div>
                 <div className="fx-tcontrols">
                   <button type="button" className="fx-tbtn" disabled={dis} onClick={handlePause}
-                    style={{ borderColor: phaseColor + "66", color: phaseColor, background: phaseColor + "12" }}>
+                    style={{ borderColor: (timer.running ? AMBER : "#8FB39B") + "55", color: timer.running ? AMBER : "#8FB39B", background: "#1A1A1D" }}>
                     {timer.running ? "❚❚ Pausa" : "▶ Iniciar"}
                   </button>
                   <button type="button" className="fx-tbtn" disabled={dis} onClick={handleReset}
-                    style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)" }}>↺ Reset</button>
+                    style={{ borderColor: "rgba(255,255,255,0.14)", color: "#A0A0A8", background: "#1A1A1D" }}>↺ Reset</button>
                 </div>
-                <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.32)", textAlign: "center", lineHeight: 1.5, maxWidth: 520 }}>
+                <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", textAlign: "center", lineHeight: 1.5, maxWidth: 520 }}>
                   O cronómetro continua ao mudares de aba ou módulo.<br />Só conta tempo com o cronómetro a correr — pausas não entram no total.
                 </p>
               </div>
@@ -773,7 +761,7 @@ export default function Focus() {
                 <div className="fx-stat"><p>Hoje</p><strong style={{ color: accent }}>{todayMetric.minutes} min</strong></div>
                 <div className="fx-stat"><p>Total projeto</p><strong style={{ color: AMBER }}>{fmtHours(goal.studied)}</strong></div>
                 <div className="fx-stat"><p>Páginas hoje</p><strong>{todayMetric.pages}</strong></div>
-                <div className="fx-stat"><p>Sessão actual</p><strong style={{ color: timer.phase === "focus" ? accent : "rgba(255,255,255,0.4)" }}>{timer.phase === "focus" ? focusTimer.elapsedFocusMinutes(timer) + " min" : "—"}</strong></div>
+                <div className="fx-stat"><p>Sessão actual</p><strong style={{ color: timer.phase === "focus" ? accent : "#6E6E76" }}>{timer.phase === "focus" ? focusTimer.elapsedFocusMinutes(timer) + " min" : "—"}</strong></div>
               </div>
               <label className="fx-label">Minutos hoje (ajuste manual)</label>
               <input type="number" min={0} className="fx-input" value={todayMetric.minutes} disabled={dis}
@@ -786,7 +774,7 @@ export default function Focus() {
               <label className="fx-label">Matéria / tema</label>
               <input className="fx-input" value={todayMetric.subject} disabled={dis} placeholder="Ex: Cálculo, Português…"
                 onChange={function(e) { updateTodayMetric({ subject: e.target.value }); }} />
-              <p style={{ margin: "14px 0 0", fontSize: 10, color: "rgba(255,255,255,0.32)", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
+              <p style={{ margin: "14px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace", lineHeight: 1.5 }}>
                 Cada minuto creditado corresponde só ao tempo com o cronómetro em foco a correr (pausas não contam).
               </p>
             </section>
@@ -796,9 +784,9 @@ export default function Focus() {
             <section className="fx-panel" style={{ minHeight: "calc(100vh - 118px)" }}>
               <div className="fx-tabs">
                 <button type="button" className={"fx-tab" + (notesTab === "ideas" ? " on" : "")} onClick={function() { setNotesTab("ideas"); }}
-                  style={notesTab === "ideas" ? { borderBottomColor: accent, color: accent } : null}>Ideias espontâneas</button>
+                  style={notesTab === "ideas" ? { borderBottomColor: "#E6E6E9", color: "#EDEDEF" } : null}>Ideias espontâneas</button>
                 <button type="button" className={"fx-tab" + (notesTab === "review" ? " on" : "")} onClick={function() { setNotesTab("review"); }}
-                  style={notesTab === "review" ? { borderBottomColor: PINK, color: PINK } : null}>Notas de revisão</button>
+                  style={notesTab === "review" ? { borderBottomColor: "#E6E6E9", color: "#EDEDEF" } : null}>Notas de revisão</button>
               </div>
               {notesTab === "ideas" ? (
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
@@ -806,10 +794,10 @@ export default function Focus() {
                     <input className="fx-input" value={ideaInput} disabled={dis} placeholder="Captura rápida sem perder o foco…"
                       onChange={function(e) { setIdeaInput(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addIdea("idea"); }} />
                     <button type="button" className="fx-btn" disabled={dis || !ideaInput.trim()} onClick={function() { addIdea("idea"); }}
-                      style={{ borderColor: accent + "55", color: accent, background: accent + "14" }}>+</button>
+                      style={{ borderColor: "rgba(255,255,255,0.14)", color: "#EDEDEF", background: "#1A1A1D" }}>+</button>
                   </div>
                   {ideasOnly.length === 0 ? (
-                    <p style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Sem ideias ainda.</p>
+                    <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Sem ideias ainda.</p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {ideasOnly.map(function(it) {
@@ -817,7 +805,7 @@ export default function Focus() {
                           <div key={it.id} className="fx-idea">
                             <button type="button" onClick={function() { removeIdea(it.id); }}>×</button>
                             {it.content}
-                            <time style={{ display: "block", marginTop: 5, fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>{it.day_key}</time>
+                            <time style={{ display: "block", marginTop: 5, fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>{it.day_key}</time>
                           </div>
                         );
                       })}
@@ -831,10 +819,10 @@ export default function Focus() {
                     onChange={function(e) { onReviewChange(e.target.value); }} />
                   <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
                     <button type="button" className="fx-btn" disabled={!reviewText.trim() || syncStatus === "sending" || !auth.user} onClick={syncToDiary}
-                      style={{ borderColor: PINK + "55", color: PINK, background: PINK + "14" }}>
+                      style={{ borderColor: "rgba(255,255,255,0.14)", color: "#EDEDEF", background: "#1A1A1D" }}>
                       {syncStatus === "sending" ? "A enviar…" : "↗ Sincronizar com Diário"}
                     </button>
-                    {syncStatus === "sent" && <span className="fx-badge" style={{ color: "#34D399", background: "rgba(52,211,153,0.14)" }}>Enviado ✓</span>}
+                    {syncStatus === "sent" && <span className="fx-badge" style={{ color: "#8FB39B", background: "rgba(143,179,155,0.14)" }}>Enviado ✓</span>}
                   </div>
                 </div>
               )}
@@ -852,13 +840,13 @@ export default function Focus() {
               </div>
 
               {goal.goalMin > 0 ? (
-                <div className="fx-goal" style={{ "--ac": accent }}>
+                <div className="fx-goal">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                    <p style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "rgba(255,255,255,0.55)" }}>Meta: {activeProject.goal_hours}h até {activeProject.deadline ? new Date(activeProject.deadline).toLocaleDateString("pt-PT") : "—"}</p>
+                    <p style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#A0A0A8" }}>Meta: {activeProject.goal_hours}h até {activeProject.deadline ? new Date(activeProject.deadline).toLocaleDateString("pt-PT") : "—"}</p>
                     <strong style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: accent }}>{goal.pct}%</strong>
                   </div>
                   <div className="fx-goal-bar"><i style={{ width: goal.pct + "%" }} /></div>
-                  <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.42)" }}>
+                  <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }}>
                     <span>Faltam <strong style={{ color: accent }}>{fmtHours(goal.remaining)}</strong></span>
                     {goal.daysLeft != null ? <span><strong style={{ color: AMBER }}>{goal.daysLeft}</strong> dias restantes</span> : null}
                     {goal.daysLeft != null && goal.daysLeft > 0 ? (
@@ -868,22 +856,22 @@ export default function Focus() {
                 </div>
               ) : null}
 
-              <p style={{ margin: "16px 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.38)", letterSpacing: 0.6 }}>ÚLTIMOS 7 DIAS</p>
+              <p style={{ margin: "16px 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 0.6 }}>ÚLTIMOS 7 DIAS</p>
               <div className="fx-chart">
                 {week.map(function(d) {
                   var h = Math.round((d.minutes / maxMin) * 100);
                   var isToday = d.day_key === today;
                   return (
                     <div key={d.day_key} className="fx-col" title={d.minutes + " min"}>
-                      <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "rgba(255,255,255,0.35)" }}>{d.minutes || "·"}</span>
-                      <div className="fx-bar" style={{ height: (d.minutes > 0 ? Math.max(6, h) : 3) + "%", background: isToday ? accent : accent + "88", opacity: d.minutes ? 1 : 0.2 }} />
-                      <span style={{ fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "rgba(255,255,255,0.35)" }}>{weekdayShort(d.day_key)}</span>
+                      <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "#6E6E76" }}>{d.minutes || "·"}</span>
+                      <div className="fx-bar" style={{ height: (d.minutes > 0 ? Math.max(6, h) : 3) + "%", background: isToday ? accent : "rgba(255,255,255,0.24)", opacity: d.minutes ? 1 : 0.2 }} />
+                      <span style={{ fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "#6E6E76" }}>{weekdayShort(d.day_key)}</span>
                     </div>
                   );
                 })}
               </div>
 
-              <p style={{ margin: "20px 0 8px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.38)", letterSpacing: 0.6 }}>REGISTO DIÁRIO</p>
+              <p style={{ margin: "20px 0 8px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 0.6 }}>REGISTO DIÁRIO</p>
               <div style={{ overflowX: "auto" }}>
                 <table className="fx-table">
                   <thead><tr><th>Dia</th><th>Minutos</th><th>Páginas</th><th>Matéria</th></tr></thead>
@@ -894,11 +882,11 @@ export default function Focus() {
                           <td style={m.day_key === today ? { color: accent } : null}>{m.day_key}</td>
                           <td>{m.minutes}</td>
                           <td>{m.pages || "—"}</td>
-                          <td style={{ color: "rgba(255,255,255,0.45)", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.subject || "—"}</td>
+                          <td style={{ color: "#A0A0A8", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.subject || "—"}</td>
                         </tr>
                       );
                     })}
-                    {!projectMetrics.length ? <tr><td colSpan={4} style={{ color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sem registos ainda</td></tr> : null}
+                    {!projectMetrics.length ? <tr><td colSpan={4} style={{ color: "#6E6E76", textAlign: "center" }}>Sem registos ainda</td></tr> : null}
                   </tbody>
                 </table>
               </div>
@@ -912,19 +900,19 @@ export default function Focus() {
                 <input className="fx-input" value={taskInput} disabled={dis} placeholder="Nova tarefa…"
                   onChange={function(e) { setTaskInput(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addTask(); }} />
                 <button type="button" className="fx-btn" disabled={dis || !taskInput.trim()} onClick={addTask}
-                  style={{ borderColor: accent + "55", color: accent, background: accent + "14" }}>+</button>
+                  style={{ borderColor: "rgba(255,255,255,0.14)", color: "#EDEDEF", background: "#1A1A1D" }}>+</button>
               </div>
               {projectTasks.length === 0 ? (
-                <p style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Lista vazia. Adiciona tarefas para este projeto.</p>
+                <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Lista vazia. Adiciona tarefas para este projeto.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {projectTasks.map(function(t) {
                     return (
                       <div key={t.id} className={"fx-task" + (t.done ? " done" : "")}>
-                        <button type="button" className={"fx-task-check" + (t.done ? " on" : "")} style={{ "--ac": accent }}
+                        <button type="button" className={"fx-task-check" + (t.done ? " on" : "")}
                           onClick={function() { toggleTask(t.id); }}>{t.done ? "✓" : ""}</button>
-                        <span style={{ flex: 1, fontSize: 13, textDecoration: t.done ? "line-through" : "none", color: t.done ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.85)" }}>{t.text}</span>
-                        <button type="button" onClick={function() { removeTask(t.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer", fontSize: 14 }}>×</button>
+                        <span style={{ flex: 1, fontSize: 13, textDecoration: t.done ? "line-through" : "none", color: t.done ? "#6E6E76" : "#EDEDEF" }}>{t.text}</span>
+                        <button type="button" onClick={function() { removeTask(t.id); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer", fontSize: 14 }}>×</button>
                       </div>
                     );
                   })}
