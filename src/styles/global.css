@@ -7,23 +7,29 @@
 
 :root,
 [data-theme="dark"] {
-  --page-bg: #0a0a0b;
+  --page-bg: #09090b;
   --page-text: #ededef;
-  --header-bg: rgba(12, 12, 14, 0.92);
+  --header-bg: #09090b;
   --border-subtle: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
   --surface: #141416;
-  --surface-hi: #1a1a1d;
+  --surface-hi: #1c1c20;
   --text-muted: #a0a0a8;
   --text-faint: #6e6e76;
   --accent: #e6e6e9;
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --lift: 0 14px 36px rgba(0, 0, 0, 0.42);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur: 240ms;
+  --dur-slow: 480ms;
   color-scheme: dark;
 }
 
 html, body, #root {
   width: 100%;
   min-height: 100%;
-  background: #0a0a0b;
+  background: #09090b;
 }
 
 html {
@@ -32,21 +38,95 @@ html {
   overscroll-behavior: none;
 }
 
+/* Lavagem suave no topo — profundidade sem cor. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -18%, rgba(255, 255, 255, 0.045), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 100% 110%, rgba(255, 255, 255, 0.018), transparent 55%);
+}
+
+/* Grain táctil — o dark deixa de parecer plástico. */
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  opacity: 0.038;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
 body {
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   color: var(--page-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: none;
   touch-action: manipulation;
 }
 
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+  line-height: 1.22;
+  font-weight: 500;
+}
+
+[style*="JetBrains"],
+code, kbd, pre {
+  font-variant-numeric: tabular-nums;
+}
+
 button,
 a,
 [role="button"] {
   touch-action: manipulation;
+}
+
+button,
+a,
+[role="button"],
+input,
+select,
+textarea,
+summary {
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    opacity var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.985);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.28);
+  outline-offset: 3px;
 }
 
 [data-scrollable],
@@ -60,6 +140,7 @@ input,
 textarea,
 select,
 [contenteditable="true"] {
+  caret-color: var(--accent);
   -webkit-user-select: text;
   user-select: text;
   -webkit-touch-callout: default;
@@ -71,8 +152,90 @@ textarea::placeholder {
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
   color: #fff;
+}
+
+/* Superfícies partilhadas — brilho interno discreto. */
+.pj-card,
+.tk-card,
+.hub-card,
+.fx-panel,
+.fx-proj,
+.fin-bal,
+.jr-blk,
+.jr-note,
+.pw-pcard,
+.pm-card,
+.pm-stat,
+.pm-kpi,
+.fl-card,
+.fl-list,
+.wl-card {
+  box-shadow: var(--sheen);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pj-card:hover,
+  .tk-card:hover,
+  .hub-card:hover,
+  .fx-proj:hover,
+  .tk-tab:hover,
+  .wl-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--sheen), var(--lift);
+  }
+}
+
+@keyframes appearUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes appearIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.04); }
+}
+
+@keyframes blinkSoft {
+  0%, 48% { opacity: 1; }
+  50%, 98% { opacity: 0.18; }
+}
+
+@keyframes skeleton {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes nowPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+[data-stagger] > * {
+  animation: appearUp var(--dur-slow) var(--ease) both;
+}
+[data-stagger] > *:nth-child(1) { animation-delay: 0ms; }
+[data-stagger] > *:nth-child(2) { animation-delay: 40ms; }
+[data-stagger] > *:nth-child(3) { animation-delay: 80ms; }
+[data-stagger] > *:nth-child(4) { animation-delay: 120ms; }
+[data-stagger] > *:nth-child(5) { animation-delay: 160ms; }
+[data-stagger] > *:nth-child(6) { animation-delay: 200ms; }
+[data-stagger] > *:nth-child(7) { animation-delay: 240ms; }
+[data-stagger] > *:nth-child(n + 8) { animation-delay: 280ms; }
+
+.week-now-dot,
+.day-now-dot {
+  animation: nowPulse 2.4s var(--ease) infinite;
+}
+
+.skel {
+  animation: skeleton 1.6s ease-in-out infinite;
 }
 
 @media (pointer: coarse) {
@@ -101,9 +264,38 @@ textarea::placeholder {
     user-select: text;
     -webkit-touch-callout: default;
   }
+
+  .pj-card:hover,
+  .tk-card:hover,
+  .hub-card:hover,
+  .fx-proj:hover,
+  .tk-tab:hover,
+  .wl-card:hover {
+    transform: none;
+    box-shadow: var(--sheen);
+  }
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.09); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

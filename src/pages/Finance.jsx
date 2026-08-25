@@ -10,6 +10,18 @@ import { pageBg, pageText } from "../lib/ThemeContext";
 var EXPENSE_ACCENT = "#E6E6E9";
 var INCOME_ACCENT = "#8FB39B";
 
+var FIN_CSS = [
+  ".fin-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 14px;border-radius:10px;",
+  "background:var(--fin-bg,#141416);border:1px solid var(--fin-bd,rgba(255,255,255,0.07));color:var(--fin-fg,#A0A0A8);",
+  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fin-btn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".fin-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
+  ".fin-bal{border-radius:16px;background:radial-gradient(ellipse 70% 90% at 100% 120%,rgba(255,255,255,0.04),transparent 55%),#141416;transition:border-color var(--dur) var(--ease)}",
+  ".fin-num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}",
+  "@media(max-width:719px){.fin-btn{min-height:44px;font-size:12px}}",
+].join("");
+
 function pad2(n) { return n < 10 ? "0" + n : "" + n; }
 function monthKeyFromDate(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1); }
 function monthLabel(monthKey) {
@@ -115,47 +127,45 @@ export default function Finance() {
 
   return (
     <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'IBM Plex Sans',sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{MODULE_ENTRY_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + FIN_CSS}</style>
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "12px" : "14px 20px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button onClick={function() { navigate("/"); }} style={backBtn()}>← Hub</button>
-            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 20 : 16, color: accent, margin: 0 }}>Financeiro</h1>
+            <button className="fin-btn" onClick={function() { navigate("/"); }}>← Hub</button>
+            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 18 : 16, fontWeight: 500, letterSpacing: 0.2, color: accent, margin: 0 }}>Financeiro</h1>
           </div>
           <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto" }}>
-            <button onClick={function() { setTab("expense"); }} style={Object.assign({}, tabBtn(tab === "expense", EXPENSE_ACCENT), isMobile ? { flex: 1, padding: "11px 14px", fontSize: 13 } : null)}>Gastos</button>
-            <button onClick={function() { setTab("income"); }} style={Object.assign({}, tabBtn(tab === "income", INCOME_ACCENT), isMobile ? { flex: 1, padding: "11px 14px", fontSize: 13 } : null)}>Recursos</button>
+            <button className="fin-btn" onClick={function() { setTab("expense"); }} style={Object.assign({}, tabBtn(tab === "expense", EXPENSE_ACCENT), isMobile ? { flex: 1 } : null)}>Gastos</button>
+            <button className="fin-btn" onClick={function() { setTab("income"); }} style={Object.assign({}, tabBtn(tab === "income", INCOME_ACCENT), isMobile ? { flex: 1 } : null)}>Recursos</button>
           </div>
         </div>
       </header>
-      <main className="mod-main" data-scrollable style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px" }}>
-        <div style={{
-          marginBottom: 22,
-          padding: isMobile ? "18px 16px" : "22px 24px",
-          borderRadius: 14,
-          border: "1px solid " + (saldo >= 0 ? "rgba(255,255,255,0.1)" : "rgba(192,140,140,0.28)"),
-          background: "#141416",
+      <main className="mod-main" data-scrollable style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "16px 12px 88px" : "24px 20px 56px" }}>
+        <div className="fin-bal" style={{
+          marginBottom: 24,
+          padding: isMobile ? "20px 18px" : "26px 28px",
+          border: "1px solid " + (saldo >= 0 ? "rgba(255,255,255,0.07)" : "rgba(192,140,140,0.28)"),
         }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: 2, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Saldo de</p>
-            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: accent, textTransform: "capitalize" }}>{monthLabel(month)}</span>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <p className="fin-lbl">Saldo de</p>
+            <span className="fin-num" style={{ fontSize: 11, letterSpacing: 0.4, color: accent, textTransform: "capitalize" }}>{monthLabel(month)}</span>
           </div>
-          <p style={{
-            margin: "8px 0 0",
-            fontSize: "clamp(28px, 6vw, 40px)",
-            fontFamily: "'JetBrains Mono',monospace",
+          <p className="fin-num" style={{
+            margin: "12px 0 0",
+            fontSize: "clamp(32px, 7vw, 46px)",
             fontWeight: 600,
-            color: data.loading ? "rgba(255,255,255,0.3)" : (saldo >= 0 ? "#EDEDEF" : "#C08C8C"),
+            lineHeight: 1.1,
+            letterSpacing: "-0.02em",
+            color: data.loading ? "#6E6E76" : (saldo >= 0 ? "#EDEDEF" : "#C08C8C"),
           }}>
             {data.loading ? "…" : eur(saldo)}
           </p>
           {!data.loading && (
-            <div style={{ margin: "12px 0 0", display: "flex", flexDirection: "column", gap: 8, fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>
-              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                <span style={{ color: "rgba(255,255,255,0.4)" }}>Este mês:</span>
-                <span style={{ color: "#8FB39B" }}>+{eur(stats.monthIncome)} recursos</span>
-                <span style={{ color: "#C08C8C" }}>−{eur(stats.monthExpense)} gastos</span>
+            <div style={{ margin: "20px 0 0", paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "baseline" }}>
+                <span className="fin-lbl">Este mês:</span>
+                <span className="fin-num" style={{ fontSize: 12, color: "#8FB39B" }}>+{eur(stats.monthIncome)} recursos</span>
+                <span className="fin-num" style={{ fontSize: 12, color: "#C08C8C" }}>−{eur(stats.monthExpense)} gastos</span>
               </div>
             </div>
           )}
@@ -179,16 +189,8 @@ export default function Finance() {
 
 function tabBtn(active, color) {
   return {
-    background: active ? color + "18" : "rgba(255,255,255,0.03)",
-    border: "1px solid " + (active ? color + "45" : "rgba(255,255,255,0.08)"),
-    borderRadius: 10,
-    color: active ? color : "rgba(255,255,255,0.45)",
-    padding: "7px 14px",
-    cursor: "pointer",
-    fontFamily: "'JetBrains Mono',monospace",
-    fontSize: 11,
+    "--fin-bg": active ? color + "18" : "#141416",
+    "--fin-bd": active ? color + "45" : "rgba(255,255,255,0.07)",
+    "--fin-fg": active ? color : "#A0A0A8",
   };
-}
-function backBtn() {
-  return { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "7px 12px", cursor: "pointer" };
 }

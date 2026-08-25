@@ -26,90 +26,108 @@ var SIDEBAR = [
 ];
 
 var FX_CSS = [
-  "@keyframes fxIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
+  "@keyframes fxIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
   "@keyframes fxSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}",
   ".fx-root{height:100vh;max-height:100vh;overflow:hidden;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
-  ".fx-head{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:20}",
-  ".fx-hbtn{height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;cursor:pointer;font-size:12px;font-family:inherit;transition:background .15s,border-color .15s,color .15s}",
-  ".fx-hbtn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".fx-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:20}",
+  ".fx-hbtn{height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;cursor:pointer;font-size:12px;line-height:1.4;font-family:inherit;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-hbtn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
   ".fx-shell{flex:1;min-height:0;display:flex;overflow:hidden}",
-  ".fx-side{width:68px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
-  ".fx-nav{width:48px;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;transition:background .18s,border-color .18s,color .18s}",
-  ".fx-nav span{font-size:7px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;line-height:1}",
-  ".fx-nav:hover{background:#1A1A1D;color:#A0A0A8}",
+  ".fx-side{width:68px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;border-right:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
+  ".fx-nav{width:48px;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:14px;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-nav span{font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.6px;line-height:1}",
+  ".fx-nav:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#A0A0A8}",
   ".fx-nav.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
-  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:12px 14px 18px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
-  ".fx-panel{flex:1;width:100%;min-height:0;border-radius:18px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:20px 22px;animation:fxIn .35s ease;box-sizing:border-box;display:flex;flex-direction:column}",
-  ".fx-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 118px);padding:24px 28px}",
+  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:16px 16px 20px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
+  ".fx-panel{flex:1;width:100%;min-height:0;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:24px;animation:fxIn var(--dur-slow) var(--ease) both;box-sizing:border-box;display:flex;flex-direction:column}",
+  ".fx-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 118px);padding:32px 24px}",
   ".fx-panel--clock .fx-modes{justify-content:center;max-width:720px;width:100%}",
   ".fx-panel--clock .fx-clock-wrap{flex:0 0 auto;width:100%;max-width:720px}",
-  ".fx-title{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.8px;display:flex;align-items:center;gap:8px}",
-  ".fx-input{width:100%;background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:11px;color:#EDEDEF;padding:10px 12px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit}",
-  ".fx-input:focus{border-color:rgba(255,255,255,0.14)}",
-  ".fx-label{display:block;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}",
-  ".fx-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:11px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:transform .15s}",
+  ".fx-title{margin:0 0 20px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;letter-spacing:.4px;line-height:1.4;display:flex;align-items:center;gap:8px}",
+  ".fx-input{width:100%;background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:10px;color:#EDEDEF;padding:11px 12px;font-size:14px;line-height:1.5;outline:none;box-sizing:border-box;font-family:inherit;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".fx-input:hover:not(:focus):not(:disabled){border-color:rgba(255,255,255,0.14)}",
+  ".fx-input:focus{border-color:rgba(255,255,255,0.14);background:#141416}",
+  ".fx-label{display:block;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;margin-bottom:8px;letter-spacing:1.6px;line-height:1.4;text-transform:uppercase}",
+  ".fx-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;line-height:1.2;cursor:pointer;border:1px solid;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fx-btn:hover:not(:disabled){transform:translateY(-1px)}",
   ".fx-btn:disabled{opacity:.4;cursor:not-allowed}",
-  ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;width:100%;flex:1;align-content:start}",
-  ".fx-proj{position:relative;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:18px;min-height:148px;cursor:pointer;transition:transform .18s,background .18s,box-shadow .18s,border-color .18s;animation:fxIn .4s ease both;overflow:hidden}",
-  ".fx-proj:hover{transform:translateY(-3px);background:#1A1A1D;border-color:rgba(255,255,255,0.14);box-shadow:0 12px 32px rgba(0,0,0,0.5)}",
+  ".fx-grid-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;width:100%;flex:1;align-content:start}",
+  ".fx-proj{position:relative;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:20px;min-height:148px;cursor:pointer;transition:transform var(--dur) var(--ease),background var(--dur) var(--ease),box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease);animation:fxIn var(--dur-slow) var(--ease) both;overflow:hidden}",
+  ".fx-proj:hover{transform:translateY(-2px);background:#1A1A1D;border-color:rgba(255,255,255,0.14);box-shadow:0 12px 32px rgba(0,0,0,0.45)}",
   ".fx-proj::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc)}",
-  ".fx-proj-del{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;color:#6E6E76;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s,color .15s;z-index:2}",
+  ".fx-proj-del{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;color:#6E6E76;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);z-index:2}",
   ".fx-proj:hover .fx-proj-del{opacity:1}",
   ".fx-proj-del:hover{background:rgba(192,140,140,0.14);color:#C08C8C;border-color:rgba(192,140,140,0.35)}",
-  ".fx-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:130px;border:1px dashed rgba(255,255,255,0.14);background:#141416;border-radius:16px;cursor:pointer;color:#6E6E76;transition:background .18s,border-color .18s,color .18s}",
+  ".fx-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:148px;border:1px dashed rgba(255,255,255,0.14);background:#141416;border-radius:14px;cursor:pointer;color:#6E6E76;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".fx-addcard:hover{border-color:rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D}",
-  ".fx-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:16px}",
-  ".fx-modal{width:min(440px,100%);border-radius:18px;border:1px solid rgba(255,255,255,0.14);background:#141416;box-shadow:0 16px 48px rgba(0,0,0,0.55);padding:20px;animation:fxIn .28s ease}",
-  ".fx-modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}",
-  ".fx-mode{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;cursor:pointer}",
+  ".fx-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:16px;animation:fxIn var(--dur-fast) var(--ease) both}",
+  ".fx-modal{width:min(440px,100%);border-radius:16px;border:1px solid rgba(255,255,255,0.14);background:#141416;box-shadow:0 20px 48px rgba(0,0,0,0.5);padding:20px;animation:fxIn var(--dur) var(--ease) both}",
+  ".fx-modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}",
+  ".fx-mode{min-height:36px;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.4px;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-mode:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
   ".fx-mode.on{color:#0A0A0B}",
-  ".fx-clock-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;padding:12px 0 8px;width:100%}",
-  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:clamp(64px,14vw,112px);line-height:1;letter-spacing:3px;color:#EDEDEF}",
-  ".fx-prog{width:100%;max-width:520px;height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden}",
+  ".fx-clock-wrap{display:flex;flex-direction:column;align-items:center;gap:28px;padding:20px 0 12px;width:100%}",
+  ".fx-digital{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(76px,16vw,136px);line-height:.95;letter-spacing:-0.04em;color:#EDEDEF;font-variant-numeric:tabular-nums;transition:color var(--dur-slow) var(--ease),opacity var(--dur-slow) var(--ease)}",
+  ".fx-prog{width:100%;max-width:520px;height:4px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden}",
   ".fx-prog i{display:block;height:100%;border-radius:999px;transition:width 1s linear}",
   ".fx-tcontrols{display:flex;gap:12px;width:100%;max-width:520px}",
-  ".fx-tbtn{flex:1;padding:15px;border-radius:13px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;cursor:pointer;background:transparent}",
-  ".fx-styletog{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}",
-  ".fx-stybtn{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer}",
+  ".fx-tbtn{flex:1;min-height:56px;padding:16px;border-radius:10px;border:1px solid;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.6px;cursor:pointer;background:transparent;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fx-tbtn:hover:not(:disabled){transform:translateY(-1px)}",
+  ".fx-styletog{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}",
+  ".fx-stybtn{min-height:34px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-size:10px;letter-spacing:.4px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-stybtn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
   ".fx-stybtn.on{border-color:rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D}",
   ".fx-analog{width:min(360px,52vw);height:min(360px,52vw);position:relative}",
-  ".fx-analog-face{width:100%;height:100%;border-radius:50%;border:2px solid rgba(255,255,255,0.08);background:#141416;position:relative;}",
-  ".fx-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:999px;background:#E6E6E9;}",
+  ".fx-analog-face{width:100%;height:100%;border-radius:50%;border:1px solid rgba(255,255,255,0.08);background:#141416;position:relative;}",
+  ".fx-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:999px;background:#E6E6E9;transition:opacity var(--dur) var(--ease);}",
   ".fx-ring{width:min(360px,52vw);height:min(360px,52vw);position:relative;display:flex;align-items:center;justify-content:center;overflow:visible}",
   ".fx-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}",
-  ".fx-ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:6}",
-  ".fx-ring-progress{fill:none;stroke:#E6E6E9;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .9s linear}",
+  ".fx-ring-track{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:3}",
+  ".fx-ring-progress{fill:none;stroke:#E6E6E9;stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .9s linear}",
   ".fx-blocks{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}",
-  ".fx-block{width:clamp(36px,7vw,56px);height:clamp(60px,12vw,88px);border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(24px,6vw,40px);font-weight:600;color:#EDEDEF;transition:background .3s,border-color .3s}",
+  ".fx-block{width:clamp(36px,7vw,56px);height:clamp(60px,12vw,88px);border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(24px,6vw,40px);font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;color:#EDEDEF;transition:background var(--dur-slow) var(--ease),border-color var(--dur-slow) var(--ease)}",
   ".fx-block.on{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
-  ".fx-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}",
-  ".fx-stat{padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D}",
-  ".fx-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.5px}",
-  ".fx-stat strong{display:block;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600}",
-  ".fx-goal{margin:16px 0;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D}",
-  ".fx-goal-bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin-top:10px}",
-  ".fx-goal-bar i{display:block;height:100%;border-radius:999px;background:#E6E6E9;transition:width .6s ease}",
-  ".fx-chart{display:flex;gap:10px;align-items:flex-end;height:min(220px,28vh);margin:14px 0;flex:1;min-height:160px}",
+  ".fx-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}",
+  ".fx-stat{padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;transition:border-color var(--dur) var(--ease)}",
+  ".fx-stat:hover{border-color:rgba(255,255,255,0.14)}",
+  ".fx-stat p{margin:0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:1.6px;line-height:1.4;text-transform:uppercase}",
+  ".fx-stat strong{display:block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:400;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}",
+  ".fx-goal{margin:20px 0;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D}",
+  ".fx-goal-bar{height:4px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin-top:12px}",
+  ".fx-goal-bar i{display:block;height:100%;border-radius:999px;background:#E6E6E9;transition:width var(--dur-slow) var(--ease)}",
+  ".fx-chart{display:flex;gap:10px;align-items:flex-end;height:min(220px,28vh);margin:16px 0;flex:1;min-height:160px}",
   ".fx-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}",
-  ".fx-bar{width:100%;max-width:40px;border-radius:8px 8px 0 0;min-height:4px;background:var(--ac);transition:height .4s}",
+  ".fx-bar{width:100%;max-width:40px;border-radius:6px 6px 0 0;min-height:4px;background:var(--ac);transition:height var(--dur-slow) var(--ease),opacity var(--dur) var(--ease)}",
   ".fx-table{width:100%;border-collapse:collapse;font-size:12px}",
-  ".fx-table th,.fx-table td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace}",
-  ".fx-table th{font-size:9px;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
-  ".fx-idea{padding:10px 34px 10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;font-size:12px;line-height:1.5;white-space:pre-wrap;position:relative}",
-  ".fx-idea button{position:absolute;top:7px;right:7px;width:22px;height:22px;border:none;background:transparent;color:#6E6E76;cursor:pointer}",
-  ".fx-task{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;transition:border-color .15s}",
+  ".fx-table th,.fx-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07);font-family:'JetBrains Mono',monospace}",
+  ".fx-table td{font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums}",
+  ".fx-table th{font-size:10px;color:#6E6E76;letter-spacing:1.6px;line-height:1.4;text-transform:uppercase;font-weight:500}",
+  ".fx-table tbody tr{transition:background var(--dur) var(--ease)}",
+  ".fx-table tbody tr:hover{background:#1A1A1D}",
+  ".fx-idea{padding:12px 40px 12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;font-size:13px;line-height:1.55;white-space:pre-wrap;position:relative;transition:border-color var(--dur) var(--ease)}",
+  ".fx-idea:hover{border-color:rgba(255,255,255,0.14)}",
+  ".fx-idea button{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:8px;border:none;background:transparent;color:#6E6E76;cursor:pointer;transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-idea button:hover{background:#1A1A1D;color:#C08C8C}",
+  ".fx-task{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#1A1A1D;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".fx-task:hover{border-color:rgba(255,255,255,0.14)}",
   ".fx-task.done{opacity:.45}",
-  ".fx-task-check{width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,255,255,0.14);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}",
+  ".fx-task-check{width:24px;height:24px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fx-task-check:hover{border-color:#E6E6E9}",
   ".fx-task-check.on{border-color:#E6E6E9;background:#E6E6E9;color:#0A0A0B}",
-  ".fx-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07)}",
-  ".fx-tab{padding:9px 14px;border:none;background:none;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}",
+  ".fx-tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07)}",
+  ".fx-tab{padding:10px 14px;border:none;background:none;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.3px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".fx-tab:hover{color:#A0A0A8}",
   ".fx-tab.on{color:#EDEDEF}",
-  ".fx-area{width:100%;min-height:min(360px,42vh);background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:13px;color:#EDEDEF;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box;flex:1}",
-  ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:10px;font-family:'JetBrains Mono',monospace}",
-  ".fx-pal{display:flex;gap:7px;flex-wrap:wrap}",
-  ".fx-pal button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.07);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:6px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:10px 10px 14px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:16px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
+  ".fx-area{width:100%;min-height:min(360px,42vh);background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:12px;color:#EDEDEF;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;outline:none;resize:vertical;box-sizing:border-box;flex:1;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".fx-area:hover:not(:focus):not(:disabled){border-color:rgba(255,255,255,0.14)}",
+  ".fx-area:focus{border-color:rgba(255,255,255,0.14);background:#141416}",
+  ".fx-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:10px;letter-spacing:.4px;line-height:1.2;font-family:'JetBrains Mono',monospace}",
+  ".fx-pal{display:flex;gap:8px;flex-wrap:wrap}",
+  ".fx-pal button{width:30px;height:30px;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:2px;transition:border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fx-pal button:hover{transform:translateY(-1px)}",
+  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.07);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:8px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:12px 12px 16px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:20px 16px}.fx-clock-wrap{gap:24px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
+  "@media(pointer:coarse){.fx-hbtn{min-height:44px}.fx-mode{min-height:44px}.fx-stybtn{min-height:44px}.fx-task-check{width:26px;height:26px}.fx-proj-del{width:36px;height:36px}.fx-idea button{width:32px;height:32px}}",
+  "@media(hover:none){.fx-proj:hover{transform:none;box-shadow:none}.fx-btn:hover:not(:disabled){transform:none}.fx-tbtn:hover:not(:disabled){transform:none}.fx-pal button:hover{transform:none}}",
 ].join("");
 
 function playBeep(freq) {
@@ -269,13 +287,12 @@ function ProjectPicker(props) {
 
   return (
     <div className="fx-root" data-scrollable>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
       <header className="fx-head">
         <button type="button" className="fx-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: CYAN, letterSpacing: 1.2 }}>ESTÚDIO DE FOCO</h1>
-          <p style={{ margin: "3px 0 0", fontSize: 11, color: "#A0A0A8" }}>Escolhe ou cria um projeto de estudo</p>
+          <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 500, color: CYAN, letterSpacing: 1.2 }}>ESTÚDIO DE FOCO</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 12, lineHeight: 1.5, color: "#A0A0A8" }}>Escolhe ou cria um projeto de estudo</p>
         </div>
       </header>
       <main className="fx-main">
@@ -285,26 +302,26 @@ function ProjectPicker(props) {
             return (
               <article key={p.id} className="fx-proj" style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }} onClick={function() { props.onSelect(p); }}>
                 <button type="button" className="fx-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { removeProject(e, p); }}>×</button>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, paddingRight: 28 }}>
-                  <span style={{ width: 44, height: 44, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "#1A1A1D", color: p.color }}>{p.icon}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingRight: 32 }}>
+                  <span style={{ width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "#1A1A1D", color: p.color }}>{p.icon}</span>
                   <div style={{ minWidth: 0 }}>
-                    <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
-                    <p style={{ margin: "4px 0 0", fontSize: 10, color: "#A0A0A8", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
+                    <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 15, fontWeight: 500, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
+                    <p style={{ margin: "6px 0 0", fontSize: 11, lineHeight: 1.5, color: "#A0A0A8", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
                   </div>
                 </div>
                 {prog.goalMin > 0 ? (
-                  <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, borderRadius: 999 }} />
+                  <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, borderRadius: 999, transition: "width var(--dur-slow) var(--ease)" }} />
                   </div>
                 ) : (
-                  <p style={{ margin: 0, fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta definida</p>
+                  <p style={{ margin: 0, fontSize: 10, letterSpacing: 1.6, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta definida</p>
                 )}
               </article>
             );
           })}
           <button type="button" className="fx-addcard" onClick={openCreate}>
-            <span style={{ fontSize: 28, color: CYAN }}>+</span>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>Novo projeto</span>
+            <span style={{ fontSize: 26, lineHeight: 1, color: CYAN }}>+</span>
+            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 0.4 }}>Novo projeto</span>
           </button>
         </div>
       </main>
@@ -312,8 +329,8 @@ function ProjectPicker(props) {
       {modalOpen && (
         <div className="fx-modal-bg" onClick={function(e) { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div className="fx-modal" onClick={function(e) { e.stopPropagation(); }}>
-            <p style={{ margin: "0 0 14px", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: CYAN, letterSpacing: 1 }}>NOVO PROJETO DE FOCO</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ margin: "0 0 20px", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "#6E6E76", letterSpacing: 1.6 }}>NOVO PROJETO DE FOCO</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label className="fx-label">Nome</label>
                 <input className="fx-input" value={name} onChange={function(e) { setName(e.target.value); }} placeholder="Ex: Estudar exame, Investimentos…" autoFocus />
@@ -334,12 +351,12 @@ function ProjectPicker(props) {
                   })}
                 </div>
               </div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#A0A0A8", cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, lineHeight: 1.5, color: "#A0A0A8", cursor: "pointer" }}>
                 <input type="checkbox" checked={hasGoal} onChange={function(e) { setHasGoal(e.target.checked); }} />
                 Definir meta de horas até uma data
               </label>
               {hasGoal ? (
-                <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <label className="fx-label">Horas objetivo</label>
                     <input type="number" min={0} className="fx-input" value={goal} onChange={function(e) { setGoal(e.target.value); }} placeholder="40" />
@@ -351,8 +368,8 @@ function ProjectPicker(props) {
                 </div>
               ) : null}
               <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                <button type="button" className="fx-btn" onClick={create} style={{ flex: 1, borderColor: "rgba(255,255,255,0.14)", color: "#EDEDEF", background: "#1A1A1D" }}>Criar e abrir</button>
-                <button type="button" className="fx-hbtn" onClick={function() { setModalOpen(false); }}>Cancelar</button>
+                <button type="button" className="fx-btn" onClick={create} style={{ flex: 1, minHeight: 44, borderColor: "#EDEDEF", color: "#0A0A0B", background: "#EDEDEF" }}>Criar e abrir</button>
+                <button type="button" className="fx-hbtn" onClick={function() { setModalOpen(false); }} style={{ minHeight: 44, padding: "0 16px" }}>Cancelar</button>
               </div>
             </div>
           </div>
@@ -658,7 +675,6 @@ export default function Focus() {
 
   return (
     <div className="fx-root" style={{ "--ac": accent }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
 
       <header className="fx-head">

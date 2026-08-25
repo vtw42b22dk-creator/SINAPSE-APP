@@ -4,10 +4,10 @@
  */
 
 export var COLORS = {
-  bg: "#0A0A0B",
+  bg: "#09090B",
   bgSoft: "#0E0E10",
   surface: "#141416",
-  surfaceHi: "#1A1A1D",
+  surfaceHi: "#1C1C20",
   border: "#26262A",
   borderSoft: "rgba(255,255,255,0.07)",
   borderHi: "rgba(255,255,255,0.14)",
@@ -37,4 +37,13 @@ export function alpha(hex, a) {
   var h = String(hex).replace("#", "");
   if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
   var n = parseInt(h, 16);
-  return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"}
+  return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+}
+
+/** Curvas e durações partilhadas — motion coerente em toda a app. */
+export var MOTION = {
+  ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+  fast: "140ms",
+  base: "220ms",
+  slow: "380ms",
+};

@@ -25,6 +25,53 @@ var PRIORITIES = [
 
 var SAVE_DEBOUNCE_MS = 900;
 
+var TASKS_CSS = [
+  "@keyframes taskIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
+  ".task-col{animation:taskIn var(--dur-slow) var(--ease) both}",
+  ".tk-card{padding:15px;border-radius:14px;background:#141416;border:1px solid rgba(255,255,255,0.07);",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}",
+  ".tk-card:hover{background:#1C1C20;border-color:rgba(255,255,255,0.14)}",
+  ".tk-card.is-done{opacity:.62}",
+  ".tk-card.is-late{border-color:rgba(192,140,140,0.34)}",
+  ".tk-check{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;margin-top:1px;",
+  "border-radius:7px;border:1.5px solid rgba(255,255,255,0.22);background:transparent;color:transparent;font-size:12px;cursor:pointer;padding:0;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-check:hover{border-color:rgba(255,255,255,0.5)}",
+  ".tk-check.on{background:#E6E6E9;border-color:#E6E6E9;color:#09090B;transform:scale(1.05)}",
+  ".tk-title{margin:0;line-height:1.45;color:#EDEDEF;overflow-wrap:anywhere}",
+  ".tk-card.is-done .tk-title{text-decoration:line-through;color:#6E6E76}",
+  ".tk-notes{margin:7px 0 0;line-height:1.55;color:#A0A0A8;overflow-wrap:anywhere}",
+  ".tk-subs{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}",
+  ".tk-sub{display:flex;align-items:center;gap:9px;font-size:12.5px}",
+  ".tk-sub>button{display:flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;padding:0;",
+  "border-radius:5px;border:1px solid rgba(255,255,255,0.22);background:transparent;color:transparent;font-size:9px;cursor:pointer}",
+  ".tk-sub>button.on{background:#E6E6E9;border-color:#E6E6E9;color:#0A0A0B}",
+  ".tk-sub>span{color:#A0A0A8;line-height:1.4}",
+  ".tk-sub.on>span{color:#6E6E76;text-decoration:line-through}",
+  ".tk-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:11px;",
+  "font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px}",
+  ".tk-dot{display:inline-block;width:5px;height:5px;border-radius:999px;margin-right:6px;vertical-align:middle}",
+  ".tk-due{color:#6E6E76}",
+  ".tk-due.late{color:#C08C8C}",
+  ".tk-tag{padding:3px 8px;border-radius:999px;background:rgba(255,255,255,0.06);color:#A0A0A8;letter-spacing:.3px}",
+  ".tk-act{display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity var(--dur) var(--ease)}",
+  ".tk-card:hover .tk-act,.tk-card:focus-within .tk-act{opacity:1}",
+  ".tk-act>button{background:none;border:none;border-radius:7px;color:#6E6E76;cursor:pointer;font-size:12px;line-height:1;padding:5px 6px}",
+  ".tk-act>button:hover{color:#EDEDEF;background:rgba(255,255,255,0.07)}",
+  "@media(hover:none){.tk-act{opacity:.55}.tk-card:hover{background:#141416;border-color:rgba(255,255,255,0.07)}}",
+  ".tk-lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76;font-family:'JetBrains Mono',monospace}",
+  ".tk-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6E6E76;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,0.05)}",
+  ".tk-empty{margin:0;padding:22px 16px;text-align:center;font-size:12px;color:#6E6E76;",
+  "border:1px dashed rgba(255,255,255,0.09);border-radius:12px;line-height:1.5}",
+  ".tk-in{background:#0E0E10;border:1px solid rgba(255,255,255,0.09);border-radius:10px;color:#EDEDEF;outline:none;font-family:inherit}",
+  ".tk-in:focus{border-color:rgba(255,255,255,0.22);background:#141416}",
+  ".tk-col{padding:16px 14px 18px;border-radius:16px;background:#0E0E10;border:1px solid rgba(255,255,255,0.06)}",
+  ".tk-tab{display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:18px;border-radius:16px;cursor:pointer;",
+  "font-family:inherit;border:1px solid rgba(255,255,255,0.07);background:#141416;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".tk-tab:active{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+].join("");
+
 function uid() { return "t" + Date.now() + Math.random().toString(36).slice(2, 7); }
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
 function todayKey() {
@@ -35,61 +82,48 @@ function TaskCard(props) {
   var t = props.task, p = PRIORITIES.find(function(x) { return x.id === t.priority; }) || PRIORITIES[0];
   var overdue = t.due && t.due < todayKey() && props.col !== "done";
   var mob = props.isMobile;
+  var done = props.col === "done";
   return (
     <article
+      className={"tk-card" + (done ? " is-done" : "") + (overdue ? " is-late" : "")}
       draggable={!props.readOnly}
       onDragStart={function(e) { if (props.readOnly) return; e.dataTransfer.setData("text/task-id", t.id); }}
-      style={{
-        padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.03)",
-        border: "1px solid " + (overdue ? "#E6E6E930" : "rgba(255,255,255,0.06)"),
-        cursor: props.readOnly ? "default" : "grab",
-        transition: "transform 0.15s, box-shadow 0.15s",
-      }}
-      onMouseEnter={function(e) { if (!props.readOnly) e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.25)"; }}
-      onMouseLeave={function(e) { e.currentTarget.style.boxShadow = "none"; }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <button type="button" onClick={function() { props.onToggle(t.id); }} title={props.col === "done" ? "Reabrir" : "Concluir"}
-          style={{
-            width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 1,
-            border: "2px solid " + (props.col === "done" ? ACCENT : "rgba(255,255,255,0.2)"),
-            background: props.col === "done" ? ACCENT + "25" : "transparent",
-            color: props.col === "done" ? ACCENT : "transparent", cursor: "pointer", fontSize: 12,
-          }}>{props.col === "done" ? "✓" : ""}</button>
+      style={{ cursor: props.readOnly ? "default" : "grab" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
+        <button type="button" className={"tk-check" + (done ? " on" : "")} onClick={function() { props.onToggle(t.id); }}
+          title={done ? "Reabrir" : "Concluir"}>{done ? "✓" : ""}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{
-            margin: 0, fontSize: fs(mob, 13, 16), color: props.col === "done" ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.88)",
-            textDecoration: props.col === "done" ? "line-through" : "none", lineHeight: 1.4,
-          }}>{t.title}</p>
-          {t.notes && <p style={{ margin: "6px 0 0", fontSize: fs(mob, 11, 14), color: "rgba(255,255,255,0.3)", lineHeight: 1.45 }}>{t.notes}</p>}
+          <p className="tk-title" style={{ fontSize: fs(mob, 13.5, 16) }}>{t.title}</p>
+          {t.notes && <p className="tk-notes" style={{ fontSize: fs(mob, 12, 14) }}>{t.notes}</p>}
           {(t.subtasks || []).length > 0 && (
-            <ul style={{ margin: "8px 0 0", padding: 0, listStyle: "none" }}>
+            <ul className="tk-subs">
               {t.subtasks.map(function(st) {
                 return (
-                  <li key={st.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, fontSize: 11 }}>
-                    <button type="button" onClick={function(e) { e.stopPropagation(); if (props.onToggleSubtask) props.onToggleSubtask(st.id); }}
-                      style={{ width: 16, height: 16, borderRadius: 4, border: "1px solid " + (st.done ? ACCENT : "rgba(255,255,255,0.2)"), background: st.done ? ACCENT + "22" : "transparent", color: st.done ? ACCENT : "transparent", cursor: "pointer", fontSize: 9, padding: 0 }}>{st.done ? "✓" : ""}</button>
-                    <span style={{ color: st.done ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.55)", textDecoration: st.done ? "line-through" : "none" }}>{st.title}</span>
+                  <li key={st.id} className={"tk-sub" + (st.done ? " on" : "")}>
+                    <button type="button" className={st.done ? "on" : ""}
+                      onClick={function(e) { e.stopPropagation(); if (props.onToggleSubtask) props.onToggleSubtask(st.id); }}>{st.done ? "✓" : ""}</button>
+                    <span>{st.title}</span>
                   </li>
                 );
               })}
             </ul>
           )}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, alignItems: "center" }}>
-            <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: p.color, letterSpacing: 0.5 }}>{p.label.toUpperCase()}</span>
+          <div className="tk-meta">
+            <span style={{ color: p.color }}><i className="tk-dot" style={{ background: p.color }} />{p.label.toUpperCase()}</span>
             {t.due && (
-              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: overdue ? "#E6E6E9" : "rgba(255,255,255,0.25)" }}>
+              <span className={"tk-due" + (overdue ? " late" : "")}>
                 {overdue ? "Atrasada · " : ""}{t.due.split("-").reverse().join("/")}
               </span>
             )}
             {(t.tags || []).map(function(tag) {
-              return <span key={tag} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: ACCENT + "15", color: ACCENT }}>{tag}</span>;
+              return <span key={tag} className="tk-tag">{tag}</span>;
             })}
           </div>
         </div>
         {!props.readOnly && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <button type="button" onClick={function() { props.onEdit(t); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer", fontSize: 11, padding: 2 }}>✎</button>
-            <button type="button" onClick={function() { props.onDelete(t.id); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.2)", cursor: "pointer", fontSize: 11, padding: 2 }}>×</button>
+          <div className="tk-act">
+            <button type="button" title="Editar" onClick={function() { props.onEdit(t); }}>✎</button>
+            <button type="button" title="Apagar" onClick={function() { props.onDelete(t.id); }}>×</button>
           </div>
         )}
       </div>
@@ -423,33 +457,32 @@ export default function Tasks() {
 
   return (
     <div className="mod-main" style={{ minHeight: "100vh", background: "#0A0A0B", color: "#EDEDEF", fontFamily: "'IBM Plex Sans', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      <style>{"@keyframes taskIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} .task-col{animation:taskIn .35s ease both}"}</style>
-      <header style={{ position: "sticky", top: 0, zIndex: 20, padding: isMobile ? "12px" : "14px 20px", background: "#0A0A0B", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <style>{TASKS_CSS}</style>
+      <header style={{ position: "sticky", top: 0, zIndex: 20, padding: isMobile ? "12px" : "16px 20px", background: "#0A0A0B", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: isMobile ? "stretch" : "center", justifyContent: "space-between", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
             {isMobile && mobileTab ? (
-              <button type="button" onClick={function() { setMobileTab(null); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Voltar</button>
+              <button type="button" onClick={function() { setMobileTab(null); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, color: "#A0A0A8", padding: "8px 13px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Voltar</button>
             ) : (
-              <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
+              <button type="button" onClick={function() { navigate("/"); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, color: "#A0A0A8", padding: "8px 13px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>← Hub</button>
             )}
-            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 20), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>
+            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500, letterSpacing: 0.5 }}>
               {isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
             </h1>
           </div>
           {!(isMobile && !mobileTab) ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: isMobile ? "none" : 360, minWidth: 180 }}>
-            <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
-              style={{ flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#fff", padding: "9px 12px", fontSize: isMobile ? 16 : 12, outline: "none", fontFamily: "inherit" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, maxWidth: isMobile ? "none" : 380, minWidth: 180 }}>
+            <input className="tk-in" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
+              style={{ flex: 1, padding: "10px 13px", fontSize: isMobile ? 16 : 13 }} />
             <button type="button" onClick={function() { setFocusToday(!focusToday); }}
-              style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid " + (focusToday ? ACCENT + "50" : "rgba(255,255,255,0.08)"), background: focusToday ? ACCENT + "15" : "transparent", color: focusToday ? ACCENT : "rgba(255,255,255,0.4)", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", cursor: "pointer", whiteSpace: "nowrap" }}>
+              style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid " + (focusToday ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.07)"), background: focusToday ? "#1A1A1D" : "transparent", color: focusToday ? "#EDEDEF" : "#6E6E76", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", cursor: "pointer", whiteSpace: "nowrap" }}>
               Foco hoje
             </button>
           </div>
           ) : null}
           {!(isMobile && !mobileTab) ? (
           <button type="button" onClick={function() { resetDraft(); setShowForm(true); setDraft(function(d) { return Object.assign({}, d, { column: activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox" }); }); }}
-            style={{ background: ACCENT + "18", border: "1px solid " + ACCENT + "45", borderRadius: 10, color: ACCENT, fontSize: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, width: isMobile ? "100%" : "auto" }}>+ Nova</button>
+            style={{ background: "#EDEDEF", border: "1px solid #EDEDEF", borderRadius: 10, color: "#0A0A0B", fontSize: 12.5, padding: "11px 18px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, width: isMobile ? "100%" : "auto" }}>+ Nova</button>
           ) : null}
         </div>
       </header>
@@ -463,39 +496,39 @@ export default function Tasks() {
           </p>
         ) : null}
         {!(isMobile && !mobileTab) ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-            <div style={{ width: stats.pct + "%", height: "100%", background: "#E6E6E9", borderRadius: 3, transition: "width 0.4s ease" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 200, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            <div style={{ width: stats.pct + "%", height: "100%", background: "#E6E6E9", borderRadius: 999, transition: "width var(--dur-slow) var(--ease)" }} />
           </div>
-          <p style={{ margin: 0, fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)" }}>
+          <p style={{ margin: 0, fontSize: 11.5, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 0.3 }}>
             {stats.done}/{stats.total} concluídas · {stats.today} em foco hoje
           </p>
         </div>
         ) : null}
 
         {showForm && !(isMobile && !mobileTab) ? (
-          <div style={{ marginBottom: 24, padding: 18, borderRadius: 16, background: "rgba(230,230,233,0.06)", border: "1px solid " + ACCENT + "25", animation: "taskIn 0.25s ease" }}>
-            <p style={{ margin: "0 0 12px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1 }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
+          <div style={{ marginBottom: 26, padding: 20, borderRadius: 16, background: "#141416", border: "1px solid rgba(255,255,255,0.09)", animation: "taskIn var(--dur) var(--ease)" }}>
+            <p className="tk-lbl" style={{ margin: "0 0 14px" }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(200px,1fr))", gap: 10 }}>
-              <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="O que tens de fazer?" autoFocus
-                style={{ gridColumn: "1 / -1", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "11px 12px", fontSize: isMobile ? 16 : 14, outline: "none", fontFamily: "inherit" }} />
-              <textarea value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
-                style={{ gridColumn: "1 / -1", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "10px 12px", fontSize: isMobile ? 16 : 12, outline: "none", fontFamily: "inherit", resize: "vertical" }} />
-              <select value={draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value })); }}
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: isMobile ? 16 : 12, fontFamily: "inherit" }}>
+              <input className="tk-in" value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="O que tens de fazer?" autoFocus
+                style={{ gridColumn: "1 / -1", padding: "12px 13px", fontSize: isMobile ? 16 : 14.5 }} />
+              <textarea className="tk-in" value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
+                style={{ gridColumn: "1 / -1", padding: "11px 13px", fontSize: isMobile ? 16 : 13, resize: "vertical", lineHeight: 1.55 }} />
+              <select className="tk-in" value={draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value })); }}
+                style={{ padding: "11px 10px", fontSize: isMobile ? 16 : 13 }}>
                 {COLUMNS.map(function(c) { return <option key={c.id} value={c.id}>{c.label}</option>; })}
               </select>
-              <select value={draft.priority} onChange={function(e) { setDraft(Object.assign({}, draft, { priority: e.target.value })); }}
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px", fontSize: isMobile ? 16 : 12, fontFamily: "inherit" }}>
+              <select className="tk-in" value={draft.priority} onChange={function(e) { setDraft(Object.assign({}, draft, { priority: e.target.value })); }}
+                style={{ padding: "11px 10px", fontSize: isMobile ? 16 : 13 }}>
                 {PRIORITIES.map(function(p) { return <option key={p.id} value={p.id}>{p.label}</option>; })}
               </select>
-              <input type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: ACCENT, padding: "9px", fontSize: 12, fontFamily: "'JetBrains Mono',monospace" }} />
-              <input value={draft.tags} onChange={function(e) { setDraft(Object.assign({}, draft, { tags: e.target.value })); }} placeholder="Tags: casa, estudo..."
-                style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "9px 12px", fontSize: 12, fontFamily: "inherit" }} />
+              <input className="tk-in" type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
+                style={{ padding: "11px 10px", fontSize: isMobile ? 16 : 13, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }} />
+              <input className="tk-in" value={draft.tags} onChange={function(e) { setDraft(Object.assign({}, draft, { tags: e.target.value })); }} placeholder="Tags: casa, estudo..."
+                style={{ padding: "11px 13px", fontSize: isMobile ? 16 : 13 }} />
             </div>
-            <div style={{ marginTop: 14 }}>
-              <p style={{ margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", letterSpacing: 1 }}>SUBTAREFAS</p>
+            <div style={{ marginTop: 18 }}>
+              <p className="tk-lbl" style={{ margin: "0 0 10px" }}>SUBTAREFAS</p>
               {(draft.subtasks || []).map(function(st) {
                 return (
                   <label key={st.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 12, cursor: "pointer" }}>
@@ -504,21 +537,21 @@ export default function Tasks() {
                         subtasks: (draft.subtasks || []).map(function(s) { return s.id === st.id ? Object.assign({}, s, { done: !s.done }) : s; }),
                       }));
                     }} />
-                    <span style={{ textDecoration: st.done ? "line-through" : "none", color: st.done ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.75)" }}>{st.title}</span>
+                    <span style={{ textDecoration: st.done ? "line-through" : "none", color: st.done ? "#6E6E76" : "#A0A0A8" }}>{st.title}</span>
                   </label>
                 );
               })}
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <input value={subDraft} onChange={function(e) { setSubDraft(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addSubtask(); }} placeholder="Nova subtarefa..."
-                  style={{ flex: 1, background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#fff", padding: "8px 10px", fontSize: 12, outline: "none", fontFamily: "inherit" }} />
-                <button type="button" onClick={addSubtask} style={{ background: ACCENT + "14", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, padding: "0 12px", cursor: "pointer", fontSize: 11 }}>+</button>
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <input className="tk-in" value={subDraft} onChange={function(e) { setSubDraft(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addSubtask(); }} placeholder="Nova subtarefa..."
+                  style={{ flex: 1, padding: "10px 12px", fontSize: isMobile ? 16 : 13 }} />
+                <button type="button" onClick={addSubtask} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, color: "#EDEDEF", padding: "0 15px", cursor: "pointer", fontSize: 14 }}>+</button>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button type="button" onClick={function() { saveTask(); }} style={{ background: ACCENT + "22", border: "1px solid " + ACCENT + "50", borderRadius: 10, color: ACCENT, padding: "9px 18px", fontSize: 12, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Guardar</button>
-              <button type="button" onClick={resetDraft} style={{ background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "9px 14px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18 }}>
+              <button type="button" onClick={function() { saveTask(); }} style={{ background: "#EDEDEF", border: "1px solid #EDEDEF", borderRadius: 10, color: "#0A0A0B", padding: "11px 20px", fontSize: 12.5, fontWeight: 500, cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Guardar</button>
+              <button type="button" onClick={resetDraft} style={{ background: "none", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#A0A0A8", padding: "11px 16px", fontSize: 12.5, cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
               {!editId && (
-                <button type="button" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk })); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
+                <button type="button" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk })); }} style={{ marginLeft: "auto", background: "none", border: "none", color: "#6E6E76", fontSize: 12, cursor: "pointer", fontFamily: "inherit", padding: "8px 4px" }}>
                   Guardar em «Hoje»
                 </button>
               )}
@@ -527,24 +560,22 @@ export default function Tasks() {
         ) : null}
 
         {isMobile && !mobileTab ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
-            <p style={{ margin: "0 0 4px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>Onde queres começar?</p>
-            {MOBILE_VIEWS.map(function(v, vi) {
+          <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+            <p style={{ margin: "0 0 4px", fontSize: 13.5, color: "#A0A0A8", lineHeight: 1.5 }}>Onde queres começar?</p>
+            {MOBILE_VIEWS.map(function(v) {
               var n = countMobileView(v.id);
               return (
-                <button key={v.id} type="button" onClick={function() { setMobileTab(v.id); }}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 16, width: "100%", textAlign: "left",
-                    padding: "20px 18px", borderRadius: 18, cursor: "pointer", fontFamily: "inherit",
-                    border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)",
-                    animation: "taskIn 0.3s ease " + (vi * 0.06) + "s both",
-                  }}>
-                  <span style={{ fontSize: 28, lineHeight: 1, opacity: 0.75, width: 36, textAlign: "center" }}>{v.icon}</span>
+                <button key={v.id} type="button" className="tk-tab" onClick={function() { setMobileTab(v.id); }}>
+                  <span style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, flexShrink: 0,
+                    borderRadius: 12, background: "#0E0E10", border: "1px solid rgba(255,255,255,0.07)",
+                    fontSize: 20, lineHeight: 1, color: "#A0A0A8",
+                  }}>{v.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 18, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.92)", fontWeight: 500 }}>{v.label}</p>
-                    <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 }}>{v.hint}</p>
+                    <p style={{ margin: 0, fontSize: 17, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500 }}>{v.label}</p>
+                    <p style={{ margin: "5px 0 0", fontSize: 13, color: "#6E6E76", lineHeight: 1.4 }}>{v.hint}</p>
                   </div>
-                  <span style={{ fontSize: 15, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, padding: "6px 12px", borderRadius: 999, background: ACCENT + "14", border: "1px solid " + ACCENT + "30" }}>{n}</span>
+                  <span style={{ fontSize: 15, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", minWidth: 34, textAlign: "right" }}>{n}</span>
                 </button>
               );
             })}
@@ -554,28 +585,28 @@ export default function Tasks() {
           {visibleColumns.map(function(col, ci) {
             var list = tasksInCol(col.id);
             return (
-              <div key={col.id} className="task-col" style={{ animationDelay: ci * 0.06 + "s" }}
+              <div key={col.id} className="task-col tk-col" style={{ animationDelay: ci * 0.06 + "s" }}
                 onDragOver={function(e) { e.preventDefault(); }}
                 onDrop={function(e) { onDrop(col.id, e); }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px", gap: 8, flexWrap: "wrap" }}>
-                  <div>
-                    <span style={{ fontSize: fs(isMobile, 14, 18), marginRight: 8, opacity: 0.6 }}>{col.icon}</span>
-                    <span style={{ fontSize: fs(isMobile, 13, 17), fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{col.label}</span>
-                    <span style={{ marginLeft: 8, fontSize: fs(isMobile, 10, 12), color: "rgba(255,255,255,0.2)", fontFamily: "'JetBrains Mono',monospace" }}>{list.length}</span>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, padding: "0 2px", gap: 8, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    <span style={{ fontSize: fs(isMobile, 13, 15), color: "#6E6E76", lineHeight: 1 }}>{col.icon}</span>
+                    <span style={{ fontSize: fs(isMobile, 13, 15), fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500, letterSpacing: 0.3 }}>{col.label}</span>
+                    <span className="tk-count">{list.length}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>
                     {(col.id === "inbox" || col.id === "done") && list.length > 0 ? (
                       <button type="button" onClick={function() { clearColumn(col.id); }}
-                        style={{ background: "rgba(192,140,140,0.08)", border: "1px solid rgba(192,140,140,0.28)", borderRadius: 8, color: "#C08C8C", padding: isMobile ? "8px 12px" : "5px 10px", cursor: "pointer", fontSize: fs(isMobile, 10, 12), fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>
+                        style={{ background: "transparent", border: "1px solid rgba(192,140,140,0.28)", borderRadius: 8, color: "#C08C8C", padding: isMobile ? "8px 12px" : "6px 11px", cursor: "pointer", fontSize: fs(isMobile, 10.5, 12), fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>
                         Apagar tudo
                       </button>
                     ) : null}
-                    {!isMobile ? <span style={{ fontSize: 9, color: "rgba(255,255,255,0.15)", fontFamily: "'IBM Plex Sans',sans-serif" }}>{col.hint}</span> : null}
+                    {!isMobile ? <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'IBM Plex Sans',sans-serif" }}>{col.hint}</span> : null}
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 80 }}>
+                <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 80 }}>
                   {list.length === 0 ? (
-                    <p style={{ margin: 0, padding: 16, textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.15)", border: "1px dashed rgba(255,255,255,0.06)", borderRadius: 12 }}>
+                    <p className="tk-empty">
                       Arrasta tarefas para aqui
                     </p>
                   ) : list.map(function(t) {

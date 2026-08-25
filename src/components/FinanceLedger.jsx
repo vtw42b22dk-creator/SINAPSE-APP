@@ -2,6 +2,50 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 var SAVE_DEBOUNCE_MS = 1800;
 
+var FL_CSS = [
+  ".fl-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
+  ".fl-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}",
+  ".fl-num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}",
+  ".fl-card{border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;transition:border-color var(--dur) var(--ease)}",
+  ".fl-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 14px;border-radius:10px;",
+  "background:var(--fl-bg,#141416);border:1px solid var(--fl-bd,rgba(255,255,255,0.07));color:var(--fl-fg,#A0A0A8);",
+  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fl-btn:hover:not(:disabled){background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".fl-btn:disabled{cursor:not-allowed}",
+  ".fl-nav{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:10px;",
+  "background:#141416;border:1px solid rgba(255,255,255,0.07);color:#A0A0A8;cursor:pointer;font-size:15px;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fl-nav:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".fl-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:10px;",
+  "background:transparent;border:1px solid transparent;color:#6E6E76;cursor:pointer;font-size:14px;line-height:1;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fl-icon:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".fl-in{width:100%;box-sizing:border-box;min-height:44px;padding:11px 12px;border-radius:10px;",
+  "background:#0E0E10;border:1px solid rgba(255,255,255,0.07);color:#EDEDEF;outline:none;",
+  "font-size:14px;line-height:1.5;font-family:'IBM Plex Sans',sans-serif;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".fl-in:hover:not(:focus){border-color:rgba(255,255,255,0.14)}",
+  ".fl-in:focus{border-color:rgba(255,255,255,0.14);background:#141416}",
+  ".fl-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);",
+  "background:#0E0E10;color:#A0A0A8;font-size:11px;line-height:1.5;white-space:nowrap}",
+  ".fl-pick{min-height:34px;padding:7px 12px;border-radius:10px;font-size:12px;line-height:1.5;cursor:pointer;",
+  "background:var(--fl-bg);border:1px solid var(--fl-bd);color:var(--fl-fg);",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".fl-pick:hover:not(:disabled){background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".fl-pick:disabled{cursor:not-allowed}",
+  ".fl-list{border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;overflow:hidden}",
+  ".fl-row{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);transition:background var(--dur) var(--ease)}",
+  ".fl-row:last-child{border-bottom:none}",
+  ".fl-row:hover{background:#1A1A1D}",
+  ".fl-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)}",
+  ".fl-line:last-child{border-bottom:none}",
+  ".fl-empty{margin:0;padding:40px 20px;text-align:center;font-size:13px;line-height:1.5;color:#6E6E76}",
+  "@media(hover:none){.fl-row:hover{background:transparent}}",
+  "@media(max-width:719px){.fl-btn{min-height:44px;font-size:12px}.fl-nav{width:44px;height:44px}.fl-icon{width:38px;height:38px}",
+  ".fl-pick{min-height:44px;font-size:13px}}",
+].join("");
+
 function monthKeyFromDate(d) {
   return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
 }
@@ -317,30 +361,31 @@ export default function FinanceLedger(props) {
 
   return (
     <div style={{ pointerEvents: isHydrated ? "auto" : "none" }}>
+      <style>{FL_CSS}</style>
       {sessionWarn ? (
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#C4A57C", fontFamily: "'JetBrains Mono',monospace" }}>{sessionWarn}</p>
+        <p className="fl-mono" style={{ margin: "0 0 16px", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(196,165,124,0.28)", background: "#141416", fontSize: 12, lineHeight: 1.5, color: "#C4A57C" }}>{sessionWarn}</p>
       ) : null}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-        <button onClick={function() { setManageCat(!manageCat); }} style={{ background: manageCat ? "#1A1A1D" : "#141416", border: "1px solid " + (manageCat ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"), borderRadius: 10, color: manageCat ? "#EDEDEF" : "#A0A0A8", padding: "7px 12px", cursor: "pointer", fontSize: 11, fontFamily: "'JetBrains Mono',monospace" }}>Categorias</button>
-        <button onClick={function() { shiftMonth(-1); }} style={navBtn()}>‹</button>
-        <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#EDEDEF", minWidth: 90, textAlign: "center" }}>{month}</span>
-        <button onClick={function() { shiftMonth(1); }} style={navBtn()}>›</button>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+        <button className="fl-btn" onClick={function() { setManageCat(!manageCat); }} style={pickStyle(manageCat, false)}>Categorias</button>
+        <button className="fl-nav" onClick={function() { shiftMonth(-1); }}>‹</button>
+        <span className="fl-mono" style={{ fontSize: 12, color: "#EDEDEF", minWidth: 90, textAlign: "center" }}>{month}</span>
+        <button className="fl-nav" onClick={function() { shiftMonth(1); }}>›</button>
       </div>
 
       {manageCat && (
-        <div style={{ marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416" }}>
+        <div className="fl-card" style={{ marginBottom: 20, padding: 16 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-            <input value={catDraft.name} onChange={function(e) { setCatDraft(Object.assign({}, catDraft, { name: e.target.value })); }} onKeyDown={function(e) { if (e.key === "Enter") saveCategory(); }} placeholder={catDraft.id ? "Novo nome" : "Nova categoria"} style={inputStyle()} />
-            <button onClick={saveCategory} style={{ background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>{catDraft.id ? "Guardar" : "+ Criar"}</button>
+            <input className="fl-in" value={catDraft.name} onChange={function(e) { setCatDraft(Object.assign({}, catDraft, { name: e.target.value })); }} onKeyDown={function(e) { if (e.key === "Enter") saveCategory(); }} placeholder={catDraft.id ? "Novo nome" : "Nova categoria"} style={{ flex: 1, minWidth: 160, width: "auto" }} />
+            <button className="fl-btn" onClick={saveCategory} style={{ "--fl-bg": "#1A1A1D", "--fl-bd": "rgba(255,255,255,0.14)", "--fl-fg": "#EDEDEF", minHeight: 44 }}>{catDraft.id ? "Guardar" : "+ Criar"}</button>
           </div>
           {categories.map(function(cat) {
             return (
-              <div key={cat.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                <span>{cat.name}</span>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button onClick={function() { setCatDraft({ id: cat.id, name: cat.name }); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }}>✎</button>
+              <div key={cat.id} className="fl-line">
+                <span style={{ fontSize: 14, lineHeight: 1.5, color: "#EDEDEF" }}>{cat.name}</span>
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  <button className="fl-icon" onClick={function() { setCatDraft({ id: cat.id, name: cat.name }); }}>✎</button>
                   {categories.length > 1 ? (
-                    <button type="button" onClick={function() { removeCategory(cat); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }} aria-label={"Apagar " + cat.name}>×</button>
+                    <button type="button" className="fl-icon" onClick={function() { removeCategory(cat); }} aria-label={"Apagar " + cat.name}>×</button>
                   ) : null}
                 </div>
               </div>
@@ -349,59 +394,61 @@ export default function FinanceLedger(props) {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 20 }}>
-        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: 18 }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>TOTAL DO MÊS</p>
-          <p style={{ margin: "6px 0 0", fontSize: 32, fontFamily: "'JetBrains Mono',monospace", color: amountColor(total, kind) }}>{total.toFixed(2)} €</p>
+      <div data-stagger style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <div className="fl-card" style={{ padding: isMobile ? "16px 18px" : "18px 20px" }}>
+          <p className="fl-lbl">TOTAL DO MÊS</p>
+          <p className="fl-mono" style={{ margin: "10px 0 0", fontSize: 30, fontWeight: 600, lineHeight: 1.15, letterSpacing: "-0.01em", color: amountColor(total, kind) }}>{total.toFixed(2)} €</p>
         </div>
-        <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: 18 }}>
-          <p style={{ margin: "0 0 10px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>POR CATEGORIA</p>
-          {byCategory.length === 0 ? <p style={{ margin: 0, fontSize: 12, color: "#6E6E76" }}>Sem registos</p> : byCategory.map(function(c) {
-            return <div key={c.name} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
-              <span style={{ color: "#A0A0A8" }}>{c.name}</span>
-              <span style={{ color: amountColor(c.total, kind), fontFamily: "'JetBrains Mono',monospace" }}>{c.total.toFixed(2)} €</span>
+        <div className="fl-card" style={{ padding: isMobile ? "16px 18px" : "18px 20px" }}>
+          <p className="fl-lbl" style={{ marginBottom: 4 }}>POR CATEGORIA</p>
+          {byCategory.length === 0 ? <p style={{ margin: "10px 0 0", fontSize: 13, lineHeight: 1.5, color: "#6E6E76" }}>Sem registos</p> : byCategory.map(function(c) {
+            return <div key={c.name} className="fl-line" style={{ fontSize: 13 }}>
+              <span style={{ color: "#A0A0A8", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</span>
+              <span className="fl-num" style={{ color: amountColor(c.total, kind) }}>{c.total.toFixed(2)} €</span>
             </div>;
           })}
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "#141416" }}>
-        <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 140px 1fr", gap: 10 }}>
-          <input value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
-          <input type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={inputStyle()} />
+      <div className="fl-card" style={{ display: "grid", gap: 12, marginBottom: 20, padding: 16 }}>
+        <input className="fl-in" value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 140px 1fr", gap: 12 }}>
+          <input className="fl-in" value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={{ fontFamily: "'JetBrains Mono',monospace", fontVariantNumeric: "tabular-nums" }} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
+          <input className="fl-in" type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
         </div>
-        <p style={{ margin: 0, fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>CATEGORIAS (máx. 2)</p>
+        <p className="fl-lbl" style={{ marginTop: 4 }}>CATEGORIAS (máx. 2)</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {categoryNames.map(function(name) {
             var on = (draft.categories || []).indexOf(name) >= 0;
             var disabled = !on && (draft.categories || []).length >= 2;
             return (
-              <button key={name} type="button" disabled={disabled} onClick={function() { toggleCategory(name); }}
-                style={{ border: "1px solid " + (on ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"), background: on ? "#1A1A1D" : "transparent", color: on ? "#EDEDEF" : disabled ? "#6E6E76" : "#A0A0A8", borderRadius: 10, padding: "6px 12px", cursor: disabled ? "not-allowed" : "pointer", fontSize: 11 }}>
+              <button key={name} type="button" className="fl-pick" disabled={disabled} onClick={function() { toggleCategory(name); }} style={pickStyle(on, disabled)}>
                 {name}
               </button>
             );
           })}
         </div>
-        <button type="button" onClick={addRow} style={{ background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF", borderRadius: 12, padding: "10px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ {label}</button>
+        <button type="button" className="fl-btn" onClick={addRow} style={{ "--fl-bg": "#1A1A1D", "--fl-bd": "rgba(255,255,255,0.14)", "--fl-fg": "#EDEDEF", minHeight: 44, marginTop: 4 }}>+ {label}</button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="fl-list" data-stagger>
         {monthItems.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#6E6E76", padding: 40 }}>Sem registos neste mês.</p>
-        ) : monthItems.map(function(e, idx) {
+          <p className="fl-empty">Sem registos neste mês.</p>
+        ) : monthItems.map(function(e) {
           var cats = (e.categories || [e.category]).join(" · ");
           return (
-            <article key={e.id} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: "14px 16px", animation: "modIn .35s ease " + (idx * 0.04) + "s both" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <p style={{ margin: 0, fontSize: 15 }}>{e.title}</p>
-                  <p style={{ margin: "6px 0 0", fontSize: 11, color: "#6E6E76" }}>{e.day.split("-").reverse().join("/")} · {cats}</p>
+            <article key={e.id} className="fl-row">
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "#EDEDEF", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: "8px 0 0" }}>
+                    <span className="fl-mono" style={{ fontSize: 11, color: "#6E6E76" }}>{e.day.split("-").reverse().join("/")}</span>
+                    <span className="fl-chip">{cats}</span>
+                  </div>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: amountColor(Number(e.amount), kind) }}>{Number(e.amount).toFixed(2)} €</p>
-                  <button type="button" onClick={function() { removeRow(e.id); }} style={{ background: "none", border: "none", color: "#6E6E76", cursor: "pointer" }}>×</button>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                  <p className="fl-num" style={{ margin: 0, fontSize: 15, fontWeight: 500, color: amountColor(Number(e.amount), kind) }}>{Number(e.amount).toFixed(2)} €</p>
+                  <button type="button" className="fl-icon" onClick={function() { removeRow(e.id); }}>×</button>
                 </div>
               </div>
             </article>
@@ -412,11 +459,13 @@ export default function FinanceLedger(props) {
   );
 }
 
-function navBtn() {
-  return { background: "#141416", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, color: "#EDEDEF", width: 34, height: 34, cursor: "pointer" };
-}
-function inputStyle() {
-  return { width: "100%", background: "#0E0E10", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, color: "#EDEDEF", padding: "10px 12px", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", boxSizing: "border-box", minHeight: 44 };
+/** Estado visual dos seletores (categorias, painel): ativo, inativo ou indisponível. */
+function pickStyle(on, disabled) {
+  return {
+    "--fl-bg": on ? "#1A1A1D" : "#141416",
+    "--fl-bd": on ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)",
+    "--fl-fg": on ? "#EDEDEF" : disabled ? "#6E6E76" : "#A0A0A8",
+  };
 }
 /** Montantes são guardados sempre positivos; o sinal vem do tipo de registo. */
 function amountColor(v, kind) {

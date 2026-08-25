@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../lib/AuthContext";
+import { COLORS } from "../lib/theme";
 
 export default function AuthGate(props) {
   var auth = useAuth();
@@ -16,8 +17,12 @@ export default function AuthGate(props) {
 
   if (auth && auth.loading) {
     return (
-      <div style={{minHeight:"100vh",background:"#0A0A0B",display:"flex",alignItems:"center",justifyContent:"center",color:"#A0A0A8",fontFamily:"'JetBrains Mono',monospace"}}>
-        A carregar...
+      <div style={{
+        minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "center",
+        justifyContent: "center", color: COLORS.faint, fontFamily: "'JetBrains Mono',monospace",
+        letterSpacing: 1.4, fontSize: 12,
+      }}>
+        A carregar
       </div>
     );
   }
@@ -38,28 +43,61 @@ export default function AuthGate(props) {
     setBusy(false);
   }
 
+  var ok = error && error.indexOf("Conta criada") >= 0;
+
   return (
-    <div style={{minHeight:"100vh",background:"#0A0A0B",display:"flex",alignItems:"center",justifyContent:"center",padding:24,color:"#EDEDEF",fontFamily:"'IBM Plex Sans',sans-serif"}}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-      <form onSubmit={submit} style={{width:"min(420px,94vw)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:24,background:"#141416",boxShadow:"0 16px 48px rgba(0,0,0,0.55)",padding:28}}>
-        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:2,color:"#6E6E76",margin:"0 0 10px"}}>SINAPSE APP</p>
-        <h1 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:28,margin:"0 0 8px"}}>{mode === "login" ? "Entrar" : "Criar conta"}</h1>
-        <p style={{fontSize:13,color:"#A0A0A8",lineHeight:1.7,margin:"0 0 22px"}}>Usa a tua conta para sincronizar calendário, tarefas, sinapses e diário entre iOS e Windows.</p>
-        <input value={email} onChange={function(e){setEmail(e.target.value);}} type="email" placeholder="Email" required style={fieldStyle()}/>
-        <input value={password} onChange={function(e){setPassword(e.target.value);}} type="password" placeholder="Password" required minLength={6} style={fieldStyle()}/>
-        {error && <p style={{fontSize:12,color:error.indexOf("Conta criada")>=0?"#8FB39B":"#C08C8C",lineHeight:1.5}}>{error}</p>}
-        <button disabled={busy} type="submit" style={{width:"100%",padding:"12px 14px",borderRadius:14,border:"1px solid rgba(255,255,255,0.14)",background:"#1A1A1D",color:"#EDEDEF",fontFamily:"'JetBrains Mono',monospace",cursor:busy?"default":"pointer",marginTop:8}}>
-          {busy ? "Aguarda..." : mode === "login" ? "Entrar" : "Criar conta"}
+    <div style={{
+      minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "center",
+      justifyContent: "center", padding: 24, color: COLORS.text, fontFamily: "'IBM Plex Sans',sans-serif",
+    }}>
+      <form onSubmit={submit} style={{
+        width: "min(400px,94vw)", border: "1px solid " + COLORS.borderSoft, borderRadius: 20,
+        background: COLORS.surface, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 24px 64px rgba(0,0,0,0.5)",
+        padding: "32px 28px 28px", animation: "appearUp var(--dur-slow) var(--ease) both",
+      }}>
+        <p style={{
+          fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: 2.2,
+          color: COLORS.faint, margin: "0 0 18px", textTransform: "uppercase",
+        }}>Sinapse</p>
+        <h1 style={{
+          fontFamily: "'JetBrains Mono',monospace", fontSize: 26, margin: "0 0 8px",
+          fontWeight: 400, letterSpacing: -0.6,
+        }}>{mode === "login" ? "Entrar" : "Criar conta"}</h1>
+        <p style={{ fontSize: 14, color: COLORS.muted, lineHeight: 1.65, margin: "0 0 26px" }}>
+          Sincroniza calendário, tarefas, sinapses e diário entre dispositivos.
+        </p>
+        <input value={email} onChange={function(e) { setEmail(e.target.value); }} type="email" placeholder="Email" required style={fieldStyle()} />
+        <input value={password} onChange={function(e) { setPassword(e.target.value); }} type="password" placeholder="Password" required minLength={6} style={fieldStyle()} />
+        {error && (
+          <p style={{ fontSize: 12.5, color: ok ? COLORS.positive : COLORS.negative, lineHeight: 1.5, margin: "0 0 12px" }}>{error}</p>
+        )}
+        <button disabled={busy} type="submit" style={{
+          width: "100%", padding: "13px 14px", borderRadius: 12, border: "none",
+          background: COLORS.text, color: COLORS.bg, fontFamily: "'JetBrains Mono',monospace",
+          fontSize: 13, fontWeight: 500, cursor: busy ? "default" : "pointer", marginTop: 6,
+        }}>
+          {busy ? "Aguarda…" : mode === "login" ? "Entrar" : "Criar conta"}
         </button>
-        <button type="button" onClick={function(){setMode(mode==="login"?"signup":"login");setError("");}} style={{width:"100%",background:"none",border:"none",color:"#6E6E76",fontSize:12,marginTop:14,cursor:"pointer"}}>
+        <button type="button" onClick={function() { setMode(mode === "login" ? "signup" : "login"); setError(""); }} style={{
+          width: "100%", background: "none", border: "none", color: COLORS.faint, fontSize: 13,
+          marginTop: 16, cursor: "pointer", fontFamily: "inherit",
+        }}>
           {mode === "login" ? "Ainda não tenho conta" : "Já tenho conta"}
         </button>
-        {!auth.configured && <p style={{fontSize:11,color:"#C4A57C",lineHeight:1.5,marginTop:14}}>Supabase não está configurado no .env.</p>}
+        {!auth.configured && (
+          <p style={{ fontSize: 12, color: COLORS.warning, lineHeight: 1.5, marginTop: 16 }}>
+            Supabase não está configurado no .env.
+          </p>
+        )}
       </form>
     </div>
   );
 }
 
 function fieldStyle() {
-  return {width:"100%",boxSizing:"border-box",padding:"12px 14px",borderRadius:14,border:"1px solid rgba(255,255,255,0.07)",background:"#0E0E10",color:"#EDEDEF",outline:"none",fontSize:14,marginBottom:10};
+  return {
+    width: "100%", boxSizing: "border-box", padding: "13px 14px", borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)", background: "#0E0E10", color: "#EDEDEF",
+    outline: "none", fontSize: 15, marginBottom: 10, fontFamily: "inherit",
+  };
 }

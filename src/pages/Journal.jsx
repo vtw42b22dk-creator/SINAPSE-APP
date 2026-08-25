@@ -15,10 +15,30 @@ var JOURNAL_LETTER_SPACING = "0.04em";
 var JOURNAL_LINE_HEIGHT = 1.75;
 var JOURNAL_TEXT = {
   fontFamily: JOURNAL_FONT,
-  color: "#FFFFFF",
+  color: "#EDEDEF",
   letterSpacing: JOURNAL_LETTER_SPACING,
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
+var JR_CSS = [
+  ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76;margin:0}",
+  ".jr-note{position:relative;display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;border-radius:11px;cursor:pointer;",
+  "font-family:'JetBrains Mono',monospace;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".jr-note>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+  ".jr-note>i{width:6px;height:6px;border-radius:999px;flex-shrink:0;opacity:.85}",
+  ".jr-note:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".jr-x{display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid transparent;",
+  "background:transparent;color:#6E6E76;cursor:pointer;flex-shrink:0;line-height:1;padding:0;",
+  "transition:color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".jr-x:hover{color:#C08C8C;background:rgba(255,255,255,0.05)}",
+  ".jr-blk{border:1px solid rgba(255,255,255,0.07);background:#141416;border-radius:14px;padding:16px;",
+  "transition:border-color var(--dur) var(--ease)}",
+  ".jr-blk:hover,.jr-blk:focus-within{border-color:rgba(255,255,255,0.13)}",
+  ".jr-ed{outline:none;color:#EDEDEF;line-height:1.75}",
+  ".jr-ed:empty:before{content:attr(data-placeholder);color:#6E6E76;pointer-events:none}",
+  ".jr-ed a{color:#EDEDEF;text-underline-offset:3px}",
+].join("");
+
 var SAVE_DEBOUNCE_MS = 1800;
 var NOTE_LAYOUT_DEBOUNCE_MS = 900;
 
@@ -504,9 +524,17 @@ export default function Journal() {
         onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
         onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
         style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "rgba(255,255,255,0.25)", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
-        <button type="button" onClick={function() { openNote(s.id); }} style={{ flex: 1, minWidth: 0, textAlign: "left", padding: isMobile ? "14px 14px" : "10px 12px", borderRadius: 12, border: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? s.color + "45" : "rgba(255,255,255,0.06)"), background: on && (!isMobile || mobileNoteOpen) ? s.color + "12" : "transparent", color: on ? s.color : "#FFFFFF", cursor: "pointer", fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontSize: isMobile ? 16 : 13 }}>{s.title}</button>
-        <button type="button" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, borderRadius: 9, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", color: "rgba(255,255,255,0.35)", cursor: "pointer", flexShrink: 0, fontSize: isMobile ? 18 : 15, lineHeight: 1 }} aria-label="Eliminar nota">×</button>
+        {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "#6E6E76", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
+        <button type="button" className="jr-note" onClick={function() { openNote(s.id); }}
+          style={{
+            padding: isMobile ? "14px" : "10px 12px",
+            border: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? "rgba(255,255,255,0.16)" : "transparent"),
+            background: on && (!isMobile || mobileNoteOpen) ? "#1A1A1D" : "transparent",
+            color: on && (!isMobile || mobileNoteOpen) ? "#EDEDEF" : "#A0A0A8",
+            letterSpacing: JOURNAL_LETTER_SPACING, fontSize: isMobile ? 15 : 13,
+          }}><i style={{ background: s.color }} /><span>{s.title}</span></button>
+        <button type="button" className="jr-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
+          style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
       </div>
     );
   }
@@ -526,24 +554,23 @@ export default function Journal() {
         letterSpacing: JOURNAL_LETTER_SPACING,
         lineHeight: JOURNAL_LINE_HEIGHT,
       }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-      <style>{MODULE_ENTRY_CSS}</style>
-      <header style={{position:"sticky",top:0,zIndex:20,background:"#0A0A0B",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:isMobile?"12px":"14px 20px"}}>
+      <style>{MODULE_ENTRY_CSS + JR_CSS}</style>
+      <header style={{position:"sticky",top:0,zIndex:20,background:"#0A0A0B",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:isMobile?"12px":"16px 20px"}}>
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,minWidth:0}}>
             {isMobile && mobileNoteOpen ? (
-              <button onClick={function(){setMobileNoteOpen(false);}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer",fontFamily:JOURNAL_FONT}}>← Notas</button>
+              <button onClick={function(){setMobileNoteOpen(false);}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,color:"#A0A0A8",padding:"9px 13px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:12,flexShrink:0}}>← Notas</button>
             ) : (
-              <button onClick={function(){navigate("/");}} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,color:"rgba(255,255,255,0.45)",padding:"7px 12px",cursor:"pointer"}}>← Hub</button>
+              <button onClick={function(){navigate("/");}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,color:"#A0A0A8",padding:"9px 13px",cursor:"pointer",fontSize:12,flexShrink:0}}>← Hub</button>
             )}
-            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 20 : 16, color: color, margin: 0, letterSpacing: JOURNAL_LETTER_SPACING }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
+            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: "#EDEDEF", margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
           </div>
           {(!isMobile || mobileNoteOpen) ? (
           <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0,flexWrap:"wrap"}}>
-            <button onClick={function(){addBlock("title");}} style={topBtn(color)}>+ Título</button>
-            <button onClick={function(){addBlock("text");}} style={topBtn(color)}>+ Texto</button>
-            <button onClick={function(){addBlock("image");}} style={topBtn(color)}>+ Imagem</button>
-            <button onClick={function(){addBlock("document");}} style={topBtn(color)}>+ Documento</button>
+            <button onClick={function(){addBlock("title");}} style={topBtn()}>+ Título</button>
+            <button onClick={function(){addBlock("text");}} style={topBtn()}>+ Texto</button>
+            <button onClick={function(){addBlock("image");}} style={topBtn()}>+ Imagem</button>
+            <button onClick={function(){addBlock("document");}} style={topBtn()}>+ Documento</button>
           </div>
           ) : null}
         </div>
@@ -560,10 +587,10 @@ export default function Journal() {
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         {(!isMobile || !mobileNoteOpen) ? (
-        <aside style={{border:"1px solid rgba(255,255,255,0.07)",background:"#141416",borderRadius:14,padding:isMobile?14:16,height:"fit-content"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 12px"}}>
-            <p style={{ fontFamily: JOURNAL_FONT, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: JOURNAL_LETTER_SPACING, margin: 0 }}>NOTAS</p>
-            <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:9,color:color,padding:"4px 10px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10,letterSpacing:JOURNAL_LETTER_SPACING}}>+ Bloco</button>
+        <aside style={{border:"1px solid rgba(255,255,255,0.07)",background:"#141416",borderRadius:16,padding:isMobile?14:18,height:"fit-content"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 16px"}}>
+            <p className="jr-lbl">Notas</p>
+            <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:"transparent",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#A0A0A8",padding:"6px 11px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10.5,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.2}}>+ Bloco</button>
           </div>
           <div data-scrollable style={{display:"flex",flexDirection:"column",gap:12,maxHeight:isMobile?"none":"62vh",overflowY:isMobile?"visible":"auto",paddingRight:isMobile?0:2}}>
             {noteGroups.ungrouped.length > 0 ? (
@@ -576,45 +603,45 @@ export default function Journal() {
               var collapsed = !!noteBlocks.collapsed[blk.id];
               var hot = dragOverTarget === blk.id;
               return (
-                <div key={blk.id} {...dropZoneProps(blk.id)} style={{border:"1px solid "+(hot?color+"55":"rgba(255,255,255,0.06)"),background:hot?color+"10":"rgba(255,255,255,0.015)",borderRadius:14,padding:8,transition:"border-color .15s,background .15s"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:collapsed?0:8}}>
-                    <button type="button" onClick={function(){toggleNoteBlockCollapse(blk.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",cursor:"pointer",fontSize:11,width:16,padding:0,lineHeight:1}}>{collapsed?"▸":"▾"}</button>
-                    <button type="button" onClick={function(){renameNoteBlock(blk.id);}} title="Renomear bloco" style={{flex:1,minWidth:0,textAlign:"left",background:"none",border:"none",color:"rgba(255,255,255,0.82)",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:11,letterSpacing:JOURNAL_LETTER_SPACING,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{blk.name} <span style={{color:"rgba(255,255,255,0.3)",fontWeight:400}}>· {items.length}</span></button>
-                    <button type="button" onClick={function(){deleteNoteBlock(blk.id);}} title="Eliminar bloco" style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",cursor:"pointer",fontSize:14,lineHeight:1}}>×</button>
+                <div key={blk.id} {...dropZoneProps(blk.id)} style={{border:"1px solid "+(hot?"rgba(255,255,255,0.22)":"rgba(255,255,255,0.06)"),background:hot?"#1A1A1D":"rgba(255,255,255,0.02)",borderRadius:12,padding:10,transition:"border-color var(--dur) var(--ease),background var(--dur) var(--ease)"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:collapsed?0:10}}>
+                    <button type="button" onClick={function(){toggleNoteBlockCollapse(blk.id);}} style={{background:"none",border:"none",color:"#6E6E76",cursor:"pointer",fontSize:11,width:16,padding:0,lineHeight:1}}>{collapsed?"▸":"▾"}</button>
+                    <button type="button" onClick={function(){renameNoteBlock(blk.id);}} title="Renomear bloco" style={{flex:1,minWidth:0,textAlign:"left",background:"none",border:"none",color:"#EDEDEF",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:11.5,letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.3}}>{blk.name} <span style={{color:"#6E6E76",fontWeight:400}}>· {items.length}</span></button>
+                    <button type="button" className="jr-x" onClick={function(){deleteNoteBlock(blk.id);}} title="Eliminar bloco" style={{width:24,height:24,fontSize:14}}>×</button>
                   </div>
                   {!collapsed ? (
                     <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {items.length ? items.map(renderNoteItem) : <p style={{margin:0,padding:"8px 10px",fontSize:10,color:"rgba(255,255,255,0.3)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING}}>Arrasta notas para aqui</p>}
+                      {items.length ? items.map(renderNoteItem) : <p style={{margin:0,padding:"10px",fontSize:11,color:"#6E6E76",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.5}}>Arrasta notas para aqui</p>}
                     </div>
                   ) : null}
                 </div>
               );
             })}
           </div>
-          <div style={{display:"flex",gap:8,marginTop:14}}>
-            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova nota..." style={{flex:1,minWidth:0,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,color:"#FFFFFF",padding:"9px 10px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}/>
-            <button type="button" onClick={createSpace} style={{background:color+"14",border:"1px solid "+color+"35",borderRadius:12,color:color,padding:"0 12px",cursor:"pointer"}}>+</button>
+          <div style={{display:"flex",gap:8,marginTop:18}}>
+            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova nota..." style={{flex:1,minWidth:0,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.09)",borderRadius:11,color:"#EDEDEF",padding:"11px 12px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.4}}/>
+            <button type="button" onClick={createSpace} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.14)",borderRadius:11,color:"#EDEDEF",padding:"0 15px",cursor:"pointer",fontSize:15}}>+</button>
           </div>
         </aside>
         ) : null}
 
         {(!isMobile || mobileNoteOpen) ? (
-        <section style={{minWidth:0}}>
-          <div style={{marginBottom:16}}>
-            <p style={{ margin: 0, fontSize: 10, fontFamily: JOURNAL_FONT, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT, color: color }}>NOTA</p>
-            <h2 style={{ margin: "6px 0 0", fontSize: "clamp(28px,5vw,48px)", fontFamily: JOURNAL_FONT, color: "#FFFFFF", letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: JOURNAL_LINE_HEIGHT }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
+        <section style={{minWidth:0,maxWidth:720}}>
+          <div style={{marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
+            <span style={{width:8,height:8,borderRadius:999,background:color,flexShrink:0}} />
+            <h2 style={{ margin: 0, fontSize: "clamp(26px,3.8vw,38px)", fontFamily: JOURNAL_FONT, color: "#EDEDEF", fontWeight: 400, letterSpacing: "-0.03em", lineHeight: 1.2, overflowWrap: "anywhere" }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
-          <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
             <button type="button" onClick={function(){format("bold");}} style={toolBtn()}>Negrito</button>
             <button type="button" onClick={function(){format("italic");}} style={toolBtn()}>Itálico</button>
             <button type="button" onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
           </div>
           {activeBlocks.length === 0 ? (
-            <div style={{border:"1px dashed "+color+"22",borderRadius:24,minHeight:280,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",color:"rgba(255,255,255,0.45)",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:JOURNAL_LINE_HEIGHT}}>
+            <div style={{border:"1px dashed rgba(255,255,255,0.09)",borderRadius:16,minHeight:260,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:24,color:"#6E6E76",fontFamily:JOURNAL_FONT,fontSize:13,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.6}}>
               Adiciona blocos para começar a escrever.
             </div>
           ) : (
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div data-stagger style={{display:"flex",flexDirection:"column",gap:12}}>
               {activeBlocks.map(function(b) {
                 return (
                   <JournalBlock
@@ -708,20 +735,20 @@ function JournalBlock(props) {
   }
 
   return (
-    <div style={{border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.025)",borderRadius:18,padding:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-        <span style={{ fontSize: 10, fontFamily: JOURNAL_FONT, color: props.color, letterSpacing: JOURNAL_LETTER_SPACING }}>{b.type.toUpperCase()}</span>
-        <button type="button" onClick={function(){props.onDelete(b.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.2)",cursor:"pointer",fontSize:16,lineHeight:1}}>×</button>
+    <div className="jr-blk">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+        <span className="jr-lbl">{b.type}</span>
+        <button type="button" className="jr-x" onClick={function(){props.onDelete(b.id);}} style={{width:26,height:26,fontSize:15}}>×</button>
       </div>
-      {uploadMsg ? <p style={{margin:"0 0 8px",fontSize:11,color:props.color,opacity:0.85}}>{uploadMsg}</p> : null}
+      {uploadMsg ? <p style={{margin:"0 0 10px",fontSize:11.5,color:"#A0A0A8",lineHeight:1.5}}>{uploadMsg}</p> : null}
       {b.type === "image" ? (
         <div>
-          {b.content ? <img src={b.content} alt={b.meta && b.meta.name || "Imagem"} style={{maxWidth:"100%",borderRadius:14,display:"block"}}/> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:160,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher imagem</button>}
+          {b.content ? <img src={b.content} alt={b.meta && b.meta.name || "Imagem"} style={{maxWidth:"100%",borderRadius:12,display:"block"}}/> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:150,border:"1px dashed rgba(255,255,255,0.12)",borderRadius:12,background:"transparent",color:"#A0A0A8",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:13}}>Escolher imagem</button>}
           <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={onFile}/>
         </div>
       ) : b.type === "document" ? (
         <div>
-          {b.content ? <a href={b.content} download={b.meta && b.meta.name} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderRadius:14,border:"1px solid "+props.color+"24",background:props.color+"08",color:props.color,textDecoration:"none"}}><span style={{fontSize:24}}>📄</span><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.meta && b.meta.name || "Documento"}</span></a> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:120,border:"1px dashed "+props.color+"30",borderRadius:14,background:props.color+"08",color:props.color,cursor:"pointer"}}>Escolher documento</button>}
+          {b.content ? <a href={b.content} download={b.meta && b.meta.name} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderRadius:12,border:"1px solid rgba(255,255,255,0.09)",background:"#0E0E10",color:"#EDEDEF",textDecoration:"none",fontSize:13.5}}><span style={{fontSize:22}}>📄</span><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.meta && b.meta.name || "Documento"}</span></a> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:110,border:"1px dashed rgba(255,255,255,0.12)",borderRadius:12,background:"transparent",color:"#A0A0A8",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:13}}>Escolher documento</button>}
           <input ref={fileRef} type="file" style={{display:"none"}} onChange={onFile}/>
         </div>
       ) : (
@@ -740,12 +767,15 @@ function JournalBlock(props) {
             if (props.onEditEnd) props.onEditEnd();
           }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
+          className="jr-ed"
           style={{
             outline: "none",
-            fontSize: b.type === "title" ? 26 : 15,
+            fontSize: b.type === "title" ? 24 : 15,
             fontWeight: b.type === "title" ? 600 : 400,
-            minHeight: b.type === "title" ? 38 : 90,
+            minHeight: b.type === "title" ? 36 : 90,
+            maxWidth: b.type === "title" ? "none" : "74ch",
             ...JOURNAL_TEXT,
+            lineHeight: b.type === "title" ? 1.3 : JOURNAL_LINE_HEIGHT,
           }}
         />
       )}
@@ -753,31 +783,32 @@ function JournalBlock(props) {
   );
 }
 
-function topBtn(color) {
+function topBtn() {
   return {
-    background: color + "12",
-    border: "1px solid " + color + "35",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.09)",
     borderRadius: 10,
-    color: color,
-    padding: "8px 12px",
+    color: "#A0A0A8",
+    padding: "9px 13px",
     cursor: "pointer",
     fontFamily: JOURNAL_FONT,
-    fontSize: 11,
+    fontSize: 11.5,
     letterSpacing: JOURNAL_LETTER_SPACING,
-    lineHeight: JOURNAL_LINE_HEIGHT,
+    lineHeight: 1.2,
+    whiteSpace: "nowrap",
   };
 }
 function toolBtn() {
   return {
-    background: "rgba(255,255,255,0.035)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent",
+    border: "1px solid rgba(255,255,255,0.09)",
     borderRadius: 10,
-    color: "#FFFFFF",
-    padding: "8px 12px",
+    color: "#A0A0A8",
+    padding: "9px 13px",
     cursor: "pointer",
     fontSize: 12,
     fontFamily: JOURNAL_FONT,
     letterSpacing: JOURNAL_LETTER_SPACING,
-    lineHeight: JOURNAL_LINE_HEIGHT,
+    lineHeight: 1.2,
   };
 }

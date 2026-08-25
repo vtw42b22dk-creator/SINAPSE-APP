@@ -108,7 +108,6 @@ function ModuleShell(props) {
   return (
     <div className="pm-root" style={mcVars(mc)}>
       <style>{MODULE_CSS}</style>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <div className="pm-wrap">
         <div className="pm-head">
           <div className="pm-head-t">

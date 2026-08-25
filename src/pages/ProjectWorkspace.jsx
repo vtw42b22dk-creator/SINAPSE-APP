@@ -25,32 +25,31 @@ var MODULE_COLORS = {
 
 var SIDEBAR_CSS = [
   ".pw{height:100vh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
-  ".pw-head{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:30}",
-  ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:34px;min-width:34px;padding:0 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.6);cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0;transition:all .16s}",
-  ".pw-hbtn:hover{color:#fff;border-color:rgba(255,255,255,0.2)}",
+  ".pw-head{flex-shrink:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:30}",
+  ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pw-shell{flex:1;display:flex;min-height:0}",
-  ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:14px 12px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;transition:width .22s ease,padding .22s ease}",
+  ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:16px 12px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;transition:width var(--dur) var(--ease),padding var(--dur) var(--ease)}",
   ".pw-side--closed{width:0;padding:0;border:none;overflow:hidden}",
-  ".pw-side--mini{width:66px;padding:14px 8px;align-items:center}",
+  ".pw-side--mini{width:66px;padding:16px 8px;align-items:center}",
   ".pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:none}",
-  ".pw-pcard{display:flex;align-items:center;gap:11px;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;margin-bottom:14px}",
-  ".pw-side--mini .pw-pcard{padding:0;border:none;background:none;justify-content:center;margin-bottom:16px}",
-  ".pw-pic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}",
-  ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-  ".pw-pcard-meta{margin:3px 0 0;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.38);letter-spacing:.4px}",
-  ".pw-sec{margin:2px 4px 8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.26);letter-spacing:1.4px}",
-  ".pw-link{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin-bottom:3px;border-radius:11px;border:1px solid transparent;background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:left;transition:all .16s;overflow:hidden}",
+  ".pw-pcard{display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;margin-bottom:20px}",
+  ".pw-side--mini .pw-pcard{padding:0;border:none;background:none;justify-content:center;margin-bottom:20px}",
+  ".pw-pic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}",
+  ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".pw-pcard-meta{margin:4px 0 0;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.4px}",
+  ".pw-sec{margin:4px 4px 12px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#6E6E76;letter-spacing:1.6px}",
+  ".pw-link{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin-bottom:4px;border-radius:10px;border:1px solid transparent;background:transparent;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;text-align:left;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);overflow:hidden}",
   ".pw-side--mini .pw-link{justify-content:center;padding:11px 0;width:46px;margin:0 auto 6px}",
-  ".pw-link:hover{color:#fff;background:rgba(255,255,255,0.04)}",
-  ".pw-link.on{color:#fff;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.1)}",
+  ".pw-link.on{color:#EDEDEF;background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
   ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:0 2px 2px 0;background:var(--lc);opacity:.7}",
-  ".pw-lic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .16s}",
+  ".pw-lic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
-  ".pw-foot{margin-top:auto;padding:12px 8px 4px;font-size:9px;color:rgba(255,255,255,0.24);line-height:1.5}",
+  ".pw-foot{margin-top:auto;padding:16px 8px 4px;font-size:11px;color:#6E6E76;line-height:1.55;border-top:1px solid rgba(255,255,255,0.06)}",
   ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}",
   ".pw-main-in{flex:1;min-height:0;overflow:hidden}",
-  ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40}",
-  "@media(max-width:719px){.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:14px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:11px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-side--mini .pw-link{justify-content:flex-start;padding:12px 14px;width:100%;margin:0 0 3px;font-size:14px!important}.pw-lbl{font-size:11px!important}.pw-head-title{font-size:15px!important}}",
+  ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40;animation:appearIn var(--dur) var(--ease)}",
+  "@media(hover:hover){.pw-hbtn:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}.pw-link:hover{color:#EDEDEF;background:#1A1A1D}}",
+  "@media(max-width:719px){.pw-head{height:58px;padding:0 14px}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}}",
 ].join("");
 
 function firstActiveModule(modules) {
@@ -180,18 +179,17 @@ export default function ProjectWorkspace() {
 
   return (
     <div className="pw">
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{SIDEBAR_CSS}</style>
 
       <header className="pw-head">
-        <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <button type="button" className="pw-hbtn" onClick={function() { navigate("/projects"); }} title="Projetos">←</button>
           <button type="button" className="pw-hbtn" onClick={toggleSidebar} title="Menu de módulos">
             {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
           </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, marginLeft: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, marginLeft: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
-            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
+            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
           </div>
         </div>
         <button type="button" className="pw-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
@@ -199,7 +197,7 @@ export default function ProjectWorkspace() {
 
       <div className="pw-shell">
         {sidebarOpen && isMobile && <div className="pw-bk" onClick={function() { setSidebarOpen(false); }} />}
-        <aside className={sidebarClass}>
+        <aside className={sidebarClass} data-stagger>
           <div className="pw-pcard">
             <div className="pw-pic" style={{ background: pColor + "14", color: pColor }}>✦</div>
             <div style={{ minWidth: 0 }}>
@@ -213,7 +211,7 @@ export default function ProjectWorkspace() {
             var lc = MODULE_COLORS[m.id] || ACCENT;
             return (
               <button type="button" key={m.id} className={"pw-link" + (active ? " on" : "")} onClick={function() { goModule(m.id); }} title={m.label} style={{ "--lc": lc }}>
-                <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "rgba(255,255,255,0.5)" }}>{MODULE_ICONS[m.id] || "·"}</span>
+                <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
                 <span className="pw-lbl">{m.label}</span>
               </button>
             );

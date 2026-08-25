@@ -1186,7 +1186,6 @@ export default function Synapse(props) {
 
   if(!loaded) return (
     <div style={{width:"100vw",height:"100vh",background:"#0A0A0B",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <p style={{fontFamily:"'JetBrains Mono',monospace",color:"#E6E6E9",fontSize:14,opacity:0.5}}>A carregar...</p>
     </div>
   );
@@ -1204,7 +1203,6 @@ export default function Synapse(props) {
     if (embedded) return null;
     return (
     <div data-scrollable style={{minHeight:"100vh",background:"#0A0A0B",color:"#EDEDEF",fontFamily:"'IBM Plex Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",padding:isMob?16:24,overflow:"auto"}}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <div style={{width:"min(920px,94vw)"}}>
         <button onClick={function(){window.history.back();}} style={{background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#A0A0A8",padding:"8px 12px",cursor:"pointer",marginBottom:22}}>← Hub</button>
         <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:2,color:"#6E6E76",margin:0}}>PROJETOS DE SINAPSE</p>
@@ -1236,7 +1234,6 @@ export default function Synapse(props) {
 
   return (
     <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#0A0A0B",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
       <style>{"*{margin:0;padding:0;box-sizing:border-box}@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}body{overflow:hidden}"}</style>
 
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}}/>

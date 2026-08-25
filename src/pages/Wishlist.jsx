@@ -15,6 +15,52 @@ var PRIORITIES = [
   { id: "high", label: "Alta", color: "#E6E6E9" },
 ];
 
+var WL_CSS = [
+  ".wl-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
+  ".wl-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 14px;border-radius:10px;",
+  "background:var(--wl-bg,#141416);border:1px solid var(--wl-bd,rgba(255,255,255,0.07));color:var(--wl-fg,#A0A0A8);",
+  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".wl-btn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".wl-grp{flex:1;min-width:0;text-align:left;padding:11px 12px;border-radius:10px;cursor:pointer;",
+  "font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
+  "background:var(--wl-bg);border:1px solid var(--wl-bd);color:var(--wl-fg);",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".wl-grp:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".wl-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;padding:0;border-radius:10px;",
+  "background:transparent;border:1px solid transparent;color:#6E6E76;cursor:pointer;font-size:14px;line-height:1;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".wl-icon:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".wl-in{width:100%;box-sizing:border-box;min-height:44px;padding:11px 12px;border-radius:10px;",
+  "background:#0E0E10;border:1px solid rgba(255,255,255,0.07);color:#EDEDEF;outline:none;",
+  "font-size:14px;line-height:1.5;font-family:'IBM Plex Sans',sans-serif;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".wl-in:hover:not(:focus){border-color:rgba(255,255,255,0.14)}",
+  ".wl-in:focus{border-color:rgba(255,255,255,0.14);background:#141416}",
+  ".wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px;align-items:start}",
+  ".wl-card{border-radius:14px;border:1px solid rgba(255,255,255,0.07);background:#141416;padding:16px;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".wl-card:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
+  ".wl-title{margin:0;font-size:14px;font-weight:500;line-height:1.45;overflow:hidden;overflow-wrap:anywhere;",
+  "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}",
+  ".wl-notes{margin:8px 0 0;font-size:12.5px;line-height:1.5;color:#6E6E76;overflow:hidden;overflow-wrap:anywhere;",
+  "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}",
+  ".wl-price{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;font-weight:500;color:#EDEDEF;white-space:nowrap}",
+  ".wl-prio{font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px}",
+  ".wl-link{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);",
+  "background:#0E0E10;color:#A0A0A8;font-size:11px;line-height:1.5;text-decoration:none;white-space:nowrap;",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".wl-link:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
+  ".wl-check{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;padding:0;",
+  "border-radius:7px;font-size:12px;line-height:1;cursor:pointer;",
+  "background:var(--wl-bg);border:1.5px solid var(--wl-bd);color:var(--wl-fg);",
+  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".wl-empty{grid-column:1/-1;margin:0;padding:40px 20px;text-align:center;font-size:13px;line-height:1.5;color:#6E6E76}",
+  "@media(hover:none){.wl-card:hover{background:#141416;border-color:rgba(255,255,255,0.07)}}",
+  "@media(max-width:719px){.wl-grid{grid-template-columns:1fr}.wl-btn{min-height:44px;font-size:12px}",
+  ".wl-grp{min-height:44px;font-size:15px}.wl-icon{width:38px;height:38px}.wl-title{font-size:15px}.wl-notes{font-size:13px}}",
+].join("");
+
 export default function Wishlist() {
   var navigate = useNavigate();
   var vwS = useState(window.innerWidth);
@@ -235,7 +281,6 @@ export default function Wishlist() {
 
   return (
     <div style={{ minHeight: "100vh", background: pageBg(), color: pageText(), fontFamily: "'IBM Plex Sans',sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
       <style>{MODULE_ENTRY_CSS}</style>
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: isMobile ? "12px" : "14px 20px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -252,7 +297,7 @@ export default function Wishlist() {
 
       <div className="mod-main" data-scrollable style={{ maxWidth: 1000, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "220px minmax(0,1fr)", gap: isMobile ? 14 : 22 }}>
         {!loaded ? <div style={{ gridColumn: "1 / -1" }}><PageLoader accent={accent} lines={6} /></div> : null}
-        {loaded && <aside style={{ border: "1px solid rgba(255,255,255,0.06)", borderRadius: 18, padding: 14, background: "rgba(255,255,255,0.025)", height: "fit-content" }}>
+        {loaded && <aside style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 16, background: "#141416", height: "fit-content", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
           <p className="mod-lbl" style={{ margin: "0 0 10px", fontSize: isMobile ? 11 : 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>GRUPOS</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {groups.map(function(g) {
@@ -281,7 +326,7 @@ export default function Wishlist() {
             {activeG ? activeG.name : "—"} · {visible.length} item(ns) · ~{totalPending.toFixed(2)} €
           </p>
 
-          <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 16, borderRadius: 18, border: "1px solid " + accent + "25", background: accent + "08" }}>
+          <div style={{ display: "grid", gap: 10, marginBottom: 20, padding: 18, borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "#141416", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}>
             <input value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="O que queres?" style={inputStyle()} onKeyDown={function(e) { if (e.key === "Enter") addItem(); }} />
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 120px", gap: 10 }}>
               <input value={draft.url} onChange={function(e) { setDraft(Object.assign({}, draft, { url: e.target.value })); }} placeholder="Link (opcional)" style={inputStyle()} />
@@ -293,7 +338,7 @@ export default function Wishlist() {
                 var on = draft.priority === p.id;
                 return <button key={p.id} type="button" onClick={function() { setDraft(Object.assign({}, draft, { priority: p.id })); }} style={{ border: "1px solid " + (on ? p.color : "rgba(255,255,255,0.1)"), background: on ? p.color + "18" : "transparent", color: on ? p.color : "rgba(255,255,255,0.4)", borderRadius: 10, padding: "6px 10px", cursor: "pointer", fontSize: 11 }}>{p.label}</button>;
               })}
-              <button type="button" onClick={addItem} style={{ marginLeft: "auto", background: accent + "18", border: "1px solid " + accent + "45", color: accent, borderRadius: 12, padding: "8px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11 }}>+ Adicionar</button>
+              <button type="button" onClick={addItem} style={{ marginLeft: "auto", background: "#EDEDEF", border: "none", color: "#09090B", borderRadius: 11, padding: "9px 16px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 11, fontWeight: 500 }}>+ Adicionar</button>
             </div>
           </div>
 
@@ -303,12 +348,12 @@ export default function Wishlist() {
             ) : visible.map(function(item, idx) {
               var pr = PRIORITIES.find(function(p) { return p.id === item.priority; }) || PRIORITIES[1];
               return (
-                <article key={item.id} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)", padding: "14px 16px", opacity: item.purchased ? 0.55 : 1, animation: "modIn .35s ease " + (idx * 0.04) + "s both" }}>
+                <article key={item.id} className="wl-card" style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "#141416", padding: "15px 16px", opacity: item.purchased ? 0.55 : 1, animation: "modIn .4s var(--ease) " + (idx * 0.04) + "s both" }}>
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <button type="button" onClick={function() { togglePurchased(item.id); }} style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, border: "2px solid " + (item.purchased ? accent : "rgba(255,255,255,0.2)"), background: item.purchased ? accent + "25" : "transparent", color: item.purchased ? accent : "transparent", cursor: "pointer" }}>{item.purchased ? "✓" : ""}</button>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 15, textDecoration: item.purchased ? "line-through" : "none", color: item.purchased ? "rgba(255,255,255,0.4)" : "#fff" }}>{item.title}</p>
-                      {item.notes && <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{item.notes}</p>}
+                      <p style={{ margin: 0, fontSize: 15, lineHeight: 1.4, textDecoration: item.purchased ? "line-through" : "none", color: item.purchased ? "#6E6E76" : "#EDEDEF" }}>{item.title}</p>
+                      {item.notes && <p style={{ margin: "6px 0 0", fontSize: 13, lineHeight: 1.5, color: "#A0A0A8" }}>{item.notes}</p>}
                       <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
                         <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: pr.color }}>{pr.label.toUpperCase()}</span>
                         {item.price != null && <span style={{ fontSize: 11, color: accent }}>{Number(item.price).toFixed(2)} €</span>}
@@ -328,8 +373,8 @@ export default function Wishlist() {
 }
 
 function backBtn() {
-  return { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "7px 12px", cursor: "pointer" };
+  return { background: "transparent", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "#A0A0A8", padding: "8px 13px", cursor: "pointer", fontFamily: "inherit" };
 }
 function inputStyle() {
-  return { width: "100%", background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, color: "#fff", padding: "10px 12px", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", boxSizing: "border-box" };
+  return { width: "100%", background: "#0E0E10", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 11, color: "#EDEDEF", padding: "11px 13px", outline: "none", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", boxSizing: "border-box" };
 }
