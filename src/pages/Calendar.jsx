@@ -9,7 +9,9 @@ var ACCENT = "#E6E6E9";
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 var COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
 var HOUR_H = 52;
+var WK_HOUR_H = 42;
 var HOURS = 24;
+var WK_START = 6;
 var SNAP = 15;
 
 var CHRO_CSS = [
@@ -76,22 +78,54 @@ var CHRO_CSS = [
   ".ch-ev-body{flex:1;min-width:0;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}",
   ".ch-ev-time{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);letter-spacing:.3px}",
   ".ch-ev-title{margin:3px 0 0;font-size:12px;color:#EDEDEF;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-  ".ch-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;flex:1;min-height:0;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".ch-week-col{border-right:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;min-width:0;cursor:pointer;transition:background var(--dur) var(--ease)}",
-  ".ch-week-col:last-child{border-right:none}",
-  ".ch-week-col:hover{background:rgba(255,255,255,.02)}",
-  ".ch-week-col.is-on{background:rgba(255,255,255,.04)}",
-  ".ch-week-head{padding:10px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".ch-week-dow{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.8px}",
-  ".ch-week-num{margin:4px 0 0;font-size:16px;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
-  ".ch-week-col.is-on .ch-week-num{color:#EDEDEF}",
-  ".ch-week-col.is-today .ch-week-num{color:#EDEDEF;font-weight:500}",
-  ".ch-week-list{flex:1;overflow-y:auto;padding:6px 4px;display:flex;flex-direction:column;gap:2px;-webkit-overflow-scrolling:touch}",
-  ".ch-week-ev{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.05);background:transparent;text-align:left;cursor:pointer;width:100%;transition:padding-left var(--dur) var(--ease)}",
-  ".ch-week-ev:hover{padding-left:4px}",
-  ".ch-week-ev-t{margin:0;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--ec)}",
-  ".ch-week-ev-n{margin:2px 0 0;font-size:10px;color:#EDEDEF;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-  ".ch-week-empty{margin:0;padding:16px 4px;font-size:9px;color:#6E6E76;font-family:'JetBrains Mono',monospace;text-align:center}",
+  ".ch-wk{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".ch-wk-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".ch-wk-bar p{margin:0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.3px}",
+  ".ch-wk-bar strong{color:#EDEDEF;font-weight:500}",
+  ".ch-wk-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".ch-wk-strip-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 12px;border:none;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
+  ".ch-wk-strip-btn:hover{background:rgba(255,255,255,.03)}",
+  ".ch-wk-strip-btn.is-on{background:rgba(255,255,255,.05)}",
+  ".ch-wk-strip-btn.is-on::after{content:'';position:absolute;bottom:0;left:18%;right:18%;height:2px;background:#EDEDEF}",
+  ".ch-wk-strip-dow{font-size:9px;color:#6E6E76;letter-spacing:.8px}",
+  ".ch-wk-strip-num{font-size:15px;color:#A0A0A8;line-height:1}",
+  ".ch-wk-strip-btn.is-on .ch-wk-strip-num,.ch-wk-strip-btn.is-today .ch-wk-strip-num{color:#EDEDEF}",
+  ".ch-wk-load{width:100%;max-width:48px;height:3px;background:rgba(255,255,255,.08);overflow:hidden}",
+  ".ch-wk-load i{display:block;height:100%;background:#EDEDEF;transition:width var(--dur-slow) var(--ease)}",
+  ".ch-wk-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}",
+  ".ch-wk-head{position:sticky;top:0;z-index:12;display:grid;grid-template-columns:40px repeat(7,minmax(0,1fr));background:rgba(7,7,8,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".ch-wk-head-gap{grid-column:1}",
+  ".ch-wk-head-cell{padding:8px 4px;text-align:center;border:none;background:transparent;cursor:pointer;font-family:inherit}",
+  ".ch-wk-head-cell .ch-wk-strip-dow{display:block}",
+  ".ch-wk-head-cell .ch-wk-strip-num{display:block;margin-top:3px}",
+  ".ch-wk-allday{display:grid;grid-template-columns:40px repeat(7,minmax(0,1fr));gap:0;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.015)}",
+  ".ch-wk-allday-lbl{grid-column:1;font-size:8px;font-family:'JetBrains Mono',monospace;color:#6E6E76;text-align:right;padding:4px 6px 0 0;line-height:1.2}",
+  ".ch-wk-allday-col{padding:2px 3px;display:flex;flex-direction:column;gap:2px;min-width:0}",
+  ".ch-wk-allday-chip{padding:4px 6px;border:none;border-left:2px solid var(--ec);background:rgba(255,255,255,.03);color:#EDEDEF;font-size:9px;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;transition:padding-left var(--dur) var(--ease)}",
+  ".ch-wk-allday-chip:hover{padding-left:8px}",
+  ".ch-wk-grid{display:grid;grid-template-columns:40px 1fr;min-height:" + (HOURS * WK_HOUR_H) + "px}",
+  ".ch-wk-gutter{position:relative}",
+  ".ch-wk-gutter-lbl{position:absolute;right:6px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76}",
+  ".ch-wk-cols{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}",
+  ".ch-wk-col{position:relative;border-left:1px solid rgba(255,255,255,.05);min-height:" + (HOURS * WK_HOUR_H) + "px}",
+  ".ch-wk-col.is-on{background:rgba(255,255,255,.025)}",
+  ".ch-wk-col.is-today{background:rgba(255,255,255,.02)}",
+  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background var(--dur) var(--ease)}",
+  ".ch-wk-hour:hover{background:rgba(255,255,255,.025)}",
+  ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:#EDEDEF;z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite}",
+  ".ch-wk-now-dot{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:#EDEDEF}",
+  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:22px;cursor:grab;touch-action:none;overflow:hidden;transition:transform .18s var(--ease),filter .18s,z-index 0s}",
+  ".ch-wk-ev:hover{transform:scale(1.02);filter:brightness(1.12);z-index:16}",
+  ".ch-wk-ev.is-edit{z-index:24;outline:1px solid #EDEDEF;outline-offset:1px}",
+  ".ch-wk-ev-bar{width:2px;flex-shrink:0;background:var(--ec)}",
+  ".ch-wk-ev-body{flex:1;min-width:0;padding:3px 5px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.05)}",
+  ".ch-wk-ev-t{margin:0;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--ec);line-height:1.2}",
+  ".ch-wk-ev-n{margin:1px 0 0;font-size:9px;color:#EDEDEF;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-wk-ev--ghost{opacity:.55;pointer-events:none;z-index:30}",
+  ".ch-wk-scroll-h{overflow-x:auto;overflow-y:hidden}",
+  ".ch-wk-grid--mob{min-width:640px}",
+  ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(28px,5vw,42px);line-height:1.05;letter-spacing:-0.03em;color:#EDEDEF;margin:0}",
+  ".ch-week-hero span{font-size:.55em;color:#6E6E76;font-weight:400;letter-spacing:.5px;display:block;margin-bottom:6px}",
   ".ch-month{flex:1;overflow-y:auto;padding:16px 20px 80px;-webkit-overflow-scrolling:touch}",
   ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:8px}",
   ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:6px 0;letter-spacing:1px}",
@@ -129,8 +163,8 @@ var CHRO_CSS = [
   ".ch-fab:hover{transform:scale(1.08)}",
   ".ch-fab:active{transform:scale(.92)}",
   ".ch-hint{margin:0;padding:8px 20px 0;font-size:9px;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace}",
-  "@media(max-width:719px){.ch-head{padding:12px 16px 8px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:row;justify-content:space-between;align-items:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-week{display:none}.ch-mode--week{display:none}}",
-  "@media(min-width:720px){.ch-fab{display:none}.ch-week+.ch-stream-wrap{border-top:1px solid rgba(255,255,255,.06)}",
+  "@media(max-width:719px){.ch-head{padding:12px 16px 8px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:row;justify-content:space-between;align-items:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-wk-grid--mob{min-width:560px}}",
+  "@media(min-width:720px){.ch-fab{display:none}}",
 ].join("");
 
 function uid() { return "e" + Date.now() + Math.random().toString(36).slice(2, 7); }
@@ -360,39 +394,252 @@ function DayStream(props) {
   );
 }
 
-function WeekBoard(props) {
+function dayLoadMinutes(dayKey, events) {
+  return (events[dayKey] || []).reduce(function(sum, ev) {
+    if (ev.allDay) return sum + 240;
+    return sum + evDuration(ev);
+  }, 0);
+}
+
+function formatWeekRange(weekDays) {
+  var a = parseKey(weekDays[0]), b = parseKey(weekDays[6]);
+  var da = new Date(a.y, a.m, a.d), db = new Date(b.y, b.m, b.d);
+  if (a.m === b.m) return da.getDate() + "–" + db.getDate() + " " + da.toLocaleDateString("pt-PT", { month: "short" });
+  return da.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }) + " – " + db.toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
+}
+
+function WeekStrip(props) {
+  var maxLoad = useMemo(function() {
+    return Math.max(60, Math.max.apply(null, props.weekDays.map(function(k) { return dayLoadMinutes(k, props.events); })));
+  }, [props.weekDays, props.events]);
   return (
-    <div className="ch-week">
+    <div className="ch-wk-strip" role="tablist" aria-label="Dias da semana">
       {props.weekDays.map(function(k, i) {
         var p = parseKey(k);
-        var list = sortEvents(props.events[k] || []);
+        var load = dayLoadMinutes(k, props.events);
         var isOn = k === props.selected;
         var isToday = k === props.todayKey;
         return (
-          <div key={k} className={"ch-week-col" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+          <button key={k} type="button" role="tab" aria-selected={isOn}
+            className={"ch-wk-strip-btn ui-tap" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
             onClick={function() { props.onSelectDay(k); }}>
-            <div className="ch-week-head">
-              <p className="ch-week-dow">{WEEKDAYS[i]}</p>
-              <p className="ch-week-num">{p.d}</p>
-            </div>
-            <div className="ch-week-list">
-              {list.length === 0 ? (
-                <p className="ch-week-empty">—</p>
-              ) : list.slice(0, 8).map(function(ev) {
-                var c = ev.color || ACCENT;
-                return (
-                  <button key={ev.id} type="button" className="ch-week-ev ui-tap" style={{ "--ec": c }}
-                    onClick={function(e) { e.stopPropagation(); props.onSelectDay(k); props.onEventClick(ev, k); }}>
-                    <p className="ch-week-ev-t">{formatEventTime(ev)}</p>
-                    <p className="ch-week-ev-n">{ev.title || "·"}</p>
-                  </button>
-                );
-              })}
-              {list.length > 8 ? <p className="ch-week-empty">+{list.length - 8}</p> : null}
-            </div>
-          </div>
+            <span className="ch-wk-strip-dow">{WEEKDAYS[i]}</span>
+            <span className="ch-wk-strip-num">{p.d}</span>
+            <span className="ch-wk-load"><i style={{ width: Math.round(load / maxLoad * 100) + "%", opacity: load ? 1 : 0.15 }} /></span>
+          </button>
         );
       })}
+    </div>
+  );
+}
+
+function WeekPlanner(props) {
+  var scrollRef = useRef(null);
+  var gridRef = useRef(null);
+  var dragRef = useRef(null);
+  var previewS = useState(null);
+  var preview = previewS[0], setPreview = previewS[1];
+  var tickS = useState(0);
+  useEffect(function() {
+    var id = setInterval(function() { tickS[1](Date.now()); }, 1000);
+    return function() { clearInterval(id); };
+  }, []);
+
+  var weekDays = props.weekDays;
+  var totalEvents = useMemo(function() {
+    return weekDays.reduce(function(n, k) { return n + (props.events[k] || []).length; }, 0);
+  }, [weekDays, props.events]);
+  var totalMins = useMemo(function() {
+    return weekDays.reduce(function(n, k) { return n + dayLoadMinutes(k, props.events); }, 0);
+  }, [weekDays, props.events]);
+
+  var allDayRows = useMemo(function() {
+    return weekDays.map(function(k) {
+      return sortEvents((props.events[k] || []).filter(function(ev) { return ev.allDay; }));
+    });
+  }, [weekDays, props.events]);
+  var hasAllDay = allDayRows.some(function(l) { return l.length > 0; });
+
+  var nowLine = useMemo(function() {
+    var idx = weekDays.indexOf(props.todayKey);
+    if (idx < 0) return null;
+    var t = new Date();
+    return { dayIdx: idx, top: (t.getHours() * 60 + t.getMinutes()) / 60 * WK_HOUR_H };
+  }, [weekDays, props.todayKey, tickS[0]]);
+
+  useEffect(function() {
+    var el = scrollRef.current;
+    if (!el) return;
+    if (weekDays.indexOf(props.todayKey) >= 0) {
+      var t = new Date();
+      var top = (t.getHours() * 60 + t.getMinutes()) / 60 * WK_HOUR_H - el.clientHeight * 0.25;
+      if (props.scrollNow) el.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      else el.scrollTop = Math.max(0, top);
+    } else {
+      el.scrollTop = WK_START * WK_HOUR_H;
+    }
+  }, [weekDays[0], props.todayKey, props.scrollNow]);
+
+  function posFromPointer(clientX, clientY, dur) {
+    var el = gridRef.current;
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    var x = clientX - r.left;
+    var y = clientY - r.top;
+    var colW = r.width / 7;
+    var dayIdx = Math.floor(x / colW);
+    if (dayIdx < 0 || dayIdx > 6) return null;
+    var mins = snapMin(Math.floor(y / WK_HOUR_H) * 60 + Math.round(((y % WK_HOUR_H) / WK_HOUR_H) * 60));
+    mins = Math.max(0, Math.min(HOURS * 60 - (dur || 15), mins));
+    return { dayIdx: dayIdx, minutes: mins, key: weekDays[dayIdx] };
+  }
+
+  function onColPointerDown(e, dayIdx) {
+    if (props.readOnly || dragRef.current) return;
+    var p = posFromPointer(e.clientX, e.clientY, 15);
+    if (!p) return;
+    var slotRef = { minutes: p.minutes, moved: false, startX: e.clientX, startY: e.clientY };
+    function onMove(pe) {
+      if (Math.abs(pe.clientX - slotRef.startX) + Math.abs(pe.clientY - slotRef.startY) > 10) slotRef.moved = true;
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (!slotRef.moved) props.onSlotClick(weekDays[dayIdx], slotRef.minutes);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  function onEvPointerDown(e, ev, dayKey, dayIdx) {
+    if (props.readOnly) return;
+    e.stopPropagation();
+    if (e.pointerType === "mouse") e.preventDefault();
+    var dur = evDuration(ev);
+    var startMin = timeToMin(ev.time);
+    dragRef.current = { id: ev.id, fromKey: dayKey, dayIdx: dayIdx, dur: dur, startX: e.clientX, startY: e.clientY, moved: false, color: ev.color || ACCENT, title: ev.title };
+    setPreview({ id: ev.id, dayIdx: dayIdx, minutes: startMin, dur: dur, color: ev.color || ACCENT, title: ev.title });
+
+    function onMove(pe) {
+      if (!dragRef.current) return;
+      if (Math.abs(pe.clientX - dragRef.current.startX) + Math.abs(pe.clientY - dragRef.current.startY) > 6) dragRef.current.moved = true;
+      var np = posFromPointer(pe.clientX, pe.clientY, dragRef.current.dur);
+      if (np) setPreview({ id: dragRef.current.id, dayIdx: np.dayIdx, minutes: np.minutes, dur: dragRef.current.dur, color: dragRef.current.color, title: dragRef.current.title });
+    }
+    function onUp(pe) {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (!dragRef.current) return;
+      var d = dragRef.current;
+      dragRef.current = null;
+      setPreview(null);
+      if (!d.moved) { props.onEventClick(ev, dayKey); return; }
+      var np = posFromPointer(pe.clientX, pe.clientY, d.dur);
+      if (np && props.onMove) {
+        var mins = Math.max(0, Math.min(1440 - d.dur, np.minutes));
+        props.onMove(d.id, d.fromKey, np.key, minToTime(mins), d.dur);
+        props.onSelectDay(np.key);
+      }
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  return (
+    <div className="ch-wk">
+      <div className="ch-wk-bar">
+        <p><strong>{totalEvents}</strong> eventos · <strong>{Math.round(totalMins / 60 * 10) / 10}h</strong> planeadas</p>
+        <p>Arrasta entre dias · Toca num horário vazio</p>
+      </div>
+      <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} />
+      <div ref={scrollRef} className={"ch-wk-scroll" + (props.isMobile ? " ch-wk-scroll-h" : "")}>
+        {hasAllDay ? (
+          <div className="ch-wk-allday">
+            <span className="ch-wk-allday-lbl">dia</span>
+            {allDayRows.map(function(list, i) {
+              return (
+                <div key={weekDays[i]} className="ch-wk-allday-col">
+                  {list.map(function(ev) {
+                    return (
+                      <button key={ev.id} type="button" className="ch-wk-allday-chip ui-tap" style={{ "--ec": ev.color || ACCENT }}
+                        onClick={function() { props.onSelectDay(weekDays[i]); props.onEventClick(ev, weekDays[i]); }}>
+                        {ev.title || "·"}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+        <div className={"ch-wk-grid" + (props.isMobile ? " ch-wk-grid--mob" : "")}>
+          <div className="ch-wk-gutter">
+            {Array.from({ length: HOURS }, function(_, h) {
+              return (
+                <span key={h} className="ch-wk-gutter-lbl" style={{ top: h * WK_HOUR_H - 5 }}>{pad(h)}</span>
+              );
+            })}
+          </div>
+          <div ref={gridRef} className="ch-wk-cols">
+            {weekDays.map(function(k, dayIdx) {
+              var laid = layoutDayEvents(props.events[k] || []);
+              var isOn = k === props.selected;
+              var isToday = k === props.todayKey;
+              return (
+                <div key={k} className={"ch-wk-col" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+                  onPointerDown={function(e) {
+                    if (e.target !== e.currentTarget && !e.target.classList.contains("ch-wk-hour")) return;
+                    onColPointerDown(e, dayIdx);
+                  }}>
+                  {Array.from({ length: HOURS }, function(_, h) {
+                    return (
+                      <div key={h} className="ch-wk-hour" style={{ top: h * WK_HOUR_H, height: WK_HOUR_H }}
+                        onPointerDown={function(e) { e.stopPropagation(); onColPointerDown(e, dayIdx); }} />
+                    );
+                  })}
+                  {nowLine && nowLine.dayIdx === dayIdx ? (
+                    <div className="ch-wk-now" style={{ top: nowLine.top }}><span className="ch-wk-now-dot" /></div>
+                  ) : null}
+                  {laid.map(function(seg) {
+                    var ev = seg.ev;
+                    if (preview && preview.id === ev.id) return null;
+                    var c = ev.color || ACCENT;
+                    var top = (seg.start / 60) * WK_HOUR_H;
+                    var h = Math.max(20, (seg.dur / 60) * WK_HOUR_H - 1);
+                    var w = 100 / Math.max(1, seg.cols);
+                    var compact = h < 26;
+                    var isEdit = props.editId === ev.id;
+                    return (
+                      <div key={ev.id} className={"ch-wk-ev" + (isEdit ? " is-edit" : "")} style={{
+                        "--ec": c, top: top, height: h,
+                        left: "calc(" + (seg.col / seg.cols * 100) + "% + 1px)",
+                        width: "calc(" + w + "% - 2px)",
+                      }} onPointerDown={function(e) { onEvPointerDown(e, ev, k, dayIdx); }}>
+                        <span className="ch-wk-ev-bar" />
+                        <div className="ch-wk-ev-body">
+                          {!compact ? <p className="ch-wk-ev-t">{ev.time}</p> : null}
+                          <p className="ch-wk-ev-n">{ev.title || "·"}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {preview && preview.dayIdx === dayIdx ? (
+                    <div className="ch-wk-ev ch-wk-ev--ghost" style={{
+                      "--ec": preview.color,
+                      top: (preview.minutes / 60) * WK_HOUR_H,
+                      height: Math.max(20, (preview.dur / 60) * WK_HOUR_H - 1),
+                      left: 1, right: 1,
+                    }}>
+                      <span className="ch-wk-ev-bar" />
+                      <div className="ch-wk-ev-body"><p className="ch-wk-ev-n">{preview.title || "Mover"}</p></div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -555,7 +802,7 @@ export default function Calendar() {
   var events = evS[0], setEvents = evS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
-  var modeS = useState("line");
+  var modeS = useState("week");
   var mode = modeS[0], setMode = modeS[1];
   var navDirS = useState(0);
   var navDir = navDirS[0], setNavDir = navDirS[1];
@@ -586,6 +833,14 @@ export default function Calendar() {
     calendarStore.saveEvents(events);
   }, [events, loaded]);
 
+  function shiftWeek(delta) {
+    setNavDir(delta > 0 ? 1 : -1);
+    var p = parseKey(selected);
+    var d = new Date(p.y, p.m, p.d + delta * 7);
+    setSelected(dateKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    setView({ y: d.getFullYear(), m: d.getMonth() });
+  }
+
   function shiftDay(delta) {
     setNavDir(delta > 0 ? 1 : -1);
     var p = parseKey(selected);
@@ -602,17 +857,35 @@ export default function Calendar() {
 
   function jumpNow() {
     bumpScrollNow(function(n) { return n + 1; });
+    if (mode === "week") {
+      if (weekDays.indexOf(todayKey) < 0) goToday();
+      else if (selected !== todayKey) setSelected(todayKey);
+      return;
+    }
     if (selected !== todayKey) goToday();
   }
 
-  var onSwipePrev = useCallback(function() { shiftDay(-1); }, [selected]);
-  var onSwipeNext = useCallback(function() { shiftDay(1); }, [selected]);
+  var weekRangeLabel = useMemo(function() { return formatWeekRange(weekDays); }, [weekDays]);
+  var weekTotalLabel = useMemo(function() {
+    var n = weekDays.reduce(function(s, k) { return s + (events[k] || []).length; }, 0);
+    var m = weekDays.reduce(function(s, k) { return s + dayLoadMinutes(k, events); }, 0);
+    return n + " evt · " + (Math.round(m / 60 * 10) / 10) + "h";
+  }, [weekDays, events]);
+
+  var onSwipePrev = useCallback(function() {
+    if (mode === "week") shiftWeek(-1);
+    else shiftDay(-1);
+  }, [mode, selected]);
+  var onSwipeNext = useCallback(function() {
+    if (mode === "week") shiftWeek(1);
+    else shiftDay(1);
+  }, [mode, selected]);
 
   useEffect(function() {
     var el = stageRef.current;
-    if (!el) return;
+    if (!el || mode === "week") return;
     return attachSwipe(el, { onSwipeLeft: onSwipeNext, onSwipeRight: onSwipePrev });
-  }, [onSwipePrev, onSwipeNext]);
+  }, [onSwipePrev, onSwipeNext, mode]);
 
   useEffect(function() {
     function onKey(e) {
@@ -761,11 +1034,20 @@ export default function Calendar() {
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
           <button type="button" className="ch-back ui-tap" onClick={function() { navigate("/"); }}>← Hub</button>
           <div className="ch-hero">
-            <h1 className="ch-day-num">{selParsed.d}</h1>
-            <p className="ch-day-meta">
-              <strong>{selected === todayKey ? "Hoje" : WEEKDAYS[(dayDate.getDay() + 6) % 7]}</strong>
-              {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long", year: "numeric" })}
-            </p>
+            {mode === "week" ? (
+              <>
+                <h1 className="ch-week-hero"><span>Semana</span>{weekRangeLabel}</h1>
+                <p className="ch-day-meta"><strong>{weekTotalLabel}</strong>{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
+              </>
+            ) : (
+              <>
+                <h1 className="ch-day-num">{selParsed.d}</h1>
+                <p className="ch-day-meta">
+                  <strong>{selected === todayKey ? "Hoje" : WEEKDAYS[(dayDate.getDay() + 6) % 7]}</strong>
+                  {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long", year: "numeric" })}
+                </p>
+              </>
+            )}
           </div>
         </div>
         <div className="ch-actions">
@@ -779,8 +1061,8 @@ export default function Calendar() {
             })}
           </div>
           <div className="ch-quick">
-            <button type="button" className="ch-btn ui-tap" onClick={function() { shiftDay(-1); }} title="Dia anterior">‹</button>
-            <button type="button" className="ch-btn ui-tap" onClick={function() { shiftDay(1); }} title="Dia seguinte">›</button>
+            <button type="button" className="ch-btn ui-tap" onClick={function() { mode === "week" ? shiftWeek(-1) : shiftDay(-1); }} title={mode === "week" ? "Semana anterior" : "Dia anterior"}>‹</button>
+            <button type="button" className="ch-btn ui-tap" onClick={function() { mode === "week" ? shiftWeek(1) : shiftDay(1); }} title={mode === "week" ? "Semana seguinte" : "Dia seguinte"}>›</button>
             <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button>
             <button type="button" className={"ch-btn ui-tap" + (selected === todayKey ? " ch-btn--accent" : "")} onClick={goToday}>Hoje</button>
             {!isMobile ? <button type="button" className="ch-btn ui-tap" onClick={function() { openCreate(); }}>+ Evento</button> : null}
@@ -788,9 +1070,9 @@ export default function Calendar() {
         </div>
       </header>
 
-      {mode !== "month" ? (
+      {mode === "line" ? (
         <MonthRail view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
-      ) : (
+      ) : mode === "month" ? (
         <div className="ch-quick" style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,.05)", justifyContent: "center", display: "flex", gap: 16, alignItems: "center" }}>
           <button type="button" className="ch-btn ui-tap" onClick={prevMonth}>‹</button>
           <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#A0A0A8", textTransform: "capitalize" }}>
@@ -798,24 +1080,22 @@ export default function Calendar() {
           </span>
           <button type="button" className="ch-btn ui-tap" onClick={nextMonth}>›</button>
         </div>
-      )}
+      ) : null}
 
-      <p className="ch-hint">Desliza ← → · T hoje · N agora · C criar</p>
+      <p className="ch-hint">{mode === "week" ? "Arrasta eventos entre dias · ‹ › muda semana · C criar" : "Desliza ← → · T hoje · N agora · C criar"}</p>
 
       <div className="ch-body">
         <div ref={stageRef} className={stageClass} key={mode + selected}>
           {mode === "month" ? (
             <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
+          ) : mode === "week" ? (
+            <WeekPlanner weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
+              isMobile={isMobile} scrollNow={scrollNow} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+              readOnly={false} onSelectDay={selectDay} onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
           ) : (
-            <>
-              {mode === "week" && !isMobile ? (
-                <WeekBoard weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
-                  onSelectDay={selectDay} onEventClick={openEdit} />
-              ) : null}
-              <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
-                scrollNow={scrollNow} readOnly={false}
-                onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
-            </>
+            <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+              scrollNow={scrollNow} readOnly={false}
+              onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
           )}
         </div>
       </div>
