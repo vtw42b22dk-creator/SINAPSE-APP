@@ -7,7 +7,7 @@ import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
-import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE, alpha } from "../lib/theme";
 
 var ACCENT = moduleColor("journal");
 var COLORS = PALETTE;
@@ -531,9 +531,9 @@ export default function Journal() {
           style={{
             padding: isMobile ? "14px 0" : "12px 0",
             border: "none",
-            borderBottom: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.07)"),
-            background: "transparent",
-            color: on && (!isMobile || mobileNoteOpen) ? "#EDEDEF" : "#A0A0A8",
+            borderBottom: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? alpha(s.color, 0.55) : "rgba(255,255,255,0.07)"),
+            background: on ? alpha(s.color, 0.06) : "transparent",
+            color: on && (!isMobile || mobileNoteOpen) ? s.color : "#A0A0A8",
             letterSpacing: JOURNAL_LETTER_SPACING, fontSize: isMobile ? 15 : 13,
           }}><i style={{ background: s.color }} /><span>{s.title}</span></button>
         <button type="button" className="jr-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
@@ -558,6 +558,7 @@ export default function Journal() {
         lineHeight: JOURNAL_LINE_HEIGHT,
         position: "relative",
         overflowX: "hidden",
+        "--mc": ACCENT,
       }}>
       <style>{MODULE_ENTRY_CSS + JR_CSS}</style>
       <div className="mod-glow" style={{ top: -80, left: "8%", background: moduleGlow(ACCENT) }} aria-hidden="true" />

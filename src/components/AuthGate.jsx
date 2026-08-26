@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../lib/AuthContext";
-import { COLORS } from "../lib/theme";
+import { COLORS, MODULE_COLORS, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
 export default function AuthGate(props) {
   var auth = useAuth();
@@ -19,9 +19,12 @@ export default function AuthGate(props) {
     return (
       <div style={{
         minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "flex-end",
-        justifyContent: "flex-start", color: COLORS.faint, fontFamily: "'JetBrains Mono',monospace",
-        letterSpacing: 2.2, fontSize: 11, padding: "0 0 48px 48px",
+        justifyContent: "flex-start", color: MODULE_COLORS.auth, fontFamily: "'JetBrains Mono',monospace",
+        letterSpacing: 2.2, fontSize: 11, padding: "0 0 48px 48px", position: "relative", overflow: "hidden",
+        "--mc": MODULE_COLORS.auth,
       }}>
+        <style>{MODULE_GLOW_CSS}</style>
+        <div className="mod-glow" style={{ top: -80, right: "10%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
         A carregar
       </div>
     );
@@ -49,9 +52,12 @@ export default function AuthGate(props) {
     <div style={{
       minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
       fontFamily: "'IBM Plex Sans',sans-serif", position: "relative", overflow: "hidden",
-      display: "flex", alignItems: "stretch",
+      display: "flex", alignItems: "stretch", "--mc": MODULE_COLORS.auth,
     }}>
-      <style>{AUTH_CSS}</style>
+      <style>{AUTH_CSS + MODULE_GLOW_CSS}</style>
+      <div className="mod-glow" style={{ top: -120, right: "5%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
+      <div className="mod-glow" style={{ bottom: -80, left: "-5%", background: moduleGlow(MODULE_COLORS.journal, "14"), opacity: 0.4 }} aria-hidden="true" />
+      <div className="mod-glow" style={{ top: "30%", left: "55%", background: moduleGlow(MODULE_COLORS.focus, "10"), opacity: 0.35 }} aria-hidden="true" />
       <p className="ag-mark" aria-hidden="true">SINAPSE</p>
       <form className="ag-form" onSubmit={submit}>
         <p className="ag-kicker">Sinapse</p>
@@ -94,7 +100,7 @@ var AUTH_CSS = [
   ".ag-form{position:relative;z-index:1;width:min(420px,100%);margin:auto 0 auto clamp(28px,8vw,120px);",
   "padding:48px 24px 64px;animation:appearUp var(--dur-slow) var(--ease) both}",
   ".ag-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.6px;text-transform:uppercase;",
-  "color:#6E6E76;margin:0 0 28px}",
+  "color:var(--mc);margin:0 0 28px}",
   ".ag-title{font-family:'JetBrains Mono',monospace;font-size:clamp(36px,6vw,52px);margin:0 0 12px;",
   "font-weight:300;letter-spacing:-0.05em;line-height:.95}",
   ".ag-lead{font-size:15px;color:#A0A0A8;line-height:1.65;margin:0 0 40px;max-width:34ch}",
@@ -103,9 +109,9 @@ var AUTH_CSS = [
   "text-transform:uppercase;color:#6E6E76;margin-bottom:8px}",
   ".ag-field input{width:100%;box-sizing:border-box;padding:10px 0 12px;border:none;border-bottom:1px solid rgba(255,255,255,0.14);",
   "background:transparent;color:#EDEDEF;outline:none;font-size:16px;font-family:inherit;border-radius:0}",
-  ".ag-field input:focus{border-bottom-color:#EDEDEF}",
+  ".ag-field input:focus{border-bottom-color:var(--mc)}",
   ".ag-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 0;background:none;border:none;",
-  "border-bottom:1px solid #EDEDEF;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:14px;",
+  "border-bottom:1px solid var(--mc);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;",
   "font-weight:400;letter-spacing:.4px;cursor:pointer}",
   ".ag-go:hover{opacity:.7}",
   ".ag-switch{display:block;margin-top:28px;background:none;border:none;color:#6E6E76;font-size:13px;",

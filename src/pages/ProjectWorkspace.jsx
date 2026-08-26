@@ -5,7 +5,9 @@ import * as projectModuleStore from "../lib/projectModuleStore";
 import Synapse from "./Synapse";
 import { ProjectInvestments, ProjectNotes, ProjectAnalytics, ProjectInventory } from "../components/ProjectModules";
 
-var ACCENT = "#E6E6E9";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
+
+var ACCENT = moduleColor("projects");
 
 var MODULE_ICONS = {
   documents: "✦",
@@ -16,14 +18,15 @@ var MODULE_ICONS = {
 };
 
 var MODULE_COLORS = {
-  documents: "#E6E6E9",
+  documents: "#8FA8C4",
   investments: "#8FB39B",
   notes: "#C4A57C",
-  analytics: "#E6E6E9",
-  inventory: "#E6E6E9",
+  analytics: "#C08C8C",
+  inventory: "#A0A0A8",
 };
 
 var SIDEBAR_CSS = [
+  MODULE_GLOW_CSS,
   ".pw{height:100vh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
   ".pw-head{flex-shrink:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:30}",
   ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 4px;border:none;border-bottom:1px solid currentColor;background:transparent;color:#A0A0A8;cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0}",
@@ -178,8 +181,9 @@ export default function ProjectWorkspace() {
   else if (navCollapsed && !isMobile) sidebarClass += " pw-side--mini";
 
   return (
-    <div className="pw">
+    <div className="pw" style={{ "--mc": pColor }}>
       <style>{SIDEBAR_CSS}</style>
+      <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(pColor) }} aria-hidden="true" />
 
       <header className="pw-head">
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -189,7 +193,7 @@ export default function ProjectWorkspace() {
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, marginLeft: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
-            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{project.name}</h1>
+            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor }}>{project.name}</h1>
           </div>
         </div>
         <button type="button" className="pw-hbtn" onClick={function() { navigate("/"); }}>Hub</button>

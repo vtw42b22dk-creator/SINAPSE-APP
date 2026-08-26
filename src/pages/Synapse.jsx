@@ -173,7 +173,7 @@ function NodeCircle(props) {
       </circle>
       <circle cx={node.x} cy={node.y} r={r} fill="#141416" stroke={isSel?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"} strokeWidth={isSel?1.4:1}
         style={{transition:"all 0.3s ease"}}/>
-      <circle cx={node.x} cy={node.y} r={r-1} fill={c} opacity={isSel?0.07:0.04}/>
+      <circle cx={node.x} cy={node.y} r={r-1} fill={c} opacity={isSel?0.12:0.07}/>
       {editing ? (
         <foreignObject x={node.x-(mobile?85:65)} y={node.y-(mobile?20:14)} width={mobile?170:130} height={mobile?42:28}>
           <input ref={iref} value={lab} onChange={function(e){setLab(e.target.value);}}
@@ -197,7 +197,7 @@ function NodeCircle(props) {
           <text x={node.x+r*0.62} y={node.y-r*0.62+0.5} textAnchor="middle" dominantBaseline="central" fill="#A0A0A8" fontSize="7" fontFamily="'JetBrains Mono',monospace" fontWeight="600">{fc}</text>
         </g>
       )}
-      {node.notes && node.notes.length > 0 && <circle cx={node.x-r*0.62} cy={node.y-r*0.62} r={4} fill={c} opacity="0.5"/>}
+      {node.notes && node.notes.length > 0 && <circle cx={node.x-r*0.62} cy={node.y-r*0.62} r={4} fill={c} opacity="0.72"/>}
       {hasHid && (
         <g>
           <circle cx={node.x} cy={node.y+r+14} r={10} fill="#141416" stroke="rgba(255,255,255,0.14)" strokeWidth="1" strokeDasharray="4 2.5"/>

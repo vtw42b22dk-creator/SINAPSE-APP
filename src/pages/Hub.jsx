@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { ProjectsIcon } from "./Projects";
-import { COLORS, MODULE_COLORS } from "../lib/theme";
+import { COLORS, MODULE_COLORS, moduleGlow } from "../lib/theme";
 import { MICRO_CSS } from "../lib/microUi";
 
 function CalendarIcon() {
@@ -69,9 +69,10 @@ var HUB_CSS = [
   ".hub-scroll::-webkit-scrollbar{width:5px}",
   ".hub-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}",
   ".hub-inner{max-width:920px;margin:0 auto;padding:48px 24px 120px;position:relative;z-index:1}",
-  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);animation:uiGlow 8s ease-in-out infinite}",
-  ".hub-glow--a{width:min(480px,65vw);height:min(480px,65vw);top:-12%;left:-8%;background:rgba(255,255,255,.045)}",
-  ".hub-glow--b{width:min(360px,50vw);height:min(360px,50vw);bottom:5%;right:-10%;background:rgba(255,255,255,.028);animation-delay:-3s}",
+  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);animation:uiGlow 8s ease-in-out infinite;transition:background 1.2s var(--ease)}",
+  ".hub-glow--a{width:min(480px,65vw);height:min(480px,65vw);top:-12%;left:-8%}",
+  ".hub-glow--b{width:min(360px,50vw);height:min(360px,50vw);bottom:5%;right:-10%;animation-delay:-3s}",
+  ".hub-glow--c{width:min(280px,40vw);height:min(280px,40vw);top:42%;left:38%;animation-delay:-5s;opacity:.45}",
   ".hub-mark{position:fixed;right:-2%;top:14%;font-family:'JetBrains Mono',monospace;font-size:clamp(80px,20vw,240px);",
   "font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,.025);line-height:.8;pointer-events:none;user-select:none;transform:rotate(-10deg);z-index:0}",
   ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:52px}",
@@ -81,7 +82,7 @@ var HUB_CSS = [
   ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 1px;color:" + COLORS.faint + "}",
   ".hub-date{margin:20px 0 0;font-size:14px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
   ".hub-out{margin-top:4px}",
-  ".hub-divider{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 65%,transparent);margin:0 0 20px}",
+  ".hub-divider{height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--mc,#EDEDEF) 35%,transparent),rgba(255,255,255,.04) 65%,transparent);margin:0 0 20px}",
   ".hub-index-head{position:relative;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-top:12px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:100ms}",
   ".hub-list{display:flex;flex-direction:column}",
   ".hub-row{position:relative;display:grid;grid-template-columns:44px 28px 1fr auto;align-items:center;gap:16px;width:100%;text-align:left;",
@@ -183,8 +184,9 @@ export default function Hub() {
   return (
     <div className="hub-root hub-scroll" data-scrollable>
       <style>{HUB_CSS}</style>
-      <div className="hub-glow hub-glow--a" aria-hidden="true" />
-      <div className="hub-glow hub-glow--b" aria-hidden="true" />
+      <div className="hub-glow hub-glow--a" style={{ background: moduleGlow(MODULE_COLORS.calendar, "20") }} aria-hidden="true" />
+      <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.focus, "18") }} aria-hidden="true" />
+      <div className="hub-glow hub-glow--c" style={{ background: moduleGlow(MODULE_COLORS.tasks, "16") }} aria-hidden="true" />
       <div className="hub-mark" aria-hidden="true">SINAPSE</div>
       <div className="hub-inner">
         <header className="hub-top">

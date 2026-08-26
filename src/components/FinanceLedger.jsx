@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { alpha } from "../lib/theme";
 
 var SAVE_DEBOUNCE_MS = 1800;
 
@@ -366,7 +367,7 @@ export default function FinanceLedger(props) {
         <p className="fl-mono" style={{ margin: "0 0 16px", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(196,165,124,0.28)", background: "#141416", fontSize: 12, lineHeight: 1.5, color: "#C4A57C" }}>{sessionWarn}</p>
       ) : null}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-        <button className="fl-btn" onClick={function() { setManageCat(!manageCat); }} style={pickStyle(manageCat, false)}>Categorias</button>
+        <button className="fl-btn" onClick={function() { setManageCat(!manageCat); }} style={pickStyle(manageCat, false, props.accent)}>Categorias</button>
         <button className="fl-nav" onClick={function() { shiftMonth(-1); }}>‹</button>
         <span className="fl-mono" style={{ fontSize: 12, color: "#EDEDEF", minWidth: 90, textAlign: "center" }}>{month}</span>
         <button className="fl-nav" onClick={function() { shiftMonth(1); }}>›</button>
@@ -422,7 +423,7 @@ export default function FinanceLedger(props) {
             var on = (draft.categories || []).indexOf(name) >= 0;
             var disabled = !on && (draft.categories || []).length >= 2;
             return (
-              <button key={name} type="button" className="fl-pick" disabled={disabled} onClick={function() { toggleCategory(name); }} style={pickStyle(on, disabled)}>
+              <button key={name} type="button" className="fl-pick" disabled={disabled} onClick={function() { toggleCategory(name); }} style={pickStyle(on, disabled, props.accent)}>
                 {name}
               </button>
             );
@@ -460,11 +461,12 @@ export default function FinanceLedger(props) {
 }
 
 /** Estado visual dos seletores (categorias, painel): ativo, inativo ou indisponível. */
-function pickStyle(on, disabled) {
+function pickStyle(on, disabled, accent) {
+  var ac = accent || "#EDEDEF";
   return {
-    "--fl-bg": on ? "#1A1A1D" : "#141416",
-    "--fl-bd": on ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)",
-    "--fl-fg": on ? "#EDEDEF" : disabled ? "#6E6E76" : "#A0A0A8",
+    "--fl-bg": on ? alpha(ac, 0.08) : "#141416",
+    "--fl-bd": on ? alpha(ac, 0.38) : "rgba(255,255,255,0.07)",
+    "--fl-fg": on ? ac : disabled ? "#6E6E76" : "#A0A0A8",
   };
 }
 /** Montantes são guardados sempre positivos; o sinal vem do tipo de registo. */

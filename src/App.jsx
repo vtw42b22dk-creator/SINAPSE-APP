@@ -10,17 +10,20 @@ import Wishlist from './pages/Wishlist'
 import Finance from './pages/Finance'
 import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
+import RouteAccent from './lib/RouteAccent'
 import { AuthProvider } from './lib/AuthContext'
 import { ThemeProvider } from './lib/ThemeContext'
 import { MOBILE_GLOBAL_CSS } from './lib/mobileUi'
+import { MODULE_ACCENT_CSS } from './lib/theme'
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AuthGate>
-          <style>{MOBILE_GLOBAL_CSS}</style>
-          <HashRouter>
+        <HashRouter>
+          <RouteAccent />
+          <style>{MOBILE_GLOBAL_CSS + MODULE_ACCENT_CSS}</style>
+          <AuthGate>
             <Routes>
               <Route path="/" element={<Hub />} />
               <Route path="/projects" element={<Projects />} />
@@ -34,8 +37,8 @@ export default function App() {
               <Route path="/finance" element={<Finance />} />
               <Route path="/focus" element={<Focus />} />
             </Routes>
-          </HashRouter>
-        </AuthGate>
+          </AuthGate>
+        </HashRouter>
       </AuthProvider>
     </ThemeProvider>
   )

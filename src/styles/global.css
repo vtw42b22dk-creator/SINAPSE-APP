@@ -44,8 +44,9 @@ body::after {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 12% -10%, rgba(255, 255, 255, 0.035), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(255, 255, 255, 0.02), transparent 50%);
+    radial-gradient(ellipse 80% 50% at 12% -10%, color-mix(in srgb, var(--mc, #e6e6e9) 14%, transparent), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 100% 100%, color-mix(in srgb, var(--mc, #e6e6e9) 8%, transparent), transparent 50%);
+  transition: background 1s var(--ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 html::before {
@@ -147,7 +148,7 @@ textarea::placeholder {
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--mc, #e6e6e9) 28%, transparent);
   color: #fff;
 }
 
@@ -505,7 +506,8 @@ textarea::placeholder {
 }
 
 #root .pj-new {
-  color: var(--page-text) !important;
+  color: var(--mc, var(--page-text)) !important;
+  border-bottom-color: var(--mc, var(--page-text)) !important;
 }
 
 #root .fx-nav.on,
@@ -513,17 +515,17 @@ textarea::placeholder {
 #root .fx-stybtn.on,
 #root .fx-tab.on {
   background: transparent !important;
-  border-bottom: 1px solid var(--accent) !important;
-  color: var(--page-text) !important;
+  border-bottom: 1px solid var(--mc, var(--accent)) !important;
+  color: var(--mc, var(--accent)) !important;
 }
 
 #root .cal-fab-create {
   width: auto !important;
   height: auto !important;
   padding: 10px 4px !important;
-  color: var(--page-text) !important;
+  color: var(--mc, var(--accent)) !important;
   font-size: 32px !important;
-  border-bottom: 1px solid var(--accent) !important;
+  border-bottom: 1px solid var(--mc, var(--accent)) !important;
   font-weight: 300 !important;
 }
 

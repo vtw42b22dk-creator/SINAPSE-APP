@@ -9,7 +9,7 @@ import { pageBg, pageText } from "../lib/ThemeContext";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
 var MODULE_ACCENT = moduleColor("finance");
-var EXPENSE_ACCENT = "#E6E6E9";
+var EXPENSE_ACCENT = MODULE_ACCENT;
 var INCOME_ACCENT = "#8FB39B";
 
 var FIN_CSS = [
