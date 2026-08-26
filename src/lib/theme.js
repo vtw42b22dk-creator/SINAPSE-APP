@@ -23,6 +23,30 @@ export var COLORS = {
 /** Paleta neutra para o utilizador escolher (projetos, notas, eventos). */
 export var PALETTE = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
 
+/** Cor decorativa por módulo — estilo wishlist (ponto + glow subtil). */
+export var MODULE_COLORS = {
+  calendar: "#8FA8C4",
+  focus: "#C4A57C",
+  tasks: "#8FB39B",
+  journal: "#C08C8C",
+  projects: "#6E6E76",
+  wishlist: "#E6E6E9",
+  finance: "#A0A0A8",
+};
+
+export function moduleColor(id) {
+  return MODULE_COLORS[id] || COLORS.accent;
+}
+
+/** Fundo de glow: hex + alpha em 8 dígitos (#RRGGBBAA). */
+export function moduleGlow(hex, alphaHex) {
+  var c = hex || COLORS.accent;
+  if (c.charAt(0) !== "#") return "rgba(255,255,255,0.06)";
+  return c.length === 7 ? c + (alphaHex || "18") : c;
+}
+
+export var MODULE_GLOW_CSS = ".mod-glow{position:fixed;width:min(520px,70vw);height:min(520px,70vw);border-radius:50%;pointer-events:none;filter:blur(80px);opacity:.52;z-index:0;transition:background 1s var(--ease)}";
+
 /** Sombras discretas — nunca coloridas. */
 export var SHADOW = {
   sm: "0 1px 2px rgba(0,0,0,0.4)",

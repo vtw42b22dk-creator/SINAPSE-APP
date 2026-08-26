@@ -5,10 +5,12 @@ import * as focusStore from "../lib/focusStore";
 import * as focusTimer from "../lib/focusTimer";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { MICRO_CSS } from "../lib/microUi";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
-var CYAN = "#E6E6E9";
+var ACCENT = moduleColor("focus");
+var CYAN = ACCENT;
 var AMBER = "#C4A57C";
-var PURPLE = "#E6E6E9";
+var PURPLE = ACCENT;
 
 var ICONS = ["◈", "◷", "✦", "◇", "⌘", "€", "▦", "◉", "✎", "◆"];
 var CLOCK_STYLES = [
@@ -28,14 +30,15 @@ var SIDEBAR = [
 
 var FX_CSS = [
   MICRO_CSS,
+  MODULE_GLOW_CSS,
   "@keyframes fxIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}",
   "@keyframes fxSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}",
   "@keyframes fxGlow{0%,100%{opacity:.25}50%{opacity:.55}}",
   "@keyframes fxTick{0%,48%{opacity:1}50%,98%{opacity:.2}}",
   ".fx-root{height:100vh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;position:relative}",
   ".fx-ambient{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);animation:fxGlow 7s ease-in-out infinite}",
-  ".fx-ambient--a{width:420px;height:420px;top:-8%;left:-6%;background:rgba(255,255,255,.04)}",
-  ".fx-ambient--b{width:320px;height:320px;bottom:10%;right:-4%;background:rgba(196,165,124,.06);animation-delay:-2.5s}",
+  ".fx-ambient--a{width:420px;height:420px;top:-8%;left:-6%}",
+  ".fx-ambient--b{width:320px;height:320px;bottom:10%;right:-4%;animation-delay:-2.5s;opacity:.4}",
   ".fx-head{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(7,7,8,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:20}",
   ".fx-hbtn{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;cursor:pointer;font-size:12px;line-height:1.4;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fx-hbtn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
@@ -343,10 +346,10 @@ function ProjectPicker(props) {
   }
 
   return (
-    <div className="fx-root" data-scrollable>
+    <div className="fx-root" data-scrollable style={{ "--ac": CYAN }}>
       <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
-      <div className="fx-ambient fx-ambient--a" aria-hidden="true" />
-      <div className="fx-ambient fx-ambient--b" aria-hidden="true" />
+      <div className="fx-ambient fx-ambient--a" style={{ background: moduleGlow(CYAN) }} aria-hidden="true" />
+      <div className="fx-ambient fx-ambient--b" style={{ background: moduleGlow(CYAN, "12") }} aria-hidden="true" />
       <header className="fx-head">
         <button type="button" className="fx-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -790,8 +793,8 @@ export default function Focus() {
   return (
     <div className="fx-root" style={{ "--ac": accent }}>
       <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
-      <div className="fx-ambient fx-ambient--a" aria-hidden="true" />
-      <div className="fx-ambient fx-ambient--b" aria-hidden="true" />
+      <div className="fx-ambient fx-ambient--a" style={{ background: moduleGlow(accent) }} aria-hidden="true" />
+      <div className="fx-ambient fx-ambient--b" style={{ background: moduleGlow(accent, "12") }} aria-hidden="true" />
       {phaseFlash ? <div className={"fx-phase-flash fx-phase-flash--" + phaseFlash} aria-hidden="true" /> : null}
 
       <ImmersiveSession

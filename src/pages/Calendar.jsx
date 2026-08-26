@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
 import { MICRO_CSS, attachSwipe } from "../lib/microUi";
 import { PageLoader } from "../components/PageLoader";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
-var ACCENT = "#E6E6E9";
+var ACCENT = moduleColor("calendar");
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 var COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
 var HOUR_H = 52;
@@ -16,13 +17,15 @@ var SNAP = 15;
 
 var CHRO_CSS = [
   MICRO_CSS,
+  MODULE_GLOW_CSS,
   "@keyframes chIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}",
   "@keyframes chSlideL{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}",
   "@keyframes chSlideR{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}",
   "@keyframes chNow{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(230,230,233,.4)}50%{opacity:.7;box-shadow:0 0 14px 2px rgba(230,230,233,.25)}}",
   ".ch-root{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;overflow:hidden;position:relative}",
-  ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.5}",
-  ".ch-glow--a{width:420px;height:420px;top:-10%;right:-8%;background:rgba(255,255,255,.035)}",
+  ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55;z-index:0;transition:background 1s var(--ease)}",
+  ".ch-glow--a{width:420px;height:420px;top:-10%;right:-8%}",
+  ".ch-glow--b{width:300px;height:300px;bottom:8%;left:-6%;opacity:.35}",
   ".ch-head{flex-shrink:0;padding:16px 20px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(7,7,8,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:30}",
   ".ch-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".ch-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
@@ -126,7 +129,7 @@ var CHRO_CSS = [
   ".ch-wk-ev--ghost{opacity:.55;pointer-events:none;z-index:30}",
   ".ch-wk-scroll-h{overflow-x:auto;overflow-y:auto}",
   ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-0.03em;color:#EDEDEF;margin:0}",
-  ".ch-week-hero span{font-size:.5em;color:#8FA8C4;font-weight:400;letter-spacing:1.2px;display:block;margin-bottom:8px;text-transform:uppercase}",
+  ".ch-week-hero span{font-size:.5em;color:var(--mc);font-weight:400;letter-spacing:1.2px;display:block;margin-bottom:8px;text-transform:uppercase}",
   ".ch-month{flex:1;overflow-y:auto;padding:16px 20px 80px;-webkit-overflow-scrolling:touch}",
   ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:8px}",
   ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:6px 0;letter-spacing:1px}",
@@ -1017,9 +1020,10 @@ export default function Calendar() {
   var stageClass = "ch-stage" + (navDir > 0 ? " ch-stage--left" : navDir < 0 ? " ch-stage--right" : "");
 
   return (
-    <div className="ch-root" data-scrollable>
+    <div className="ch-root" data-scrollable style={{ "--mc": ACCENT }}>
       <style>{CHRO_CSS}</style>
-      <div className="ch-glow ch-glow--a" aria-hidden="true" />
+      <div className="ch-glow ch-glow--a" style={{ background: moduleGlow(ACCENT) }} aria-hidden="true" />
+      <div className="ch-glow ch-glow--b" style={{ background: moduleGlow(ACCENT, "12") }} aria-hidden="true" />
 
       <header className="ch-head">
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { ProjectsIcon } from "./Projects";
-import { COLORS } from "../lib/theme";
+import { COLORS, MODULE_COLORS } from "../lib/theme";
 import { MICRO_CSS } from "../lib/microUi";
 
 function CalendarIcon() {
@@ -52,13 +52,13 @@ function FocusIcon() {
 }
 
 var MODULES = [
-  { id: "calendar", name: "Calendário", desc: "Visualiza e organiza o teu tempo", Icon: CalendarIcon, path: "/calendar" },
-  { id: "focus", name: "Estúdio de Foco", desc: "Sessões de estudo, ideias e métricas diárias", Icon: FocusIcon, path: "/focus" },
-  { id: "tasks", name: "Tarefas", desc: "Captura, prioriza, conquista", Icon: TasksIcon, path: "/tasks" },
-  { id: "journal", name: "Diário", desc: "Blocos de escrita para tudo o que vem à cabeça", Icon: JournalIcon, path: "/journal" },
-  { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects" },
-  { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist" },
-  { id: "finance", name: "Financeiro", desc: "Gastos, recursos e orçamento mensal", Icon: FinanceIcon, path: "/finance" },
+  { id: "calendar", name: "Calendário", desc: "Visualiza e organiza o teu tempo", Icon: CalendarIcon, path: "/calendar", color: MODULE_COLORS.calendar },
+  { id: "focus", name: "Estúdio de Foco", desc: "Sessões de estudo, ideias e métricas diárias", Icon: FocusIcon, path: "/focus", color: MODULE_COLORS.focus },
+  { id: "tasks", name: "Tarefas", desc: "Captura, prioriza, conquista", Icon: TasksIcon, path: "/tasks", color: MODULE_COLORS.tasks },
+  { id: "journal", name: "Diário", desc: "Blocos de escrita para tudo o que vem à cabeça", Icon: JournalIcon, path: "/journal", color: MODULE_COLORS.journal },
+  { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects", color: MODULE_COLORS.projects },
+  { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist", color: MODULE_COLORS.wishlist },
+  { id: "finance", name: "Financeiro", desc: "Gastos, recursos e orçamento mensal", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },
 ];
 
 var HUB_CSS = [
@@ -84,29 +84,34 @@ var HUB_CSS = [
   ".hub-divider{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 65%,transparent);margin:0 0 20px}",
   ".hub-index-head{position:relative;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-top:12px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:100ms}",
   ".hub-list{display:flex;flex-direction:column}",
-  ".hub-row{position:relative;display:grid;grid-template-columns:44px 20px 1fr auto;align-items:center;gap:18px;width:100%;text-align:left;",
+  ".hub-row{position:relative;display:grid;grid-template-columns:44px 28px 1fr auto;align-items:center;gap:16px;width:100%;text-align:left;",
   "padding:24px 8px 24px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.06);color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;",
   "transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
-  ".hub-row::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:0;border-radius:999px;background:" + COLORS.text + ";",
+  ".hub-row::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:0;border-radius:999px;background:var(--mc);",
   "transition:height var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0}",
   ".hub-row:hover,.hub-row:focus-visible{color:" + COLORS.text + ";padding-left:6px}",
-  ".hub-row:hover::before,.hub-row:focus-visible::before{height:28px;opacity:1}",
+  ".hub-row:hover::before,.hub-row:focus-visible::before{height:32px;opacity:1}",
   ".hub-row:active{transform:scale(.995)}",
   ".hub-idx{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.6px;color:" + COLORS.faint + ";transition:color var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-idx{color:" + COLORS.text + "}",
-  ".hub-row svg{opacity:.35;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}",
-  ".hub-row:hover svg{opacity:1;transform:translateX(2px)}",
-  ".hub-row h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(19px,2.6vw,28px);font-weight:400;letter-spacing:-.035em;color:" + COLORS.text + ";line-height:1.12}",
+  ".hub-row:hover .hub-idx{color:var(--mc)}",
+  ".hub-ic-wrap{position:relative;display:flex;align-items:center;justify-content:center;color:" + COLORS.faint + "}",
+  ".hub-dot{position:absolute;left:-4px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:var(--mc);opacity:.45;",
+  "transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}",
+  ".hub-row:hover .hub-dot,.hub-row:focus-visible .hub-dot{opacity:1;transform:translateY(-50%) scale(1.15)}",
+  ".hub-row svg{opacity:.4;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".hub-row:hover svg,.hub-row:focus-visible svg{opacity:1;color:var(--mc);transform:translateX(2px)}",
+  ".hub-row h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(19px,2.6vw,28px);font-weight:400;letter-spacing:-.035em;color:" + COLORS.text + ";line-height:1.12;transition:color var(--dur) var(--ease)}",
+  ".hub-row:hover h2,.hub-row:focus-visible h2{color:var(--mc)}",
   ".hub-row p{margin:7px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.faint + ";max-width:44ch;transition:color var(--dur) var(--ease)}",
   ".hub-row:hover p{color:" + COLORS.muted + "}",
   ".hub-go{font-size:20px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-12px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:" + COLORS.text + "}",
+  ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:var(--mc)}",
   ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
   "@media(max-width:719px){",
   ".hub-inner{padding:36px 18px 100px}",
-  ".hub-row{grid-template-columns:36px 1fr auto;gap:14px;padding:22px 0}",
-  ".hub-row svg{display:none}",
+  ".hub-row{grid-template-columns:36px 24px 1fr auto;gap:12px;padding:22px 0}",
+  ".hub-row svg{display:block}",
   ".hub-row h2{font-size:21px}",
   ".hub-go{opacity:.4;transform:none}",
   ".hub-time{font-size:64px!important}",
@@ -117,9 +122,12 @@ function ModuleRow(props) {
   var mod = props.module;
   var n = String(props.index + 1).padStart(2, "0");
   return (
-    <button type="button" className="hub-row ui-tap ui-fade-in" style={{ animationDelay: (120 + props.index * 55) + "ms" }} onClick={function() { if (mod.path) props.onClick(mod); }}>
+    <button type="button" className="hub-row ui-tap ui-fade-in" style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }} onClick={function() { if (mod.path) props.onClick(mod); }}>
       <span className="hub-idx">{n}</span>
-      <mod.Icon />
+      <span className="hub-ic-wrap" aria-hidden="true">
+        <span className="hub-dot" />
+        <mod.Icon />
+      </span>
       <span style={{ minWidth: 0 }}>
         <h2>{mod.name}</h2>
         <p>{mod.path ? mod.desc : "Em breve"}</p>

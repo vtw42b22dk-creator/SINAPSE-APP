@@ -4,9 +4,9 @@ import * as synapseStore from "../lib/synapseStore";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 
-var ACCENT = "#E6E6E9";
-var PALETTE = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
+var ACCENT = moduleColor("projects");
 
 var MODULE_ICONS = {
   documents: "✦",
@@ -33,11 +33,12 @@ function savePins(arr) {
 }
 
 var PROJ_CSS = [
+  MODULE_GLOW_CSS,
   "@keyframes pjFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
   ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
   ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
-  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:#E6E6E9;letter-spacing:1.6px}",
+  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--mc);letter-spacing:1.6px}",
   ".pj-brand span{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
   ".pj-search{flex:1;min-width:140px;max-width:300px;position:relative;display:flex;align-items:center}",
   ".pj-search svg{position:absolute;left:12px;color:#6E6E76;pointer-events:none;transition:color var(--dur) var(--ease)}",
@@ -449,8 +450,9 @@ export default function Projects() {
   }
 
   return (
-    <div className="pj-page" data-scrollable>
+    <div className="pj-page" data-scrollable style={{ "--mc": ACCENT }}>
       <style>{MODULE_ENTRY_CSS + PROJ_CSS}</style>
+      <div className="mod-glow" style={{ top: -80, right: "4%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
 
       <header className={"pj-top" + (isMobile ? " pj-top-mob" : "")}>
         <button type="button" onClick={function() { navigate("/"); }} className="pj-ghost">← Hub</button>

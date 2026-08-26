@@ -5,8 +5,9 @@ import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
 import { fs } from "../lib/mobileUi";
 import { MICRO_CSS } from "../lib/microUi";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
-var ACCENT = "#E6E6E9";
+var ACCENT = moduleColor("tasks");
 var COLUMNS = [
   { id: "inbox", label: "Inbox", icon: "◎", hint: "Captura rápida" },
   { id: "today", label: "Hoje", icon: "◉", hint: "Foco do dia" },
@@ -28,8 +29,9 @@ var SAVE_DEBOUNCE_MS = 900;
 
 var TASKS_CSS = [
   MICRO_CSS,
+  MODULE_GLOW_CSS,
   "@keyframes taskIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  ".tk-page{min-height:100vh;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".tk-page{min-height:100vh;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;position:relative;overflow-x:hidden}",
   ".tk-head{position:sticky;top:0;z-index:20;padding:14px 20px;background:rgba(7,7,8,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}",
   ".tk-head-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}",
   ".tk-head-inner--mob{flex-direction:column;align-items:stretch;padding:12px}",
@@ -39,16 +41,16 @@ var TASKS_CSS = [
   ".tk-search-row{display:flex;align-items:center;gap:10px;flex:1;max-width:380px;min-width:180px}",
   ".tk-search-row--full{max-width:none}",
   ".tk-focus-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".tk-focus-btn.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".tk-focus-btn.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-focus-btn:active{transform:scale(.96)}",
-  ".tk-new-btn{background:transparent;border:none;border-bottom:2px solid #EDEDEF;color:#EDEDEF;font-size:12px;padding:10px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:500;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-new-btn{background:transparent;border:none;border-bottom:2px solid var(--mc);color:var(--mc);font-size:12px;padding:10px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:500;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-new-btn:hover{opacity:.85}",
   ".tk-new-btn:active{transform:scale(.96);opacity:.7}",
   ".tk-body{max-width:1200px;margin:0 auto;padding:16px 20px 80px}",
   ".tk-body--mob{padding:14px 12px 80px}",
   ".tk-progress-wrap{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}",
   ".tk-progress{flex:1;min-width:200px;height:2px;background:rgba(255,255,255,.08);overflow:hidden}",
-  ".tk-progress i{display:block;height:100%;background:#E6E6E9;transition:width var(--dur-slow) var(--ease)}",
+  ".tk-progress i{display:block;height:100%;background:var(--mc);transition:width var(--dur-slow) var(--ease)}",
   ".tk-stats{margin:0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.3px}",
   ".tk-form{margin-bottom:28px;padding:0 0 24px;border-bottom:1px solid rgba(255,255,255,.1);animation:taskIn var(--dur) var(--ease)}",
   ".tk-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}",
@@ -492,8 +494,9 @@ export default function Tasks() {
   var tk = todayKey();
 
   return (
-    <div className="mod-main tk-page">
+    <div className="mod-main tk-page" style={{ "--mc": ACCENT }}>
       <style>{TASKS_CSS}</style>
+      <div className="mod-glow" style={{ top: -100, right: "4%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <header className={"tk-head" + (isMobile ? " tk-head--mob" : "")}>
         <div className={"tk-head-inner" + (isMobile ? " tk-head-inner--mob" : "")}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, width: isMobile ? "100%" : "auto" }}>
@@ -502,7 +505,7 @@ export default function Tasks() {
             ) : (
               <button type="button" className="tk-back ui-tap" onClick={function() { navigate("/"); }}>← Hub</button>
             )}
-            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500, letterSpacing: 0.5 }}>
+            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, fontWeight: 500, letterSpacing: 0.5 }}>
               {isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
             </h1>
           </div>

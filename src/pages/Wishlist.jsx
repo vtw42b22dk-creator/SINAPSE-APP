@@ -6,9 +6,10 @@ import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 
-var ACCENT = "#E6E6E9";
-var GROUP_COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
+var ACCENT = moduleColor("wishlist");
+var GROUP_COLORS = PALETTE;
 var PRIORITIES = [
   { id: "low", label: "Baixa", color: "rgba(255,255,255,0.35)" },
   { id: "med", label: "Média", color: "#C4A57C" },

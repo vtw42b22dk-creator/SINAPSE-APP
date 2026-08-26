@@ -7,9 +7,10 @@ import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 
-var ACCENT = "#E6E6E9";
-var COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
+var ACCENT = moduleColor("journal");
+var COLORS = PALETTE;
 var JOURNAL_FONT = "'JetBrains Mono', monospace";
 var JOURNAL_LETTER_SPACING = "0.04em";
 var JOURNAL_LINE_HEIGHT = 1.75;
@@ -20,6 +21,7 @@ var JOURNAL_TEXT = {
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
 var JR_CSS = [
+  MODULE_GLOW_CSS,
   ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;margin:0}",
   ".jr-note{position:relative;display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;cursor:pointer;",
   "font-family:'JetBrains Mono',monospace;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.07);",
@@ -554,8 +556,11 @@ export default function Journal() {
         fontFamily: JOURNAL_FONT,
         letterSpacing: JOURNAL_LETTER_SPACING,
         lineHeight: JOURNAL_LINE_HEIGHT,
+        position: "relative",
+        overflowX: "hidden",
       }}>
       <style>{MODULE_ENTRY_CSS + JR_CSS}</style>
+      <div className="mod-glow" style={{ top: -80, left: "8%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <header style={{position:"sticky",top:0,zIndex:20,background:"#0A0A0B",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:isMobile?"12px":"16px 20px"}}>
         <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,minWidth:0}}>
@@ -564,7 +569,7 @@ export default function Journal() {
             ) : (
               <button onClick={function(){navigate("/");}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,color:"#A0A0A8",padding:"9px 13px",cursor:"pointer",fontSize:12,flexShrink:0}}>← Hub</button>
             )}
-            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: "#EDEDEF", margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
+            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: activeSpace ? activeSpace.color : ACCENT, margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
           </div>
           {(!isMobile || mobileNoteOpen) ? (
           <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0,flexWrap:"wrap"}}>

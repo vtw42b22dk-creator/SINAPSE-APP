@@ -6,11 +6,14 @@ import FinanceLedger from "../components/FinanceLedger";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
+import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
+var MODULE_ACCENT = moduleColor("finance");
 var EXPENSE_ACCENT = "#E6E6E9";
 var INCOME_ACCENT = "#8FB39B";
 
 var FIN_CSS = [
+  MODULE_GLOW_CSS,
   ".fin-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 2px;",
   "background:transparent;border:none;border-bottom:1px solid currentColor;color:var(--fin-fg,#A0A0A8);",
   "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px}",
@@ -125,13 +128,14 @@ export default function Finance() {
   var text = pageText();
 
   return (
-    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'IBM Plex Sans',sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'IBM Plex Sans',sans-serif", position: "relative", overflowX: "hidden" }}>
       <style>{MODULE_ENTRY_CSS + FIN_CSS}</style>
+      <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(MODULE_ACCENT) }} aria-hidden="true" />
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "12px" : "14px 20px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button className="fin-btn" onClick={function() { navigate("/"); }}>← Hub</button>
-            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 18 : 16, fontWeight: 500, letterSpacing: 0.2, color: accent, margin: 0 }}>Financeiro</h1>
+            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 18 : 16, fontWeight: 500, letterSpacing: 0.2, color: MODULE_ACCENT, margin: 0 }}>Financeiro</h1>
           </div>
           <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto" }}>
             <button className="fin-btn" onClick={function() { setTab("expense"); }} style={Object.assign({}, tabBtn(tab === "expense", EXPENSE_ACCENT), isMobile ? { flex: 1 } : null)}>Gastos</button>
