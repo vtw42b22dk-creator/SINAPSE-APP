@@ -257,7 +257,11 @@ textarea::placeholder {
 #root .cal-color-dot,
 #root .week-now-dot,
 #root .day-now-dot,
-#root .cal-mobile-day-badge {
+#root .cal-mobile-day-badge,
+#root .wl-glow,
+#root .wl-grp-dot,
+#root .wl-check,
+#root .wl-item::before {
   border-radius: 50% !important;
 }
 #root .fx-hand {
@@ -306,6 +310,55 @@ textarea::placeholder {
 #root .fl-list,
 #root .wl-card,
 #root .wl-grp,
+#root .wl-item,
+#root .wl-compose,
+#root .wl-hero,
+#root .wl-rail {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+#root .wl-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+#root .wl-hero,
+#root .wl-compose {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+#root .wl-in {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+#root .wl-back,
+#root .wl-submit,
+#root .wl-prio,
+#root .wl-add-grp {
+  background: transparent !important;
+  border: none !important;
+}
+
+#root .wl-back,
+#root .wl-submit {
+  border-bottom: 1px solid currentColor !important;
+}
+
+#root .wl-prio.is-on {
+  border-bottom: 1px solid currentColor !important;
+}
+
+#root .wl-check {
+  border: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+}
+
+#root .wl-check.is-on {
+  border-color: var(--ic) !important;
+  background: var(--ic) !important;
+}
 #root .cal-grid-panel,
 #root .cal-event-popup-panel,
 #root .cal-event-hover-tip,
@@ -329,7 +382,6 @@ textarea::placeholder {
 #root .pm-kpi,
 #root .pm-stat,
 #root .pm-note-item,
-#root .wl-grp,
 #root .tk-tab {
   border: none !important;
   border-bottom: 1px solid var(--rule) !important;
