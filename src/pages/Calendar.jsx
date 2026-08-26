@@ -23,23 +23,26 @@ var CHRO_CSS = [
   ".ch-root{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;overflow:hidden;position:relative}",
   ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.5}",
   ".ch-glow--a{width:420px;height:420px;top:-10%;right:-8%;background:rgba(255,255,255,.035)}",
-  ".ch-head{flex-shrink:0;padding:14px 20px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(7,7,8,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:30}",
+  ".ch-head{flex-shrink:0;padding:16px 20px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(7,7,8,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:30}",
   ".ch-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".ch-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
   ".ch-hero{flex:1;min-width:0;animation:chIn var(--dur-slow) var(--ease) both}",
   ".ch-day-num{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(52px,10vw,76px);line-height:.85;letter-spacing:-0.06em;color:#EDEDEF;margin:0}",
   ".ch-day-meta{margin:8px 0 0;font-size:13px;color:#A0A0A8;text-transform:capitalize;letter-spacing:.2px}",
   ".ch-day-meta strong{color:#EDEDEF;font-weight:500;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-right:8px}",
-  ".ch-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}",
-  ".ch-modes{display:flex;gap:2px}",
-  ".ch-mode{padding:7px 10px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".ch-mode:hover{color:#A0A0A8}",
-  ".ch-mode.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-actions{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex-shrink:0}",
+  ".ch-modes{display:flex;gap:0;padding:3px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}",
+  ".ch-mode{padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".ch-mode:hover{color:#A0A0A8;background:rgba(255,255,255,.03)}",
+  ".ch-mode.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF;background:rgba(255,255,255,.06)}",
   ".ch-mode:active{transform:scale(.96)}",
-  ".ch-quick{display:flex;gap:12px;align-items:center}",
-  ".ch-btn{padding:7px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.16);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".ch-btn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
-  ".ch-btn--accent{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-quick{display:flex;gap:6px;align-items:center;padding:5px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07)}",
+  ".ch-btn{padding:11px 16px;border:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".ch-btn:hover{color:#EDEDEF;background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2)}",
+  ".ch-btn:active{transform:scale(.97)}",
+  ".ch-btn--accent{color:#EDEDEF;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22)}",
+  ".ch-btn--accent:hover{background:rgba(255,255,255,.14)}",
+  ".ch-btn--nav{padding:11px 14px;font-size:15px;line-height:1;color:#EDEDEF}",
   ".ch-rail{flex-shrink:0;display:flex;gap:0;overflow-x:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.05)}",
   ".ch-rail::-webkit-scrollbar{display:none}",
   ".ch-rail-day{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:none;background:transparent;color:#6E6E76;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
@@ -79,53 +82,51 @@ var CHRO_CSS = [
   ".ch-ev-time{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);letter-spacing:.3px}",
   ".ch-ev-title{margin:3px 0 0;font-size:12px;color:#EDEDEF;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".ch-wk{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
-  ".ch-wk-bar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".ch-wk-bar p{margin:0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.3px}",
-  ".ch-wk-bar strong{color:#EDEDEF;font-weight:500}",
-  ".ch-wk-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".ch-wk-strip-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 12px;border:none;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
-  ".ch-wk-strip-btn:hover{background:rgba(255,255,255,.03)}",
-  ".ch-wk-strip-btn.is-on{background:rgba(255,255,255,.05)}",
-  ".ch-wk-strip-btn.is-on::after{content:'';position:absolute;bottom:0;left:18%;right:18%;height:2px;background:#EDEDEF}",
-  ".ch-wk-strip-dow{font-size:9px;color:#6E6E76;letter-spacing:.8px}",
-  ".ch-wk-strip-num{font-size:15px;color:#A0A0A8;line-height:1}",
-  ".ch-wk-strip-btn.is-on .ch-wk-strip-num,.ch-wk-strip-btn.is-today .ch-wk-strip-num{color:#EDEDEF}",
-  ".ch-wk-load{width:100%;max-width:48px;height:3px;background:rgba(255,255,255,.08);overflow:hidden}",
-  ".ch-wk-load i{display:block;height:100%;background:#EDEDEF;transition:width var(--dur-slow) var(--ease)}",
+  ".ch-wk-board{min-width:100%}",
+  ".ch-wk-board--mob{min-width:640px}",
+  ".ch-wk-strip-row{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));position:sticky;top:0;z-index:14;background:rgba(7,7,8,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".ch-wk-strip-gap{grid-column:1}",
+  ".ch-wk-strip-cell{grid-column:span 1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 2px 14px;border:none;border-left:1px solid rgba(255,255,255,.05);background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
+  ".ch-wk-strip-cell:first-of-type{border-left:none}",
+  ".ch-wk-strip-cell:hover{background:rgba(255,255,255,.04)}",
+  ".ch-wk-strip-cell.is-on{background:rgba(255,255,255,.06)}",
+  ".ch-wk-strip-cell.is-on::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;background:#EDEDEF}",
+  ".ch-wk-strip-dow{font-size:10px;color:#6E6E76;letter-spacing:.6px}",
+  ".ch-wk-strip-num{font-size:17px;color:#A0A0A8;line-height:1;font-weight:400}",
+  ".ch-wk-strip-cell.is-on .ch-wk-strip-num,.ch-wk-strip-cell.is-today .ch-wk-strip-num{color:#EDEDEF}",
+  ".ch-wk-strip-cell.is-today .ch-wk-strip-num{box-shadow:0 0 0 1px rgba(255,255,255,.25);padding:4px 7px}",
+  ".ch-wk-load{width:calc(100% - 8px);max-width:52px;height:2px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:2px}",
+  ".ch-wk-load i{display:block;height:100%;background:linear-gradient(90deg,rgba(255,255,255,.35),#EDEDEF);transition:width var(--dur-slow) var(--ease)}",
   ".ch-wk-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}",
-  ".ch-wk-head{position:sticky;top:0;z-index:12;display:grid;grid-template-columns:40px repeat(7,minmax(0,1fr));background:rgba(7,7,8,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".ch-wk-head-gap{grid-column:1}",
-  ".ch-wk-head-cell{padding:8px 4px;text-align:center;border:none;background:transparent;cursor:pointer;font-family:inherit}",
-  ".ch-wk-head-cell .ch-wk-strip-dow{display:block}",
-  ".ch-wk-head-cell .ch-wk-strip-num{display:block;margin-top:3px}",
-  ".ch-wk-allday{display:grid;grid-template-columns:40px repeat(7,minmax(0,1fr));gap:0;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.015)}",
-  ".ch-wk-allday-lbl{grid-column:1;font-size:8px;font-family:'JetBrains Mono',monospace;color:#6E6E76;text-align:right;padding:4px 6px 0 0;line-height:1.2}",
-  ".ch-wk-allday-col{padding:2px 3px;display:flex;flex-direction:column;gap:2px;min-width:0}",
-  ".ch-wk-allday-chip{padding:4px 6px;border:none;border-left:2px solid var(--ec);background:rgba(255,255,255,.03);color:#EDEDEF;font-size:9px;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;transition:padding-left var(--dur) var(--ease)}",
-  ".ch-wk-allday-chip:hover{padding-left:8px}",
-  ".ch-wk-grid{display:grid;grid-template-columns:40px 1fr;min-height:" + (HOURS * WK_HOUR_H) + "px}",
-  ".ch-wk-gutter{position:relative}",
-  ".ch-wk-gutter-lbl{position:absolute;right:6px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76}",
-  ".ch-wk-cols{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}",
-  ".ch-wk-col{position:relative;border-left:1px solid rgba(255,255,255,.05);min-height:" + (HOURS * WK_HOUR_H) + "px}",
-  ".ch-wk-col.is-on{background:rgba(255,255,255,.025)}",
-  ".ch-wk-col.is-today{background:rgba(255,255,255,.02)}",
-  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background var(--dur) var(--ease)}",
-  ".ch-wk-hour:hover{background:rgba(255,255,255,.025)}",
-  ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:#EDEDEF;z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite}",
-  ".ch-wk-now-dot{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:#EDEDEF}",
-  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:22px;cursor:grab;touch-action:none;overflow:hidden;transition:transform .18s var(--ease),filter .18s,z-index 0s}",
-  ".ch-wk-ev:hover{transform:scale(1.02);filter:brightness(1.12);z-index:16}",
+  ".ch-wk-allday{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));gap:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}",
+  ".ch-wk-allday-lbl{grid-column:1;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;text-align:right;padding:4px 8px 0 0;line-height:1.2;letter-spacing:.4px}",
+  ".ch-wk-allday-col{padding:2px 4px;display:flex;flex-direction:column;gap:3px;min-width:0;border-left:1px solid rgba(255,255,255,.05)}",
+  ".ch-wk-allday-col:first-of-type{border-left:none}",
+  ".ch-wk-allday-chip{padding:5px 7px;border:none;border-left:3px solid var(--ec);background:rgba(255,255,255,.05);color:#EDEDEF;font-size:10px;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;transition:padding-left var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".ch-wk-allday-chip:hover{padding-left:10px;background:rgba(255,255,255,.08)}",
+  ".ch-wk-grid{display:grid;grid-template-columns:48px repeat(7,minmax(0,1fr));min-height:" + (HOURS * WK_HOUR_H) + "px}",
+  ".ch-wk-gutter{position:relative;grid-column:1;border-right:1px solid rgba(255,255,255,.06)}",
+  ".ch-wk-gutter-lbl{position:absolute;right:8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76}",
+  ".ch-wk-cols{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}",
+  ".ch-wk-col{position:relative;border-left:1px solid rgba(255,255,255,.06);min-height:" + (HOURS * WK_HOUR_H) + "px}",
+  ".ch-wk-col:first-child{border-left:none}",
+  ".ch-wk-col.is-on{background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%)}",
+  ".ch-wk-col.is-today{background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,transparent 40%)}",
+  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background var(--dur) var(--ease)}",
+  ".ch-wk-hour:hover{background:rgba(255,255,255,.03)}",
+  ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:#EDEDEF;z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite;box-shadow:0 0 8px rgba(230,230,233,.35)}",
+  ".ch-wk-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#EDEDEF}",
+  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:24px;cursor:grab;touch-action:none;overflow:hidden;transition:transform .18s var(--ease),filter .18s,box-shadow .18s,z-index 0s}",
+  ".ch-wk-ev:hover{transform:translateY(-1px);filter:brightness(1.1);z-index:16;box-shadow:0 4px 12px rgba(0,0,0,.25)}",
   ".ch-wk-ev.is-edit{z-index:24;outline:1px solid #EDEDEF;outline-offset:1px}",
-  ".ch-wk-ev-bar{width:2px;flex-shrink:0;background:var(--ec)}",
-  ".ch-wk-ev-body{flex:1;min-width:0;padding:3px 5px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.05)}",
-  ".ch-wk-ev-t{margin:0;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--ec);line-height:1.2}",
-  ".ch-wk-ev-n{margin:1px 0 0;font-size:9px;color:#EDEDEF;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-wk-ev-bar{width:3px;flex-shrink:0;background:var(--ec);box-shadow:0 0 8px color-mix(in srgb,var(--ec) 40%,transparent)}",
+  ".ch-wk-ev-body{flex:1;min-width:0;padding:4px 6px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.03));border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".ch-wk-ev-t{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);line-height:1.2;opacity:.9}",
+  ".ch-wk-ev-n{margin:2px 0 0;font-size:10px;color:#EDEDEF;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".ch-wk-ev--ghost{opacity:.55;pointer-events:none;z-index:30}",
-  ".ch-wk-scroll-h{overflow-x:auto;overflow-y:hidden}",
-  ".ch-wk-grid--mob{min-width:640px}",
-  ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(28px,5vw,42px);line-height:1.05;letter-spacing:-0.03em;color:#EDEDEF;margin:0}",
-  ".ch-week-hero span{font-size:.55em;color:#6E6E76;font-weight:400;letter-spacing:.5px;display:block;margin-bottom:6px}",
+  ".ch-wk-scroll-h{overflow-x:auto;overflow-y:auto}",
+  ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-0.03em;color:#EDEDEF;margin:0}",
+  ".ch-week-hero span{font-size:.5em;color:#8FA8C4;font-weight:400;letter-spacing:1.2px;display:block;margin-bottom:8px;text-transform:uppercase}",
   ".ch-month{flex:1;overflow-y:auto;padding:16px 20px 80px;-webkit-overflow-scrolling:touch}",
   ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:8px}",
   ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:6px 0;letter-spacing:1px}",
@@ -162,8 +163,7 @@ var CHRO_CSS = [
   ".ch-fab{position:fixed;z-index:50;right:20px;bottom:max(20px,env(safe-area-inset-bottom));padding:10px 4px;border:none;border-bottom:2px solid #EDEDEF;background:transparent;color:#EDEDEF;font-size:24px;font-weight:300;line-height:1;cursor:pointer;transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
   ".ch-fab:hover{transform:scale(1.08)}",
   ".ch-fab:active{transform:scale(.92)}",
-  ".ch-hint{margin:0;padding:8px 20px 0;font-size:9px;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace}",
-  "@media(max-width:719px){.ch-head{padding:12px 16px 8px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:row;justify-content:space-between;align-items:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-wk-grid--mob{min-width:560px}}",
+  "@media(max-width:719px){.ch-head{padding:14px 16px 12px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:column;align-items:stretch}.ch-modes{justify-content:center}.ch-quick{flex-wrap:wrap;justify-content:center}.ch-btn{flex:1;min-width:72px;text-align:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-wk-board--mob{min-width:560px}}",
   "@media(min-width:720px){.ch-fab{display:none}}",
 ].join("");
 
@@ -413,7 +413,8 @@ function WeekStrip(props) {
     return Math.max(60, Math.max.apply(null, props.weekDays.map(function(k) { return dayLoadMinutes(k, props.events); })));
   }, [props.weekDays, props.events]);
   return (
-    <div className="ch-wk-strip" role="tablist" aria-label="Dias da semana">
+    <div className="ch-wk-strip-row" role="tablist" aria-label="Dias da semana">
+      <div className="ch-wk-strip-gap" aria-hidden="true" />
       {props.weekDays.map(function(k, i) {
         var p = parseKey(k);
         var load = dayLoadMinutes(k, props.events);
@@ -421,11 +422,11 @@ function WeekStrip(props) {
         var isToday = k === props.todayKey;
         return (
           <button key={k} type="button" role="tab" aria-selected={isOn}
-            className={"ch-wk-strip-btn ui-tap" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+            className={"ch-wk-strip-cell ui-tap" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
             onClick={function() { props.onSelectDay(k); }}>
             <span className="ch-wk-strip-dow">{WEEKDAYS[i]}</span>
             <span className="ch-wk-strip-num">{p.d}</span>
-            <span className="ch-wk-load"><i style={{ width: Math.round(load / maxLoad * 100) + "%", opacity: load ? 1 : 0.15 }} /></span>
+            <span className="ch-wk-load"><i style={{ width: Math.round(load / maxLoad * 100) + "%", opacity: load ? 1 : 0.12 }} /></span>
           </button>
         );
       })}
@@ -446,12 +447,6 @@ function WeekPlanner(props) {
   }, []);
 
   var weekDays = props.weekDays;
-  var totalEvents = useMemo(function() {
-    return weekDays.reduce(function(n, k) { return n + (props.events[k] || []).length; }, 0);
-  }, [weekDays, props.events]);
-  var totalMins = useMemo(function() {
-    return weekDays.reduce(function(n, k) { return n + dayLoadMinutes(k, props.events); }, 0);
-  }, [weekDays, props.events]);
 
   var allDayRows = useMemo(function() {
     return weekDays.map(function(k) {
@@ -470,15 +465,18 @@ function WeekPlanner(props) {
   useEffect(function() {
     var el = scrollRef.current;
     if (!el) return;
+    var head = el.querySelector(".ch-wk-strip-row");
+    var allday = el.querySelector(".ch-wk-allday");
+    var offset = (head ? head.offsetHeight : 0) + (allday ? allday.offsetHeight : 0);
     if (weekDays.indexOf(props.todayKey) >= 0) {
       var t = new Date();
-      var top = (t.getHours() * 60 + t.getMinutes()) / 60 * WK_HOUR_H - el.clientHeight * 0.25;
+      var top = offset + (t.getHours() * 60 + t.getMinutes()) / 60 * WK_HOUR_H - el.clientHeight * 0.25;
       if (props.scrollNow) el.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       else el.scrollTop = Math.max(0, top);
     } else {
-      el.scrollTop = WK_START * WK_HOUR_H;
+      el.scrollTop = offset + WK_START * WK_HOUR_H;
     }
-  }, [weekDays[0], props.todayKey, props.scrollNow]);
+  }, [weekDays[0], props.todayKey, props.scrollNow, hasAllDay]);
 
   function posFromPointer(clientX, clientY, dur) {
     var el = gridRef.current;
@@ -547,40 +545,37 @@ function WeekPlanner(props) {
 
   return (
     <div className="ch-wk">
-      <div className="ch-wk-bar">
-        <p><strong>{totalEvents}</strong> eventos · <strong>{Math.round(totalMins / 60 * 10) / 10}h</strong> planeadas</p>
-        <p>Arrasta entre dias · Toca num horário vazio</p>
-      </div>
-      <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} />
       <div ref={scrollRef} className={"ch-wk-scroll" + (props.isMobile ? " ch-wk-scroll-h" : "")}>
-        {hasAllDay ? (
-          <div className="ch-wk-allday">
-            <span className="ch-wk-allday-lbl">dia</span>
-            {allDayRows.map(function(list, i) {
-              return (
-                <div key={weekDays[i]} className="ch-wk-allday-col">
-                  {list.map(function(ev) {
-                    return (
-                      <button key={ev.id} type="button" className="ch-wk-allday-chip ui-tap" style={{ "--ec": ev.color || ACCENT }}
-                        onClick={function() { props.onSelectDay(weekDays[i]); props.onEventClick(ev, weekDays[i]); }}>
-                        {ev.title || "·"}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
-        <div className={"ch-wk-grid" + (props.isMobile ? " ch-wk-grid--mob" : "")}>
-          <div className="ch-wk-gutter">
-            {Array.from({ length: HOURS }, function(_, h) {
-              return (
-                <span key={h} className="ch-wk-gutter-lbl" style={{ top: h * WK_HOUR_H - 5 }}>{pad(h)}</span>
-              );
-            })}
-          </div>
-          <div ref={gridRef} className="ch-wk-cols">
+        <div className={"ch-wk-board" + (props.isMobile ? " ch-wk-board--mob" : "")}>
+          <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} />
+          {hasAllDay ? (
+            <div className="ch-wk-allday">
+              <span className="ch-wk-allday-lbl">dia</span>
+              {allDayRows.map(function(list, i) {
+                return (
+                  <div key={weekDays[i]} className="ch-wk-allday-col">
+                    {list.map(function(ev) {
+                      return (
+                        <button key={ev.id} type="button" className="ch-wk-allday-chip ui-tap" style={{ "--ec": ev.color || ACCENT }}
+                          onClick={function() { props.onSelectDay(weekDays[i]); props.onEventClick(ev, weekDays[i]); }}>
+                          {ev.title || "·"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+          <div className="ch-wk-grid">
+            <div className="ch-wk-gutter">
+              {Array.from({ length: HOURS }, function(_, h) {
+                return (
+                  <span key={h} className="ch-wk-gutter-lbl" style={{ top: h * WK_HOUR_H - 5 }}>{pad(h)}</span>
+                );
+              })}
+            </div>
+            <div ref={gridRef} className="ch-wk-cols">
             {weekDays.map(function(k, dayIdx) {
               var laid = layoutDayEvents(props.events[k] || []);
               var isOn = k === props.selected;
@@ -637,6 +632,7 @@ function WeekPlanner(props) {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
       </div>
@@ -866,11 +862,6 @@ export default function Calendar() {
   }
 
   var weekRangeLabel = useMemo(function() { return formatWeekRange(weekDays); }, [weekDays]);
-  var weekTotalLabel = useMemo(function() {
-    var n = weekDays.reduce(function(s, k) { return s + (events[k] || []).length; }, 0);
-    var m = weekDays.reduce(function(s, k) { return s + dayLoadMinutes(k, events); }, 0);
-    return n + " evt · " + (Math.round(m / 60 * 10) / 10) + "h";
-  }, [weekDays, events]);
 
   var onSwipePrev = useCallback(function() {
     if (mode === "week") shiftWeek(-1);
@@ -1037,7 +1028,7 @@ export default function Calendar() {
             {mode === "week" ? (
               <>
                 <h1 className="ch-week-hero"><span>Semana</span>{weekRangeLabel}</h1>
-                <p className="ch-day-meta"><strong>{weekTotalLabel}</strong>{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
+                <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
               </>
             ) : (
               <>
@@ -1061,11 +1052,11 @@ export default function Calendar() {
             })}
           </div>
           <div className="ch-quick">
-            <button type="button" className="ch-btn ui-tap" onClick={function() { mode === "week" ? shiftWeek(-1) : shiftDay(-1); }} title={mode === "week" ? "Semana anterior" : "Dia anterior"}>‹</button>
-            <button type="button" className="ch-btn ui-tap" onClick={function() { mode === "week" ? shiftWeek(1) : shiftDay(1); }} title={mode === "week" ? "Semana seguinte" : "Dia seguinte"}>›</button>
+            <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(-1) : shiftDay(-1); }} title={mode === "week" ? "Semana anterior" : "Dia anterior"}>‹</button>
+            <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(1) : shiftDay(1); }} title={mode === "week" ? "Semana seguinte" : "Dia seguinte"}>›</button>
             <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button>
             <button type="button" className={"ch-btn ui-tap" + (selected === todayKey ? " ch-btn--accent" : "")} onClick={goToday}>Hoje</button>
-            {!isMobile ? <button type="button" className="ch-btn ui-tap" onClick={function() { openCreate(); }}>+ Evento</button> : null}
+            {!isMobile ? <button type="button" className="ch-btn ui-tap ch-btn--accent" onClick={function() { openCreate(); }}>+ Evento</button> : null}
           </div>
         </div>
       </header>
@@ -1081,8 +1072,6 @@ export default function Calendar() {
           <button type="button" className="ch-btn ui-tap" onClick={nextMonth}>›</button>
         </div>
       ) : null}
-
-      <p className="ch-hint">{mode === "week" ? "Arrasta eventos entre dias · ‹ › muda semana · C criar" : "Desliza ← → · T hoje · N agora · C criar"}</p>
 
       <div className="ch-body">
         <div ref={stageRef} className={stageClass} key={mode + selected}>
