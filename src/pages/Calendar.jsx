@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
-import { MICRO_CSS } from "../lib/microUi";
+import { MICRO_CSS, attachSwipe } from "../lib/microUi";
 
 var CAL_POLISH = [
   "@keyframes nowPulse{0%,100%{opacity:1}50%{opacity:.5}}",
@@ -30,6 +30,33 @@ var CAL_POLISH = [
   ".cal-mobile-month:active{opacity:.65}",
   ".day-event-block{transition:transform .2s var(--ease),filter .2s}",
   ".day-event-block:hover{filter:brightness(1.12);transform:translateY(-1px)}",
+  "@keyframes calSlideLeft{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}",
+  "@keyframes calSlideRight{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}",
+  ".cal-grid-stage{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".cal-grid-stage--left{animation:calSlideLeft .34s var(--ease) both}",
+  ".cal-grid-stage--right{animation:calSlideRight .34s var(--ease) both}",
+  ".cal-view-tabs{display:flex;gap:4px;margin-left:8px}",
+  ".cal-view-tab{padding:7px 10px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".cal-view-tab:hover{color:#A0A0A8}",
+  ".cal-view-tab.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".cal-view-tab:active{transform:scale(.96)}",
+  ".cal-now-btn{padding:7px 10px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".cal-now-btn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".cal-agenda{flex:1;min-height:0;overflow-y:auto;padding:8px 4px 24px;-webkit-overflow-scrolling:touch}",
+  ".cal-agenda-empty{margin:48px 0;text-align:center;font-size:12px;color:#6E6E76;font-family:'JetBrains Mono',monospace}",
+  ".cal-agenda-day{margin-bottom:28px}",
+  ".cal-agenda-day-head{display:flex;align-items:center;gap:10px;width:100%;padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:capitalize;cursor:pointer;text-align:left;transition:padding-left var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".cal-agenda-day-head:hover{padding-left:6px;border-bottom-color:rgba(255,255,255,.22)}",
+  ".cal-agenda-day.is-sel .cal-agenda-day-head{border-bottom-color:#EDEDEF}",
+  ".cal-agenda-today{font-size:9px;letter-spacing:1.2px;color:#8FB39B;text-transform:uppercase}",
+  ".cal-agenda-day-head span:last-child{margin-left:auto;color:#6E6E76;font-size:10px}",
+  ".cal-agenda-list{list-style:none;margin:0;padding:0}",
+  ".cal-agenda-item{display:grid;grid-template-columns:88px 1fr;gap:12px;width:100%;padding:14px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;text-align:left;cursor:pointer;transition:padding-left var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".cal-agenda-item:hover{padding-left:6px;border-bottom-color:rgba(255,255,255,.14)}",
+  ".cal-agenda-item:active{transform:scale(.995)}",
+  ".cal-agenda-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:#A0A0A8;line-height:1.5}",
+  ".cal-agenda-title{font-size:14px;color:#EDEDEF;line-height:1.45}",
+  ".cal-swipe-hint{margin:0;padding:8px 4px 0;font-size:9px;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace;letter-spacing:.3px}",
 ].join("");
 
 var ACCENT = "#E6E6E9";
@@ -71,6 +98,22 @@ var HOUR_H = 44;
 var SNAP_MIN = 15;
 var HOURS = 24;
 var SCROLL_START_HOUR = 6;
+
+function scrollGridToNow(scrollEl, todayKey, contextKey, weekDays, smooth) {
+  if (!scrollEl) return;
+  var showToday = contextKey
+    ? contextKey === todayKey
+    : weekDays && weekDays.indexOf(todayKey) >= 0;
+  if (!showToday) {
+    scrollEl.scrollTop = SCROLL_START_HOUR * HOUR_H;
+    return;
+  }
+  var t = new Date();
+  var mins = t.getHours() * 60 + t.getMinutes();
+  var target = Math.max(0, (mins / 60) * HOUR_H - scrollEl.clientHeight * 0.32);
+  if (smooth && scrollEl.scrollTo) scrollEl.scrollTo({ top: target, behavior: "smooth" });
+  else scrollEl.scrollTop = target;
+}
 
 var EVT_TRUNC = {
   display: "block",
@@ -442,7 +485,7 @@ function WeekTimeGrid(props) {
   var nowTickS = useState(0);
   var nowTick = nowTickS[0], setNowTick = nowTickS[1];
   useEffect(function() {
-    var id = setInterval(function() { setNowTick(Date.now()); }, 60000);
+    var id = setInterval(function() { setNowTick(Date.now()); }, 1000);
     return function() { clearInterval(id); };
   }, []);
 
@@ -454,10 +497,8 @@ function WeekTimeGrid(props) {
 
   var weekAnchor = props.weekDays[0];
   useEffect(function() {
-    var el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = SCROLL_START_HOUR * HOUR_H;
-  }, [weekAnchor]);
+    scrollGridToNow(scrollRef.current, props.todayKey, null, props.weekDays, !!props.scrollNowToken);
+  }, [weekAnchor, props.todayKey, props.scrollNowToken]);
 
   return (
     <div className="week-wrap">
@@ -681,7 +722,7 @@ function DayTimeGrid(props) {
   var nowTickS = useState(0);
   var nowTick = nowTickS[0], setNowTick = nowTickS[1];
   useEffect(function() {
-    var id = setInterval(function() { setNowTick(Date.now()); }, 60000);
+    var id = setInterval(function() { setNowTick(Date.now()); }, 1000);
     return function() { clearInterval(id); };
   }, []);
 
@@ -691,12 +732,9 @@ function DayTimeGrid(props) {
     return { top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
   }, [dayKey, props.todayKey, nowTick]);
 
-  var weekAnchor = props.weekAnchor;
   useEffect(function() {
-    var el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = SCROLL_START_HOUR * HOUR_H;
-  }, [weekAnchor]);
+    scrollGridToNow(scrollRef.current, props.todayKey, dayKey, null, !!props.scrollNowToken);
+  }, [dayKey, props.todayKey, props.scrollNowToken]);
 
   return (
     <div className="day-grid-wrap">
@@ -788,6 +826,51 @@ function DayTimeGrid(props) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AgendaView(props) {
+  var groups = useMemo(function() {
+    return props.weekDays.map(function(k) {
+      var list = sortEvents(props.events[k] || []);
+      var p = parseKey(k);
+      var label = new Date(p.y, p.m, p.d).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "short" });
+      return { key: k, label: label, isToday: k === props.todayKey, isSel: k === props.selected, events: list };
+    });
+  }, [props.weekDays, props.events, props.todayKey, props.selected]);
+
+  var total = groups.reduce(function(n, g) { return n + g.events.length; }, 0);
+
+  return (
+    <div className="cal-agenda">
+      {total === 0 ? (
+        <p className="cal-agenda-empty">Sem eventos esta semana — desliza para mudar de semana</p>
+      ) : groups.map(function(g) {
+        if (!g.events.length) return null;
+        return (
+          <section key={g.key} className={"cal-agenda-day" + (g.isSel ? " is-sel" : "")}>
+            <button type="button" className="cal-agenda-day-head ui-tap" onClick={function() { props.onSelectDay(g.key); }}>
+              <span>{g.label}</span>
+              {g.isToday ? <span className="cal-agenda-today">Hoje</span> : null}
+              <span>{g.events.length}</span>
+            </button>
+            <ul className="cal-agenda-list">
+              {g.events.map(function(ev) {
+                var c = ev.color || ACCENT;
+                return (
+                  <li key={ev.id}>
+                    <button type="button" className="cal-agenda-item ui-tap" onClick={function() { props.onSelectDay(g.key); if (props.onEventClick) props.onEventClick(ev, g.key); }}>
+                      <span className="cal-agenda-time" style={{ color: c }}>{formatEventTime(ev)}</span>
+                      <span className="cal-agenda-title">{ev.title || "Sem título"}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -1198,6 +1281,13 @@ export default function Calendar() {
   var readOnly = false;
   var sideS = useState(!isMobile);
   var sidebarOpen = sideS[0], setSidebarOpen = sideS[1];
+  var layoutS = useState(isMobile ? "day" : "week");
+  var calLayout = layoutS[0], setCalLayout = layoutS[1];
+  var navDirS = useState(0);
+  var navDir = navDirS[0], setNavDir = navDirS[1];
+  var scrollNowS = useState(0);
+  var scrollNowToken = scrollNowS[0], bumpScrollNow = scrollNowS[1];
+  var gridStageRef = useRef(null);
 
   var titleS = useState(""); var title = titleS[0], setTitle = titleS[1];
   var timeS = useState("09:00"); var time = timeS[0], setTime = timeS[1];
@@ -1300,12 +1390,62 @@ export default function Calendar() {
   }, [weekDays]);
 
   function shiftWeek(delta) {
+    setNavDir(delta > 0 ? 1 : -1);
     var p = parseKey(selected);
     var d = new Date(p.y, p.m, p.d + delta * 7);
     var k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
     setSelected(k);
     setView({ y: d.getFullYear(), m: d.getMonth() });
   }
+  function shiftDay(delta) {
+    setNavDir(delta > 0 ? 1 : -1);
+    var p = parseKey(selected);
+    var d = new Date(p.y, p.m, p.d + delta);
+    var k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    setSelected(k);
+    setView({ y: d.getFullYear(), m: d.getMonth() });
+  }
+  function jumpToNow() {
+    bumpScrollNow(function(n) { return n + 1; });
+    if (selected !== todayKey) {
+      setNavDir(0);
+      setSelected(todayKey);
+      setView({ y: today.getFullYear(), m: today.getMonth() });
+    }
+  }
+
+  var onSwipePrev = useCallback(function() {
+    if (calLayout === "week") shiftWeek(-1);
+    else shiftDay(-1);
+  }, [calLayout, selected]);
+  var onSwipeNext = useCallback(function() {
+    if (calLayout === "week") shiftWeek(1);
+    else shiftDay(1);
+  }, [calLayout, selected]);
+
+  useEffect(function() {
+    var el = gridStageRef.current;
+    if (!el) return;
+    return attachSwipe(el, { onSwipeLeft: onSwipeNext, onSwipeRight: onSwipePrev }, {
+      filter: function(e) {
+        var t = e.target;
+        if (!t || !t.closest) return true;
+        return !t.closest(".week-event-block") && !t.closest(".day-event-block") && !t.closest(".cal-agenda-item") && !t.closest("button");
+      },
+    });
+  }, [onSwipePrev, onSwipeNext]);
+
+  useEffect(function() {
+    function onKey(e) {
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); onSwipePrev(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); onSwipeNext(); }
+      else if (e.key === "t" || e.key === "T") { e.preventDefault(); goToday(); }
+      else if (e.key === "n" || e.key === "N") { e.preventDefault(); jumpToNow(); }
+    }
+    window.addEventListener("keydown", onKey);
+    return function() { window.removeEventListener("keydown", onKey); };
+  }, [onSwipePrev, onSwipeNext]);
   function prevMonth() {
     setView(function(v) { return v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 }; });
   }
@@ -1585,8 +1725,18 @@ export default function Calendar() {
             </div>
           </div>
           <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <div className="cal-view-tabs" role="tablist" aria-label="Vista do calendário">
+              {[{ id: "week", label: "Semana" }, { id: "day", label: "Dia" }, { id: "agenda", label: "Agenda" }].map(function(v) {
+                return (
+                  <button key={v.id} type="button" role="tab" aria-selected={calLayout === v.id}
+                    className={"cal-view-tab ui-tap" + (calLayout === v.id ? " is-on" : "")}
+                    onClick={function() { setCalLayout(v.id); setNavDir(0); }}>{v.label}</button>
+                );
+              })}
+            </div>
             <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
             <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
+            <button type="button" className="cal-now-btn ui-tap" onClick={jumpToNow} title="Ir para agora (N)">Agora</button>
             <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
             <ModePill label={isFullscreen ? "⛶ Sair" : "⛶ Tela cheia"} active={isFullscreen} onClick={toggleFullscreen} />
           </div>
@@ -1653,8 +1803,12 @@ export default function Calendar() {
 
         <section className="cal-grid-area">
           <div className="cal-grid-panel">
+            {!isMobile && calLayout !== "week" ? (
+              <p className="cal-swipe-hint">← → mudar {calLayout === "agenda" ? "semana" : "dia"} · N agora · T hoje</p>
+            ) : null}
+            <div ref={gridStageRef} className={"cal-grid-stage" + (navDir > 0 ? " cal-grid-stage--left" : navDir < 0 ? " cal-grid-stage--right" : "")} key={calLayout + selected + weekDays[0]}>
             <div className="cal-grid-scroll">
-              {isMobile ? (
+              {isMobile || calLayout === "day" ? (
                 <DayTimeGrid
                   dayKey={selected}
                   weekAnchor={weekDays[0]}
@@ -1662,8 +1816,18 @@ export default function Calendar() {
                   todayKey={todayKey}
                   readOnly={readOnly}
                   highlightEventId={editId}
+                  scrollNowToken={scrollNowToken}
                   onEventClick={onEventClick}
                   onSlotClick={onWeekSlotClick}
+                />
+              ) : calLayout === "agenda" ? (
+                <AgendaView
+                  weekDays={weekDays}
+                  events={events}
+                  selected={selected}
+                  todayKey={todayKey}
+                  onSelectDay={function(k) { selectDay(k, null); }}
+                  onEventClick={onEventClick}
                 />
               ) : (
                 <WeekTimeGrid
@@ -1674,6 +1838,7 @@ export default function Calendar() {
                   readOnly={readOnly}
                   isMobile={false}
                   highlightEventId={editId}
+                  scrollNowToken={scrollNowToken}
                   onSelectDay={function(k) { selectDay(k, null); }}
                   onEventClick={onEventClick}
                   onMove={moveTimedEvent}
@@ -1681,6 +1846,7 @@ export default function Calendar() {
                   onRangeCreate={createRangeEvent}
                 />
               )}
+            </div>
             </div>
           </div>
         </section>

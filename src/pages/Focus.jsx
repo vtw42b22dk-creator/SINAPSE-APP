@@ -40,16 +40,29 @@ var FX_CSS = [
   ".fx-hbtn{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;cursor:pointer;font-size:12px;line-height:1.4;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fx-hbtn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
   ".fx-hbtn:active{transform:translateY(1px)}",
-  ".fx-shell{flex:1;min-height:0;display:flex;overflow:hidden}",
-  ".fx-side{width:72px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 8px;border-right:1px solid rgba(255,255,255,.06);background:transparent;position:relative;z-index:2}",
-  ".fx-nav{position:relative;width:52px;height:52px;border:none;background:transparent;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:15px;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".fx-nav::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:2px;height:0;background:#EDEDEF;transition:height var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0}",
+  ".fx-shell{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".fx-dock{flex-shrink:0;display:flex;align-items:stretch;justify-content:space-around;gap:2px;padding:8px 12px max(8px,env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:rgba(7,7,8,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);order:2;position:relative;z-index:25}",
+  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:16px 16px 12px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;order:1}",
+  ".fx-nav{position:relative;flex:1;max-width:88px;height:52px;border:none;background:transparent;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:15px;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fx-nav::before{content:'';position:absolute;left:50%;bottom:2px;transform:translateX(-50%);width:0;height:2px;background:#EDEDEF;transition:width var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0}",
   ".fx-nav span{font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.7px;line-height:1;text-transform:uppercase}",
   ".fx-nav:hover{color:#A0A0A8}",
   ".fx-nav:active{transform:scale(.94)}",
   ".fx-nav.on{color:#EDEDEF}",
-  ".fx-nav.on::before{height:24px;opacity:1}",
-  ".fx-main{flex:1;min-width:0;min-height:0;overflow-y:auto;padding:16px 16px 20px;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
+  ".fx-nav.on::before{width:22px;opacity:1}",
+  ".fx-panel-stage{flex:1;width:100%;min-height:0;display:flex;flex-direction:column}",
+  ".fx-immersive{position:fixed;inset:0;z-index:200;background:#070708;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;cursor:pointer;animation:fxIn var(--dur-slow) var(--ease) both}",
+  ".fx-immersive-inner{display:flex;flex-direction:column;align-items:center;gap:28px;width:100%;max-width:640px;pointer-events:none}",
+  ".fx-immersive-phase{margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#6E6E76}",
+  ".fx-immersive .fx-digital{font-size:clamp(96px,22vw,168px)!important}",
+  ".fx-immersive-hint{margin:0;font-size:10px;color:#6E6E76;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;opacity:.7}",
+  ".fx-immersive-bar{position:fixed;bottom:0;left:0;right:0;padding:20px 24px max(20px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(7,7,8,.95));display:flex;gap:16px;justify-content:center;pointer-events:auto}",
+  ".fx-phase-flash{position:fixed;inset:0;z-index:190;pointer-events:none;animation:uiFlash .85s var(--ease) both}",
+  ".fx-phase-flash--focus{background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.08),transparent 65%)}",
+  ".fx-phase-flash--break{background:radial-gradient(circle at 50% 40%,rgba(196,165,124,.12),transparent 65%)}",
+  ".fx-proj-go{margin-top:14px;padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fx-proj-go:hover{border-bottom-color:#EDEDEF;transform:translateY(-1px)}",
+  ".fx-proj-go:active{transform:scale(.96)}",
   ".fx-panel{flex:1;width:100%;min-height:0;border:none;background:transparent;padding:12px 8px 24px;animation:fxIn var(--dur-slow) var(--ease) both;box-sizing:border-box;display:flex;flex-direction:column}",
   ".fx-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 118px);padding:32px 24px}",
   ".fx-panel--clock .fx-modes{justify-content:center;max-width:720px;width:100%}",
@@ -141,7 +154,7 @@ var FX_CSS = [
   ".fx-pal{display:flex;gap:8px;flex-wrap:wrap}",
   ".fx-pal button{width:30px;height:30px;border-radius:8px;border:2px solid transparent;cursor:pointer;padding:2px;transition:border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fx-pal button:hover{transform:translateY(-1px)}",
-  "@media(max-width:720px){.fx-side{width:100%;flex-direction:row;justify-content:space-around;padding:8px;border-right:none;border-top:1px solid rgba(255,255,255,0.07);order:2}.fx-shell{flex-direction:column}.fx-nav{width:auto;flex:1;height:48px;flex-direction:row;gap:8px;font-size:16px}.fx-nav span{font-size:10px}.fx-main{order:1;padding:12px 12px 16px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:20px 16px}.fx-clock-wrap{gap:24px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}}",
+  "@media(max-width:720px){.fx-main{padding:12px 12px 8px}.fx-proj-del{opacity:1}.fx-panel--clock{min-height:calc(100vh - 200px);padding:20px 16px}.fx-clock-wrap{gap:24px}.fx-title{font-size:14px!important}.fx-input,.fx-area{font-size:16px!important}.fx-dock{padding:6px 8px max(6px,env(safe-area-inset-bottom))}.fx-nav{max-width:none;height:48px;font-size:14px}}",
   "@media(pointer:coarse){.fx-hbtn{min-height:44px}.fx-mode{min-height:44px}.fx-stybtn{min-height:44px}.fx-task-check{width:26px;height:26px}.fx-proj-del{width:36px;height:36px}.fx-idea button{width:32px;height:32px}}",
   "@media(hover:none){.fx-proj:hover{transform:none;box-shadow:none}.fx-btn:hover:not(:disabled){transform:none}.fx-tbtn:hover:not(:disabled){transform:none}.fx-pal button:hover{transform:none}}",
 ].join("");
@@ -256,6 +269,34 @@ function ClockDisplay(props) {
   return <DigitalClock {...common} />;
 }
 
+function ImmersiveSession(props) {
+  if (!props.active) return null;
+  return (
+    <div className="fx-immersive" onClick={props.onToggleControls} role="presentation">
+      <div className="fx-immersive-inner">
+        <p className="fx-immersive-phase" style={{ color: props.phaseColor }}>{props.phase === "focus" ? "Sessão de foco" : "Pausa"}</p>
+        <ClockDisplay style={props.clockStyle} secs={props.secsLeft} total={props.phaseTotal} running={props.running} />
+        <div className="fx-prog" style={{ maxWidth: 480, width: "100%" }}>
+          <i style={{ width: props.progress + "%", background: props.phaseColor }} />
+        </div>
+        <p className="fx-immersive-hint">Toca para controlos · Barra de espaço pausa/continua</p>
+      </div>
+      {props.showControls ? (
+        <div className="fx-immersive-bar" onClick={function(e) { e.stopPropagation(); }}>
+          <button type="button" className="fx-tbtn ui-tap" onClick={props.onPause}
+            style={{ borderColor: (props.running ? AMBER : "#8FB39B") + "88", color: props.running ? AMBER : "#8FB39B" }}>
+            {props.running ? "❚❚ Pausa" : "▶ Continuar"}
+          </button>
+          <button type="button" className="fx-tbtn ui-tap" onClick={props.onReset}
+            style={{ borderColor: "rgba(255,255,255,.2)", color: "#A0A0A8" }}>↺ Reset</button>
+          <button type="button" className="fx-tbtn ui-tap" onClick={props.onExitImmersive}
+            style={{ borderColor: "rgba(255,255,255,.14)", color: "#6E6E76" }}>Sair</button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ------------------------------ SELETOR PROJETOS ------------------------------ */
 
 function ProjectPicker(props) {
@@ -321,19 +362,20 @@ function ProjectPicker(props) {
               <article key={p.id} className="fx-proj" style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }} onClick={function() { props.onSelect(p); }}>
                 <button type="button" className="fx-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { removeProject(e, p); }}>×</button>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingRight: 32 }}>
-                  <span style={{ width: 44, height: 44, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: "#1A1A1D", color: p.color }}>{p.icon}</span>
+                  <span style={{ fontSize: 28, color: p.color, lineHeight: 1 }}>{p.icon}</span>
                   <div style={{ minWidth: 0 }}>
                     <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 15, fontWeight: 500, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
                     <p style={{ margin: "6px 0 0", fontSize: 11, lineHeight: 1.5, color: "#A0A0A8", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
                   </div>
                 </div>
                 {prog.goalMin > 0 ? (
-                  <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, borderRadius: 999, transition: "width var(--dur-slow) var(--ease)" }} />
+                  <div style={{ height: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ width: prog.pct + "%", height: "100%", background: p.color, transition: "width var(--dur-slow) var(--ease)" }} />
                   </div>
                 ) : (
                   <p style={{ margin: 0, fontSize: 10, letterSpacing: 1.6, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta definida</p>
                 )}
+                <button type="button" className="fx-proj-go ui-tap" onClick={function(e) { e.stopPropagation(); if (props.onQuickStart) props.onQuickStart(p); }}>▶ Iniciar sessão agora</button>
               </article>
             );
           })}
@@ -438,6 +480,13 @@ export default function Focus() {
   var syncStatus = syncS[0], setSyncStatus = syncS[1];
   var taskInputS = useState("");
   var taskInput = taskInputS[0], setTaskInput = taskInputS[1];
+  var immersiveCtrlS = useState(false);
+  var immersiveControls = immersiveCtrlS[0], setImmersiveControls = immersiveCtrlS[1];
+  var immersiveDismissS = useState(false);
+  var immersiveDismissed = immersiveDismissS[0], setImmersiveDismissed = immersiveDismissS[1];
+  var phaseFlashS = useState(null);
+  var phaseFlash = phaseFlashS[0], setPhaseFlash = phaseFlashS[1];
+  var prevPhaseRef = useRef(focusTimer.getState().phase);
 
   var today = focusStore.dayKey();
   var accent = activeProject ? activeProject.color : CYAN;
@@ -576,7 +625,9 @@ export default function Focus() {
     if (timer.running) {
       var credit = focusTimer.pauseTimer();
       if (credit > 0) creditMinutes(credit);
+      setImmersiveControls(false);
     } else {
+      setImmersiveDismissed(false);
       focusTimer.startTimer();
     }
   }
@@ -584,7 +635,50 @@ export default function Focus() {
   function handleReset() {
     var credit = focusTimer.resetTimer();
     if (credit > 0) creditMinutes(credit);
+    setImmersiveControls(false);
+    setImmersiveDismissed(false);
   }
+
+  function quickStartProject(p) {
+    setActiveProject(p);
+    focusTimer.bindProject(p.id);
+    focusTimer.configureTimer({ modeId: "pomodoro", phase: "focus", running: false, secsLeft: 25 * 60 });
+    setSidebarTab("clock");
+    setImmersiveDismissed(false);
+    setTimeout(function() {
+      focusTimer.startTimer();
+    }, 80);
+  }
+
+  useEffect(function() {
+    if (prevPhaseRef.current !== timer.phase) {
+      setPhaseFlash(timer.phase);
+      var t = setTimeout(function() { setPhaseFlash(null); }, 900);
+      prevPhaseRef.current = timer.phase;
+      return function() { clearTimeout(t); };
+    }
+  }, [timer.phase]);
+
+  useEffect(function() {
+    if (!activeProject) return;
+    function onKey(e) {
+      var tag = e.target && e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (timer.running) {
+          var credit = focusTimer.pauseTimer();
+          if (credit > 0) creditMinutes(credit);
+          setImmersiveControls(false);
+        } else {
+          setImmersiveDismissed(false);
+          focusTimer.startTimer();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return function() { window.removeEventListener("keydown", onKey); };
+  }, [activeProject, timer.running, creditMinutes]);
 
   function addIdea(kind) {
     if (!activeProject || !ideaInput.trim()) return;
@@ -675,6 +769,7 @@ export default function Focus() {
         onSelect={selectProject}
         onCreate={createProject}
         onDelete={removeProject}
+        onQuickStart={quickStartProject}
       />
     );
   }
@@ -690,12 +785,30 @@ export default function Focus() {
   var goal = focusStore.goalProgress(activeProject, projectMetrics);
   var ideasOnly = projectIdeas.filter(function(i) { return i.kind !== "review"; });
   var dis = !isHydrated;
+  var showImmersive = timer.running && !immersiveDismissed;
 
   return (
     <div className="fx-root" style={{ "--ac": accent }}>
       <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
       <div className="fx-ambient fx-ambient--a" aria-hidden="true" />
       <div className="fx-ambient fx-ambient--b" aria-hidden="true" />
+      {phaseFlash ? <div className={"fx-phase-flash fx-phase-flash--" + phaseFlash} aria-hidden="true" /> : null}
+
+      <ImmersiveSession
+        active={showImmersive}
+        running={timer.running}
+        phase={timer.phase}
+        phaseColor={phaseColor}
+        clockStyle={timer.clockStyle}
+        secsLeft={timer.secsLeft}
+        phaseTotal={phaseTotal}
+        progress={progress}
+        showControls={immersiveControls}
+        onToggleControls={function() { setImmersiveControls(function(v) { return !v; }); }}
+        onPause={handlePause}
+        onReset={handleReset}
+        onExitImmersive={function() { setImmersiveDismissed(true); setImmersiveControls(false); }}
+      />
 
       <header className="fx-head">
         <button type="button" className="fx-hbtn" onClick={exitProject} title="Trocar projeto">← Projetos</button>
@@ -722,19 +835,8 @@ export default function Focus() {
       </header>
 
       <div className="fx-shell">
-        <aside className="fx-side">
-          {SIDEBAR.map(function(item) {
-            var on = sidebarTab === item.id;
-            return (
-              <button key={item.id} type="button" className={"fx-nav" + (on ? " on" : "")}
-                onClick={function() { setSidebarTab(item.id); }} title={item.label}>
-                {item.icon}<span>{item.label}</span>
-              </button>
-            );
-          })}
-        </aside>
-
         <main className="fx-main" data-scrollable>
+          <div key={sidebarTab} className="fx-panel-stage ui-fade-in">
           {sidebarTab === "clock" && (
             <section className="fx-panel fx-panel--clock">
               <h3 className="fx-title" style={{ color: phaseColor, alignSelf: "flex-start", width: "100%", maxWidth: 720 }}><span>◷</span> Relógio · {timer.phase === "focus" ? "Foco" : "Pausa"}</h3>
@@ -956,7 +1058,20 @@ export default function Focus() {
               )}
             </section>
           )}
+          </div>
         </main>
+
+        <nav className="fx-dock" aria-label="Secções do estúdio">
+          {SIDEBAR.map(function(item) {
+            var on = sidebarTab === item.id;
+            return (
+              <button key={item.id} type="button" className={"fx-nav ui-tap" + (on ? " on" : "")}
+                onClick={function() { setSidebarTab(item.id); }} title={item.label}>
+                {item.icon}<span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
