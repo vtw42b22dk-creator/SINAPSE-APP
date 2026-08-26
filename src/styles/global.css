@@ -258,6 +258,12 @@ textarea::placeholder {
 #root .week-now-dot,
 #root .day-now-dot,
 #root .cal-mobile-day-badge,
+#root .ch-color,
+#root .ch-now-dot,
+#root .ch-rail-dot,
+#root .ch-glow {
+  border-radius: 50% !important;
+}
 #root .wl-glow,
 #root .wl-grp-dot,
 #root .wl-check,

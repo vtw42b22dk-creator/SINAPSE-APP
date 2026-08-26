@@ -3,65 +3,135 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
 import { MICRO_CSS, attachSwipe } from "../lib/microUi";
-
-var CAL_POLISH = [
-  "@keyframes nowPulse{0%,100%{opacity:1}50%{opacity:.5}}",
-  ".cal-page{background:#070708!important}",
-  ".cal-top-sticky{background:rgba(7,7,8,.88)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.06)!important}",
-  ".week-scroll{border:none!important;background:transparent!important}",
-  ".week-day-head{transition:color .2s var(--ease),background .2s var(--ease),border-color .2s var(--ease),transform .15s var(--ease)}",
-  ".week-day-head:hover{color:#EDEDEF;background:rgba(255,255,255,.05)!important}",
-  ".week-day-head:active{transform:scale(.98)}",
-  ".week-event-block{transition:transform .22s var(--ease),filter .22s,opacity .2s!important}",
-  ".week-event-block:hover{transform:translateY(-3px) scale(1.015)!important;filter:brightness(1.14)!important}",
-  ".week-now-line{box-shadow:0 0 16px rgba(230,230,233,.35);animation:nowPulse 2.5s ease infinite}",
-  ".cal-day-ribbon-btn{transition:color .2s,background .2s,transform .15s var(--ease)}",
-  ".cal-day-ribbon-btn:active{transform:scale(.94)}",
-  ".cal-day-ribbon-btn--sel{transform:scale(1.04)}",
-  ".cal-fab-create{transition:transform .2s var(--ease),opacity .2s,border-color .2s!important}",
-  ".cal-fab-create:hover{transform:scale(1.1)!important;opacity:.85!important}",
-  ".cal-fab-create:active{transform:scale(.9)!important}",
-  ".cal-sidebar{background:rgba(7,7,8,.96)!important}",
-  ".week-day-col.is-sel{background:rgba(255,255,255,.028)!important}",
-  ".week-header-sticky{background:rgba(7,7,8,.95)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}",
-  ".cal-mobile-menu,.cal-mobile-today,.cal-mobile-day-badge{transition:transform .15s var(--ease),opacity .15s var(--ease)}",
-  ".cal-mobile-menu:active,.cal-mobile-today:active,.cal-mobile-day-badge:active{transform:scale(.94)}",
-  ".cal-mobile-month{transition:opacity .2s}",
-  ".cal-mobile-month:active{opacity:.65}",
-  ".day-event-block{transition:transform .2s var(--ease),filter .2s}",
-  ".day-event-block:hover{filter:brightness(1.12);transform:translateY(-1px)}",
-  "@keyframes calSlideLeft{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}",
-  "@keyframes calSlideRight{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}",
-  ".cal-grid-stage{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
-  ".cal-grid-stage--left{animation:calSlideLeft .34s var(--ease) both}",
-  ".cal-grid-stage--right{animation:calSlideRight .34s var(--ease) both}",
-  ".cal-view-tabs{display:flex;gap:4px;margin-left:8px}",
-  ".cal-view-tab{padding:7px 10px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".cal-view-tab:hover{color:#A0A0A8}",
-  ".cal-view-tab.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF}",
-  ".cal-view-tab:active{transform:scale(.96)}",
-  ".cal-now-btn{padding:7px 10px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".cal-now-btn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
-  ".cal-agenda{flex:1;min-height:0;overflow-y:auto;padding:8px 4px 24px;-webkit-overflow-scrolling:touch}",
-  ".cal-agenda-empty{margin:48px 0;text-align:center;font-size:12px;color:#6E6E76;font-family:'JetBrains Mono',monospace}",
-  ".cal-agenda-day{margin-bottom:28px}",
-  ".cal-agenda-day-head{display:flex;align-items:center;gap:10px;width:100%;padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:capitalize;cursor:pointer;text-align:left;transition:padding-left var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".cal-agenda-day-head:hover{padding-left:6px;border-bottom-color:rgba(255,255,255,.22)}",
-  ".cal-agenda-day.is-sel .cal-agenda-day-head{border-bottom-color:#EDEDEF}",
-  ".cal-agenda-today{font-size:9px;letter-spacing:1.2px;color:#8FB39B;text-transform:uppercase}",
-  ".cal-agenda-day-head span:last-child{margin-left:auto;color:#6E6E76;font-size:10px}",
-  ".cal-agenda-list{list-style:none;margin:0;padding:0}",
-  ".cal-agenda-item{display:grid;grid-template-columns:88px 1fr;gap:12px;width:100%;padding:14px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;text-align:left;cursor:pointer;transition:padding-left var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".cal-agenda-item:hover{padding-left:6px;border-bottom-color:rgba(255,255,255,.14)}",
-  ".cal-agenda-item:active{transform:scale(.995)}",
-  ".cal-agenda-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:#A0A0A8;line-height:1.5}",
-  ".cal-agenda-title{font-size:14px;color:#EDEDEF;line-height:1.45}",
-  ".cal-swipe-hint{margin:0;padding:8px 4px 0;font-size:9px;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace;letter-spacing:.3px}",
-].join("");
+import { PageLoader } from "../components/PageLoader";
 
 var ACCENT = "#E6E6E9";
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 var COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4"];
+var HOUR_H = 52;
+var HOURS = 24;
+var SNAP = 15;
+
+var CHRO_CSS = [
+  MICRO_CSS,
+  "@keyframes chIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}",
+  "@keyframes chSlideL{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}",
+  "@keyframes chSlideR{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}",
+  "@keyframes chNow{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(230,230,233,.4)}50%{opacity:.7;box-shadow:0 0 14px 2px rgba(230,230,233,.25)}}",
+  ".ch-root{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;overflow:hidden;position:relative}",
+  ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.5}",
+  ".ch-glow--a{width:420px;height:420px;top:-10%;right:-8%;background:rgba(255,255,255,.035)}",
+  ".ch-head{flex-shrink:0;padding:14px 20px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(7,7,8,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:30}",
+  ".ch-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-hero{flex:1;min-width:0;animation:chIn var(--dur-slow) var(--ease) both}",
+  ".ch-day-num{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(52px,10vw,76px);line-height:.85;letter-spacing:-0.06em;color:#EDEDEF;margin:0}",
+  ".ch-day-meta{margin:8px 0 0;font-size:13px;color:#A0A0A8;text-transform:capitalize;letter-spacing:.2px}",
+  ".ch-day-meta strong{color:#EDEDEF;font-weight:500;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-right:8px}",
+  ".ch-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}",
+  ".ch-modes{display:flex;gap:2px}",
+  ".ch-mode{padding:7px 10px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".ch-mode:hover{color:#A0A0A8}",
+  ".ch-mode.is-on{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-mode:active{transform:scale(.96)}",
+  ".ch-quick{display:flex;gap:12px;align-items:center}",
+  ".ch-btn{padding:7px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.16);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-btn:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-btn--accent{color:#EDEDEF;border-bottom-color:#EDEDEF}",
+  ".ch-rail{flex-shrink:0;display:flex;gap:0;overflow-x:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.05)}",
+  ".ch-rail::-webkit-scrollbar{display:none}",
+  ".ch-rail-day{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:none;background:transparent;color:#6E6E76;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
+  ".ch-rail-day::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:#EDEDEF;transform:scaleX(0);transition:transform var(--dur) var(--ease)}",
+  ".ch-rail-day:hover{color:#A0A0A8}",
+  ".ch-rail-day.is-on{color:#EDEDEF}",
+  ".ch-rail-day.is-on::after{transform:scaleX(1)}",
+  ".ch-rail-day.is-today .ch-rail-n{color:#EDEDEF}",
+  ".ch-rail-dow{font-size:9px;letter-spacing:1px;opacity:.55}",
+  ".ch-rail-n{font-size:18px;font-weight:400;line-height:1}",
+  ".ch-rail-dot{width:4px;height:4px;border-radius:50%;background:#EDEDEF;opacity:0;transition:opacity var(--dur) var(--ease)}",
+  ".ch-rail-day.has-ev .ch-rail-dot{opacity:.45}",
+  ".ch-rail-day.is-on .ch-rail-dot{opacity:1}",
+  ".ch-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".ch-stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}",
+  ".ch-stage--left{animation:chSlideL .36s var(--ease) both}",
+  ".ch-stage--right{animation:chSlideR .36s var(--ease) both}",
+  ".ch-stream-wrap{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 16px 80px}",
+  ".ch-allday{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}",
+  ".ch-allday-lbl{margin:0 0 10px;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:1.8px;color:#6E6E76;text-transform:uppercase}",
+  ".ch-allday-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;text-align:left;cursor:pointer;transition:padding-left var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-allday-row:hover{padding-left:6px;border-bottom-color:rgba(255,255,255,.14)}",
+  ".ch-allday-bar{width:3px;align-self:stretch;flex-shrink:0;background:var(--ec)}",
+  ".ch-allday-title{margin:0;font-size:14px;color:#EDEDEF;line-height:1.4}",
+  ".ch-track{position:relative;margin-left:48px;min-height:" + (HOURS * HOUR_H) + "px}",
+  ".ch-hour{position:absolute;left:-48px;right:0;height:" + HOUR_H + "px;border-top:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background var(--dur) var(--ease)}",
+  ".ch-hour:hover{background:rgba(255,255,255,.02)}",
+  ".ch-hour-lbl{position:absolute;left:-48px;top:-7px;width:40px;text-align:right;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76}",
+  ".ch-now{position:absolute;left:-52px;right:0;height:2px;background:#EDEDEF;z-index:20;pointer-events:none;animation:chNow 2.4s ease infinite}",
+  ".ch-now-dot{position:absolute;left:0;top:-4px;width:8px;height:8px;border-radius:50%;background:#EDEDEF}",
+  ".ch-now-time{position:absolute;left:-48px;top:-8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#EDEDEF;font-weight:500}",
+  ".ch-ev{position:absolute;left:0;right:8px;z-index:10;display:flex;align-items:stretch;min-height:28px;cursor:grab;touch-action:none;transition:transform .2s var(--ease),filter .2s}",
+  ".ch-ev:hover{transform:translateX(4px);filter:brightness(1.1);z-index:15}",
+  ".ch-ev.is-edit{outline:1px solid #EDEDEF;outline-offset:2px;z-index:25}",
+  ".ch-ev-bar{width:3px;flex-shrink:0;background:var(--ec)}",
+  ".ch-ev-body{flex:1;min-width:0;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}",
+  ".ch-ev-time{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);letter-spacing:.3px}",
+  ".ch-ev-title{margin:3px 0 0;font-size:12px;color:#EDEDEF;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;flex:1;min-height:0;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".ch-week-col{border-right:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;min-width:0;cursor:pointer;transition:background var(--dur) var(--ease)}",
+  ".ch-week-col:last-child{border-right:none}",
+  ".ch-week-col:hover{background:rgba(255,255,255,.02)}",
+  ".ch-week-col.is-on{background:rgba(255,255,255,.04)}",
+  ".ch-week-head{padding:10px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".ch-week-dow{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.8px}",
+  ".ch-week-num{margin:4px 0 0;font-size:16px;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
+  ".ch-week-col.is-on .ch-week-num{color:#EDEDEF}",
+  ".ch-week-col.is-today .ch-week-num{color:#EDEDEF;font-weight:500}",
+  ".ch-week-list{flex:1;overflow-y:auto;padding:6px 4px;display:flex;flex-direction:column;gap:2px;-webkit-overflow-scrolling:touch}",
+  ".ch-week-ev{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.05);background:transparent;text-align:left;cursor:pointer;width:100%;transition:padding-left var(--dur) var(--ease)}",
+  ".ch-week-ev:hover{padding-left:4px}",
+  ".ch-week-ev-t{margin:0;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--ec)}",
+  ".ch-week-ev-n{margin:2px 0 0;font-size:10px;color:#EDEDEF;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-week-empty{margin:0;padding:16px 4px;font-size:9px;color:#6E6E76;font-family:'JetBrains Mono',monospace;text-align:center}",
+  ".ch-month{flex:1;overflow-y:auto;padding:16px 20px 80px;-webkit-overflow-scrolling:touch}",
+  ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:8px}",
+  ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:6px 0;letter-spacing:1px}",
+  ".ch-month-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
+  ".ch-month-cell:hover{color:#EDEDEF;transform:scale(1.05)}",
+  ".ch-month-cell.is-out{opacity:.25}",
+  ".ch-month-cell.is-on{color:#EDEDEF}",
+  ".ch-month-cell.is-on::after{content:'';position:absolute;bottom:8px;width:16px;height:2px;background:#EDEDEF}",
+  ".ch-month-cell.is-today{font-weight:600;color:#EDEDEF}",
+  ".ch-month-n{font-size:14px;line-height:1}",
+  ".ch-month-bars{display:flex;gap:2px;height:3px;align-items:flex-end}",
+  ".ch-month-bar{width:3px;background:var(--ec);opacity:.7}",
+  ".ch-sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;animation:chIn var(--dur-fast) var(--ease) both}",
+  ".ch-sheet-bg--desk{align-items:center;padding:20px}",
+  ".ch-sheet{width:100%;max-height:88vh;overflow-y:auto;background:#070708;border-top:1px solid rgba(255,255,255,.14);padding:24px 20px max(24px,env(safe-area-inset-bottom));animation:uiSlideUp var(--dur-slow) var(--ease) both}",
+  ".ch-sheet--desk{width:min(440px,94vw);max-height:90vh;border-top:none;border-bottom:1px solid rgba(255,255,255,.14)}",
+  ".ch-sheet-lbl{margin:0 0 18px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1.8px;color:#6E6E76;text-transform:uppercase}",
+  ".ch-field{margin-bottom:16px}",
+  ".ch-lbl{display:block;font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:1.4px;color:#6E6E76;margin-bottom:8px;text-transform:uppercase}",
+  ".ch-in{width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);color:#EDEDEF;padding:10px 2px;font-size:14px;font-family:inherit;outline:none;transition:border-color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
+  ".ch-in:focus{border-bottom-color:rgba(255,255,255,.4);padding-left:4px}",
+  ".ch-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}",
+  ".ch-colors{display:flex;gap:12px;flex-wrap:wrap}",
+  ".ch-color{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:transform var(--dur-fast) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-color:hover{transform:scale(1.1)}",
+  ".ch-color.is-on{border-color:#EDEDEF;transform:scale(1.08)}",
+  ".ch-rep{display:flex;gap:4px}",
+  ".ch-rep-btn{flex:1;padding:8px 0;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-rep-btn.is-on,.ch-rep-btn.is-base{color:var(--rc);border-bottom-color:var(--rc)}",
+  ".ch-sheet-actions{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}",
+  ".ch-save{padding:10px 4px;border:none;border-bottom:2px solid #EDEDEF;background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
+  ".ch-del{padding:10px 4px;border:none;border-bottom:1px solid rgba(192,140,140,.4);background:transparent;color:#C08C8C;font-size:12px;cursor:pointer;font-family:inherit}",
+  ".ch-cancel{padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;cursor:pointer;font-family:inherit}",
+  ".ch-fab{position:fixed;z-index:50;right:20px;bottom:max(20px,env(safe-area-inset-bottom));padding:10px 4px;border:none;border-bottom:2px solid #EDEDEF;background:transparent;color:#EDEDEF;font-size:24px;font-weight:300;line-height:1;cursor:pointer;transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
+  ".ch-fab:hover{transform:scale(1.08)}",
+  ".ch-fab:active{transform:scale(.92)}",
+  ".ch-hint{margin:0;padding:8px 20px 0;font-size:9px;color:rgba(255,255,255,.22);font-family:'JetBrains Mono',monospace}",
+  "@media(max-width:719px){.ch-head{padding:12px 16px 8px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:row;justify-content:space-between;align-items:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-week{display:none}.ch-mode--week{display:none}}",
+  "@media(min-width:720px){.ch-fab{display:none}.ch-week+.ch-stream-wrap{border-top:1px solid rgba(255,255,255,.06)}",
+].join("");
 
 function uid() { return "e" + Date.now() + Math.random().toString(36).slice(2, 7); }
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -70,7 +140,6 @@ function parseKey(k) {
   var p = k.split("-");
   return { y: +p[0], m: +p[1] - 1, d: +p[2] };
 }
-
 function weekKeys(anchorKey) {
   var p = parseKey(anchorKey);
   var d = new Date(p.y, p.m, p.d);
@@ -83,275 +152,138 @@ function weekKeys(anchorKey) {
   }
   return keys;
 }
+function monthDayKeys(view) {
+  var first = new Date(view.y, view.m, 1);
+  var start = (first.getDay() + 6) % 7;
+  var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+  var cells = [];
+  var prevDays = new Date(view.y, view.m, 0).getDate();
+  for (var i = start - 1; i >= 0; i--) {
+    cells.push({ d: prevDays - i, m: view.m - 1, y: view.m === 0 ? view.y - 1 : view.y, outside: true });
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    cells.push({ d: d, m: view.m, y: view.y, outside: false });
+  }
+  while (cells.length % 7 !== 0 || cells.length < 42) {
+    var n = cells.length - start - daysInMonth + 1;
+    cells.push({ d: n, m: view.m + 1, y: view.m === 11 ? view.y + 1 : view.y, outside: true });
+  }
+  return cells.map(function(c) {
+    return Object.assign({}, c, { key: dateKey(c.y, c.m, c.d) });
+  });
+}
 function sortEvents(list) {
   return list.slice().sort(function(a, b) {
     if (!!a.allDay !== !!b.allDay) return a.allDay ? -1 : 1;
     return (a.time || "").localeCompare(b.time || "");
   });
 }
-function formatEventTime(ev) {
-  if (ev.allDay) return "Dia todo";
-  return eventTimeLabel(ev);
-}
-
-var HOUR_H = 44;
-var SNAP_MIN = 15;
-var HOURS = 24;
-var SCROLL_START_HOUR = 6;
-
-function scrollGridToNow(scrollEl, todayKey, contextKey, weekDays, smooth) {
-  if (!scrollEl) return;
-  var showToday = contextKey
-    ? contextKey === todayKey
-    : weekDays && weekDays.indexOf(todayKey) >= 0;
-  if (!showToday) {
-    scrollEl.scrollTop = SCROLL_START_HOUR * HOUR_H;
-    return;
-  }
-  var t = new Date();
-  var mins = t.getHours() * 60 + t.getMinutes();
-  var target = Math.max(0, (mins / 60) * HOUR_H - scrollEl.clientHeight * 0.32);
-  if (smooth && scrollEl.scrollTo) scrollEl.scrollTo({ top: target, behavior: "smooth" });
-  else scrollEl.scrollTop = target;
-}
-
-var EVT_TRUNC = {
-  display: "block",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  minWidth: 0,
-  width: "100%",
-};
-
-function EventTitleLine(props) {
-  var label = props.title || "";
-  return (
-    <span title={label} style={Object.assign({}, EVT_TRUNC, props.style || {})}>
-      {label}
-    </span>
-  );
-}
-
 function timeToMin(t) {
   if (!t) return 0;
   var p = t.split(":");
   return (+p[0]) * 60 + (+p[1] || 0);
 }
 function minToTime(m) {
-  m = Math.max(0, Math.min(HOURS * 60 - SNAP_MIN, m));
-  var h = Math.floor(m / 60), mi = m % 60;
-  return pad(h) + ":" + pad(mi);
-}
-function snapMin(m) {
-  return Math.round(m / SNAP_MIN) * SNAP_MIN;
-}
-function evDuration(ev) {
-  return ev.duration || 60;
-}
-function durationLabel(minutes) {
-  minutes = Math.max(SNAP_MIN, minutes || 60);
-  var h = Math.floor(minutes / 60), m = minutes % 60;
-  if (!h) return m + " min";
-  if (!m) return h + "h";
-  return h + "h" + pad(m);
-}
-function timeFromMinutes(m) {
-  m = ((m % (HOURS * 60)) + HOURS * 60) % (HOURS * 60);
+  m = Math.max(0, Math.min(1439, m));
   return pad(Math.floor(m / 60)) + ":" + pad(m % 60);
 }
-function addMinutes(t, minutes) {
-  return timeFromMinutes(timeToMin(t) + (minutes || 0));
+function snapMin(m) { return Math.round(m / SNAP) * SNAP; }
+function evDuration(ev) { return ev.allDay ? 1440 : Math.max(SNAP, ev.duration || 60); }
+function durationLabel(minutes) {
+  if (minutes >= 60) {
+    var h = Math.floor(minutes / 60), r = minutes % 60;
+    return r ? h + "h " + r + "m" : h + "h";
+  }
+  return minutes + " min";
 }
+function addMinutes(t, minutes) { return minToTime(timeToMin(t) + minutes); }
 function eventEndTime(ev) {
-  if (ev.allDay || !ev.time) return "";
-  return addMinutes(ev.time, evDuration(ev));
-}
-function eventTimeLabel(ev) {
-  if (!ev.time) return "—";
-  var dur = evDuration(ev);
-  return ev.time + "-" + eventEndTime(ev) + " · " + durationLabel(dur);
-}
-function eventTooltip(ev) {
-  var title = (ev.title || "").trim() || "Sem título";
-  var time = ev.allDay || !ev.time ? "Dia todo" : ev.time + " – " + eventEndTime(ev);
-  var notes = (ev.notes || "").trim();
-  var lines = [title, time];
-  if (notes) lines.push(notes);
-  return lines.join("\n");
-}
-
-function eventBlockGlassStyle(c, extra) {
-  return Object.assign({
-    background: "#1A1A1D",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderLeft: "3px solid " + c,
-  }, extra || {});
-}
-
-function timeUntilLabel(dayKey, ev) {
-  var p = parseKey(dayKey);
-  var now = new Date();
-  var start;
-  if (ev.allDay || !ev.time) {
-    start = new Date(p.y, p.m, p.d, 0, 0, 0);
-  } else {
-    var parts = (ev.time || "09:00").split(":");
-    start = new Date(p.y, p.m, p.d, +parts[0], +parts[1] || 0, 0);
-  }
-  var end;
-  if (ev.allDay || !ev.time) {
-    end = new Date(p.y, p.m, p.d + 1, 0, 0, 0);
-  } else {
-    var ep = eventEndTime(ev).split(":");
-    end = new Date(p.y, p.m, p.d, +ep[0], +ep[1] || 0, 0);
-  }
-  var ms = start - now;
-  if (ms > 0) {
-    var mins = Math.floor(ms / 60000);
-    if (mins < 60) return "Faltam " + mins + " min";
-    var hrs = Math.floor(mins / 60);
-    var rm = mins % 60;
-    if (hrs < 48) return "Faltam " + hrs + "h" + (rm ? " " + rm + "min" : "");
-    var days = Math.floor(hrs / 24);
-    return "Faltam " + days + " dia" + (days !== 1 ? "s" : "");
-  }
-  if (now < end) return "A decorrer agora";
-  return "Já passou";
+  if (ev.allDay || !ev.time) return null;
+  return minToTime(timeToMin(ev.time) + evDuration(ev));
 }
 function durationFromTimes(start, end) {
-  var s = timeToMin(start || "09:00");
-  var e = timeToMin(end || addMinutes(start || "09:00", 60));
-  if (e <= s) e += HOURS * 60;
-  return Math.max(SNAP_MIN, Math.min(HOURS * 60, snapMin(e - s)));
+  return Math.max(SNAP, snapMin(timeToMin(end) - timeToMin(start)));
 }
-function layoutSegments(segments) {
-  var sorted = segments.slice().sort(function(a, b) {
-    return a.segmentStart - b.segmentStart || (b.segmentDuration - a.segmentDuration);
-  });
-  var i = 0;
-  while (i < sorted.length) {
-    var group = [];
-    var maxEnd = sorted[i].segmentStart + sorted[i].segmentDuration;
-    while (i < sorted.length && sorted[i].segmentStart < maxEnd) {
-      group.push(sorted[i]);
-      maxEnd = Math.max(maxEnd, sorted[i].segmentStart + sorted[i].segmentDuration);
-      i++;
+function formatEventTime(ev) {
+  if (ev.allDay) return "Dia todo";
+  return ev.time + " – " + eventEndTime(ev);
+}
+function layoutDayEvents(list) {
+  var timed = list.filter(function(ev) { return !ev.allDay && ev.time; });
+  timed.sort(function(a, b) { return timeToMin(a.time) - timeToMin(b.time); });
+  var colEnds = [];
+  return timed.map(function(ev) {
+    var start = timeToMin(ev.time);
+    var dur = evDuration(ev);
+    var col = 0;
+    for (var i = 0; i < colEnds.length; i++) {
+      if (colEnds[i] <= start) { col = i; break; }
+      col = i + 1;
     }
-    var colEnds = [];
-    group.forEach(function(seg) {
-      var placed = -1;
-      for (var c = 0; c < colEnds.length; c++) {
-        if (colEnds[c] <= seg.segmentStart) { placed = c; break; }
-      }
-      if (placed < 0) placed = colEnds.length;
-      colEnds[placed] = seg.segmentStart + seg.segmentDuration;
-      seg.column = placed;
-      seg.columns = colEnds.length;
-    });
-    var cols = Math.max(1, colEnds.length);
-    group.forEach(function(seg) { seg.columns = cols; });
-  }
-  return sorted;
+    if (col >= colEnds.length) colEnds.push(start + dur);
+    else colEnds[col] = start + dur;
+    return { ev: ev, start: start, dur: dur, col: col, cols: colEnds.length };
+  });
+}
+function scrollToNow(el, dayKey, todayKey, smooth) {
+  if (!el || dayKey !== todayKey) return;
+  var t = new Date();
+  var top = (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H - el.clientHeight * 0.3;
+  if (smooth && el.scrollTo) el.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  else el.scrollTop = Math.max(0, top);
 }
 
-function WeekTimeGrid(props) {
-  var gridRef = useRef(null);
+/* ── Timeline do dia ── */
+function DayStream(props) {
   var scrollRef = useRef(null);
+  var trackRef = useRef(null);
   var dragRef = useRef(null);
-  var previewS = useState(null);
-  var preview = previewS[0], setPreview = previewS[1];
-  var createRef = useRef(null);
-  var createS = useState(null);
-  var createPreview = createS[0], setCreatePreview = createS[1];
-  var tipS = useState(null);
-  var hoverTip = tipS[0], setHoverTip = tipS[1];
+  var tickS = useState(0);
+  useEffect(function() {
+    var id = setInterval(function() { tickS[1](Date.now()); }, 1000);
+    return function() { clearInterval(id); };
+  }, []);
 
-  var allDayByDay = useMemo(function() {
-    return props.weekDays.map(function(k) {
-      return sortEvents((props.events[k] || []).filter(function(ev) { return ev.allDay; }));
-    });
-  }, [props.weekDays, props.events]);
+  var dayKey = props.dayKey;
+  var allDay = useMemo(function() {
+    return sortEvents((props.events[dayKey] || []).filter(function(ev) { return ev.allDay; }));
+  }, [dayKey, props.events]);
+  var laid = useMemo(function() {
+    return layoutDayEvents(props.events[dayKey] || []);
+  }, [dayKey, props.events]);
 
-  function timedOnDay(k, dayIdx) {
-    var dayStart = dayIdx * 1440;
-    var out = [];
-    props.weekDays.forEach(function(sourceKey, sourceIdx) {
-      (props.events[sourceKey] || []).forEach(function(ev) {
-        if (ev.allDay || !ev.time) return;
-        var start = sourceIdx * 1440 + timeToMin(ev.time);
-        var end = start + evDuration(ev);
-        var segStart = Math.max(start, dayStart);
-        var segEnd = Math.min(end, dayStart + 1440);
-        if (segEnd <= segStart) return;
-        out.push({
-          ev: ev,
-          sourceKey: sourceKey,
-          segmentStart: segStart - dayStart,
-          segmentDuration: segEnd - segStart,
-          continuesBefore: segStart > start,
-          continuesAfter: segEnd < end,
-        });
-      });
-    });
-    return layoutSegments(out);
-  }
+  var nowTop = useMemo(function() {
+    if (dayKey !== props.todayKey) return null;
+    var t = new Date();
+    return (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H;
+  }, [dayKey, props.todayKey, tickS[0]]);
 
-  function posFromPointer(clientX, clientY, duration) {
-    var el = gridRef.current;
+  useEffect(function() {
+    scrollToNow(scrollRef.current, dayKey, props.todayKey, !!props.scrollNow);
+  }, [dayKey, props.todayKey, props.scrollNow]);
+
+  function posFromY(clientY) {
+    var el = trackRef.current;
     if (!el) return null;
     var r = el.getBoundingClientRect();
-    var x = clientX - r.left;
     var y = clientY - r.top;
-    var colW = r.width / 7;
-    var dayIdx = Math.floor(x / colW);
-    if (dayIdx < 0 || dayIdx > 6) return null;
-    var minutes = snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
-    minutes = Math.max(0, Math.min(HOURS * 60 - (duration || 15), minutes));
-    return { dayIdx: dayIdx, minutes: minutes, key: props.weekDays[dayIdx] };
+    return snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
   }
 
-  function onBlockPointerDown(e, ev, dayKey) {
+  function onHourClick(mins) {
+    if (props.readOnly) return;
+    props.onSlotClick(dayKey, mins);
+  }
+
+  function onEvPointerDown(e, ev) {
     if (props.readOnly) return;
     e.stopPropagation();
-    if (!props.isMobile) e.preventDefault();
-    if (props.isMobile) {
-      var tapStartX = e.clientX, tapStartY = e.clientY, tapMoved = false;
-      function onTapMove(pe) {
-        if (Math.abs(pe.clientX - tapStartX) + Math.abs(pe.clientY - tapStartY) > 12) tapMoved = true;
-      }
-      function onTapUp() {
-        window.removeEventListener("pointermove", onTapMove);
-        window.removeEventListener("pointerup", onTapUp);
-        if (!tapMoved) {
-          props.onSelectDay(dayKey);
-          if (props.onEventClick) props.onEventClick(ev, dayKey);
-        }
-      }
-      window.addEventListener("pointermove", onTapMove);
-      window.addEventListener("pointerup", onTapUp);
-      return;
-    }
     var startMin = timeToMin(ev.time);
     var dur = evDuration(ev);
-    var c = ev.color || ACCENT;
-    var startPos = posFromPointer(e.clientX, e.clientY, dur);
-    var pointerAbs = startPos ? startPos.dayIdx * 1440 + startPos.minutes : props.weekDays.indexOf(dayKey) * 1440 + startMin;
-    var eventAbs = props.weekDays.indexOf(dayKey) * 1440 + startMin;
-    dragRef.current = { id: ev.id, fromKey: dayKey, duration: dur, title: ev.title, color: c, startX: e.clientX, startY: e.clientY, moved: false, offset: Math.max(0, pointerAbs - eventAbs) };
-    setPreview({ id: ev.id, dayIdx: props.weekDays.indexOf(dayKey), minutes: startMin, duration: dur, title: ev.title, color: c });
-
+    dragRef.current = { id: ev.id, startMin: startMin, dur: dur, startY: e.clientY, moved: false };
     function onMove(pe) {
       if (!dragRef.current) return;
-      if (Math.abs(pe.clientX - dragRef.current.startX) + Math.abs(pe.clientY - dragRef.current.startY) < 6) return;
-      dragRef.current.moved = true;
-      var p = posFromPointer(pe.clientX, pe.clientY, dragRef.current.duration);
-      if (p) {
-        var abs = Math.max(0, p.dayIdx * 1440 + p.minutes - dragRef.current.offset);
-        var dayIdx = Math.max(0, Math.min(6, Math.floor(abs / 1440)));
-        var minutes = Math.max(0, Math.min(1440 - dragRef.current.duration, snapMin(abs % 1440)));
-        setPreview({ id: dragRef.current.id, dayIdx: dayIdx, minutes: minutes, duration: dragRef.current.duration, title: dragRef.current.title, color: dragRef.current.color });
-      }
+      if (Math.abs(pe.clientY - dragRef.current.startY) > 8) dragRef.current.moved = true;
     }
     function onUp(pe) {
       window.removeEventListener("pointermove", onMove);
@@ -359,632 +291,137 @@ function WeekTimeGrid(props) {
       if (!dragRef.current) return;
       var d = dragRef.current;
       dragRef.current = null;
-      setPreview(null);
-      if (!d.moved) {
-        props.onSelectDay(dayKey);
-        if (props.onEventClick) props.onEventClick(ev, dayKey);
-        return;
-      }
-      var p = posFromPointer(pe.clientX, pe.clientY, d.duration);
-      if (p && props.onMove) {
-        var abs = Math.max(0, p.dayIdx * 1440 + p.minutes - d.offset);
-        var dayIdx = Math.max(0, Math.min(6, Math.floor(abs / 1440)));
-        var minutes = Math.max(0, Math.min(1440 - d.duration, snapMin(abs % 1440)));
-        props.onMove(d.id, d.fromKey, props.weekDays[dayIdx], minToTime(minutes), d.duration);
+      if (!d.moved) { props.onEventClick(ev, dayKey); return; }
+      var mins = posFromY(pe.clientY);
+      if (mins != null && props.onMove) {
+        mins = Math.max(0, Math.min(1440 - d.dur, mins));
+        props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.dur);
       }
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }
-
-  function onSlotPointerDown(e, dayIdx) {
-    if (props.readOnly || dragRef.current) return;
-    if (e.button && e.button !== 0) return;
-    var p = posFromPointer(e.clientX, e.clientY, 15);
-    if (!p) return;
-    var startAbs = p.dayIdx * 1440 + p.minutes;
-    var moveThreshold = props.isMobile ? 14 : 8;
-
-    if (props.isMobile) {
-      createRef.current = { startAbs: startAbs, moved: false, startX: e.clientX, startY: e.clientY };
-      function onMove(pe) {
-        if (!createRef.current) return;
-        if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > moveThreshold) {
-          createRef.current.moved = true;
-        }
-      }
-      function onUp() {
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-        if (!createRef.current) return;
-        var s = createRef.current.startAbs;
-        var moved = createRef.current.moved;
-        createRef.current = null;
-        if (!moved && props.onSlotClick) {
-          props.onSlotClick(props.weekDays[Math.floor(s / 1440)], s % 1440);
-        }
-      }
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-      return;
-    }
-
-    createRef.current = { startAbs: startAbs, color: ACCENT, moved: false, startX: e.clientX, startY: e.clientY };
-    setCreatePreview({ startAbs: startAbs, endAbs: startAbs + 60, color: ACCENT });
-
-    function onMove(pe) {
-      if (!createRef.current) return;
-      if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > moveThreshold) {
-        createRef.current.moved = true;
-        pe.preventDefault();
-      }
-      if (!createRef.current.moved) return;
-      var n = posFromPointer(pe.clientX, pe.clientY, 15);
-      if (!n) return;
-      var endAbs = n.dayIdx * 1440 + n.minutes;
-      if (endAbs <= createRef.current.startAbs) endAbs = createRef.current.startAbs + SNAP_MIN;
-      setCreatePreview({ startAbs: createRef.current.startAbs, endAbs: endAbs, color: ACCENT });
-    }
-    function onUp(pe) {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      if (!createRef.current) return;
-      var s = createRef.current.startAbs;
-      var moved = createRef.current.moved;
-      createRef.current = null;
-      var n = posFromPointer(pe.clientX, pe.clientY, 15);
-      var eAbs = n ? n.dayIdx * 1440 + n.minutes : s + 60;
-      if (eAbs <= s) eAbs = s + 60;
-      setCreatePreview(null);
-      if (!moved && props.onSlotClick) {
-        props.onSlotClick(props.weekDays[Math.floor(s / 1440)], s % 1440);
-      } else if (moved && props.onRangeCreate) {
-        props.onRangeCreate(
-          props.weekDays[Math.floor(s / 1440)], s % 1440,
-          props.weekDays[Math.floor(eAbs / 1440)], eAbs % 1440, eAbs - s
-        );
-      }
-    }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  }
-
-  function renderRangePreview(range, label) {
-    if (!range) return null;
-    var start = Math.min(range.startAbs, range.endAbs);
-    var end = Math.max(range.startAbs + SNAP_MIN, range.endAbs);
-    var bits = [];
-    for (var di = 0; di < 7; di++) {
-      var dayStart = di * 1440;
-      var segStart = Math.max(start, dayStart);
-      var segEnd = Math.min(end, dayStart + 1440);
-      if (segEnd <= segStart) continue;
-      bits.push(
-        <div key={di} style={{
-          position: "absolute",
-          left: "calc(" + (di / 7 * 100) + "% + 3px)",
-          width: "calc(" + (100 / 7) + "% - 6px)",
-          top: ((segStart - dayStart) / 60) * HOUR_H + 1,
-          height: Math.max(((segEnd - segStart) / 60) * HOUR_H - 2, 20),
-          background: (range.color || ACCENT) + "2E",
-          border: "1px dashed " + (range.color || ACCENT),
-          borderRadius: 8,
-          pointerEvents: "none",
-          zIndex: 20,
-          padding: "4px 8px",
-          overflow: "hidden",
-        }}>
-          <p style={{ margin: 0, fontSize: 10, lineHeight: 1, fontFamily: "'JetBrains Mono',monospace", color: range.color || ACCENT }}>{minToTime(segStart - dayStart)}</p>
-          <EventTitleLine title={label || "Novo evento"} style={{ margin: "2px 0 0", fontSize: 11, lineHeight: 1.25, color: "#EDEDEF", fontWeight: 500 }} />
-        </div>
-      );
-    }
-    return bits;
-  }
-
-  var nowTickS = useState(0);
-  var nowTick = nowTickS[0], setNowTick = nowTickS[1];
-  useEffect(function() {
-    var id = setInterval(function() { setNowTick(Date.now()); }, 1000);
-    return function() { clearInterval(id); };
-  }, []);
-
-  var nowLine = useMemo(function() {
-    if (props.weekDays.indexOf(props.todayKey) < 0) return null;
-    var t = new Date();
-    return { dayIdx: props.weekDays.indexOf(props.todayKey), top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
-  }, [props.weekDays, props.todayKey, nowTick]);
-
-  var weekAnchor = props.weekDays[0];
-  useEffect(function() {
-    scrollGridToNow(scrollRef.current, props.todayKey, null, props.weekDays, !!props.scrollNowToken);
-  }, [weekAnchor, props.todayKey, props.scrollNowToken]);
 
   return (
-    <div className="week-wrap">
-      {hoverTip && !props.isMobile && (
-        <div className="cal-event-hover-tip" style={{ left: hoverTip.x + 12, top: hoverTip.y + 12 }}>
-          <p className="cal-event-hover-tip__title">{hoverTip.title}</p>
-          <p className="cal-event-hover-tip__time">{hoverTip.time}</p>
-          {hoverTip.notes && <p className="cal-event-hover-tip__notes">{hoverTip.notes}</p>}
+    <div ref={scrollRef} className="ch-stream-wrap">
+      {allDay.length > 0 ? (
+        <div className="ch-allday">
+          <p className="ch-allday-lbl">Dia todo</p>
+          {allDay.map(function(ev) {
+            var c = ev.color || ACCENT;
+            return (
+              <button key={ev.id} type="button" className="ch-allday-row ui-tap" style={{ "--ec": c }}
+                onClick={function() { props.onEventClick(ev, dayKey); }}>
+                <span className="ch-allday-bar" />
+                <span className="ch-allday-title">{ev.title || "Sem título"}</span>
+              </button>
+            );
+          })}
         </div>
-      )}
-      <div ref={scrollRef} className="week-scroll">
-        <div className="week-header-sticky">
-          <div className="week-cols week-cols--head">
-            <div className="week-time-gutter" aria-hidden="true" />
-            {props.weekDays.map(function(k, i) {
-              var p = parseKey(k);
-              var isSel = k === props.selected;
-              var isToday = k === props.todayKey;
-              return (
-                <button type="button" key={k} onClick={function() { props.onSelectDay(k); }}
-                  className={"week-day-head" + (isSel ? " is-sel" : "") + (isToday ? " is-today" : "")}
-                  style={{ color: isSel ? "#EDEDEF" : isToday ? "#EDEDEF" : "#A0A0A8" }}>
-                  <span className="week-day-head__dow">{WEEKDAYS[i]}</span>
-                  <span className="week-day-head__num">{p.d}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {allDayByDay.some(function(l) { return l.length > 0; }) && (
-            <div className="week-cols week-cols--allday">
-              <div className="week-time-gutter week-time-gutter--label">dia</div>
-              {allDayByDay.map(function(list, i) {
-                return (
-                  <div key={props.weekDays[i]} className="week-allday-col">
-                    {list.map(function(ev) {
-                      var c = ev.color || ACCENT;
-                      return (
-                        <button type="button" key={ev.id} title={eventTooltip(ev)} onClick={function() { props.onSelectDay(props.weekDays[i]); if (props.onEventClick) props.onEventClick(ev, props.weekDays[i]); }}
-                          className={"cal-allday-event" + (props.highlightEventId === ev.id ? " is-editing" : "")}
-                          style={{ fontSize: 11, lineHeight: 1.4, padding: "5px 8px", borderRadius: 8, border: "none", borderLeft: "3px solid " + c, background: c + "1C", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0, display: "block" }}>
-                          <EventTitleLine title={ev.title} style={{ fontSize: 11, lineHeight: 1.4, color: c }} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+      ) : null}
+      <div ref={trackRef} className="ch-track">
+        {Array.from({ length: HOURS }, function(_, h) {
+          return (
+            <div key={h} className="ch-hour" style={{ top: h * HOUR_H }}
+              onClick={function() { onHourClick(h * 60); }}>
+              <span className="ch-hour-lbl">{pad(h)}:00</span>
             </div>
-          )}
-        </div>
-
-        <div className="week-cols week-cols--body">
-          <div className="week-time-labels" style={{ height: HOURS * HOUR_H }}>
-            {Array.from({ length: HOURS }, function(_, h) {
-              return (
-                <div key={h} className="week-time-label" style={{ top: h * HOUR_H - 7 }}>{pad(h) + ":00"}</div>
-              );
-            })}
+          );
+        })}
+        {nowTop != null ? (
+          <div className="ch-now" style={{ top: nowTop }}>
+            <span className="ch-now-dot" />
+            <span className="ch-now-time">{pad(new Date().getHours())}:{pad(new Date().getMinutes())}</span>
           </div>
-          <div ref={gridRef} className="week-days-track" style={{ height: HOURS * HOUR_H }}>
-            {props.weekDays.map(function(k, dayIdx) {
-              var list = timedOnDay(k, dayIdx);
-              var isSel = k === props.selected;
-              return (
-                <div key={k} className={"week-day-col" + (isSel ? " is-sel" : "")}
-                  onPointerDown={function(e) { onSlotPointerDown(e, dayIdx); }}>
-                  {Array.from({ length: HOURS }, function(_, h) {
-                    return (
-                      <div key={h} className="week-hour-line" style={{ top: h * HOUR_H, height: HOUR_H, borderTop: h === 0 ? "none" : undefined }} />
-                    );
-                  })}
-                  {nowLine && nowLine.dayIdx === dayIdx && (
-                    <div className="week-now-line" style={{ top: nowLine.top }}>
-                      <span className="week-now-dot" />
-                    </div>
-                  )}
-                  {list.map(function(seg) {
-                    var ev = seg.ev;
-                    if (preview && preview.id === ev.id) return null;
-                    var top = (seg.segmentStart / 60) * HOUR_H;
-                    var h = (seg.segmentDuration / 60) * HOUR_H - 2;
-                    var c = ev.color || ACCENT;
-                    var cols = Math.max(1, seg.columns || 1);
-                    var col = Math.min(cols - 1, seg.column || 0);
-                    var blockH = Math.max(h, 20);
-                    var compact = blockH < 34;
-                    var isEditing = props.highlightEventId === ev.id;
-                    return (
-                      <div key={seg.sourceKey + ev.id + dayIdx}
-                        className={"week-event-block" + (isEditing ? " is-editing" : "")}
-                        onPointerDown={function(e) { onBlockPointerDown(e, ev, seg.sourceKey); }}
-                        onMouseEnter={function(e) {
-                          if (props.isMobile) return;
-                          setHoverTip({
-                            x: e.clientX, y: e.clientY,
-                            title: (ev.title || "").trim() || "Sem título",
-                            time: ev.allDay || !ev.time ? "Dia todo" : timeFromMinutes(seg.segmentStart) + " – " + timeFromMinutes(seg.segmentStart + seg.segmentDuration),
-                            notes: (ev.notes || "").trim(),
-                          });
-                        }}
-                        onMouseMove={function(e) {
-                          if (!hoverTip || props.isMobile) return;
-                          setHoverTip(function(t) { return t ? Object.assign({}, t, { x: e.clientX, y: e.clientY }) : null; });
-                        }}
-                        onMouseLeave={function() { setHoverTip(null); }}
-                        onClick={function(e) { e.stopPropagation(); props.onSelectDay(seg.sourceKey); if (props.onEventClick) props.onEventClick(ev, seg.sourceKey); }}
-                        style={Object.assign({
-                          left: "calc(" + (col / cols * 100) + "% + 2px)",
-                          width: "calc(" + (100 / cols) + "% - 4px)",
-                          top: top + 1, height: blockH,
-                          padding: compact ? "2px 8px" : "4px 8px",
-                          cursor: props.readOnly ? "pointer" : "grab",
-                          touchAction: props.isMobile ? "auto" : "none",
-                          justifyContent: compact ? "center" : "flex-start",
-                        }, eventBlockGlassStyle(c))}>
-                        {!compact && (
-                          <p style={{ margin: 0, fontSize: 10, lineHeight: 1, letterSpacing: 0.2, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{seg.continuesBefore ? "↳ " : ""}{timeFromMinutes(seg.segmentStart)}-{timeFromMinutes(seg.segmentStart + seg.segmentDuration)} · {durationLabel(seg.segmentDuration)}{seg.continuesAfter ? " ↴" : ""}</p>
-                        )}
-                        <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 10 : 11, lineHeight: 1.25, color: "#EDEDEF", fontWeight: 500, flex: 1, minHeight: 0 }} />
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-            {preview && renderRangePreview({ startAbs: preview.dayIdx * 1440 + preview.minutes, endAbs: preview.dayIdx * 1440 + preview.minutes + preview.duration, color: preview.color }, preview.title)}
-            {createPreview && renderRangePreview(createPreview, "Novo evento")}
-          </div>
-        </div>
-      </div>
-      {!props.readOnly && !props.isMobile && (
-        <p className="week-foot-hint">Arrasta na grelha para criar um evento · Arrasta blocos para mudar dia e hora</p>
-      )}
-      {!props.readOnly && props.isMobile && (
-        <p className="week-foot-hint week-foot-hint--mobile">Toca num horário e larga para criar · Usa + em baixo à esquerda</p>
-      )}
-    </div>
-  );
-}
-
-function DayTimeGrid(props) {
-  var gridRef = useRef(null);
-  var scrollRef = useRef(null);
-  var createRef = useRef(null);
-  var dayKey = props.dayKey;
-
-  var allDayList = useMemo(function() {
-    return sortEvents((props.events[dayKey] || []).filter(function(ev) { return ev.allDay; }));
-  }, [dayKey, props.events]);
-
-  var timedSegments = useMemo(function() {
-    var out = [];
-    (props.events[dayKey] || []).forEach(function(ev) {
-      if (ev.allDay || !ev.time) return;
-      var start = timeToMin(ev.time);
-      var dur = evDuration(ev);
-      out.push({
-        ev: ev,
-        sourceKey: dayKey,
-        segmentStart: start,
-        segmentDuration: dur,
-        continuesBefore: false,
-        continuesAfter: false,
-      });
-    });
-    return layoutSegments(out);
-  }, [dayKey, props.events]);
-
-  function posFromPointer(clientX, clientY, duration) {
-    var el = gridRef.current;
-    if (!el) return null;
-    var r = el.getBoundingClientRect();
-    var y = clientY - r.top;
-    var minutes = snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
-    minutes = Math.max(0, Math.min(HOURS * 60 - (duration || 15), minutes));
-    return { minutes: minutes, key: dayKey };
-  }
-
-  function onBlockPointerDown(e, ev) {
-    if (props.readOnly) return;
-    e.stopPropagation();
-    var tapStartX = e.clientX, tapStartY = e.clientY, tapMoved = false;
-    function onTapMove(pe) {
-      if (Math.abs(pe.clientX - tapStartX) + Math.abs(pe.clientY - tapStartY) > 12) tapMoved = true;
-    }
-    function onTapUp() {
-      window.removeEventListener("pointermove", onTapMove);
-      window.removeEventListener("pointerup", onTapUp);
-      if (!tapMoved && props.onEventClick) props.onEventClick(ev, dayKey);
-    }
-    window.addEventListener("pointermove", onTapMove);
-    window.addEventListener("pointerup", onTapUp);
-  }
-
-  function onSlotPointerDown(e) {
-    if (props.readOnly) return;
-    if (e.button && e.button !== 0) return;
-    var p = posFromPointer(e.clientX, e.clientY, 15);
-    if (!p) return;
-    createRef.current = { minutes: p.minutes, moved: false, startX: e.clientX, startY: e.clientY };
-    function onMove(pe) {
-      if (!createRef.current) return;
-      if (Math.abs(pe.clientX - createRef.current.startX) + Math.abs(pe.clientY - createRef.current.startY) > 14) {
-        createRef.current.moved = true;
-      }
-    }
-    function onUp() {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      if (!createRef.current) return;
-      var mins = createRef.current.minutes;
-      var moved = createRef.current.moved;
-      createRef.current = null;
-      if (!moved && props.onSlotClick) props.onSlotClick(dayKey, mins);
-    }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  }
-
-  var nowTickS = useState(0);
-  var nowTick = nowTickS[0], setNowTick = nowTickS[1];
-  useEffect(function() {
-    var id = setInterval(function() { setNowTick(Date.now()); }, 1000);
-    return function() { clearInterval(id); };
-  }, []);
-
-  var nowLine = useMemo(function() {
-    if (dayKey !== props.todayKey) return null;
-    var t = new Date();
-    return { top: (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H };
-  }, [dayKey, props.todayKey, nowTick]);
-
-  useEffect(function() {
-    scrollGridToNow(scrollRef.current, props.todayKey, dayKey, null, !!props.scrollNowToken);
-  }, [dayKey, props.todayKey, props.scrollNowToken]);
-
-  return (
-    <div className="day-grid-wrap">
-      {allDayList.length > 0 && (
-        <div className="day-allday-row">
-          <div className="day-allday-label">Dia todo</div>
-          <div className="day-allday-events">
-            {allDayList.map(function(ev) {
-              var c = ev.color || ACCENT;
-              return (
-                <button type="button" key={ev.id} title={eventTooltip(ev)}
-                  className={"cal-allday-event" + (props.highlightEventId === ev.id ? " is-editing" : "")}
-                  onClick={function() { if (props.onEventClick) props.onEventClick(ev, dayKey); }}
-                  style={{ fontSize: 13, lineHeight: 1.5, minHeight: 44, display: "flex", alignItems: "center", padding: "8px 12px", borderRadius: 10, border: "none", borderLeft: "3px solid " + c, background: c + "1C", color: c, cursor: "pointer", textAlign: "left", overflow: "hidden", fontFamily: "'IBM Plex Sans',sans-serif", width: "100%", minWidth: 0 }}>
-                  <EventTitleLine title={ev.title} style={{ fontSize: 13, lineHeight: 1.5, color: c }} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      <div ref={scrollRef} className="day-grid-scroll">
-        <div style={{ display: "flex", position: "relative" }}>
-          <div className="day-time-gutter" style={{ position: "relative", height: HOURS * HOUR_H }}>
-            {Array.from({ length: HOURS }, function(_, h) {
-              return (
-                <div key={h} style={{
-                  position: "absolute", top: h * HOUR_H - 7, right: 8, fontSize: 10, lineHeight: 1,
-                  fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76",
-                }}>{pad(h) + ":00"}</div>
-              );
-            })}
-            {nowLine && (
-              <span className="day-now-time-label" style={{ top: nowLine.top - 7 }}>
-                {pad(new Date().getHours()) + ":" + pad(new Date().getMinutes())}
-              </span>
-            )}
-          </div>
-          <div ref={gridRef} className="day-grid-col" style={{ height: HOURS * HOUR_H }} onPointerDown={onSlotPointerDown}>
-            {Array.from({ length: HOURS }, function(_, h) {
-              return (
-                <div key={h} className="day-hour-slot" style={{
-                  position: "absolute", top: h * HOUR_H, left: 0, right: 0, height: HOUR_H,
-                  borderTop: h === 0 ? "none" : "1px solid rgba(255,255,255,0.035)",
-                  boxSizing: "border-box",
-                }} />
-              );
-            })}
-            {nowLine && (
-              <div className="day-now-line" style={{ top: nowLine.top }}>
-                <span className="day-now-dot" />
+        ) : null}
+        {laid.map(function(seg) {
+          var ev = seg.ev;
+          var c = ev.color || ACCENT;
+          var top = (seg.start / 60) * HOUR_H;
+          var h = Math.max(28, (seg.dur / 60) * HOUR_H - 2);
+          var w = 100 / Math.max(1, seg.cols);
+          var isEdit = props.editId === ev.id;
+          return (
+            <div key={ev.id} className={"ch-ev" + (isEdit ? " is-edit" : "")} style={{
+              "--ec": c, top: top, height: h,
+              left: (seg.col / seg.cols * 100) + "%",
+              width: "calc(" + w + "% - 4px)",
+            }} onPointerDown={function(e) { onEvPointerDown(e, ev); }}>
+              <span className="ch-ev-bar" />
+              <div className="ch-ev-body">
+                <p className="ch-ev-time">{ev.time} · {durationLabel(seg.dur)}</p>
+                <p className="ch-ev-title">{ev.title || "Sem título"}</p>
               </div>
-            )}
-            {timedSegments.map(function(seg) {
-              var ev = seg.ev;
-              var top = (seg.segmentStart / 60) * HOUR_H;
-              var h = (seg.segmentDuration / 60) * HOUR_H - 2;
-              var c = ev.color || ACCENT;
-              var cols = Math.max(1, seg.columns || 1);
-              var col = Math.min(cols - 1, seg.column || 0);
-              var blockH = Math.max(h, 22);
-              var compact = blockH < 34;
-              var isEditing = props.highlightEventId === ev.id;
-              return (
-                <div key={ev.id}
-                  title={eventTooltip(ev)}
-                  className={"day-event-block" + (isEditing ? " is-editing" : "")}
-                  onPointerDown={function(e) { onBlockPointerDown(e, ev); }}
-                  style={Object.assign({
-                    position: "absolute",
-                    left: "calc(" + (col / cols * 100) + "% + 4px)",
-                    width: "calc(" + (100 / cols) + "% - 8px)",
-                    top: top + 1, height: blockH,
-                    borderRadius: 8,
-                    padding: compact ? "3px 6px" : "5px 8px", overflow: "hidden", cursor: "pointer",
-                    zIndex: 10,
-                    touchAction: "manipulation", userSelect: "none",
-                    display: "flex", flexDirection: "column", justifyContent: compact ? "center" : "flex-start", minWidth: 0,
-                  }, eventBlockGlassStyle(c))}>
-                  {!compact && (
-                    <p style={{ margin: 0, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {ev.time}-{eventEndTime(ev)} · {durationLabel(seg.segmentDuration)}
-                    </p>
-                  )}
-                  <EventTitleLine title={ev.title} style={{ margin: compact ? 0 : "2px 0 0", fontSize: compact ? 10 : 11, color: "#fff", fontWeight: 500, flex: 1, minHeight: 0 }} />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function AgendaView(props) {
-  var groups = useMemo(function() {
-    return props.weekDays.map(function(k) {
-      var list = sortEvents(props.events[k] || []);
-      var p = parseKey(k);
-      var label = new Date(p.y, p.m, p.d).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "short" });
-      return { key: k, label: label, isToday: k === props.todayKey, isSel: k === props.selected, events: list };
-    });
-  }, [props.weekDays, props.events, props.todayKey, props.selected]);
-
-  var total = groups.reduce(function(n, g) { return n + g.events.length; }, 0);
-
+function WeekBoard(props) {
   return (
-    <div className="cal-agenda">
-      {total === 0 ? (
-        <p className="cal-agenda-empty">Sem eventos esta semana — desliza para mudar de semana</p>
-      ) : groups.map(function(g) {
-        if (!g.events.length) return null;
+    <div className="ch-week">
+      {props.weekDays.map(function(k, i) {
+        var p = parseKey(k);
+        var list = sortEvents(props.events[k] || []);
+        var isOn = k === props.selected;
+        var isToday = k === props.todayKey;
         return (
-          <section key={g.key} className={"cal-agenda-day" + (g.isSel ? " is-sel" : "")}>
-            <button type="button" className="cal-agenda-day-head ui-tap" onClick={function() { props.onSelectDay(g.key); }}>
-              <span>{g.label}</span>
-              {g.isToday ? <span className="cal-agenda-today">Hoje</span> : null}
-              <span>{g.events.length}</span>
-            </button>
-            <ul className="cal-agenda-list">
-              {g.events.map(function(ev) {
+          <div key={k} className={"ch-week-col" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+            onClick={function() { props.onSelectDay(k); }}>
+            <div className="ch-week-head">
+              <p className="ch-week-dow">{WEEKDAYS[i]}</p>
+              <p className="ch-week-num">{p.d}</p>
+            </div>
+            <div className="ch-week-list">
+              {list.length === 0 ? (
+                <p className="ch-week-empty">—</p>
+              ) : list.slice(0, 8).map(function(ev) {
                 var c = ev.color || ACCENT;
                 return (
-                  <li key={ev.id}>
-                    <button type="button" className="cal-agenda-item ui-tap" onClick={function() { props.onSelectDay(g.key); if (props.onEventClick) props.onEventClick(ev, g.key); }}>
-                      <span className="cal-agenda-time" style={{ color: c }}>{formatEventTime(ev)}</span>
-                      <span className="cal-agenda-title">{ev.title || "Sem título"}</span>
-                    </button>
-                  </li>
+                  <button key={ev.id} type="button" className="ch-week-ev ui-tap" style={{ "--ec": c }}
+                    onClick={function(e) { e.stopPropagation(); props.onSelectDay(k); props.onEventClick(ev, k); }}>
+                    <p className="ch-week-ev-t">{formatEventTime(ev)}</p>
+                    <p className="ch-week-ev-n">{ev.title || "·"}</p>
+                  </button>
                 );
               })}
-            </ul>
-          </section>
+              {list.length > 8 ? <p className="ch-week-empty">+{list.length - 8}</p> : null}
+            </div>
+          </div>
         );
       })}
     </div>
   );
 }
 
-function NavBtn(props) {
+function MonthBoard(props) {
+  var cells = useMemo(function() { return monthDayKeys(props.view); }, [props.view]);
   return (
-    <button type="button" onClick={props.onClick} title={props.title} disabled={props.disabled}
-      style={{width:36,height:36,borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:props.disabled?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.5)",fontSize:props.large?18:14,cursor:props.disabled?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s",fontFamily:"inherit",opacity:props.disabled?0.5:1}}
-      onMouseEnter={function(e){if(props.disabled)return;e.currentTarget.style.borderColor=ACCENT+"50";e.currentTarget.style.color=ACCENT;}}
-      onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(255,255,255,0.08)";e.currentTarget.style.color=props.disabled?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.5)";}}>
-      {props.children}
-    </button>
-  );
-}
-
-function ModePill(props) {
-  var on = props.active;
-  return (
-    <button type="button" onClick={props.onClick}
-      style={{padding:"7px 12px",borderRadius:10,border:"1px solid "+(on?ACCENT+"45":"rgba(255,255,255,0.08)"),background:on?ACCENT+"14":"transparent",color:on?ACCENT:"rgba(255,255,255,0.45)",fontSize:11,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer",letterSpacing:0.3}}>
-      {props.label}
-    </button>
-  );
-}
-
-function EventCard(props) {
-  var ev = props.ev, c = ev.color || ACCENT;
-  return (
-    <li style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 12px",borderRadius:12,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)"}}>
-      <span style={{width:4,alignSelf:"stretch",borderRadius:4,background:c,flexShrink:0}}/>
-      <div style={{flex:1,minWidth:0}}>
-        <p style={{margin:0,fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:c}}>{formatEventTime(ev)}</p>
-        <p title={ev.title || ""} style={{margin:"4px 0 0",fontSize:13,color:"rgba(255,255,255,0.85)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.title}</p>
-        {ev.notes && <p style={{margin:"6px 0 0",fontSize:11,color:"rgba(255,255,255,0.35)",lineHeight:1.5,whiteSpace:"pre-wrap"}}>{ev.notes}</p>}
-      </div>
-      {!props.readOnly && (
-        <div style={{display:"flex",gap:4,flexShrink:0}}>
-          <button type="button" onClick={function(){props.onEdit(ev);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",cursor:"pointer",fontSize:12,padding:4}} title="Editar">✎</button>
-          <button type="button" onClick={function(){props.onDelete(ev.id);}} style={{background:"none",border:"none",color:"rgba(255,255,255,0.25)",cursor:"pointer",fontSize:12,padding:4}} title="Apagar">×</button>
-        </div>
-      )}
-    </li>
-  );
-}
-
-function MiniCalendar(props) {
-  var view = props.view;
-  var selected = props.selected;
-  var todayKey = props.todayKey;
-  var events = props.events;
-  var isMobile = props.isMobile;
-
-  var grid = useMemo(function() {
-    var first = new Date(view.y, view.m, 1);
-    var start = (first.getDay() + 6) % 7;
-    var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
-    var cells = [];
-    var prevDays = new Date(view.y, view.m, 0).getDate();
-    for (var i = start - 1; i >= 0; i--) {
-      cells.push({ d: prevDays - i, m: view.m - 1, y: view.m === 0 ? view.y - 1 : view.y, outside: true });
-    }
-    for (var d = 1; d <= daysInMonth; d++) {
-      cells.push({ d: d, m: view.m, y: view.y, outside: false });
-    }
-    while (cells.length % 7 !== 0 || cells.length < 42) {
-      var n = cells.length - start - daysInMonth + 1;
-      cells.push({ d: n, m: view.m + 1, y: view.m === 11 ? view.y + 1 : view.y, outside: true });
-    }
-    return cells;
-  }, [view.y, view.m]);
-
-  var monthLabel = new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
-
-  return (
-    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: isMobile ? 16 : 14, padding: "14px 12px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 8 }}>
-        <p style={{ margin: 0, fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.75)", textTransform: "capitalize", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{monthLabel}</p>
-        <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-          <NavBtn onClick={props.onPrevMonth} title="Mês anterior">‹</NavBtn>
-          <NavBtn onClick={props.onNextMonth} title="Mês seguinte">›</NavBtn>
-        </div>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 4 }}>
+    <div className="ch-month">
+      <div className="ch-month-grid">
         {WEEKDAYS.map(function(w) {
-          return <div key={w} style={{ textAlign: "center", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.25)", padding: "2px 0" }}>{w.slice(0, 1)}</div>;
+          return <div key={w} className="ch-month-wd">{w.slice(0, 1)}</div>;
         })}
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2 }}>
-        {grid.map(function(cell, i) {
-          var k = dateKey(cell.y, cell.m, cell.d);
-          var isSel = k === selected;
-          var isToday = k === todayKey;
-          var outside = cell.outside;
-          var hasEv = (events[k] || []).length > 0;
+        {cells.map(function(cell, i) {
+          var k = cell.key;
+          var evs = props.events[k] || [];
+          var isOn = k === props.selected;
+          var isToday = k === props.todayKey;
           return (
-            <button type="button" key={k + i} onClick={function() { props.onSelectDay(k, cell); }}
-              style={{
-                aspectRatio: "1",
-                minHeight: isMobile ? 36 : 28,
-                borderRadius: 8,
-                border: isSel ? "1px solid " + ACCENT : "1px solid transparent",
-                background: isSel ? ACCENT + "18" : isToday ? ACCENT + "0A" : "transparent",
-                color: outside ? "rgba(255,255,255,0.15)" : isSel ? ACCENT : isToday ? ACCENT : "rgba(255,255,255,0.65)",
-                cursor: "pointer",
-                fontFamily: "'JetBrains Mono',monospace",
-                fontSize: isMobile ? 12 : 10,
-                fontWeight: isToday ? 600 : 400,
-                padding: 0,
-                position: "relative",
-              }}>
-              {cell.d}
-              {hasEv && !outside && (
-                <span style={{ position: "absolute", bottom: 3, left: "50%", transform: "translateX(-50%)", width: 4, height: 4, borderRadius: "50%", background: ACCENT, opacity: isSel ? 1 : 0.5 }} />
-              )}
+            <button key={k + i} type="button"
+              className={"ch-month-cell" + (cell.outside ? " is-out" : "") + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+              onClick={function() { props.onSelectDay(k, cell); }}>
+              <span className="ch-month-n">{cell.d}</span>
+              {evs.length > 0 ? (
+                <span className="ch-month-bars">
+                  {evs.slice(0, 4).map(function(ev, j) {
+                    return <span key={j} className="ch-month-bar" style={{ "--ec": ev.color || ACCENT, height: (4 + j * 3) + "px" }} />;
+                  })}
+                </span>
+              ) : null}
             </button>
           );
         })}
@@ -993,477 +430,296 @@ function MiniCalendar(props) {
   );
 }
 
-function ColorDots(props) {
-  var labels = ["Neon", "Roxo", "Rosa", "Âmbar", "Azul", "Laranja"];
+function MonthRail(props) {
+  var cells = useMemo(function() { return monthDayKeys(props.view); }, [props.view]);
+  var railRef = useRef(null);
+  useEffect(function() {
+    var el = railRef.current;
+    if (!el) return;
+    var btn = el.querySelector("[data-sel='1']");
+    if (btn && btn.scrollIntoView) btn.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [props.selected, props.view]);
   return (
-    <div className="cal-color-dots" role="radiogroup" aria-label="Cor do evento">
-      {COLORS.map(function(c, i) {
-        var on = props.value === c;
+    <div ref={railRef} className="ch-rail" role="tablist">
+      {cells.filter(function(c) { return !c.outside; }).map(function(cell) {
+        var k = cell.key;
+        var hasEv = (props.events[k] || []).length > 0;
+        var isOn = k === props.selected;
+        var isToday = k === props.todayKey;
+        var dow = WEEKDAYS[(new Date(cell.y, cell.m, cell.d).getDay() + 6) % 7];
         return (
-          <button
-            type="button"
-            key={c}
-            role="radio"
-            aria-checked={on}
-            aria-label={labels[i] || c}
-            title={labels[i] || c}
-            onClick={function() { props.onChange(c); }}
-            className={"cal-color-dot" + (on ? " is-on" : "")}
-            style={{ background: c, boxShadow: on ? "0 0 0 2px #0A0A0B, 0 0 0 4px " + c : "none" }}
-          />
+          <button key={k} type="button" role="tab" aria-selected={isOn} data-sel={isOn ? "1" : "0"}
+            className={"ch-rail-day ui-tap" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "") + (hasEv ? " has-ev" : "")}
+            onClick={function() { props.onSelectDay(k, cell); }}>
+            <span className="ch-rail-dow">{dow}</span>
+            <span className="ch-rail-n">{cell.d}</span>
+            <span className="ch-rail-dot" />
+          </button>
         );
       })}
     </div>
   );
 }
 
-function EventPopup(props) {
+function EventSheet(props) {
+  if (!props.open) return null;
   var p = props;
-  var ev = p.event;
-  var tS = useState(ev.title || "");
-  var title = tS[0], setTitle = tS[1];
-  var adS = useState(!!ev.allDay);
-  var allDay = adS[0], setAllDay = adS[1];
-  var timeS = useState(ev.time || "09:00");
-  var time = timeS[0], setTime = timeS[1];
-  var endS = useState(minToTime(timeToMin(ev.time || "09:00") + evDuration(ev)));
-  var endTime = endS[0], setEndTime = endS[1];
-  var cS = useState(ev.color || ACCENT);
-  var color = cS[0], setColor = cS[1];
-  var nS = useState(ev.notes || "");
-  var notes = nS[0], setNotes = nS[1];
-  var repS = useState([false, false, false, false, false, false, false]);
-  var repeatDays = repS[0], setRepeatDays = repS[1];
-
-  var parsed = parseKey(p.dayKey);
-  var baseDow = (new Date(parsed.y, parsed.m, parsed.d).getDay() + 6) % 7;
-  var isEdit = !!p.isEdit;
-
-  function toggleRepeat(i) {
-    setRepeatDays(function(prev) {
-      var next = prev.slice();
-      next[i] = !next[i];
-      return next;
-    });
-  }
-
-  function save() {
-    if (!title.trim()) return;
-    p.onSave(p.dayKey, {
-      id: ev.id,
-      title: title.trim(),
-      color: color,
-      allDay: allDay,
-      time: allDay ? null : time,
-      notes: notes.trim(),
-      duration: allDay ? null : durationFromTimes(time, endTime),
-    }, repeatDays);
-  }
-
-  var inputStyle = {
-    width: "100%",
-    background: "rgba(0,0,0,0.25)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 10,
-    color: "#fff",
-    padding: "10px 12px",
-    fontSize: 13,
-    outline: "none",
-    fontFamily: "inherit",
-    boxSizing: "border-box",
-  };
-  var timeStyle = Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: color });
+  var ev = p.draft;
+  var baseDow = (new Date(parseKey(p.dayKey).y, parseKey(p.dayKey).m, parseKey(p.dayKey).d).getDay() + 6) % 7;
 
   return (
-    <div className="cal-event-popup-overlay" onClick={p.onClose}>
-      <div className="cal-event-popup-panel" onClick={function(e) { e.stopPropagation(); }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, gap: 10 }}>
-          <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: color, letterSpacing: 1, textTransform: "uppercase" }}>
-            {isEdit ? "Editar evento" : "Novo evento"}
-          </p>
-          <button type="button" onClick={p.onClose} aria-label="Fechar"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.45)", width: 34, height: 34, cursor: "pointer", fontSize: 18, lineHeight: 1, flexShrink: 0 }}>
-            ×
-          </button>
+    <div className={"ch-sheet-bg" + (p.isMobile ? "" : " ch-sheet-bg--desk")} onClick={p.onClose}>
+      <div className={"ch-sheet" + (p.isMobile ? "" : " ch-sheet--desk")} onClick={function(e) { e.stopPropagation(); }}>
+        <p className="ch-sheet-lbl">{p.isEdit ? "Editar evento" : "Novo evento"}</p>
+        <div className="ch-field">
+          <input className="ch-in ui-in" value={ev.title} onChange={function(e) { p.setDraft(Object.assign({}, ev, { title: e.target.value })); }}
+            placeholder="Título" autoFocus onKeyDown={function(e) { if (e.key === "Enter") p.onSave(); if (e.key === "Escape") p.onClose(); }} />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <input value={title} onChange={function(e) { setTitle(e.target.value); }} placeholder="Título do evento"
-            autoFocus
-            onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) save(); if (e.key === "Escape") p.onClose(); }}
-            style={inputStyle} />
-          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
-            <input type="checkbox" checked={allDay} onChange={function(e) { setAllDay(e.target.checked); }} style={{ accentColor: color }} />
-            Dia todo
-          </label>
-          {!allDay && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              <div>
-                <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>INÍCIO</label>
-                <input type="time" value={time} onChange={function(e) { setTime(e.target.value); }} style={timeStyle} />
-              </div>
-              <div>
-                <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>FIM</label>
-                <input type="time" value={endTime} onChange={function(e) { setEndTime(e.target.value); }} style={Object.assign({}, timeStyle, { color: "#fff" })} />
-              </div>
-              <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>
-                {durationLabel(durationFromTimes(time, endTime))}
-              </p>
+        <div className="ch-field">
+          <label className="ch-lbl">Data</label>
+          <input type="date" className="ch-in ui-in" value={p.dayKey}
+            onChange={function(e) { if (e.target.value) p.onDayChange(e.target.value); }} />
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#A0A0A8", marginBottom: 16, cursor: "pointer" }}>
+          <input type="checkbox" checked={ev.allDay} onChange={function(e) { p.setDraft(Object.assign({}, ev, { allDay: e.target.checked })); }} />
+          Dia todo
+        </label>
+        {!ev.allDay ? (
+          <div className="ch-row2 ch-field">
+            <div>
+              <label className="ch-lbl">Início</label>
+              <input type="time" className="ch-in ui-in" value={ev.time || "09:00"}
+                onChange={function(e) { p.setDraft(Object.assign({}, ev, { time: e.target.value })); }} />
             </div>
-          )}
-          <div>
-            <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 6, letterSpacing: 0.5 }}>NOTAS</label>
-            <textarea value={notes} onChange={function(e) { setNotes(e.target.value); }} placeholder="Nota sobre o evento…" rows={3}
-              style={Object.assign({}, inputStyle, { resize: "vertical", minHeight: 72, lineHeight: 1.5 })} />
-          </div>
-          <div>
-            <label style={{ display: "block", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 8, letterSpacing: 0.5 }}>COR</label>
-            <ColorDots value={color} onChange={setColor} />
-          </div>
-          <div>
-            <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
-            <div style={{ display: "flex", gap: 4 }}>
-              {WEEKDAYS.map(function(w, i) {
-                var isBase = i === baseDow;
-                var on = repeatDays[i];
-                return (
-                  <button type="button" key={w} onClick={function() { if (!isBase) toggleRepeat(i); }} disabled={isBase} title={isBase ? "Dia base" : "Copiar para " + w}
-                    style={{
-                      flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
-                      border: "1px solid " + (isBase ? color + "60" : on ? color + "40" : "rgba(255,255,255,0.08)"),
-                      background: isBase ? color + "20" : on ? color + "12" : "transparent",
-                      color: isBase ? color : on ? color : "rgba(255,255,255,0.35)",
-                      cursor: isBase ? "default" : "pointer",
-                    }}>{w.slice(0, 1)}</button>
-                );
-              })}
+            <div>
+              <label className="ch-lbl">Fim</label>
+              <input type="time" className="ch-in ui-in" value={ev.endTime || "10:00"}
+                onChange={function(e) { p.setDraft(Object.assign({}, ev, { endTime: e.target.value })); }} />
             </div>
           </div>
+        ) : null}
+        <div className="ch-field">
+          <label className="ch-lbl">Notas</label>
+          <textarea className="ch-in ui-in" rows={3} value={ev.notes || ""} placeholder="Opcional…"
+            onChange={function(e) { p.setDraft(Object.assign({}, ev, { notes: e.target.value })); }}
+            style={{ resize: "vertical", lineHeight: 1.55 }} />
         </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button type="button" onClick={save}
-            style={{ flex: 1, background: color + "22", border: "1px solid " + color + "55", borderRadius: 10, color: color, padding: "11px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, fontWeight: 600 }}>
-            {isEdit ? "Guardar" : "Adicionar"}
-          </button>
-          {isEdit && p.onDelete && (
-            <button type="button" onClick={function() { p.onDelete(ev.id); }}
-              style={{ background: "rgba(192,140,140,0.08)", border: "1px solid rgba(192,140,140,0.25)", borderRadius: 10, color: "#C08C8C", padding: "11px 14px", cursor: "pointer", fontSize: 12 }}>
-              Apagar
-            </button>
-          )}
-          {!isEdit && (
-            <button type="button" onClick={p.onClose}
-              style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, color: "rgba(255,255,255,0.4)", padding: "11px 14px", cursor: "pointer", fontSize: 12 }}>
-              Cancelar
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SidebarForm(props) {
-  var p = props;
-  var inputStyle = {
-    width: "100%",
-    background: "rgba(0,0,0,0.25)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 10,
-    color: "#fff",
-    padding: p.isMobile ? "12px" : "10px 12px",
-    fontSize: p.isMobile ? 16 : 13,
-    outline: "none",
-    fontFamily: "inherit",
-    boxSizing: "border-box",
-  };
-  var timeStyle = Object.assign({}, inputStyle, { fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: ACCENT });
-
-  return (
-    <div className={"cal-sidebar-form-wrap" + (p.isMobile ? "" : " cal-sidebar-compact")} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: p.isMobile ? 16 : 10, padding: p.isMobile ? "14px 12px" : "10px 8px", display: "flex", flexDirection: "column", gap: p.isMobile ? 10 : 6 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-        <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, textTransform: "uppercase" }}>
-          {p.editId ? "Editar evento" : "Novo evento"}
-        </p>
-        {p.isMobile && (
-          <button type="button" onClick={p.onClose} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "rgba(255,255,255,0.45)", padding: "5px 10px", cursor: "pointer", fontSize: 11 }}>Fechar</button>
-        )}
-      </div>
-
-      <input value={p.title} onChange={function(e) { p.setTitle(e.target.value); }} placeholder="Título do evento / tarefa"
-        onKeyDown={function(e) { if (e.key === "Enter" && !e.shiftKey) p.onSubmit(); }}
-        style={inputStyle} />
-
-      <label style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", letterSpacing: 0.5 }}>DATA</label>
-      <input type="date" value={p.formDate} onChange={function(e) { p.onDateChange(e.target.value); }} style={timeStyle} />
-
-      <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: "rgba(255,255,255,0.55)", cursor: "pointer" }}>
-        <input type="checkbox" checked={p.allDay} onChange={function(e) { p.setAllDay(e.target.checked); }} style={{ accentColor: p.color }} />
-        Dia todo
-      </label>
-
-      {!p.allDay && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>INÍCIO</label>
-            <input type="time" value={p.time} onChange={function(e) { p.setTime(e.target.value); p.setEndTime(addMinutes(e.target.value, p.duration)); }} style={timeStyle} />
+        <div className="ch-field">
+          <label className="ch-lbl">Cor</label>
+          <div className="ch-colors">
+            {COLORS.map(function(c) {
+              return (
+                <button key={c} type="button" className={"ch-color ui-tap" + (ev.color === c ? " is-on" : "")}
+                  style={{ background: c }} onClick={function() { p.setDraft(Object.assign({}, ev, { color: c })); }} aria-label="Cor" />
+              );
+            })}
           </div>
-          <div>
-            <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>FIM</label>
-            <input type="time" value={p.endTime} onChange={function(e) { p.setEndTime(e.target.value); p.setDuration(durationFromTimes(p.time, e.target.value)); }} style={Object.assign({}, timeStyle, { color: "#fff" })} />
+        </div>
+        <div className="ch-field">
+          <label className="ch-lbl">Repetir na semana</label>
+          <div className="ch-rep">
+            {WEEKDAYS.map(function(w, i) {
+              var isBase = i === baseDow;
+              var on = p.repeatDays[i];
+              return (
+                <button key={w} type="button" disabled={isBase}
+                  className={"ch-rep-btn ui-tap" + (isBase ? " is-base" : on ? " is-on" : "")}
+                  style={{ "--rc": ev.color || ACCENT }}
+                  onClick={function() { p.toggleRepeat(i); }}>{w.slice(0, 1)}</button>
+              );
+            })}
           </div>
-          <p style={{ gridColumn: "1 / -1", margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>Duração: {durationLabel(durationFromTimes(p.time, p.endTime))}</p>
         </div>
-      )}
-
-      <div>
-        <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 6, letterSpacing: 0.5 }}>NOTAS</label>
-        <textarea value={p.notes} onChange={function(e) { p.setNotes(e.target.value); }} placeholder="Nota sobre o evento…" rows={3}
-          style={Object.assign({}, inputStyle, { resize: "vertical", minHeight: 72, lineHeight: 1.5 })} />
-      </div>
-
-      <div>
-        <label style={{ display: "block", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.35)", marginBottom: 8, letterSpacing: 0.5 }}>COR</label>
-        <ColorDots value={p.color} onChange={p.setColor} />
-      </div>
-
-      <div>
-        <p style={{ margin: "0 0 6px", fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: "rgba(255,255,255,0.3)" }}>REPETIR NESTA SEMANA</p>
-        <div style={{ display: "flex", gap: 4 }}>
-          {WEEKDAYS.map(function(w, i) {
-            var isSelDay = i === p.selectedDow;
-            var on = p.repeatDays[i];
-            return (
-              <button type="button" key={w} onClick={function() { if (!isSelDay) p.toggleRepeat(i); }} disabled={isSelDay} title={isSelDay ? "Dia base" : "Copiar para " + w}
-                style={{
-                  flex: 1, padding: "6px 0", borderRadius: 6, fontSize: 9, fontFamily: "'JetBrains Mono',monospace",
-                  border: "1px solid " + (isSelDay ? p.color + "60" : on ? p.color + "40" : "rgba(255,255,255,0.08)"),
-                  background: isSelDay ? p.color + "20" : on ? p.color + "12" : "transparent",
-                  color: isSelDay ? p.color : on ? p.color : "rgba(255,255,255,0.35)",
-                  cursor: isSelDay ? "default" : "pointer",
-                }}>{w.slice(0, 1)}</button>
-            );
-          })}
+        <div className="ch-sheet-actions">
+          <button type="button" className="ch-save ui-tap" onClick={p.onSave}>{p.isEdit ? "Guardar" : "Criar"}</button>
+          {p.isEdit ? <button type="button" className="ch-del ui-tap" onClick={p.onDelete}>Apagar</button> : null}
+          <button type="button" className="ch-cancel ui-tap" onClick={p.onClose}>Cancelar</button>
         </div>
       </div>
-
-      <button type="button" onClick={p.onSubmit}
-        style={{ width: "100%", background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 10, color: "#EDEDEF", fontSize: 12, padding: "12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, marginTop: 4 }}>
-        {p.editId ? "Guardar alterações" : "Adicionar evento"}
-      </button>
-
-      {p.editId && (
-        <div style={{ display: "flex", gap: 8 }}>
-          <button type="button" onClick={p.onCancelEdit} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, color: "rgba(255,255,255,0.4)", fontSize: 11, padding: "8px", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
-          <button type="button" onClick={function() { p.onDelete(p.editId); }} style={{ background: "rgba(192,140,140,0.08)", border: "1px solid rgba(192,140,140,0.25)", borderRadius: 8, color: "#C08C8C", fontSize: 11, padding: "8px 12px", cursor: "pointer" }}>Apagar</button>
-        </div>
-      )}
     </div>
   );
 }
 
 export default function Calendar() {
   var navigate = useNavigate();
-  var vwS = useState(window.innerWidth);
-  var viewportW = vwS[0], setViewportW = vwS[1];
-  var isMobile = viewportW < 720;
+  var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  var isMobile = vwS[0] < 720;
   var today = useMemo(function() { return new Date(); }, []);
   var todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
-  var vS = useState({ y: today.getFullYear(), m: today.getMonth() });
-  var view = vS[0], setView = vS[1];
+  var viewS = useState({ y: today.getFullYear(), m: today.getMonth() });
+  var view = viewS[0], setView = viewS[1];
   var selS = useState(todayKey);
   var selected = selS[0], setSelected = selS[1];
   var evS = useState({});
   var events = evS[0], setEvents = evS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
-
-  var readOnly = false;
-  var sideS = useState(!isMobile);
-  var sidebarOpen = sideS[0], setSidebarOpen = sideS[1];
-  var layoutS = useState(isMobile ? "day" : "week");
-  var calLayout = layoutS[0], setCalLayout = layoutS[1];
+  var modeS = useState("line");
+  var mode = modeS[0], setMode = modeS[1];
   var navDirS = useState(0);
   var navDir = navDirS[0], setNavDir = navDirS[1];
   var scrollNowS = useState(0);
-  var scrollNowToken = scrollNowS[0], bumpScrollNow = scrollNowS[1];
-  var gridStageRef = useRef(null);
-
-  var titleS = useState(""); var title = titleS[0], setTitle = titleS[1];
-  var timeS = useState("09:00"); var time = timeS[0], setTime = timeS[1];
-  var allDayS = useState(false); var allDay = allDayS[0], setAllDay = allDayS[1];
-  var notesS = useState(""); var notes = notesS[0], setNotes = notesS[1];
-  var colorS = useState(ACCENT); var color = colorS[0], setColor = colorS[1];
-  var editIdS = useState(null); var editId = editIdS[0], setEditId = editIdS[1];
+  var scrollNow = scrollNowS[0], bumpScrollNow = scrollNowS[1];
+  var sheetS = useState(null);
+  var sheet = sheetS[0], setSheet = sheetS[1];
   var repS = useState([false, false, false, false, false, false, false]);
   var repeatDays = repS[0], setRepeatDays = repS[1];
-  var durS = useState(60);
-  var duration = durS[0], setDuration = durS[1];
-  var endS = useState("10:00");
-  var endTime = endS[0], setEndTime = endS[1];
-  var popS = useState(null);
-  var popup = popS[0], setPopup = popS[1];
-  var pageRef = useRef(null);
-  var fsS = useState(false);
-  var isFullscreen = fsS[0], setIsFullscreen = fsS[1];
+  var stageRef = useRef(null);
 
-  function toggleFullscreen() {
-    var el = pageRef.current;
-    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    if (!fsEl) {
-      if (el && el.requestFullscreen) el.requestFullscreen().catch(function() {});
-      else if (el && el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen().catch(function() {});
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-  }
+  var weekDays = useMemo(function() { return weekKeys(selected); }, [selected]);
+  var selParsed = parseKey(selected);
+  var dayDate = new Date(selParsed.y, selParsed.m, selParsed.d);
 
   useEffect(function() {
-    function onFsChange() {
-      setIsFullscreen(!!(document.fullscreenElement || document.webkitFullscreenElement));
-    }
-    document.addEventListener("fullscreenchange", onFsChange);
-    document.addEventListener("webkitfullscreenchange", onFsChange);
-    return function() {
-      document.removeEventListener("fullscreenchange", onFsChange);
-      document.removeEventListener("webkitfullscreenchange", onFsChange);
-    };
-  }, []);
-
-  var refreshCalendar = useCallback(function() {
-    return calendarStore.loadEvents().then(function(data) {
-      setEvents(data);
-      setLoaded(true);
-    });
+    calendarStore.loadEvents().then(function(data) { setEvents(data); setLoaded(true); });
   }, []);
 
   useEffect(function() {
-    refreshCalendar();
-  }, []);
-
-  useEffect(function() {
-    function onResize() { setViewportW(window.innerWidth); }
+    function onResize() { vwS[1](window.innerWidth); }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
-
-  useEffect(function() {
-    if (isMobile) setSidebarOpen(false);
-  }, [isMobile]);
 
   useEffect(function() {
     if (!loaded) return;
     calendarStore.saveEvents(events);
   }, [events, loaded]);
 
-  useEffect(function() {
-    if (!loaded) return;
-    function shouldRefresh() {
-      return !sidebarOpen || !isMobile;
-    }
-    function onVisible() {
-      if (document.visibilityState === "visible" && shouldRefresh()) refreshCalendar();
-    }
-    function onFocus() {
-      if (shouldRefresh()) refreshCalendar();
-    }
-    var timer = setInterval(function() {
-      if (document.visibilityState === "visible" && shouldRefresh()) refreshCalendar();
-    }, 15000);
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
-    return function() {
-      clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [loaded, sidebarOpen, isMobile, refreshCalendar]);
-
-  var weekDays = useMemo(function() { return weekKeys(selected); }, [selected]);
-
-  var weekLabel = useMemo(function() {
-    var a = parseKey(weekDays[0]), b = parseKey(weekDays[6]);
-    var da = new Date(a.y, a.m, a.d), db = new Date(b.y, b.m, b.d);
-    if (a.m === b.m) return da.getDate() + " – " + db.getDate() + " " + da.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
-    return da.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }) + " – " + db.toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" });
-  }, [weekDays]);
-
-  function shiftWeek(delta) {
-    setNavDir(delta > 0 ? 1 : -1);
-    var p = parseKey(selected);
-    var d = new Date(p.y, p.m, p.d + delta * 7);
-    var k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-    setSelected(k);
-    setView({ y: d.getFullYear(), m: d.getMonth() });
-  }
   function shiftDay(delta) {
     setNavDir(delta > 0 ? 1 : -1);
     var p = parseKey(selected);
     var d = new Date(p.y, p.m, p.d + delta);
-    var k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-    setSelected(k);
+    setSelected(dateKey(d.getFullYear(), d.getMonth(), d.getDate()));
     setView({ y: d.getFullYear(), m: d.getMonth() });
   }
-  function jumpToNow() {
-    bumpScrollNow(function(n) { return n + 1; });
-    if (selected !== todayKey) {
-      setNavDir(0);
-      setSelected(todayKey);
-      setView({ y: today.getFullYear(), m: today.getMonth() });
-    }
+
+  function goToday() {
+    setNavDir(0);
+    setSelected(todayKey);
+    setView({ y: today.getFullYear(), m: today.getMonth() });
   }
 
-  var onSwipePrev = useCallback(function() {
-    if (calLayout === "week") shiftWeek(-1);
-    else shiftDay(-1);
-  }, [calLayout, selected]);
-  var onSwipeNext = useCallback(function() {
-    if (calLayout === "week") shiftWeek(1);
-    else shiftDay(1);
-  }, [calLayout, selected]);
+  function jumpNow() {
+    bumpScrollNow(function(n) { return n + 1; });
+    if (selected !== todayKey) goToday();
+  }
+
+  var onSwipePrev = useCallback(function() { shiftDay(-1); }, [selected]);
+  var onSwipeNext = useCallback(function() { shiftDay(1); }, [selected]);
 
   useEffect(function() {
-    var el = gridStageRef.current;
+    var el = stageRef.current;
     if (!el) return;
-    return attachSwipe(el, { onSwipeLeft: onSwipeNext, onSwipeRight: onSwipePrev }, {
-      filter: function(e) {
-        var t = e.target;
-        if (!t || !t.closest) return true;
-        return !t.closest(".week-event-block") && !t.closest(".day-event-block") && !t.closest(".cal-agenda-item") && !t.closest("button");
-      },
-    });
+    return attachSwipe(el, { onSwipeLeft: onSwipeNext, onSwipeRight: onSwipePrev });
   }, [onSwipePrev, onSwipeNext]);
 
   useEffect(function() {
     function onKey(e) {
-      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
+      if (sheet) return;
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
       if (e.key === "ArrowLeft") { e.preventDefault(); onSwipePrev(); }
       else if (e.key === "ArrowRight") { e.preventDefault(); onSwipeNext(); }
       else if (e.key === "t" || e.key === "T") { e.preventDefault(); goToday(); }
-      else if (e.key === "n" || e.key === "N") { e.preventDefault(); jumpToNow(); }
+      else if (e.key === "n" || e.key === "N") { e.preventDefault(); jumpNow(); }
+      else if (e.key === "c" || e.key === "C") { e.preventDefault(); openCreate(); }
     }
     window.addEventListener("keydown", onKey);
     return function() { window.removeEventListener("keydown", onKey); };
-  }, [onSwipePrev, onSwipeNext]);
+  }, [sheet, onSwipePrev, onSwipeNext, selected]);
+
+  function selectDay(k, cell) {
+    setSelected(k);
+    if (cell && cell.outside) setView({ y: cell.y, m: cell.m });
+    else {
+      var p = parseKey(k);
+      setView({ y: p.y, m: p.m });
+    }
+    if (mode === "month") setMode("line");
+  }
+
   function prevMonth() {
     setView(function(v) { return v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 }; });
   }
   function nextMonth() {
     setView(function(v) { return v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 }; });
   }
-  function goToday() {
-    setView({ y: today.getFullYear(), m: today.getMonth() });
-    setSelected(todayKey);
+
+  function openCreate(slotMin) {
+    var t = slotMin != null ? minToTime(slotMin) : "09:00";
+    setRepeatDays([false, false, false, false, false, false, false]);
+    setSheet({
+      isEdit: false,
+      dayKey: selected,
+      draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, time: t, endTime: addMinutes(t, 60) },
+    });
   }
 
-  var resetForm = useCallback(function() {
-    setTitle(""); setTime("09:00"); setEndTime("10:00"); setAllDay(false); setNotes(""); setColor(ACCENT); setEditId(null); setDuration(60);
+  function openEdit(ev, dayKey) {
+    setSelected(dayKey);
+    var p = parseKey(dayKey);
+    setView({ y: p.y, m: p.m });
     setRepeatDays([false, false, false, false, false, false, false]);
-  }, []);
+    setSheet({
+      isEdit: true,
+      dayKey: dayKey,
+      draft: {
+        id: ev.id, title: ev.title || "", notes: ev.notes || "", color: ev.color || ACCENT,
+        allDay: !!ev.allDay, time: ev.time || "09:00",
+        endTime: eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev)),
+      },
+    });
+  }
 
-  function moveTimedEvent(id, fromKey, toKey, newTime, dur) {
-    if (readOnly) return;
+  function closeSheet() { setSheet(null); }
+
+  function saveSheet() {
+    if (!sheet || !sheet.draft.title.trim()) return;
+    var item = {
+      id: sheet.draft.id,
+      title: sheet.draft.title.trim(),
+      notes: (sheet.draft.notes || "").trim(),
+      color: sheet.draft.color || ACCENT,
+      allDay: !!sheet.draft.allDay,
+      time: sheet.draft.allDay ? null : sheet.draft.time,
+      duration: sheet.draft.allDay ? null : durationFromTimes(sheet.draft.time, sheet.draft.endTime),
+    };
+    var targets = [sheet.dayKey];
+    weekDays.forEach(function(k, i) {
+      if (repeatDays[i] && k !== sheet.dayKey) targets.push(k);
+    });
+    setEvents(function(prev) {
+      var next = Object.assign({}, prev);
+      if (sheet.isEdit) {
+        Object.keys(next).forEach(function(k) {
+          next[k] = (next[k] || []).filter(function(e) { return e.id !== item.id; });
+          if (!next[k].length) delete next[k];
+        });
+      }
+      targets.forEach(function(k) {
+        var copy = Object.assign({}, item, { id: k === sheet.dayKey ? item.id : uid() });
+        next[k] = sortEvents((next[k] || []).concat([copy]));
+      });
+      return next;
+    });
+    setSelected(sheet.dayKey);
+    closeSheet();
+  }
+
+  function deleteFromSheet() {
+    if (!sheet || !sheet.isEdit) return;
+    var id = sheet.draft.id;
+    var next = Object.assign({}, events);
+    Object.keys(next).forEach(function(k) {
+      next[k] = (next[k] || []).filter(function(e) { return e.id !== id; });
+      if (!next[k].length) delete next[k];
+    });
+    setEvents(next);
+    calendarStore.deleteEventById(next, id).catch(function() {});
+    closeSheet();
+  }
+
+  function moveEvent(id, fromKey, toKey, newTime, dur) {
     setEvents(function(prev) {
       var next = Object.assign({}, prev);
       var ev = null;
@@ -1478,392 +734,114 @@ export default function Calendar() {
       return next;
     });
     setSelected(toKey);
-    var p = parseKey(toKey);
-    setView({ y: p.y, m: p.m });
-    setTime(newTime);
-    setEndTime(addMinutes(newTime, dur));
-    setDuration(dur);
-    setAllDay(false);
   }
 
-  function createRangeEvent(startKey, startMin, endKey, endMin, dur) {
-    if (readOnly) return;
-    var p = parseKey(startKey);
-    var d = Math.max(SNAP_MIN, dur || 60);
-    setEditId(null);
-    setSelected(startKey);
-    setView({ y: p.y, m: p.m });
-    setPopup({
-      dayKey: startKey,
-      isEdit: false,
-      event: {
-        id: uid(),
-        title: "",
-        color: ACCENT,
-        allDay: false,
-        time: minToTime(startMin),
-        notes: "",
-        duration: d,
-      },
-    });
+  function onSlotClick(dayKey, mins) {
+    setSelected(dayKey);
+    openCreate(mins);
   }
 
-  function savePopup(dayKey, item, repeatDaysForPopup) {
-    if (readOnly || !item.title.trim()) return;
-    var targets = [dayKey];
-    weekDays.forEach(function(k, i) {
-      if (repeatDaysForPopup[i] && k !== dayKey) targets.push(k);
-    });
-    var isEdit = popup && popup.isEdit;
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      if (isEdit) {
-        Object.keys(next).forEach(function(k) {
-          next[k] = (next[k] || []).filter(function(e) { return e.id !== item.id; });
-          if (!next[k].length) delete next[k];
-        });
-      }
-      targets.forEach(function(k) {
-        var copy = Object.assign({}, item, { id: k === dayKey ? item.id : uid() });
-        next[k] = sortEvents((next[k] || []).concat([copy]));
-      });
-      return next;
-    });
-    setPopup(null);
-    setEditId(null);
+  if (!loaded) {
+    return (
+      <div className="ch-root">
+        <style>{CHRO_CSS}</style>
+        <PageLoader accent={ACCENT} lines={5} />
+      </div>
+    );
   }
 
-  function closePopup() {
-    setPopup(null);
-    setEditId(null);
-  }
-  function onEventClick(ev, dayKey) {
-    startEdit(ev, dayKey);
-  }
-
-  function onFormDateChange(val) {
-    if (!val) return;
-    setSelected(val);
-    var p = parseKey(val);
-    setView({ y: p.y, m: p.m });
-  }
-
-  function openCreateMenu() {
-    resetForm();
-    setSidebarOpen(true);
-  }
-
-  function onWeekSlotClick(key, minutes) {
-    if (readOnly) return;
-    setSelected(key);
-    var p = parseKey(key);
-    setView({ y: p.y, m: p.m });
-    setAllDay(false);
-    setTime(minToTime(minutes));
-    setEndTime(addMinutes(minToTime(minutes), duration));
-    setEditId(null);
-    setTitle("");
-    if (isMobile) openCreateMenu();
-  }
-
-  function toggleRepeat(i) {
-    if (readOnly) return;
-    setRepeatDays(function(prev) {
-      var n = prev.slice();
-      n[i] = !n[i];
-      return n;
-    });
-  }
-
-  function addOrUpdateEvent() {
-    if (readOnly || !title.trim()) return;
-    var item = {
-      id: editId || uid(),
-      title: title.trim(),
-      color: color,
-      allDay: allDay,
-      time: allDay ? null : time,
-      notes: notes.trim(),
-      duration: allDay ? null : durationFromTimes(time, endTime),
-    };
-    var targets = [selected];
-    weekDays.forEach(function(k, i) {
-      if (repeatDays[i] && k !== selected) targets.push(k);
-    });
-    setEvents(function(prev) {
-      var next = Object.assign({}, prev);
-      if (editId) {
-        Object.keys(next).forEach(function(k) {
-          next[k] = (next[k] || []).filter(function(e) { return e.id !== editId; });
-          if (!next[k].length) delete next[k];
-        });
-        targets.forEach(function(k) {
-          var copy = Object.assign({}, item, { id: k === selected ? editId : uid() });
-          next[k] = sortEvents((next[k] || []).concat([copy]));
-        });
-        return next;
-      }
-      targets.forEach(function(k) {
-        var copy = Object.assign({}, item, { id: k === selected ? item.id : uid() });
-        var list = sortEvents((next[k] || []).concat([copy]));
-        next[k] = list;
-      });
-      return next;
-    });
-    resetForm();
-    if (isMobile) setSidebarOpen(false);
-  }
-
-  function deleteEvent(id) {
-    if (readOnly) return;
-    var next = Object.assign({}, events);
-    var found = false;
-    Object.keys(next).forEach(function(k) {
-      var before = (next[k] || []).length;
-      next[k] = (next[k] || []).filter(function(e) { return e.id !== id; });
-      if (next[k].length !== before) found = true;
-      if (!next[k].length) delete next[k];
-    });
-    if (!found) {
-      next[selected] = (next[selected] || []).filter(function(e) { return e.id !== id; });
-      if (next[selected] && !next[selected].length) delete next[selected];
-    }
-    setEvents(next);
-    calendarStore.deleteEventById(next, id).catch(function() {});
-    if (editId === id) resetForm();
-  }
-
-  function startEdit(ev, dayKey) {
-    if (readOnly) return;
-    var key = dayKey || selected;
-    setSelected(key);
-    var dp = parseKey(key);
-    setView({ y: dp.y, m: dp.m });
-    setEditId(ev.id);
-    if (!isMobile) {
-      setPopup({
-        dayKey: key,
-        isEdit: true,
-        event: Object.assign({}, ev),
-      });
-      return;
-    }
-    setTitle(ev.title);
-    setAllDay(!!ev.allDay);
-    setTime(ev.time || "09:00");
-    setDuration(evDuration(ev));
-    setEndTime(eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev)));
-    setNotes(ev.notes || "");
-    setColor(ev.color || ACCENT);
-    setRepeatDays([false, false, false, false, false, false, false]);
-    setSidebarOpen(true);
-  }
-
-  function selectDay(k, cell) {
-    setSelected(k);
-    if (cell && cell.outside) setView({ y: cell.y, m: cell.m });
-    else {
-      var p = parseKey(k);
-      setView({ y: p.y, m: p.m });
-    }
-    if (!readOnly && !editId) resetForm();
-  }
-
-  var selectedDow = (new Date(parseKey(selected).y, parseKey(selected).m, parseKey(selected).d).getDay() + 6) % 7;
-
-  var monthTitle = useMemo(function() {
-    var p = parseKey(selected);
-    return new Date(p.y, p.m, p.d).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
-  }, [selected]);
-
-  var isSelectedToday = selected === todayKey;
+  var stageClass = "ch-stage" + (navDir > 0 ? " ch-stage--left" : navDir < 0 ? " ch-stage--right" : "");
 
   return (
-    <div ref={pageRef} className={"cal-page" + (isMobile ? " cal-page--mobile" : "")} data-scrollable style={{ minHeight: "100vh", height: "100vh", background: "#0A0A0B", color: "#EDEDEF", fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <style>{MICRO_CSS + CAL_POLISH + "@keyframes calIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes calSlide{from{transform:translateX(-100%)}to{transform:translateX(0)}}.cal-page{height:100vh;overflow:hidden;display:flex;flex-direction:column}.cal-page:-webkit-full-screen{width:100vw;height:100vh;background:#0A0A0B}.cal-page:fullscreen{width:100vw;height:100vh;background:#0A0A0B}.cal-top-sticky{flex-shrink:0;z-index:30;background:#0A0A0B;border-bottom:1px solid rgba(255,255,255,0.07)}.cal-shell{flex:1;display:flex;min-height:0;min-width:0;animation:calIn .35s ease;overflow:hidden}.cal-sidebar{width:clamp(200px,20vw,240px);flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding:10px 10px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;-webkit-overflow-scrolling:touch}.cal-grid-area{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:10px 14px 14px;overflow:hidden}.cal-grid-panel{flex:1;min-height:0;display:flex;flex-direction:column;background:transparent;border:none;padding:8px 0 12px;overflow:hidden}.cal-grid-scroll{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.week-wrap{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}.week-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;border-radius:10px;border:1px solid rgba(255,255,255,0.04);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.week-header-sticky{position:sticky;top:0;z-index:12;background:#070708;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,0.07)}.week-cols{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));width:100%;align-items:stretch}.week-cols--head{margin-bottom:6px}.week-cols--allday{margin-bottom:8px;min-height:32px}.week-day-head{min-width:0;box-sizing:border-box;padding:6px 2px;border:none;border-bottom:2px solid transparent;border-radius:8px;cursor:pointer;font-family:'JetBrains Mono',monospace;background:transparent;text-align:center}.week-day-head.is-sel{border-bottom-color:#E6E6E9;background:rgba(255,255,255,0.06)}.week-day-head.is-today .week-day-head__num{font-weight:600}.week-day-head__dow{display:block;font-size:9px;opacity:0.5}.week-day-head__num{display:block;font-size:15px}.week-time-gutter{font-size:9px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace;text-align:right;padding-right:8px}.week-time-gutter--label{padding-top:6px}.week-allday-col{min-width:0;padding:2px 4px;display:flex;flex-direction:column;gap:3px;border-left:1px solid rgba(255,255,255,0.04)}.week-time-labels{position:relative}.week-time-label{position:absolute;right:8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.2)}.week-days-track{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}.week-day-col{position:relative;overflow:hidden;min-width:0;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y}.week-day-col.is-sel{background:rgba(255,255,255,0.03)}.week-hour-line{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.week-now-line{position:absolute;left:0;right:0;height:2px;background:#E6E6E9;z-index:5;pointer-events:none}.week-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#E6E6E9;}.week-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0;user-select:none;transition:transform .2s cubic-bezier(0.22,1,0.36,1),filter .2s}.week-event-block:hover{z-index:15;transform:translateY(-1px);filter:brightness(1.08)}.cal-event-hover-tip{position:fixed;z-index:200;max-width:280px;padding:10px 12px;border-radius:10px;background:#141416;border:1px solid rgba(255,255,255,0.1);box-shadow:0 12px 32px rgba(0,0,0,0.5);pointer-events:none}.cal-event-hover-tip__title{margin:0;font-size:12px;font-weight:600;color:#fff;font-family:'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cal-event-hover-tip__time{margin:4px 0 0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8}.cal-event-hover-tip__notes{margin:6px 0 0;font-size:10px;color:rgba(255,255,255,0.45);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.cal-sidebar-compact .cal-sidebar-form-wrap{padding:10px 8px;gap:6px;border-radius:10px}.cal-sidebar-compact input,.cal-sidebar-compact select,.cal-sidebar-compact textarea{font-size:12px!important;padding:7px 9px!important}.week-event-block.is-editing,.day-event-block.is-editing{z-index:25;border:2px solid #E6E6E9!important;}.day-event-block{position:absolute;border-radius:8px;overflow:hidden;z-index:10;display:flex;flex-direction:column;min-width:0}.cal-allday-event.is-editing{outline:2px solid #E6E6E9;outline-offset:1px;}.cal-event-popup-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:18px}.cal-event-popup-panel{width:min(440px,94vw);max-height:90vh;overflow:auto;background:#070708;border:none;border-top:1px solid rgba(255,255,255,0.16);padding:22px 4px}.cal-color-dots{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:2px 0}.cal-color-dot{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0;transition:transform .15s,box-shadow .15s}.cal-color-dot:hover{transform:scale(1.08)}.cal-color-dot.is-on{transform:scale(1.05)}.week-foot-hint{margin:12px 0 0;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.5}.week-foot-hint--mobile{margin:8px 0 0;color:rgba(255,255,255,0.22)}.week-scroll::-webkit-scrollbar,.cal-sidebar::-webkit-scrollbar{width:6px;height:6px}.week-scroll::-webkit-scrollbar-thumb,.cal-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}.cal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:45}.cal-fab-create{position:fixed;z-index:55;width:auto;height:auto;border:none;border-bottom:1px solid #EDEDEF;background:transparent;color:#EDEDEF;font-size:28px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:8px 4px}.cal-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top))}.cal-mobile-menu,.cal-mobile-month,.cal-mobile-today,.cal-mobile-day-badge{flex-shrink:0;border-radius:10px;cursor:pointer;font-family:'JetBrains Mono',monospace}.cal-mobile-menu,.cal-mobile-today{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}.cal-mobile-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;padding:0}.cal-mobile-month{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;background:transparent;border:none;color:rgba(255,255,255,0.92);font-size:15px;font-weight:500;text-transform:capitalize}.cal-mobile-month-chevron{font-size:10px;opacity:0.45}.cal-mobile-today{padding:8px 14px;font-size:12px;border-color:rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D}.cal-mobile-day-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,0.14);color:#EDEDEF;background:#1A1A1D;padding:0}.cal-day-ribbon{display:flex;gap:4px;padding:0 10px 10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}.cal-day-ribbon::-webkit-scrollbar{display:none}.cal-day-ribbon-btn{flex:0 0 auto;min-width:48px;padding:8px 10px 10px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);display:flex;flex-direction:column;align-items:center;gap:4px}.cal-day-ribbon-btn--sel{background:#1A1A1D;color:#EDEDEF;box-shadow:inset 0 -2px 0 #E6E6E9}.cal-day-ribbon-btn--today:not(.cal-day-ribbon-btn--sel){color:#A0A0A8}.cal-day-ribbon-dow{font-size:10px;opacity:0.55}.cal-day-ribbon-num{font-size:17px;font-weight:500;line-height:1}.cal-drawer-nav{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cal-drawer-hub{width:100%;margin-bottom:8px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}.day-grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.day-allday-row{display:flex;gap:8px;padding:0 10px 8px;flex-shrink:0;align-items:flex-start}.day-allday-label{width:44px;flex-shrink:0;font-size:8px;color:rgba(255,255,255,0.25);font-family:'JetBrains Mono',monospace;text-align:right;padding-top:8px;line-height:1.2}.day-allday-events{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.day-grid-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.day-time-gutter{width:44px;flex-shrink:0}.day-grid-col{flex:1;position:relative;border-left:1px solid rgba(255,255,255,0.05);touch-action:pan-y;min-width:0}.day-hour-slot{position:absolute;left:0;right:0;box-sizing:border-box;border-top:1px solid rgba(255,255,255,0.04)}.day-now-line{position:absolute;left:0;right:0;height:2px;background:#E6E6E9;z-index:5;pointer-events:none}.day-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#E6E6E9;}.day-now-time-label{position:absolute;right:4px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;font-weight:600;z-index:6;pointer-events:none}@media(max-width:719px){.cal-page--mobile{height:100dvh;min-height:100dvh}.cal-shell{flex-direction:column}.cal-sidebar{position:fixed;top:0;left:0;bottom:0;width:min(92vw,360px);z-index:50;padding:14px 12px 24px;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-shadow:20px 0 80px rgba(0,0,0,0.55);animation:calSlide .28s ease;border-right:1px solid rgba(255,255,255,0.08)}.cal-grid-area{padding:0;min-height:0;flex:1;display:flex;flex-direction:column}.cal-grid-panel{border-radius:0;padding:0;min-height:0;border:none;background:transparent;flex:1}.cal-grid-scroll{overflow:hidden;flex:1;min-height:0}.cal-fab-create{right:max(16px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom))}}"}</style>
-      <div className="cal-top-sticky">
-      {isMobile ? (
-        <>
-          <div className="cal-mobile-top">
-            <button type="button" className="cal-mobile-menu" onClick={function() { setSidebarOpen(!sidebarOpen); }} aria-label="Menu" title="Menu">☰</button>
-            <button type="button" className="cal-mobile-month" onClick={function() { setSidebarOpen(true); }} title="Abrir calendário">
-              <span>{monthTitle}</span>
-              <span className="cal-mobile-month-chevron">▼</span>
-            </button>
-            {isSelectedToday ? (
-              <span className="cal-mobile-day-badge" title="Hoje">{today.getDate()}</span>
-            ) : (
-              <button type="button" className="cal-mobile-today" onClick={goToday}>Hoje</button>
-            )}
+    <div className="ch-root" data-scrollable>
+      <style>{CHRO_CSS}</style>
+      <div className="ch-glow ch-glow--a" aria-hidden="true" />
+
+      <header className="ch-head">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+          <button type="button" className="ch-back ui-tap" onClick={function() { navigate("/"); }}>← Hub</button>
+          <div className="ch-hero">
+            <h1 className="ch-day-num">{selParsed.d}</h1>
+            <p className="ch-day-meta">
+              <strong>{selected === todayKey ? "Hoje" : WEEKDAYS[(dayDate.getDay() + 6) % 7]}</strong>
+              {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long", year: "numeric" })}
+            </p>
           </div>
-          <div className="cal-day-ribbon" role="tablist" aria-label="Dias da semana">
-            {weekDays.map(function(k, i) {
-              var p = parseKey(k);
-              var isSel = k === selected;
-              var isToday = k === todayKey;
-              var cls = "cal-day-ribbon-btn" + (isSel ? " cal-day-ribbon-btn--sel" : "") + (isToday ? " cal-day-ribbon-btn--today" : "");
+        </div>
+        <div className="ch-actions">
+          <div className="ch-modes" role="tablist">
+            {[{ id: "line", label: "Linha" }, { id: "week", label: "Semana" }, { id: "month", label: "Mês" }].map(function(m) {
               return (
-                <button type="button" key={k} role="tab" aria-selected={isSel} className={cls} onClick={function() { selectDay(k, null); }}>
-                  <span className="cal-day-ribbon-dow">{WEEKDAYS[i]}</span>
-                  <span className="cal-day-ribbon-num">{p.d}</span>
-                </button>
+                <button key={m.id} type="button" role="tab" aria-selected={mode === m.id}
+                  className={"ch-mode ui-tap ch-mode--" + m.id + (mode === m.id ? " is-on" : "")}
+                  onClick={function() { setMode(m.id); setNavDir(0); }}>{m.label}</button>
               );
             })}
           </div>
-        </>
+          <div className="ch-quick">
+            <button type="button" className="ch-btn ui-tap" onClick={function() { shiftDay(-1); }} title="Dia anterior">‹</button>
+            <button type="button" className="ch-btn ui-tap" onClick={function() { shiftDay(1); }} title="Dia seguinte">›</button>
+            <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button>
+            <button type="button" className={"ch-btn ui-tap" + (selected === todayKey ? " ch-btn--accent" : "")} onClick={goToday}>Hoje</button>
+            {!isMobile ? <button type="button" className="ch-btn ui-tap" onClick={function() { openCreate(); }}>+ Evento</button> : null}
+          </div>
+        </div>
+      </header>
+
+      {mode !== "month" ? (
+        <MonthRail view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
       ) : (
-        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, padding: "8px 18px", background: "transparent", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-            <button type="button" onClick={function() { setSidebarOpen(!sidebarOpen); }} title={sidebarOpen ? "Recolher menu" : "Mostrar menu"} aria-label={sidebarOpen ? "Recolher menu" : "Mostrar menu"}
-              style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, border: "1px solid " + (sidebarOpen ? ACCENT + "45" : "rgba(255,255,255,0.08)"), background: sidebarOpen ? ACCENT + "14" : "rgba(255,255,255,0.03)", color: sidebarOpen ? ACCENT : "rgba(255,255,255,0.55)", cursor: "pointer", fontSize: 16, lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono',monospace" }}>
-              {sidebarOpen ? "⟨" : "⟩"}
-            </button>
-            <button type="button" onClick={function() { navigate("/"); }} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, color: "rgba(255,255,255,0.45)", padding: "6px 10px", fontSize: 12, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>← Hub</button>
-            <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1, whiteSpace: "nowrap", lineHeight: 1.2 }}>Calendário</h1>
-              <p style={{ margin: "3px 0 0", fontSize: 12, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, textTransform: "capitalize", color: "rgba(255,255,255,0.52)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.2 }}>{weekLabel}</p>
-            </div>
-          </div>
-          <div className="cal-header-actions" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <div className="cal-view-tabs" role="tablist" aria-label="Vista do calendário">
-              {[{ id: "week", label: "Semana" }, { id: "day", label: "Dia" }, { id: "agenda", label: "Agenda" }].map(function(v) {
-                return (
-                  <button key={v.id} type="button" role="tab" aria-selected={calLayout === v.id}
-                    className={"cal-view-tab ui-tap" + (calLayout === v.id ? " is-on" : "")}
-                    onClick={function() { setCalLayout(v.id); setNavDir(0); }}>{v.label}</button>
-                );
-              })}
-            </div>
-            <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
-            <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
-            <button type="button" className="cal-now-btn ui-tap" onClick={jumpToNow} title="Ir para agora (N)">Agora</button>
-            <button type="button" onClick={goToday} style={{ background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace", whiteSpace: "nowrap" }}>Hoje</button>
-            <ModePill label={isFullscreen ? "⛶ Sair" : "⛶ Tela cheia"} active={isFullscreen} onClick={toggleFullscreen} />
-          </div>
-        </header>
+        <div className="ch-quick" style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,.05)", justifyContent: "center", display: "flex", gap: 16, alignItems: "center" }}>
+          <button type="button" className="ch-btn ui-tap" onClick={prevMonth}>‹</button>
+          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#A0A0A8", textTransform: "capitalize" }}>
+            {new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
+          </span>
+          <button type="button" className="ch-btn ui-tap" onClick={nextMonth}>›</button>
+        </div>
       )}
+
+      <p className="ch-hint">Desliza ← → · T hoje · N agora · C criar</p>
+
+      <div className="ch-body">
+        <div ref={stageRef} className={stageClass} key={mode + selected}>
+          {mode === "month" ? (
+            <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
+          ) : (
+            <>
+              {mode === "week" && !isMobile ? (
+                <WeekBoard weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
+                  onSelectDay={selectDay} onEventClick={openEdit} />
+              ) : null}
+              <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+                scrollNow={scrollNow} readOnly={false}
+                onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
+            </>
+          )}
+        </div>
       </div>
 
-      <main className="cal-shell">
-        {sidebarOpen && isMobile && (
-          <div className="cal-backdrop" onClick={function() { setSidebarOpen(false); }} />
-        )}
+      {isMobile ? (
+        <button type="button" className="ch-fab ui-tap" onClick={function() { openCreate(); }} aria-label="Novo evento">+</button>
+      ) : null}
 
-        {sidebarOpen && (
-          <aside className="cal-sidebar" data-scrollable>
-            {isMobile && (
-              <>
-                <button type="button" className="cal-drawer-hub" onClick={function() { navigate("/"); }}>← Hub</button>
-                <div className="cal-drawer-nav">
-                  <NavBtn onClick={function() { shiftWeek(-1); }} title="Semana anterior">‹</NavBtn>
-                  <NavBtn onClick={function() { shiftWeek(1); }} title="Semana seguinte">›</NavBtn>
-                  <button type="button" onClick={goToday} style={{ flex: 1, background: ACCENT + "12", border: "1px solid " + ACCENT + "35", borderRadius: 10, color: ACCENT, fontSize: 11, padding: "8px 12px", cursor: "pointer", fontFamily: "'JetBrains Mono',monospace" }}>Hoje</button>
-                </div>
-              </>
-            )}
-            <MiniCalendar
-              view={view}
-              selected={selected}
-              todayKey={todayKey}
-              events={events}
-              isMobile={isMobile}
-              onSelectDay={selectDay}
-              onPrevMonth={prevMonth}
-              onNextMonth={nextMonth}
-            />
-            <SidebarForm
-              isMobile={isMobile}
-              editId={editId}
-              title={title}
-              setTitle={setTitle}
-              formDate={selected}
-              onDateChange={onFormDateChange}
-              allDay={allDay}
-              setAllDay={setAllDay}
-              time={time}
-              setTime={setTime}
-              endTime={endTime}
-              setEndTime={setEndTime}
-              duration={duration}
-              setDuration={setDuration}
-              color={color}
-              setColor={setColor}
-              notes={notes}
-              setNotes={setNotes}
-              repeatDays={repeatDays}
-              selectedDow={selectedDow}
-              toggleRepeat={toggleRepeat}
-              onSubmit={addOrUpdateEvent}
-              onCancelEdit={resetForm}
-              onDelete={deleteEvent}
-              onClose={function() { setSidebarOpen(false); resetForm(); }}
-            />
-          </aside>
-        )}
-
-        <section className="cal-grid-area">
-          <div className="cal-grid-panel">
-            {!isMobile && calLayout !== "week" ? (
-              <p className="cal-swipe-hint">← → mudar {calLayout === "agenda" ? "semana" : "dia"} · N agora · T hoje</p>
-            ) : null}
-            <div ref={gridStageRef} className={"cal-grid-stage" + (navDir > 0 ? " cal-grid-stage--left" : navDir < 0 ? " cal-grid-stage--right" : "")} key={calLayout + selected + weekDays[0]}>
-            <div className="cal-grid-scroll">
-              {isMobile || calLayout === "day" ? (
-                <DayTimeGrid
-                  dayKey={selected}
-                  weekAnchor={weekDays[0]}
-                  events={events}
-                  todayKey={todayKey}
-                  readOnly={readOnly}
-                  highlightEventId={editId}
-                  scrollNowToken={scrollNowToken}
-                  onEventClick={onEventClick}
-                  onSlotClick={onWeekSlotClick}
-                />
-              ) : calLayout === "agenda" ? (
-                <AgendaView
-                  weekDays={weekDays}
-                  events={events}
-                  selected={selected}
-                  todayKey={todayKey}
-                  onSelectDay={function(k) { selectDay(k, null); }}
-                  onEventClick={onEventClick}
-                />
-              ) : (
-                <WeekTimeGrid
-                  weekDays={weekDays}
-                  events={events}
-                  selected={selected}
-                  todayKey={todayKey}
-                  readOnly={readOnly}
-                  isMobile={false}
-                  highlightEventId={editId}
-                  scrollNowToken={scrollNowToken}
-                  onSelectDay={function(k) { selectDay(k, null); }}
-                  onEventClick={onEventClick}
-                  onMove={moveTimedEvent}
-                  onSlotClick={onWeekSlotClick}
-                  onRangeCreate={createRangeEvent}
-                />
-              )}
-            </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      {isMobile && (
-        <button type="button" className="cal-fab-create" onClick={openCreateMenu} title="Novo evento" aria-label="Novo evento">+</button>
-      )}
-      {popup && !isMobile && (
-        <EventPopup
-          event={popup.event}
-          dayKey={popup.dayKey}
-          isEdit={!!popup.isEdit}
-          onClose={closePopup}
-          onSave={savePopup}
-          onDelete={function(id) { deleteEvent(id); closePopup(); }}
+      {sheet ? (
+        <EventSheet
+          open={true}
+          isMobile={isMobile}
+          isEdit={sheet.isEdit}
+          dayKey={sheet.dayKey}
+          draft={sheet.draft}
+          setDraft={function(d) { setSheet(Object.assign({}, sheet, { draft: d })); }}
+          repeatDays={repeatDays}
+          toggleRepeat={function(i) {
+            setRepeatDays(function(prev) { var n = prev.slice(); n[i] = !n[i]; return n; });
+          }}
+          onDayChange={function(k) { setSheet(Object.assign({}, sheet, { dayKey: k })); setSelected(k); var p = parseKey(k); setView({ y: p.y, m: p.m }); }}
+          onSave={saveSheet}
+          onDelete={deleteFromSheet}
+          onClose={closeSheet}
         />
-      )}
+      ) : null}
     </div>
   );
 }
