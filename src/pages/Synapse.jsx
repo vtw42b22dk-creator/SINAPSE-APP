@@ -1233,7 +1233,7 @@ export default function Synapse(props) {
   var canvasH = embedded ? "100%" : "100vh";
 
   return (
-    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#0A0A0B",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
+    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
       <style>{"*{margin:0;padding:0;box-sizing:border-box}@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}body{overflow:hidden}"}</style>
 
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}}/>
@@ -1241,8 +1241,8 @@ export default function Synapse(props) {
       <div data-no-canvas-zoom style={{position:"absolute",top:0,left:0,right:0,height:isMob?58:52,background:embedded?"transparent":"rgba(12,12,14,0.92)",borderBottom:embedded?"none":"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:embedded?"flex-end":"space-between",padding:isMob?"0 10px":"0 16px",zIndex:isMob?85:20,pointerEvents:"auto"}}>
         {!embedded && (
         <div style={{display:"flex",alignItems:"center",gap:isMob?10:14}}>
-          <button onClick={function(){setActiveProject(null);}} style={{background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#A0A0A8",padding:isMob?"8px 10px":"5px 10px",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "← Projetos" : "\u2190"}</button>
-          {isMob && <button onClick={function(){navigate("/");}} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:12,color:"#EDEDEF",padding:"8px 10px",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>Hub</button>}
+          <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "← Projetos" : "\u2190"}</button>
+          {isMob && <button onClick={function(){navigate("/");}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#EDEDEF",padding:"8px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>Hub</button>}
           <h1 style={{fontSize:isMob?12:15,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:"#EDEDEF",letterSpacing:1,maxWidth:isMob?110:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
         )}

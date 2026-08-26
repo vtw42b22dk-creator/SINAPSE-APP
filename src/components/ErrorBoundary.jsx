@@ -25,10 +25,10 @@ export default class ErrorBoundary extends Component {
           </p>
           <h1 style={{ fontSize: 20, margin: '8px 0 16px' }}>Algo correu mal ao carregar</h1>
           <pre style={{
-            background: '#141416',
-            border: '1px solid rgba(255,255,255,0.07)',
-            padding: 16,
-            borderRadius: 12,
+            background: 'transparent',
+            border: 'none',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            padding: '16px 0',
             overflow: 'auto',
             fontSize: 12,
             color: '#A0A0A8',
@@ -40,10 +40,10 @@ export default class ErrorBoundary extends Component {
             onClick={function() { window.location.reload() }}
             style={{
               marginTop: 16,
-              padding: '10px 16px',
-              borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.14)',
-              background: '#1A1A1D',
+              padding: '10px 0',
+              border: 'none',
+              borderBottom: '1px solid #EDEDEF',
+              background: 'transparent',
               color: '#EDEDEF',
               cursor: 'pointer',
             }}

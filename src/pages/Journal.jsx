@@ -20,20 +20,20 @@ var JOURNAL_TEXT = {
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
 var JR_CSS = [
-  ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76;margin:0}",
-  ".jr-note{position:relative;display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;border-radius:11px;cursor:pointer;",
-  "font-family:'JetBrains Mono',monospace;",
-  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;margin:0}",
+  ".jr-note{position:relative;display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;cursor:pointer;",
+  "font-family:'JetBrains Mono',monospace;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.07);",
+  "transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".jr-note>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-  ".jr-note>i{width:6px;height:6px;border-radius:999px;flex-shrink:0;opacity:.85}",
-  ".jr-note:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
-  ".jr-x{display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid transparent;",
+  ".jr-note>i{width:6px;height:6px;flex-shrink:0;opacity:.85}",
+  ".jr-note:hover{color:#EDEDEF;border-bottom-color:rgba(255,255,255,0.22)}",
+  ".jr-x{display:flex;align-items:center;justify-content:center;border:none;",
   "background:transparent;color:#6E6E76;cursor:pointer;flex-shrink:0;line-height:1;padding:0;",
-  "transition:color var(--dur) var(--ease),background var(--dur) var(--ease)}",
-  ".jr-x:hover{color:#C08C8C;background:rgba(255,255,255,0.05)}",
-  ".jr-blk{border:1px solid rgba(255,255,255,0.07);background:#141416;border-radius:14px;padding:16px;",
+  "transition:color var(--dur) var(--ease)}",
+  ".jr-x:hover{color:#C08C8C}",
+  ".jr-blk{border:none;border-top:1px solid rgba(255,255,255,0.08);background:transparent;padding:20px 0;",
   "transition:border-color var(--dur) var(--ease)}",
-  ".jr-blk:hover,.jr-blk:focus-within{border-color:rgba(255,255,255,0.13)}",
+  ".jr-blk:hover,.jr-blk:focus-within{border-top-color:rgba(255,255,255,0.2)}",
   ".jr-ed{outline:none;color:#EDEDEF;line-height:1.75}",
   ".jr-ed:empty:before{content:attr(data-placeholder);color:#6E6E76;pointer-events:none}",
   ".jr-ed a{color:#EDEDEF;text-underline-offset:3px}",
@@ -527,9 +527,10 @@ export default function Journal() {
         {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "#6E6E76", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
         <button type="button" className="jr-note" onClick={function() { openNote(s.id); }}
           style={{
-            padding: isMobile ? "14px" : "10px 12px",
-            border: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? "rgba(255,255,255,0.16)" : "transparent"),
-            background: on && (!isMobile || mobileNoteOpen) ? "#1A1A1D" : "transparent",
+            padding: isMobile ? "14px 0" : "12px 0",
+            border: "none",
+            borderBottom: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.07)"),
+            background: "transparent",
             color: on && (!isMobile || mobileNoteOpen) ? "#EDEDEF" : "#A0A0A8",
             letterSpacing: JOURNAL_LETTER_SPACING, fontSize: isMobile ? 15 : 13,
           }}><i style={{ background: s.color }} /><span>{s.title}</span></button>
@@ -587,7 +588,7 @@ export default function Journal() {
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
         <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
         {(!isMobile || !mobileNoteOpen) ? (
-        <aside style={{border:"1px solid rgba(255,255,255,0.07)",background:"#141416",borderRadius:16,padding:isMobile?14:18,height:"fit-content"}}>
+        <aside style={{border:"none",borderRight:isMobile?"none":"1px solid rgba(255,255,255,0.08)",background:"transparent",padding:isMobile?"8px 0 16px":"8px 28px 8px 0",height:"fit-content"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 16px"}}>
             <p className="jr-lbl">Notas</p>
             <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:"transparent",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#A0A0A8",padding:"6px 11px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10.5,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.2}}>+ Bloco</button>
@@ -637,7 +638,7 @@ export default function Journal() {
             <button type="button" onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
           </div>
           {activeBlocks.length === 0 ? (
-            <div style={{border:"1px dashed rgba(255,255,255,0.09)",borderRadius:16,minHeight:260,display:"flex",alignItems:"center",justifyContent:"center",textAlign:"center",padding:24,color:"#6E6E76",fontFamily:JOURNAL_FONT,fontSize:13,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.6}}>
+            <div style={{border:"none",borderTop:"1px dashed rgba(255,255,255,0.12)",minHeight:260,display:"flex",alignItems:"center",justifyContent:"flex-start",textAlign:"left",padding:"32px 0",color:"#6E6E76",fontFamily:JOURNAL_FONT,fontSize:13,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.6}}>
               Adiciona blocos para começar a escrever.
             </div>
           ) : (

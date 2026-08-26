@@ -4,9 +4,9 @@
  */
 
 export var COLORS = {
-  bg: "#09090B",
-  bgSoft: "#0E0E10",
-  surface: "#141416",
+  bg: "#070708",
+  bgSoft: "#070708",
+  surface: "transparent",
   surfaceHi: "#1C1C20",
   border: "#26262A",
   borderSoft: "rgba(255,255,255,0.07)",

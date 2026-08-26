@@ -11,13 +11,12 @@ var EXPENSE_ACCENT = "#E6E6E9";
 var INCOME_ACCENT = "#8FB39B";
 
 var FIN_CSS = [
-  ".fin-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 14px;border-radius:10px;",
-  "background:var(--fin-bg,#141416);border:1px solid var(--fin-bd,rgba(255,255,255,0.07));color:var(--fin-fg,#A0A0A8);",
-  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;",
-  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".fin-btn:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
-  ".fin-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
-  ".fin-bal{border-radius:16px;background:radial-gradient(ellipse 70% 90% at 100% 120%,rgba(255,255,255,0.04),transparent 55%),#141416;transition:border-color var(--dur) var(--ease)}",
+  ".fin-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 2px;",
+  "background:transparent;border:none;border-bottom:1px solid currentColor;color:var(--fin-fg,#A0A0A8);",
+  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px}",
+  ".fin-btn:hover{color:#EDEDEF}",
+  ".fin-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76}",
+  ".fin-bal{background:transparent}",
   ".fin-num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}",
   "@media(max-width:719px){.fin-btn{min-height:44px;font-size:12px}}",
 ].join("");
@@ -142,9 +141,9 @@ export default function Finance() {
       </header>
       <main className="mod-main" data-scrollable style={{ maxWidth: 920, margin: "0 auto", padding: isMobile ? "16px 12px 88px" : "24px 20px 56px" }}>
         <div className="fin-bal" style={{
-          marginBottom: 24,
-          padding: isMobile ? "20px 18px" : "26px 28px",
-          border: "1px solid " + (saldo >= 0 ? "rgba(255,255,255,0.07)" : "rgba(192,140,140,0.28)"),
+          marginBottom: 32,
+          padding: "8px 0 28px",
+          borderBottom: "1px solid " + (saldo >= 0 ? "rgba(255,255,255,0.08)" : "rgba(192,140,140,0.35)"),
         }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <p className="fin-lbl">Saldo de</p>
@@ -189,8 +188,9 @@ export default function Finance() {
 
 function tabBtn(active, color) {
   return {
-    "--fin-bg": active ? color + "18" : "#141416",
-    "--fin-bd": active ? color + "45" : "rgba(255,255,255,0.07)",
+    "--fin-bg": "transparent",
+    "--fin-bd": "transparent",
     "--fin-fg": active ? color : "#A0A0A8",
+    borderBottom: active ? "1px solid " + color : "1px solid rgba(255,255,255,0.12)",
   };
 }

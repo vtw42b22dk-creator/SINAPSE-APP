@@ -6,68 +6,56 @@ import { COLORS } from "../lib/theme";
 
 function CalendarIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect x="6" y="10" width="36" height="32" rx="4" stroke="currentColor" strokeWidth="2"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <rect x="6" y="10" width="36" height="32" rx="0" stroke="currentColor" strokeWidth="2"/>
       <line x1="6" y1="20" x2="42" y2="20" stroke="currentColor" strokeWidth="2"/>
-      <line x1="16" y1="6" x2="16" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="32" y1="6" x2="32" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <circle cx="16" cy="28" r="2" fill="currentColor"/>
-      <circle cx="24" cy="28" r="2" fill="currentColor"/>
-      <circle cx="32" cy="28" r="2" fill="currentColor"/>
+      <line x1="16" y1="6" x2="16" y2="14" stroke="currentColor" strokeWidth="2"/>
+      <line x1="32" y1="6" x2="32" y2="14" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
 }
 
 function TasksIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2"/>
-      <path d="M16 24 L21 29 L32 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <path d="M14 24 L21 31 L36 14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" strokeLinejoin="miter"/>
     </svg>
   );
 }
 
 function WishlistIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <path d="M14 10H34L32 28H16L14 10Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-      <circle cx="18" cy="36" r="2" fill="currentColor"/>
-      <circle cx="30" cy="36" r="2" fill="currentColor"/>
-      <path d="M20 14L24 22L28 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <path d="M14 12H34L32 30H16L14 12Z" stroke="currentColor" strokeWidth="2"/>
+      <path d="M18 36H20M28 36H30" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
     </svg>
   );
 }
 
 function FinanceIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <rect x="8" y="12" width="32" height="24" rx="4" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="24" cy="24" r="6" stroke="currentColor" strokeWidth="1.8"/>
-      <path d="M12 18H36" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <path d="M10 34 L20 22 L28 28 L38 14" stroke="currentColor" strokeWidth="2"/>
+      <path d="M30 14H38V22" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
 }
 
 function JournalIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <path d="M13 8H33C36.3137 8 39 10.6863 39 14V40H15C11.6863 40 9 37.3137 9 34V12C9 9.79086 10.7909 8 13 8Z" stroke="currentColor" strokeWidth="2"/>
-      <path d="M15 14H33" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M15 21H31" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M15 28H27" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      <path d="M33 8V40" stroke="currentColor" strokeWidth="1.3" opacity="0.35"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <path d="M12 8H36V40H12Z" stroke="currentColor" strokeWidth="2"/>
+      <path d="M18 16H30M18 24H30M18 32H26" stroke="currentColor" strokeWidth="1.6"/>
     </svg>
   );
 }
 
 function FocusIcon() {
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-      <circle cx="24" cy="26" r="15" stroke="currentColor" strokeWidth="2"/>
-      <path d="M24 26 L24 17" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <path d="M24 26 L30 30" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M18 7H30" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"/>
-      <circle cx="24" cy="26" r="2" fill="currentColor"/>
+    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="26" r="14" stroke="currentColor" strokeWidth="2"/>
+      <path d="M24 26 L24 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
+      <path d="M18 8H30" stroke="currentColor" strokeWidth="2.4"/>
     </svg>
   );
 }
@@ -83,37 +71,51 @@ var MODULES = [
 ];
 
 var HUB_CSS = [
-  "@keyframes hubIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}",
+  "@keyframes hubIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}",
   ".hub-in{animation:hubIn var(--dur-slow) var(--ease) both}",
-  ".hub-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(60px);animation:breathe 10s ease-in-out infinite}",
-  ".hub-card{position:relative;display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:18px 16px 18px 16px;border-radius:16px;",
-  "border:1px solid " + COLORS.borderSoft + ";background:" + COLORS.surface + ";color:" + COLORS.muted + ";",
-  "cursor:pointer;font-family:inherit;overflow:hidden;",
-  "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}",
-  ".hub-card::before{content:'';position:absolute;left:0;top:16px;bottom:16px;width:2px;border-radius:0 2px 2px 0;background:" + COLORS.accent + ";opacity:0;transform:scaleY(.35);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}",
-  ".hub-card:hover{background:" + COLORS.surfaceHi + ";border-color:" + COLORS.borderHi + "}",
-  ".hub-card:hover::before{opacity:.55;transform:scaleY(1)}",
-  ".hub-card:active{transform:translateY(0)!important}",
-  ".hub-ic{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex-shrink:0;border-radius:12px;",
-  "background:" + COLORS.bgSoft + ";border:1px solid " + COLORS.borderSoft + ";transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
-  ".hub-card:hover .hub-ic{border-color:" + COLORS.borderHi + ";background:" + COLORS.surfaceHi + "}",
-  ".hub-card svg{width:20px;height:20px;opacity:.78;transition:opacity var(--dur) var(--ease)}",
-  ".hub-card:hover svg{opacity:1}",
-  ".hub-card h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:14.5px;font-weight:500;letter-spacing:.15px;color:" + COLORS.text + "}",
-  ".hub-card p{margin:5px 0 0;font-size:13px;line-height:1.5;color:" + COLORS.faint + "}",
-  ".hub-go{flex-shrink:0;font-size:16px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-8px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".hub-card:hover .hub-go{opacity:1;transform:none;color:" + COLORS.text + "}",
-  ".hub-sec{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace}",
-  ".hub-colon{display:inline-block;animation:blinkSoft 2s steps(1) infinite;margin:0 2px;color:" + COLORS.faint + "}",
-  "@media(max-width:719px){.hub-card{padding:16px}.hub-card h2{font-size:15.5px}.hub-card p{font-size:13.5px}.hub-go{opacity:.45;transform:none}}",
+  ".hub-mark{position:absolute;right:-4%;top:8%;font-family:'JetBrains Mono',monospace;font-size:clamp(72px,18vw,220px);",
+  "font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,0.03);line-height:.8;pointer-events:none;user-select:none;",
+  "writing-mode:horizontal-tb;transform:rotate(-12deg);white-space:nowrap}",
+  ".hub-sec{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace}",
+  ".hub-colon{display:inline-block;animation:blinkSoft 2s steps(1) infinite;margin:0 1px;color:" + COLORS.faint + "}",
+  ".hub-rule{height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.18),rgba(255,255,255,0.04) 70%,transparent)}",
+  ".hub-out{background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.18);color:" + COLORS.faint + ";",
+  "font-size:11px;letter-spacing:1.6px;text-transform:uppercase;padding:6px 0;cursor:pointer;font-family:'JetBrains Mono',monospace}",
+  ".hub-out:hover{color:" + COLORS.text + ";border-bottom-color:" + COLORS.text + "}",
+  ".hub-row{position:relative;display:grid;grid-template-columns:48px 22px 1fr auto;align-items:center;gap:16px;",
+  "width:100%;text-align:left;padding:22px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);",
+  "color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;overflow:visible}",
+  ".hub-row::before{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:0;background:" + COLORS.text + ";",
+  "transition:width var(--dur) var(--ease)}",
+  ".hub-row:hover::before,.hub-row:focus-visible::before{width:100%}",
+  ".hub-row:hover{color:" + COLORS.text + "}",
+  ".hub-idx{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.4px;color:" + COLORS.faint + ";",
+  "transition:color var(--dur) var(--ease),transform var(--dur) var(--ease)}",
+  ".hub-row:hover .hub-idx{color:" + COLORS.text + ";transform:translateX(2px)}",
+  ".hub-row svg{width:18px;height:18px;opacity:.4;transition:opacity var(--dur) var(--ease)}",
+  ".hub-row:hover svg{opacity:1}",
+  ".hub-row h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(18px,2.4vw,26px);font-weight:400;",
+  "letter-spacing:-0.03em;color:" + COLORS.text + ";line-height:1.15}",
+  ".hub-row p{margin:6px 0 0;font-size:13px;line-height:1.5;color:" + COLORS.faint + ";max-width:42ch}",
+  ".hub-go{font-size:18px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-10px);",
+  "transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".hub-row:hover .hub-go{opacity:1;transform:none;color:" + COLORS.text + "}",
+  "@media(max-width:719px){",
+  ".hub-row{grid-template-columns:36px 1fr auto;gap:12px;padding:20px 0}",
+  ".hub-row svg{display:none}",
+  ".hub-row h2{font-size:20px}",
+  ".hub-go{opacity:.35;transform:none}",
+  "}",
 ].join("");
 
-function ModuleCard(props) {
+function ModuleRow(props) {
   var mod = props.module;
+  var n = String(props.index + 1).padStart(2, "0");
   return (
-    <button className="hub-card" onClick={function() { if (mod.path) props.onClick(mod); }}>
-      <span className="hub-ic"><mod.Icon /></span>
-      <span style={{ flex: 1, minWidth: 0 }}>
+    <button className="hub-row" onClick={function() { if (mod.path) props.onClick(mod); }}>
+      <span className="hub-idx">{n}</span>
+      <mod.Icon />
+      <span style={{ minWidth: 0 }}>
         <h2>{mod.name}</h2>
         <p>{mod.path ? mod.desc : "Em breve"}</p>
       </span>
@@ -129,23 +131,26 @@ function Clock(props) {
   var m = time.getMinutes().toString().padStart(2, "0");
   var s = time.getSeconds().toString().padStart(2, "0");
   var weekday = time.toLocaleDateString("pt-PT", { weekday: "long" });
-  var date = time.toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" });
+  var date = time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" });
   return (
-    <div className="hub-in" style={{ animationDelay: "60ms" }}>
+    <div className="hub-in" style={{ animationDelay: "40ms" }}>
       <div style={{
         display: "flex", alignItems: "baseline", gap: 0,
-        fontFamily: "'JetBrains Mono', monospace", fontSize: props.isMobile ? 52 : 72,
-        fontWeight: 300, letterSpacing: -2, color: COLORS.text, lineHeight: 0.95,
+        fontFamily: "'JetBrains Mono', monospace", fontSize: props.isMobile ? 64 : 96,
+        fontWeight: 300, letterSpacing: "-0.07em", color: COLORS.text, lineHeight: 0.88,
       }}>
         <span>{h}</span>
         <span className="hub-colon">:</span>
         <span>{m}</span>
-        <span style={{ fontSize: props.isMobile ? 16 : 18, fontWeight: 400, color: COLORS.faint, letterSpacing: 0, marginLeft: 8 }}>{s}</span>
+        <span style={{
+          fontSize: props.isMobile ? 13 : 15, fontWeight: 400, color: COLORS.faint,
+          letterSpacing: "0.18em", marginLeft: 14, alignSelf: "flex-end", marginBottom: 10,
+        }}>{s}</span>
       </div>
-        <p style={{
-        margin: "14px 0 0", fontSize: 14, color: COLORS.muted,
-        letterSpacing: 0.15, textTransform: "capitalize",
-      }}>{weekday}, {date}</p>
+      <p style={{
+        margin: "18px 0 0", fontSize: 14, color: COLORS.muted,
+        letterSpacing: 0.2, textTransform: "capitalize",
+      }}>{weekday} · {date}</p>
     </div>
   );
 }
@@ -176,38 +181,33 @@ export default function Hub() {
   return (
     <div className="hub-root" data-scrollable style={{
       minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
-      padding: isMobile ? "36px 18px 88px" : "72px 28px 80px",
+      padding: isMobile ? "40px 20px 96px" : "64px 48px 88px",
       fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", overflow: "hidden",
     }}>
       <style>{HUB_CSS}</style>
-      <div className="hub-orb" style={{ width: 420, height: 420, top: -140, left: "18%", background: "rgba(255,255,255,0.04)" }} />
-      <div className="hub-orb" style={{ width: 280, height: 280, bottom: -80, right: -40, background: "rgba(255,255,255,0.025)", animationDelay: "-4s" }} />
-      <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", flexDirection: "column", gap: isMobile ? 32 : 44, position: "relative" }}>
-        <header style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+      <div className="hub-mark" aria-hidden="true">SINAPSE</div>
+      <div style={{ maxWidth: 880, margin: "0 auto", position: "relative" }}>
+        <header style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: isMobile ? 36 : 48 }}>
           <div>
-          <p className="hub-in hub-sec" style={{ margin: "0 0 18px" }}>{getGreeting()}, {who}</p>
+            <p className="hub-in hub-sec" style={{ margin: "0 0 20px" }}>{getGreeting()} — {who}</p>
             <Clock isMobile={isMobile} />
           </div>
-          <button className="hub-in" onClick={function() { auth.signOut(); }} style={{
-            animationDelay: "120ms",
-            background: "transparent", border: "1px solid " + COLORS.borderSoft, borderRadius: 10,
-            color: COLORS.faint, fontSize: 12, padding: isMobile ? "9px 13px" : "8px 13px",
-            cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
-          }}>Sair</button>
+          <button className="hub-in hub-out" onClick={function() { auth.signOut(); }} style={{ animationDelay: "80ms" }}>
+            Sair
+          </button>
         </header>
 
-        <div className="hub-in" style={{ animationDelay: "150ms" }}>
-          <div style={{ height: 1, background: COLORS.borderSoft }} />
-          <p className="hub-sec" style={{ margin: "18px 0 0" }}>Módulos</p>
+        <div className="hub-in" style={{ animationDelay: "120ms", marginBottom: 8 }}>
+          <div className="hub-rule" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 18 }}>
+            <p className="hub-sec" style={{ margin: 0 }}>Índice</p>
+            <p className="hub-sec" style={{ margin: 0 }}>0{MODULES.length}</p>
+          </div>
         </div>
 
-        <div data-stagger style={{
-          display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill,minmax(268px,1fr))",
-          gap: 12, marginTop: isMobile ? -12 : -20,
-        }}>
+        <div data-stagger>
           {MODULES.map(function(mod, i) {
-            return <ModuleCard key={mod.id} module={mod} index={i} onClick={function() { navigate(mod.path); }} />;
+            return <ModuleRow key={mod.id} module={mod} index={i} onClick={function() { navigate(mod.path); }} />;
           })}
         </div>
       </div>

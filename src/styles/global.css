@@ -7,18 +7,17 @@
 
 :root,
 [data-theme="dark"] {
-  --page-bg: #09090b;
+  --page-bg: #070708;
   --page-text: #ededef;
-  --header-bg: #09090b;
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --surface: #141416;
-  --surface-hi: #1c1c20;
+  --header-bg: #070708;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --surface: transparent;
+  --surface-hi: rgba(255, 255, 255, 0.03);
   --text-muted: #a0a0a8;
   --text-faint: #6e6e76;
   --accent: #e6e6e9;
-  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --lift: 0 14px 36px rgba(0, 0, 0, 0.42);
+  --rule: rgba(255, 255, 255, 0.09);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 150ms;
   --dur: 240ms;
@@ -29,7 +28,7 @@
 html, body, #root {
   width: 100%;
   min-height: 100%;
-  background: #09090b;
+  background: var(--page-bg);
 }
 
 html {
@@ -38,7 +37,6 @@ html {
   overscroll-behavior: none;
 }
 
-/* Lavagem suave no topo — profundidade sem cor. */
 body::after {
   content: "";
   position: fixed;
@@ -46,18 +44,17 @@ body::after {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -18%, rgba(255, 255, 255, 0.045), transparent 58%),
-    radial-gradient(ellipse 50% 40% at 100% 110%, rgba(255, 255, 255, 0.018), transparent 55%);
+    radial-gradient(ellipse 80% 50% at 12% -10%, rgba(255, 255, 255, 0.035), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 100% 100%, rgba(255, 255, 255, 0.02), transparent 50%);
 }
 
-/* Grain táctil — o dark deixa de parecer plástico. */
 html::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 80;
-  opacity: 0.038;
+  opacity: 0.032;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
 }
@@ -82,9 +79,9 @@ body {
 }
 
 h1, h2, h3 {
-  letter-spacing: -0.02em;
-  line-height: 1.22;
-  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-weight: 400;
 }
 
 [style*="JetBrains"],
@@ -109,14 +106,12 @@ summary {
     background-color var(--dur) var(--ease),
     border-color var(--dur) var(--ease),
     color var(--dur) var(--ease),
-    opacity var(--dur) var(--ease),
-    transform var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
+    opacity var(--dur) var(--ease);
 }
 
 button:not(:disabled):active,
 [role="button"]:active {
-  transform: scale(0.985);
+  opacity: 0.72;
 }
 
 button:disabled {
@@ -125,8 +120,8 @@ button:disabled {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.28);
-  outline-offset: 3px;
+  outline: 1px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 4px;
 }
 
 [data-scrollable],
@@ -156,39 +151,8 @@ textarea::placeholder {
   color: #fff;
 }
 
-/* Superfícies partilhadas — brilho interno discreto. */
-.pj-card,
-.tk-card,
-.hub-card,
-.fx-panel,
-.fx-proj,
-.fin-bal,
-.jr-blk,
-.jr-note,
-.pw-pcard,
-.pm-card,
-.pm-stat,
-.pm-kpi,
-.fl-card,
-.fl-list,
-.wl-card {
-  box-shadow: var(--sheen);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .pj-card:hover,
-  .tk-card:hover,
-  .hub-card:hover,
-  .fx-proj:hover,
-  .tk-tab:hover,
-  .wl-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--sheen), var(--lift);
-  }
-}
-
 @keyframes appearUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -208,8 +172,8 @@ textarea::placeholder {
 }
 
 @keyframes skeleton {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
 }
 
 @keyframes nowPulse {
@@ -221,13 +185,13 @@ textarea::placeholder {
   animation: appearUp var(--dur-slow) var(--ease) both;
 }
 [data-stagger] > *:nth-child(1) { animation-delay: 0ms; }
-[data-stagger] > *:nth-child(2) { animation-delay: 40ms; }
-[data-stagger] > *:nth-child(3) { animation-delay: 80ms; }
-[data-stagger] > *:nth-child(4) { animation-delay: 120ms; }
-[data-stagger] > *:nth-child(5) { animation-delay: 160ms; }
-[data-stagger] > *:nth-child(6) { animation-delay: 200ms; }
-[data-stagger] > *:nth-child(7) { animation-delay: 240ms; }
-[data-stagger] > *:nth-child(n + 8) { animation-delay: 280ms; }
+[data-stagger] > *:nth-child(2) { animation-delay: 50ms; }
+[data-stagger] > *:nth-child(3) { animation-delay: 100ms; }
+[data-stagger] > *:nth-child(4) { animation-delay: 150ms; }
+[data-stagger] > *:nth-child(5) { animation-delay: 200ms; }
+[data-stagger] > *:nth-child(6) { animation-delay: 250ms; }
+[data-stagger] > *:nth-child(7) { animation-delay: 300ms; }
+[data-stagger] > *:nth-child(n + 8) { animation-delay: 350ms; }
 
 .week-now-dot,
 .day-now-dot {
@@ -264,53 +228,26 @@ textarea::placeholder {
     user-select: text;
     -webkit-touch-callout: default;
   }
-
-  .pj-card:hover,
-  .tk-card:hover,
-  .hub-card:hover,
-  .fx-proj:hover,
-  .tk-tab:hover,
-  .wl-card:hover {
-    transform: none;
-    box-shadow: var(--sheen);
-  }
 }
 
-::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 0;
-  border: 2px solid transparent;
-  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
-  background-clip: padding-box;
 }
 
-/* Cantos retos em toda a app. O Hub (menu principal) mantém os blocos arredondados.
-   #root dá especificidade suficiente para vencer estilos inline e classes das páginas. */
+/* ── Campo aberto: nada vive dentro de uma caixa. ── */
 #root *,
 #root *::before,
 #root *::after {
   border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
-#root .hub-root .hub-card {
-  border-radius: 16px !important;
-}
-#root .hub-root .hub-ic {
-  border-radius: 12px !important;
-}
-#root .hub-root .hub-orb {
-  border-radius: 50% !important;
-}
-#root .hub-root button {
-  border-radius: 10px !important;
-}
-
-/* Círculos que não são cartões: relógios, anéis de progresso, pontos. */
 #root .fx-analog-face,
 #root .fx-analog-dot,
 #root .pj-ring,
@@ -325,6 +262,219 @@ textarea::placeholder {
 }
 #root .fx-hand {
   border-radius: 999px !important;
+}
+#root .pj-ring i,
+#root .pm-hero-ring i {
+  background: #070708 !important;
+}
+#root .fx-analog-face {
+  background: transparent !important;
+}
+
+#root .pj-card,
+#root .pj-hero,
+#root .pj-rowcard,
+#root .pj-addcard,
+#root .pj-empty,
+#root .pj-modal,
+#root .tk-card,
+#root .tk-col,
+#root .tk-tab,
+#root .tk-empty,
+#root .fx-panel,
+#root .fx-proj,
+#root .fx-addcard,
+#root .fx-modal,
+#root .fx-stat,
+#root .fx-goal,
+#root .fx-idea,
+#root .fx-task,
+#root .fin-bal,
+#root .jr-blk,
+#root .jr-note,
+#root .pw-pcard,
+#root .pm-card,
+#root .pm-stat,
+#root .pm-kpi,
+#root .pm-tablecard,
+#root .pm-empty,
+#root .pm-note-item,
+#root .pm-hero,
+#root .pm-form,
+#root .pm-seg,
+#root .fl-card,
+#root .fl-list,
+#root .wl-card,
+#root .wl-grp,
+#root .cal-grid-panel,
+#root .cal-event-popup-panel,
+#root .cal-event-hover-tip,
+#root .cal-sidebar-form-wrap,
+#root .week-scroll,
+#root .week-header-sticky {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+#root .tk-card,
+#root .wl-card,
+#root .pj-card,
+#root .pj-rowcard,
+#root .fl-row,
+#root .jr-note,
+#root .fx-proj,
+#root .fx-task,
+#root .fx-idea,
+#root .fx-stat,
+#root .pm-kpi,
+#root .pm-stat,
+#root .pm-note-item,
+#root .wl-grp,
+#root .tk-tab {
+  border: none !important;
+  border-bottom: 1px solid var(--rule) !important;
+}
+
+#root .fx-panel,
+#root .tk-col,
+#root .tk-empty,
+#root .pj-hero,
+#root .pj-addcard,
+#root .pj-empty,
+#root .fin-bal,
+#root .jr-blk,
+#root .fl-card,
+#root .fl-list,
+#root .pm-card,
+#root .pm-tablecard,
+#root .pm-hero,
+#root .pm-form,
+#root .pm-empty,
+#root .cal-grid-panel,
+#root .cal-sidebar-form-wrap,
+#root .week-scroll,
+#root .pw-pcard,
+#root .fx-goal,
+#root .fx-addcard {
+  border: none !important;
+}
+
+#root .pj-modal,
+#root .fx-modal,
+#root .cal-event-popup-panel {
+  background: #070708 !important;
+  border: none !important;
+  border-top: 1px solid var(--border-strong) !important;
+}
+
+#root .tk-in,
+#root .fx-input,
+#root .fx-area,
+#root .wl-in,
+#root .fl-in,
+#root .pm-input,
+#root .pm-notes,
+#root .pj-search input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+#root .tk-in:focus,
+#root .fx-input:focus,
+#root .fx-area:focus,
+#root .wl-in:focus,
+#root .fl-in:focus,
+#root .pm-input:focus,
+#root .pm-notes:focus,
+#root .pj-search input:focus {
+  background: transparent !important;
+  border-bottom-color: var(--border-strong) !important;
+}
+
+#root .fin-btn,
+#root .wl-btn,
+#root .fl-btn,
+#root .fl-nav,
+#root .fl-pick,
+#root .fx-hbtn,
+#root .fx-btn,
+#root .fx-mode,
+#root .fx-stybtn,
+#root .fx-tbtn,
+#root .fx-nav,
+#root .pj-new,
+#root .pj-ghost,
+#root .pj-preset button,
+#root .pj-viewtog,
+#root .pj-viewtog button,
+#root .pm-btn,
+#root .pm-pager button,
+#root .pw-hbtn,
+#root .cal-mobile-menu,
+#root .cal-mobile-today,
+#root .cal-drawer-hub,
+#root .cal-fab-create {
+  background: transparent !important;
+  border: none !important;
+}
+
+#root .fin-btn,
+#root .wl-btn,
+#root .fl-btn,
+#root .pj-new,
+#root .pj-ghost,
+#root .pm-btn,
+#root .pw-hbtn,
+#root .fx-hbtn,
+#root .fx-btn,
+#root .fx-tbtn {
+  border-bottom: 1px solid currentColor !important;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+}
+
+#root .pj-new {
+  color: var(--page-text) !important;
+}
+
+#root .fx-nav.on,
+#root .fx-mode.on,
+#root .fx-stybtn.on,
+#root .fx-tab.on {
+  background: transparent !important;
+  border-bottom: 1px solid var(--accent) !important;
+  color: var(--page-text) !important;
+}
+
+#root .cal-fab-create {
+  width: auto !important;
+  height: auto !important;
+  padding: 10px 4px !important;
+  color: var(--page-text) !important;
+  font-size: 32px !important;
+  border-bottom: 1px solid var(--accent) !important;
+  font-weight: 300 !important;
+}
+
+#root .pj-card:hover,
+#root .tk-card:hover,
+#root .wl-card:hover,
+#root .fx-proj:hover,
+#root .pj-rowcard:hover,
+#root .tk-tab:hover {
+  transform: none !important;
+  background: transparent !important;
+}
+
+#root .pj-search svg {
+  left: 0 !important;
+}
+
+#root .pj-search input {
+  padding-left: 22px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
