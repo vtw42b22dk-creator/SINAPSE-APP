@@ -30,7 +30,7 @@ export var SHADOW = {
   lg: "0 12px 32px rgba(0,0,0,0.5)",
 };
 
-export var RADIUS = { sm: 8, md: 12, lg: 16, xl: 20 };
+export var RADIUS = { sm: 0, md: 0, lg: 0, xl: 0 };
 
 /** Hex + alpha (0-1) em rgba, para sobreposições subtis. */
 export function alpha(hex, a) {

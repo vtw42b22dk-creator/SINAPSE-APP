@@ -174,7 +174,7 @@ export default function Hub() {
   var who = auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Martim";
 
   return (
-    <div data-scrollable style={{
+    <div className="hub-root" data-scrollable style={{
       minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
       padding: isMobile ? "36px 18px 88px" : "72px 28px 80px",
       fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", overflow: "hidden",

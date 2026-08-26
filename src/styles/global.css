@@ -280,13 +280,51 @@ textarea::placeholder {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
+  border-radius: 0;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
   background-clip: padding-box;
+}
+
+/* Cantos retos em toda a app. O Hub (menu principal) mantém os blocos arredondados.
+   #root dá especificidade suficiente para vencer estilos inline e classes das páginas. */
+#root *,
+#root *::before,
+#root *::after {
+  border-radius: 0 !important;
+}
+
+#root .hub-root .hub-card {
+  border-radius: 16px !important;
+}
+#root .hub-root .hub-ic {
+  border-radius: 12px !important;
+}
+#root .hub-root .hub-orb {
+  border-radius: 50% !important;
+}
+#root .hub-root button {
+  border-radius: 10px !important;
+}
+
+/* Círculos que não são cartões: relógios, anéis de progresso, pontos. */
+#root .fx-analog-face,
+#root .fx-analog-dot,
+#root .pj-ring,
+#root .pj-ring i,
+#root .pm-hero-ring,
+#root .pm-hero-ring i,
+#root .cal-color-dot,
+#root .week-now-dot,
+#root .day-now-dot,
+#root .cal-mobile-day-badge {
+  border-radius: 50% !important;
+}
+#root .fx-hand {
+  border-radius: 999px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

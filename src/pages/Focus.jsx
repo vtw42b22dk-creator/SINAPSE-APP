@@ -190,7 +190,7 @@ function AnalogClock(props) {
         })}
         <div className="fx-hand" style={{ width: 4, height: "32%", transform: "translateX(-50%) rotate(" + minAngle + "deg)" }} />
         <div className="fx-hand" style={{ width: 2, height: "42%", transform: "translateX(-50%) rotate(" + secAngle + "deg)", opacity: 0.7 }} />
-        <div style={{ position: "absolute", inset: "42%", borderRadius: "50%", background: "#E6E6E9" }} />
+        <div className="fx-analog-dot" style={{ position: "absolute", inset: "42%", background: "#E6E6E9" }} />
       </div>
     </div>
   );
