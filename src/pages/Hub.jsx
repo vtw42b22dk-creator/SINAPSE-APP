@@ -3,59 +3,50 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { ProjectsIcon } from "./Projects";
 import { COLORS } from "../lib/theme";
+import { MICRO_CSS } from "../lib/microUi";
 
 function CalendarIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
-      <rect x="6" y="10" width="36" height="32" rx="0" stroke="currentColor" strokeWidth="2"/>
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <rect x="6" y="10" width="36" height="32" stroke="currentColor" strokeWidth="2"/>
       <line x1="6" y1="20" x2="42" y2="20" stroke="currentColor" strokeWidth="2"/>
-      <line x1="16" y1="6" x2="16" y2="14" stroke="currentColor" strokeWidth="2"/>
-      <line x1="32" y1="6" x2="32" y2="14" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
 }
-
 function TasksIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
-      <path d="M14 24 L21 31 L36 14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square" strokeLinejoin="miter"/>
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <path d="M14 24 L21 31 L36 14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
     </svg>
   );
 }
-
 function WishlistIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <path d="M14 12H34L32 30H16L14 12Z" stroke="currentColor" strokeWidth="2"/>
-      <path d="M18 36H20M28 36H30" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
     </svg>
   );
 }
-
 function FinanceIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <path d="M10 34 L20 22 L28 28 L38 14" stroke="currentColor" strokeWidth="2"/>
-      <path d="M30 14H38V22" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
 }
-
 function JournalIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <path d="M12 8H36V40H12Z" stroke="currentColor" strokeWidth="2"/>
-      <path d="M18 16H30M18 24H30M18 32H26" stroke="currentColor" strokeWidth="1.6"/>
+      <path d="M18 16H30M18 24H30" stroke="currentColor" strokeWidth="1.6"/>
     </svg>
   );
 }
-
 function FocusIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 48 48" fill="none">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
       <circle cx="24" cy="26" r="14" stroke="currentColor" strokeWidth="2"/>
       <path d="M24 26 L24 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
-      <path d="M18 8H30" stroke="currentColor" strokeWidth="2.4"/>
     </svg>
   );
 }
@@ -71,40 +62,54 @@ var MODULES = [
 ];
 
 var HUB_CSS = [
-  "@keyframes hubIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}",
-  ".hub-in{animation:hubIn var(--dur-slow) var(--ease) both}",
-  ".hub-mark{position:absolute;right:-4%;top:8%;font-family:'JetBrains Mono',monospace;font-size:clamp(72px,18vw,220px);",
-  "font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,0.03);line-height:.8;pointer-events:none;user-select:none;",
-  "writing-mode:horizontal-tb;transform:rotate(-12deg);white-space:nowrap}",
-  ".hub-sec{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace}",
-  ".hub-colon{display:inline-block;animation:blinkSoft 2s steps(1) infinite;margin:0 1px;color:" + COLORS.faint + "}",
-  ".hub-rule{height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.18),rgba(255,255,255,0.04) 70%,transparent)}",
-  ".hub-out{background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.18);color:" + COLORS.faint + ";",
-  "font-size:11px;letter-spacing:1.6px;text-transform:uppercase;padding:6px 0;cursor:pointer;font-family:'JetBrains Mono',monospace}",
-  ".hub-out:hover{color:" + COLORS.text + ";border-bottom-color:" + COLORS.text + "}",
-  ".hub-row{position:relative;display:grid;grid-template-columns:48px 22px 1fr auto;align-items:center;gap:16px;",
-  "width:100%;text-align:left;padding:22px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);",
-  "color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;overflow:visible}",
-  ".hub-row::before{content:'';position:absolute;left:0;bottom:-1px;height:1px;width:0;background:" + COLORS.text + ";",
-  "transition:width var(--dur) var(--ease)}",
-  ".hub-row:hover::before,.hub-row:focus-visible::before{width:100%}",
-  ".hub-row:hover{color:" + COLORS.text + "}",
-  ".hub-idx{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.4px;color:" + COLORS.faint + ";",
-  "transition:color var(--dur) var(--ease),transform var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-idx{color:" + COLORS.text + ";transform:translateX(2px)}",
-  ".hub-row svg{width:18px;height:18px;opacity:.4;transition:opacity var(--dur) var(--ease)}",
-  ".hub-row:hover svg{opacity:1}",
-  ".hub-row h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(18px,2.4vw,26px);font-weight:400;",
-  "letter-spacing:-0.03em;color:" + COLORS.text + ";line-height:1.15}",
-  ".hub-row p{margin:6px 0 0;font-size:13px;line-height:1.5;color:" + COLORS.faint + ";max-width:42ch}",
-  ".hub-go{font-size:18px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-10px);",
-  "transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-go{opacity:1;transform:none;color:" + COLORS.text + "}",
+  MICRO_CSS,
+  "@keyframes hubIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}",
+  "@keyframes hubTick{0%,48%{opacity:1}50%,98%{opacity:.15}}",
+  ".hub-scroll{height:100vh;height:100dvh;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;position:relative;background:" + COLORS.bg + ";color:" + COLORS.text + ";font-family:'IBM Plex Sans',sans-serif}",
+  ".hub-scroll::-webkit-scrollbar{width:5px}",
+  ".hub-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}",
+  ".hub-inner{max-width:920px;margin:0 auto;padding:48px 24px 120px;position:relative;z-index:1}",
+  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);animation:uiGlow 8s ease-in-out infinite}",
+  ".hub-glow--a{width:min(480px,65vw);height:min(480px,65vw);top:-12%;left:-8%;background:rgba(255,255,255,.045)}",
+  ".hub-glow--b{width:min(360px,50vw);height:min(360px,50vw);bottom:5%;right:-10%;background:rgba(255,255,255,.028);animation-delay:-3s}",
+  ".hub-mark{position:fixed;right:-2%;top:14%;font-family:'JetBrains Mono',monospace;font-size:clamp(80px,20vw,240px);",
+  "font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,.025);line-height:.8;pointer-events:none;user-select:none;transform:rotate(-10deg);z-index:0}",
+  ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:52px}",
+  ".hub-sec{font-size:10px;letter-spacing:2.6px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;margin:0}",
+  ".hub-clock-wrap{animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:40ms}",
+  ".hub-time{display:flex;align-items:baseline;font-family:'JetBrains Mono',monospace;font-weight:300;letter-spacing:-0.075em;color:" + COLORS.text + ";line-height:.85}",
+  ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 1px;color:" + COLORS.faint + "}",
+  ".hub-date{margin:20px 0 0;font-size:14px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
+  ".hub-out{margin-top:4px}",
+  ".hub-divider{height:1px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 65%,transparent);margin:0 0 20px}",
+  ".hub-index-head{position:relative;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-top:12px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:100ms}",
+  ".hub-list{display:flex;flex-direction:column}",
+  ".hub-row{position:relative;display:grid;grid-template-columns:44px 20px 1fr auto;align-items:center;gap:18px;width:100%;text-align:left;",
+  "padding:24px 8px 24px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.06);color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;",
+  "transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
+  ".hub-row::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:0;border-radius:999px;background:" + COLORS.text + ";",
+  "transition:height var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0}",
+  ".hub-row:hover,.hub-row:focus-visible{color:" + COLORS.text + ";padding-left:6px}",
+  ".hub-row:hover::before,.hub-row:focus-visible::before{height:28px;opacity:1}",
+  ".hub-row:active{transform:scale(.995)}",
+  ".hub-idx{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.6px;color:" + COLORS.faint + ";transition:color var(--dur) var(--ease)}",
+  ".hub-row:hover .hub-idx{color:" + COLORS.text + "}",
+  ".hub-row svg{opacity:.35;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}",
+  ".hub-row:hover svg{opacity:1;transform:translateX(2px)}",
+  ".hub-row h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(19px,2.6vw,28px);font-weight:400;letter-spacing:-.035em;color:" + COLORS.text + ";line-height:1.12}",
+  ".hub-row p{margin:7px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.faint + ";max-width:44ch;transition:color var(--dur) var(--ease)}",
+  ".hub-row:hover p{color:" + COLORS.muted + "}",
+  ".hub-go{font-size:20px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-12px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:" + COLORS.text + "}",
+  ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
+  ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
   "@media(max-width:719px){",
-  ".hub-row{grid-template-columns:36px 1fr auto;gap:12px;padding:20px 0}",
+  ".hub-inner{padding:36px 18px 100px}",
+  ".hub-row{grid-template-columns:36px 1fr auto;gap:14px;padding:22px 0}",
   ".hub-row svg{display:none}",
-  ".hub-row h2{font-size:20px}",
-  ".hub-go{opacity:.35;transform:none}",
+  ".hub-row h2{font-size:21px}",
+  ".hub-go{opacity:.4;transform:none}",
+  ".hub-time{font-size:64px!important}",
   "}",
 ].join("");
 
@@ -112,7 +117,7 @@ function ModuleRow(props) {
   var mod = props.module;
   var n = String(props.index + 1).padStart(2, "0");
   return (
-    <button className="hub-row" onClick={function() { if (mod.path) props.onClick(mod); }}>
+    <button type="button" className="hub-row ui-tap ui-fade-in" style={{ animationDelay: (120 + props.index * 55) + "ms" }} onClick={function() { if (mod.path) props.onClick(mod); }}>
       <span className="hub-idx">{n}</span>
       <mod.Icon />
       <span style={{ minWidth: 0 }}>
@@ -130,27 +135,17 @@ function Clock(props) {
   var h = time.getHours().toString().padStart(2, "0");
   var m = time.getMinutes().toString().padStart(2, "0");
   var s = time.getSeconds().toString().padStart(2, "0");
-  var weekday = time.toLocaleDateString("pt-PT", { weekday: "long" });
-  var date = time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" });
   return (
-    <div className="hub-in" style={{ animationDelay: "40ms" }}>
-      <div style={{
-        display: "flex", alignItems: "baseline", gap: 0,
-        fontFamily: "'JetBrains Mono', monospace", fontSize: props.isMobile ? 64 : 96,
-        fontWeight: 300, letterSpacing: "-0.07em", color: COLORS.text, lineHeight: 0.88,
-      }}>
+    <div className="hub-clock-wrap">
+      <div className="hub-time" style={{ fontSize: props.isMobile ? 64 : 96 }}>
         <span>{h}</span>
         <span className="hub-colon">:</span>
         <span>{m}</span>
-        <span style={{
-          fontSize: props.isMobile ? 13 : 15, fontWeight: 400, color: COLORS.faint,
-          letterSpacing: "0.18em", marginLeft: 14, alignSelf: "flex-end", marginBottom: 10,
-        }}>{s}</span>
+        <span style={{ fontSize: props.isMobile ? 13 : 15, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.2em", marginLeft: 12, alignSelf: "flex-end", marginBottom: 10 }}>{s}</span>
       </div>
-      <p style={{
-        margin: "18px 0 0", fontSize: 14, color: COLORS.muted,
-        letterSpacing: 0.2, textTransform: "capitalize",
-      }}>{weekday} · {date}</p>
+      <p className="hub-date">
+        {time.toLocaleDateString("pt-PT", { weekday: "long" })} · {time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}
+      </p>
     </div>
   );
 }
@@ -167,11 +162,10 @@ export default function Hub() {
   var navigate = useNavigate();
   var auth = useAuth();
   var vwS = useState(window.innerWidth);
-  var viewportW = vwS[0], setViewportW = vwS[1];
-  var isMobile = viewportW < 720;
+  var isMobile = vwS[0] < 720;
 
   useEffect(function() {
-    function onResize() { setViewportW(window.innerWidth); }
+    function onResize() { vwS[1](window.innerWidth); }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
@@ -179,37 +173,35 @@ export default function Hub() {
   var who = auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Martim";
 
   return (
-    <div className="hub-root" data-scrollable style={{
-      minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
-      padding: isMobile ? "40px 20px 96px" : "64px 48px 88px",
-      fontFamily: "'IBM Plex Sans', sans-serif", position: "relative", overflow: "hidden",
-    }}>
+    <div className="hub-root hub-scroll" data-scrollable>
       <style>{HUB_CSS}</style>
+      <div className="hub-glow hub-glow--a" aria-hidden="true" />
+      <div className="hub-glow hub-glow--b" aria-hidden="true" />
       <div className="hub-mark" aria-hidden="true">SINAPSE</div>
-      <div style={{ maxWidth: 880, margin: "0 auto", position: "relative" }}>
-        <header style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: isMobile ? 36 : 48 }}>
+      <div className="hub-inner">
+        <header className="hub-top">
           <div>
-            <p className="hub-in hub-sec" style={{ margin: "0 0 20px" }}>{getGreeting()} — {who}</p>
+            <p className="hub-sec hub-clock-wrap" style={{ marginBottom: 22 }}>{getGreeting()} — {who}</p>
             <Clock isMobile={isMobile} />
           </div>
-          <button className="hub-in hub-out" onClick={function() { auth.signOut(); }} style={{ animationDelay: "80ms" }}>
-            Sair
-          </button>
+          <button type="button" className="ui-line-btn hub-out ui-tap" onClick={function() { auth.signOut(); }}>Sair</button>
         </header>
 
-        <div className="hub-in" style={{ animationDelay: "120ms", marginBottom: 8 }}>
-          <div className="hub-rule" />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 18 }}>
-            <p className="hub-sec" style={{ margin: 0 }}>Índice</p>
-            <p className="hub-sec" style={{ margin: 0 }}>0{MODULES.length}</p>
-          </div>
+        <div className="hub-index-head">
+          <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
+          <p className="hub-sec">Índice</p>
+          <p className="hub-sec">0{MODULES.length}</p>
         </div>
 
-        <div data-stagger>
+        <nav className="hub-list" aria-label="Módulos">
           {MODULES.map(function(mod, i) {
             return <ModuleRow key={mod.id} module={mod} index={i} onClick={function() { navigate(mod.path); }} />;
           })}
-        </div>
+        </nav>
+
+        <footer className="hub-foot">
+          <p>Desliza para explorar · {MODULES.length} módulos activos</p>
+        </footer>
       </div>
     </div>
   );

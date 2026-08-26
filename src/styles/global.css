@@ -261,7 +261,17 @@ textarea::placeholder {
 #root .wl-glow,
 #root .wl-grp-dot,
 #root .wl-check,
-#root .wl-item::before {
+#root .wl-item::before,
+#root .hub-glow,
+#root .fx-ambient {
+  border-radius: 50% !important;
+}
+#root .hub-row::before {
+  border-radius: 999px !important;
+}
+#root .tk-check,
+#root .tk-sub > button,
+#root .fx-task-check {
   border-radius: 50% !important;
 }
 #root .fx-hand {
