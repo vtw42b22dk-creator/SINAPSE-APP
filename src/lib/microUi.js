@@ -9,8 +9,10 @@ export var MICRO_CSS = [
   "@keyframes uiFlash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}",
   ".ui-tap{transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease),color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".ui-tap:active:not(:disabled){transform:scale(.96)}",
-  ".ui-line-btn{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;padding:8px 2px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.35px;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
-  ".ui-line-btn:hover{color:var(--mc,#EDEDEF);border-bottom-color:var(--mc,#EDEDEF)}",
+  ".ui-line-btn{position:relative;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;padding:8px 2px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.35px;overflow:hidden;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
+  ".ui-line-btn::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--mc,#EDEDEF);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease)}",
+  ".ui-line-btn:hover{color:var(--mc,#EDEDEF)}",
+  ".ui-line-btn:hover::after{transform:scaleX(1)}",
   ".ui-line-btn:active{transform:translateY(1px);opacity:.7}",
   ".ui-in{width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);color:#EDEDEF;outline:none;transition:border-color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
   ".ui-in:focus{border-bottom-color:color-mix(in srgb,var(--mc,#EDEDEF) 70%,#fff 30%);padding-left:4px}",
@@ -19,7 +21,18 @@ export var MICRO_CSS = [
   ".ui-fade-in{animation:uiSlideUp var(--dur-slow) var(--ease) both}",
   ".ui-slide-left{animation:uiSlideLeft var(--dur-slow) var(--ease) both}",
   ".ui-slide-right{animation:uiSlideRight var(--dur-slow) var(--ease) both}",
+  ".ui-spot{position:relative;overflow:hidden}",
+  ".ui-spot::after{content:'';position:absolute;inset:0;background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 14%,transparent),transparent 70%);opacity:0;transition:opacity .35s var(--ease);pointer-events:none}",
+  ".ui-spot:hover::after{opacity:1}",
 ].join("");
+
+/** Segue o ponteiro dentro do elemento — alimenta o brilho de .ui-spot via --mx/--my. */
+export function trackSpotlight(e) {
+  var el = e.currentTarget;
+  var r = el.getBoundingClientRect();
+  el.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+  el.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+}
 
 /** Gesto horizontal — onSwipeLeft (dedo ←), onSwipeRight (dedo →). */
 export function attachSwipe(el, handlers, opts) {
