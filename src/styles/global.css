@@ -22,6 +22,12 @@
   --dur-fast: 150ms;
   --dur: 240ms;
   --dur-slow: 480ms;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
   color-scheme: dark;
 }
 
@@ -279,19 +285,134 @@ textarea::placeholder {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--mc, #fff) 30%, rgba(255, 255, 255, 0.12));
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   transition: background 0.6s var(--ease);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--mc, #fff) 50%, rgba(255, 255, 255, 0.2));
 }
 
-/* ── Campo aberto: nada vive dentro de uma caixa. ── */
+/* ── Campo aberto: sem caixas pesadas, mas curvas suaves nos controlos. ── */
 #root *,
 #root *::before,
 #root *::after {
-  border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+/* Curvas por defeito em controlos interactivos */
+#root button,
+#root [role="button"],
+#root [role="tab"],
+#root input:not([type="checkbox"]):not([type="radio"]),
+#root select,
+#root textarea {
+  border-radius: var(--radius-sm) !important;
+}
+
+#root .ch-modes,
+#root .ch-quick,
+#root .fx-dock,
+#root .pj-viewtog,
+#root .ch-rep,
+#root .wl-prio {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+
+#root .ch-ev,
+#root .ch-wk-ev,
+#root .ch-wk-allday-chip,
+#root .ch-allday-row,
+#root .hub-row {
+  border-radius: var(--radius-md) !important;
+}
+
+#root .tk-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: var(--radius-md) !important;
+  margin-bottom: 8px !important;
+}
+
+#root .ch-ev-body,
+#root .ch-wk-ev-body {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
+}
+
+#root .ch-ev-bar,
+#root .ch-wk-ev-bar,
+#root .ch-allday-bar {
+  border-radius: var(--radius-xs) 0 0 var(--radius-xs) !important;
+}
+
+#root .ch-sheet {
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+}
+
+#root .ch-sheet--desk,
+#root .pj-modal,
+#root .fx-modal,
+#root .cal-event-popup-panel {
+  border-radius: var(--radius-xl) !important;
+}
+
+#root .ch-rail-day,
+#root .ch-wk-strip-cell,
+#root .ch-month-cell {
+  border-radius: var(--radius-sm) !important;
+}
+
+#root .tk-progress,
+#root .ch-wk-load,
+#root .hub-row::before {
+  border-radius: var(--radius-pill) !important;
+}
+
+#root .ui-line-btn,
+#root .ch-back,
+#root .tk-back,
+#root .wl-back,
+#root .fin-btn,
+#root .wl-btn,
+#root .fl-btn,
+#root .pj-new,
+#root .pj-ghost,
+#root .pm-btn,
+#root .pw-hbtn,
+#root .fx-hbtn,
+#root .fx-btn,
+#root .fx-tbtn,
+#root .ag-go,
+#root .ch-save,
+#root .ch-fab,
+#root .tk-new-btn,
+#root .tk-save {
+  border-radius: var(--radius-pill) !important;
+}
+
+#root .ch-btn,
+#root .ch-mode,
+#root .tk-focus-btn,
+#root .fx-mode,
+#root .fx-nav,
+#root .wl-prio,
+#root .wl-submit,
+#root .fl-pick,
+#root .fl-nav {
+  border-radius: var(--radius-sm) !important;
+}
+
+#root .ch-btn--accent,
+#root .ch-mode.is-on {
+  border-radius: var(--radius-sm) !important;
+}
+
+#root .ch-head {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+}
+
+#root .ch-wk-strip-row {
+  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
 }
 
 #root .fx-analog-face,
@@ -343,7 +464,6 @@ textarea::placeholder {
 #root .pj-addcard,
 #root .pj-empty,
 #root .pj-modal,
-#root .tk-card,
 #root .tk-col,
 #root .tk-tab,
 #root .tk-empty,
@@ -372,7 +492,6 @@ textarea::placeholder {
 #root .fl-list,
 #root .wl-card,
 #root .wl-grp,
-#root .wl-item,
 #root .wl-compose,
 #root .wl-hero,
 #root .wl-rail {
@@ -382,7 +501,11 @@ textarea::placeholder {
 }
 
 #root .wl-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: var(--radius-md) !important;
+  margin-bottom: 6px !important;
+  padding: 12px 14px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
 }
 
 #root .wl-hero,
@@ -391,9 +514,10 @@ textarea::placeholder {
 }
 
 #root .wl-in {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 12px !important;
 }
 
 #root .wl-back,
@@ -406,11 +530,15 @@ textarea::placeholder {
 
 #root .wl-back,
 #root .wl-submit {
-  border-bottom: 1px solid currentColor !important;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important;
+  border-radius: var(--radius-pill) !important;
+  padding: 8px 14px !important;
 }
 
 #root .wl-prio.is-on {
-  border-bottom: 1px solid currentColor !important;
+  border: 1px solid currentColor !important;
+  border-radius: var(--radius-sm) !important;
+  background: color-mix(in srgb, currentColor 10%, transparent) !important;
 }
 
 #root .wl-check {
@@ -431,9 +559,6 @@ textarea::placeholder {
   background-image: none !important;
 }
 
-#root .tk-card,
-#root .wl-card,
-#root .pj-card,
 #root .pj-rowcard,
 #root .fl-row,
 #root .jr-note,
@@ -488,12 +613,13 @@ textarea::placeholder {
 #root .fl-in,
 #root .pm-input,
 #root .pm-notes,
-#root .pj-search input {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+#root .pj-search input,
+#root .ch-in,
+#root .ag-field input {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 12px !important;
 }
 
 #root .tk-in:focus,
@@ -503,9 +629,11 @@ textarea::placeholder {
 #root .fl-in:focus,
 #root .pm-input:focus,
 #root .pm-notes:focus,
-#root .pj-search input:focus {
-  background: transparent !important;
-  border-bottom-color: var(--border-strong) !important;
+#root .pj-search input:focus,
+#root .ch-in:focus,
+#root .ag-field input:focus {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: color-mix(in srgb, var(--mc, var(--accent)) 50%, var(--border-strong)) !important;
 }
 
 #root .fin-btn,
@@ -544,33 +672,42 @@ textarea::placeholder {
 #root .pw-hbtn,
 #root .fx-hbtn,
 #root .fx-btn,
-#root .fx-tbtn {
-  border-bottom: 1px solid currentColor !important;
-  padding-left: 2px !important;
-  padding-right: 2px !important;
+#root .fx-tbtn,
+#root .ch-save,
+#root .ch-fab,
+#root .tk-new-btn,
+#root .tk-save,
+#root .ag-go {
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important;
+  background: color-mix(in srgb, var(--mc, var(--accent)) 6%, transparent) !important;
+  padding: 9px 16px !important;
+  border-radius: var(--radius-pill) !important;
 }
 
 #root .pj-new {
   color: var(--mc, var(--page-text)) !important;
-  border-bottom-color: var(--mc, var(--page-text)) !important;
+  border-color: color-mix(in srgb, var(--mc, var(--page-text)) 40%, transparent) !important;
 }
 
 #root .fx-nav.on,
 #root .fx-mode.on,
 #root .fx-stybtn.on,
 #root .fx-tab.on {
-  background: transparent !important;
-  border-bottom: 1px solid var(--mc, var(--accent)) !important;
+  background: color-mix(in srgb, var(--mc, var(--accent)) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--mc, var(--accent)) 35%, transparent) !important;
+  border-radius: var(--radius-sm) !important;
   color: var(--mc, var(--accent)) !important;
 }
 
 #root .cal-fab-create {
   width: auto !important;
   height: auto !important;
-  padding: 10px 4px !important;
+  padding: 10px 16px !important;
   color: var(--mc, var(--accent)) !important;
-  font-size: 32px !important;
-  border-bottom: 1px solid var(--mc, var(--accent)) !important;
+  font-size: 24px !important;
+  border: 1px solid color-mix(in srgb, var(--mc, var(--accent)) 40%, transparent) !important;
+  border-radius: var(--radius-pill) !important;
+  background: color-mix(in srgb, var(--mc, var(--accent)) 8%, transparent) !important;
   font-weight: 300 !important;
 }
 

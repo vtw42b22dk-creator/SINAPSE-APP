@@ -65,7 +65,7 @@ export var MODULE_GLOW_CSS = ".mod-glow{position:fixed;width:min(520px,70vw);hei
 export var MODULE_ACCENT_CSS = [
   ":root{--mc:var(--accent,#E6E6E9)}",
   ".ui-line-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}",
-  ".ui-in:focus{border-bottom-color:color-mix(in srgb,var(--mc) 70%,#fff 30%);padding-left:4px}",
+  ".ui-in:focus{border-color:color-mix(in srgb,var(--mc) 70%,#fff 30%);padding-left:12px}",
   ".mod-accent{color:var(--mc)!important}",
   ".mod-accent-bd{border-bottom-color:var(--mc)!important;color:var(--mc)!important}",
   ".ch-mode.is-on{color:var(--mc)!important;border-bottom-color:var(--mc)!important}",
@@ -86,8 +86,8 @@ export var MODULE_ACCENT_CSS = [
   ".fx-nav.on::before{background:var(--mc)!important}",
   ".fx-mode.on,.fx-stybtn.on,.fx-tab.on{color:var(--mc)!important;border-bottom-color:var(--mc)!important}",
   ".ag-kicker{color:var(--mc)!important}",
-  ".ag-field input:focus{border-bottom-color:var(--mc)!important}",
-  ".ag-go{border-bottom-color:var(--mc)!important;color:var(--mc)!important}",
+  ".ag-field input:focus{border-color:var(--mc)!important;background:rgba(255,255,255,0.05)!important}",
+  ".ag-go{border-color:var(--mc)!important;color:var(--mc)!important;border-radius:var(--radius-pill)!important}",
   ".fin-btn[style*='--fin-fg']{transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".pj-new{border-bottom-color:var(--mc)!important;color:var(--mc)!important}",
   ".skel-accent{background:color-mix(in srgb,var(--mc) 38%,transparent)!important}",
@@ -104,7 +104,7 @@ export var SHADOW = {
   lg: "0 12px 32px rgba(0,0,0,0.5)",
 };
 
-export var RADIUS = { sm: 0, md: 0, lg: 0, xl: 0 };
+export var RADIUS = { sm: 8, md: 12, lg: 16, xl: 22 };
 
 /** Hex + alpha (0-1) em rgba, para sobreposições subtis. */
 export function alpha(hex, a) {
