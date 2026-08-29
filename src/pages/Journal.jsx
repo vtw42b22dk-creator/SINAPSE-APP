@@ -4,10 +4,11 @@ import * as journalStore from "../lib/journalStore";
 import * as attachmentsStore from "../lib/attachmentsStore";
 import { PageLoader } from "../components/PageLoader";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
-import { pageBg, pageText } from "../lib/ThemeContext";
+import { pageBg } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
-import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE, alpha } from "../lib/theme";
+import { moduleColor, moduleGlow, PALETTE, alpha } from "../lib/theme";
+import { GLASS_CSS } from "../lib/glassUi";
 
 var ACCENT = moduleColor("journal");
 var COLORS = PALETTE;
@@ -20,25 +21,101 @@ var JOURNAL_TEXT = {
   letterSpacing: JOURNAL_LETTER_SPACING,
   lineHeight: JOURNAL_LINE_HEIGHT,
 };
+
 var JR_CSS = [
-  MODULE_GLOW_CSS,
+  GLASS_CSS,
   ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;margin:0}",
-  ".jr-note{position:relative;display:flex;align-items:center;gap:9px;flex:1;min-width:0;text-align:left;cursor:pointer;",
-  "font-family:'JetBrains Mono',monospace;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.07);",
-  "transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".jr-note>span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-  ".jr-note>i{width:6px;height:6px;flex-shrink:0;opacity:.85}",
-  ".jr-note:hover{color:#EDEDEF;border-bottom-color:rgba(255,255,255,0.22)}",
-  ".jr-x{display:flex;align-items:center;justify-content:center;border:none;",
-  "background:transparent;color:#6E6E76;cursor:pointer;flex-shrink:0;line-height:1;padding:0;",
-  "transition:color var(--dur) var(--ease)}",
-  ".jr-x:hover{color:#C08C8C}",
-  ".jr-blk{border:none;border-top:1px solid rgba(255,255,255,0.08);background:transparent;padding:20px 0;",
-  "transition:border-color var(--dur) var(--ease)}",
-  ".jr-blk:hover,.jr-blk:focus-within{border-top-color:rgba(255,255,255,0.2)}",
-  ".jr-ed{outline:none;color:#EDEDEF;line-height:1.75}",
-  ".jr-ed:empty:before{content:attr(data-placeholder);color:#6E6E76;pointer-events:none}",
-  ".jr-ed a{color:#EDEDEF;text-underline-offset:3px}",
+
+  /* ---------- ambient field ---------- */
+  ".gn-field{position:absolute;top:0;left:0;right:0;height:min(900px,100vh);overflow:hidden;pointer-events:none;z-index:0}",
+  ".gn-orb{position:absolute;border-radius:50%;filter:blur(90px)}",
+  ".gn-orb--a{width:50vw;height:50vw;max-width:520px;max-height:520px;top:-16%;left:-12%;animation:haloBreatheSlow 10s var(--ease) infinite,driftA 26s ease-in-out infinite}",
+  ".gn-orb--b{width:38vw;height:38vw;max-width:400px;max-height:400px;top:30%;right:-10%;opacity:.6;animation:haloBreatheSlow 12s var(--ease) infinite -4s,driftB 30s ease-in-out infinite}",
+
+  /* ---------- header ---------- */
+  ".gn-header{position:sticky;top:0;z-index:20;background:rgba(9,9,10,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07)}",
+  ".gn-hbtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:999px;color:#A0A0A8;padding:9px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3px;flex-shrink:0;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".gn-hbtn:hover{color:#EDEDEF;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)}",
+
+  /* ---------- sidebar ---------- */
+  ".gn-sidehead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 16px}",
+  ".gn-addblk{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--mc) 10%,transparent);border:1px solid color-mix(in srgb,var(--mc) 30%,transparent);border-radius:999px;color:var(--mc);padding:7px 13px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.4px;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".gn-addblk:hover{background:color-mix(in srgb,var(--mc) 20%,transparent);transform:translateY(-1px)}",
+  ".gn-addblk svg{width:12px;height:12px}",
+
+  ".gn-drop{display:flex;flex-direction:column;gap:6px;border-radius:16px;padding:5px;transition:background var(--dur) var(--ease)}",
+  ".gn-drop.is-hot{background:color-mix(in srgb,var(--mc) 10%,transparent);outline:1px dashed color-mix(in srgb,var(--mc) 50%,transparent);outline-offset:2px}",
+
+  ".gn-noterow{display:flex;align-items:center;gap:6px}",
+  ".gn-drag{cursor:grab;color:#5A5A62;font-size:12px;line-height:1;user-select:none;flex-shrink:0}",
+  ".gn-note{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.055);border-radius:13px;padding:9px 11px;font-family:'JetBrains Mono',monospace;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".gn-note:hover{border-color:rgba(255,255,255,.16)}",
+  ".gn-note.is-on{background:color-mix(in srgb,var(--nc) 16%,transparent);border-color:color-mix(in srgb,var(--nc) 48%,transparent)}",
+  ".gn-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;border:1px solid;flex-shrink:0}",
+  ".gn-notetitle{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}",
+
+  ".gn-group{padding:10px;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-group.is-hot{border-color:color-mix(in srgb,var(--mc) 45%,transparent);background:color-mix(in srgb,var(--mc) 8%,transparent)}",
+  ".gn-group-head{display:flex;align-items:center;gap:7px}",
+  ".gn-chevron{background:none;border:none;color:#6E6E76;cursor:pointer;display:flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;padding:0}",
+  ".gn-group-name{flex:1;min-width:0;text-align:left;background:none;border:none;color:#EDEDEF;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600;line-height:1.3;display:flex;align-items:center;gap:7px}",
+  ".gn-group-name svg{width:13px;height:13px;opacity:.7;flex-shrink:0}",
+  ".gn-group-name span:first-of-type{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".gn-count{background:rgba(255,255,255,.06);border-radius:999px;padding:1px 7px;font-size:9.5px;color:#8A8A90;font-weight:400;letter-spacing:0;flex-shrink:0}",
+  ".gn-group-body{display:flex;flex-direction:column;gap:6px;margin-top:10px}",
+  ".gn-hint{margin:0;padding:12px 8px;font-size:11px;color:#6E6E76;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;line-height:1.5;text-align:center}",
+
+  ".gn-x{display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:#6E6E76;cursor:pointer;flex-shrink:0;line-height:1;padding:0;border-radius:50%;transition:color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-x:hover{color:#C08C8C;background:rgba(192,140,140,.12)}",
+
+  ".gn-newnote{display:flex;gap:8px;margin-top:18px}",
+  ".gn-newnote-btn{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb,var(--mc) 14%,transparent);border:1px solid color-mix(in srgb,var(--mc) 38%,transparent);color:var(--mc);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease),filter var(--dur) var(--ease)}",
+  ".gn-newnote-btn:hover{background:color-mix(in srgb,var(--mc) 26%,transparent);filter:drop-shadow(0 0 10px var(--mc))}",
+
+  ".gn-input{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#EDEDEF;padding:11px 15px;outline:none;box-sizing:border-box;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-input:focus{border-color:color-mix(in srgb,var(--mc) 55%,transparent);background:rgba(255,255,255,.05)}",
+
+  /* ---------- canvas ---------- */
+  ".gn-canvashead{margin-bottom:20px;display:flex;align-items:center;gap:11px}",
+  ".gn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;filter:drop-shadow(0 0 8px var(--nc))}",
+
+  ".gn-fmtbar{display:inline-flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);margin-bottom:16px}",
+  ".gn-fmtbtn{background:transparent;border:none;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:8px 14px;border-radius:999px;transition:color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-fmtbtn:hover{color:#EDEDEF;background:rgba(255,255,255,.06)}",
+
+  ".gn-insertbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px;margin-bottom:20px}",
+  ".gn-insert{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#A0A0A8;padding:8px 14px 8px 11px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2px;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".gn-insert:hover{color:var(--mc);background:color-mix(in srgb,var(--mc) 12%,transparent);border-color:color-mix(in srgb,var(--mc) 38%,transparent);transform:translateY(-1px)}",
+  ".gn-insert svg{width:15px;height:15px;flex-shrink:0}",
+
+  ".gn-emptyblocks{border-radius:var(--radius-xl);border:1.5px dashed rgba(255,255,255,.12);min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#6E6E76;text-align:center;padding:32px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.04em;line-height:1.6}",
+
+  ".gn-block{position:relative;padding:20px 22px 20px 25px;transition:border-color var(--dur) var(--ease)}",
+  ".gn-block::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--nc);opacity:.6}",
+  ".gn-block:hover{border-color:rgba(255,255,255,.15)}",
+  ".gn-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}",
+  ".gn-type{display:inline-flex;align-items:center;gap:6px;color:#8A8A90;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase}",
+  ".gn-type svg{width:13px;height:13px;opacity:.8}",
+  ".gn-block .gn-x{width:26px;height:26px;font-size:15px;opacity:0;transition:opacity var(--dur) var(--ease),color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-block:hover .gn-x{opacity:1}",
+
+  ".gn-ed{outline:none;color:#EDEDEF;line-height:1.75}",
+  ".gn-ed:empty:before{content:attr(data-placeholder);color:#6E6E76;pointer-events:none}",
+  ".gn-ed a{color:#EDEDEF;text-underline-offset:3px}",
+
+  ".gn-upload{width:100%;min-height:150px;border-radius:16px;border:1.5px dashed rgba(255,255,255,.13);background:rgba(255,255,255,.015);color:#8A8A90;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:border-color var(--dur) var(--ease),color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-upload:hover{border-color:color-mix(in srgb,var(--nc) 55%,transparent);color:var(--nc);background:color-mix(in srgb,var(--nc) 5%,transparent)}",
+  ".gn-upload--doc{min-height:100px}",
+  ".gn-upload-ic{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;transition:border-color var(--dur) var(--ease),filter var(--dur) var(--ease)}",
+  ".gn-upload-ic svg{width:18px;height:18px}",
+  ".gn-upload:hover .gn-upload-ic{border-color:color-mix(in srgb,var(--nc) 55%,transparent);filter:drop-shadow(0 0 10px var(--nc))}",
+
+  ".gn-doclink{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:#EDEDEF;text-decoration:none;font-size:13.5px;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  ".gn-doclink:hover{border-color:color-mix(in srgb,var(--nc) 45%,transparent);background:color-mix(in srgb,var(--nc) 8%,transparent)}",
+  ".gn-doclink-ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--nc) 16%,transparent);color:var(--nc)}",
+  ".gn-doclink-ic svg{width:17px;height:17px}",
+
+  ".gn-uploadmsg{margin:0 0 10px;font-size:11.5px;color:#A0A0A8;line-height:1.5;font-family:'JetBrains Mono',monospace}",
 ].join("");
 
 var SAVE_DEBOUNCE_MS = 1800;
@@ -67,6 +144,63 @@ function handleJournalCopy(e) {
   e.clipboardData.setData("text/plain", text);
   e.clipboardData.setData("text/html", html);
   e.preventDefault();
+}
+
+/* --------------------------------- ícones --------------------------------- */
+
+function IconTitle(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...props}>
+      <path d="M5 6h14M5 12h9M5 18h6" />
+    </svg>
+  );
+}
+function IconParagraph(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" {...props}>
+      <path d="M4 6h16M4 12h16M4 18h10" />
+    </svg>
+  );
+}
+function IconImage(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="M4 17l5-5 3.5 3.5L17 10l3 3" />
+    </svg>
+  );
+}
+function IconDocument(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
+      <path d="M14 3v4h4" />
+      <path d="M9 13h6M9 17h6" />
+    </svg>
+  );
+}
+function IconFolder(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M3.5 6.5a1 1 0 0 1 1-1h5l2 2.2h8a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z" />
+    </svg>
+  );
+}
+function IconChevron(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      width="13" height="13" style={{ transform: props.open ? "rotate(90deg)" : "none", transition: "transform var(--dur) var(--ease)" }}>
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function blockTypeMeta(type) {
+  if (type === "title") return { label: "Título", Icon: IconTitle };
+  if (type === "image") return { label: "Imagem", Icon: IconImage };
+  if (type === "document") return { label: "Documento", Icon: IconDocument };
+  return { label: "Texto", Icon: IconParagraph };
 }
 
 export default function Journal() {
@@ -519,24 +653,24 @@ export default function Journal() {
 
   function renderNoteItem(s) {
     var on = active === s.id;
+    var initial = (s.title || "?").trim().charAt(0).toUpperCase() || "?";
     return (
-      <div
-        key={s.id}
-        draggable={!isMobile}
-        onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
-        onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
-        style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        {!isMobile ? <span title="Arrastar" style={{ cursor: "grab", color: "#6E6E76", fontSize: 12, lineHeight: 1, userSelect: "none" }}>⠿</span> : null}
-        <button type="button" className="jr-note" onClick={function() { openNote(s.id); }}
-          style={{
-            padding: isMobile ? "14px 0" : "12px 0",
-            border: "none",
-            borderBottom: "1px solid " + (on && (!isMobile || mobileNoteOpen) ? alpha(s.color, 0.55) : "rgba(255,255,255,0.07)"),
-            background: on ? alpha(s.color, 0.06) : "transparent",
-            color: on && (!isMobile || mobileNoteOpen) ? s.color : "#A0A0A8",
-            letterSpacing: JOURNAL_LETTER_SPACING, fontSize: isMobile ? 15 : 13,
-          }}><i style={{ background: s.color }} /><span>{s.title}</span></button>
-        <button type="button" className="jr-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
+      <div key={s.id} className="gn-noterow">
+        {!isMobile ? (
+          <span
+            className="gn-drag"
+            title="Arrastar"
+            draggable
+            onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
+            onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
+          >⠿</span>
+        ) : null}
+        <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { openNote(s.id); }}
+          style={{ "--nc": s.color, fontSize: isMobile ? 15 : 13, padding: isMobile ? "12px 12px" : "9px 11px" }}>
+          <span className="gn-avatar" style={{ background: alpha(s.color, 0.18), color: s.color, borderColor: alpha(s.color, 0.4) }}>{initial}</span>
+          <span className="gn-notetitle">{s.title}</span>
+        </button>
+        <button type="button" className="gn-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
           style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
       </div>
     );
@@ -561,47 +695,43 @@ export default function Journal() {
         "--mc": ACCENT,
       }}>
       <style>{MODULE_ENTRY_CSS + JR_CSS}</style>
-      <div className="mod-glow" style={{ top: -80, left: "8%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
-      <header style={{position:"sticky",top:0,zIndex:20,background:"#0A0A0B",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:isMobile?"12px":"16px 20px"}}>
-        <div style={{maxWidth:1180,margin:"0 auto",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"space-between",gap:12,flexDirection:isMobile?"column":"row",flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,minWidth:0}}>
+      <div className="gn-field" aria-hidden="true">
+        <span className="gn-orb gn-orb--a" style={{ background: moduleGlow(ACCENT) }} />
+        <span className="gn-orb gn-orb--b" style={{ background: moduleGlow(ACCENT, "14") }} />
+      </div>
+
+      <header className="gn-header" style={{ padding: isMobile ? "12px" : "14px 20px" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             {isMobile && mobileNoteOpen ? (
-              <button onClick={function(){setMobileNoteOpen(false);}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,color:"#A0A0A8",padding:"9px 13px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:12,flexShrink:0}}>← Notas</button>
+              <button type="button" className="gn-hbtn" onClick={function() { setMobileNoteOpen(false); }}>← Notas</button>
             ) : (
-              <button onClick={function(){navigate("/");}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.09)",borderRadius:10,color:"#A0A0A8",padding:"9px 13px",cursor:"pointer",fontSize:12,flexShrink:0}}>← Hub</button>
+              <button type="button" className="gn-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
             )}
             <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: activeSpace ? activeSpace.color : ACCENT, margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
           </div>
-          {(!isMobile || mobileNoteOpen) ? (
-          <div style={{display:"flex",gap:8,alignItems:"center",overflowX:isMobile?"auto":"visible",paddingBottom:isMobile?2:0,flexWrap:"wrap"}}>
-            <button onClick={function(){addBlock("title");}} style={topBtn()}>+ Título</button>
-            <button onClick={function(){addBlock("text");}} style={topBtn()}>+ Texto</button>
-            <button onClick={function(){addBlock("image");}} style={topBtn()}>+ Imagem</button>
-            <button onClick={function(){addBlock("document");}} style={topBtn()}>+ Documento</button>
-          </div>
-          ) : null}
         </div>
       </header>
 
       {sessionWarn ? (
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#C4A57C", fontFamily: JOURNAL_FONT }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#C4A57C", fontFamily: JOURNAL_FONT, position: "relative", zIndex: 1 }}>
           {sessionWarn}
         </div>
       ) : null}
 
-      <main className="mod-main" data-scrollable style={{maxWidth:1180,margin:"0 auto",padding:isMobile?"14px 12px 80px":"22px 20px"}}>
+      <main className="mod-main" data-scrollable style={{ maxWidth: 1180, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px", position: "relative", zIndex: 1 }}>
         {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
         <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
-        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"260px minmax(0,1fr)",gap:isMobile?14:22}}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "270px minmax(0,1fr)", gap: isMobile ? 14 : 26 }}>
         {(!isMobile || !mobileNoteOpen) ? (
-        <aside style={{border:"none",borderRight:isMobile?"none":"1px solid rgba(255,255,255,0.08)",background:"transparent",padding:isMobile?"8px 0 16px":"8px 28px 8px 0",height:"fit-content"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,margin:"0 0 16px"}}>
+        <aside style={{ height: "fit-content" }}>
+          <div className="gn-sidehead">
             <p className="jr-lbl">Notas</p>
-            <button type="button" onClick={addNoteBlock} title="Novo bloco" style={{background:"transparent",border:"1px solid rgba(255,255,255,0.12)",borderRadius:9,color:"#A0A0A8",padding:"6px 11px",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:10.5,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.2}}>+ Bloco</button>
+            <button type="button" className="gn-addblk" onClick={addNoteBlock} title="Novo bloco"><IconFolder /> + Bloco</button>
           </div>
-          <div data-scrollable style={{display:"flex",flexDirection:"column",gap:12,maxHeight:isMobile?"none":"62vh",overflowY:isMobile?"visible":"auto",paddingRight:isMobile?0:2}}>
+          <div data-scrollable style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: isMobile ? "none" : "62vh", overflowY: isMobile ? "visible" : "auto", paddingRight: isMobile ? 0 : 2 }}>
             {noteGroups.ungrouped.length > 0 ? (
-              <div {...dropZoneProps(null)} style={{display:"flex",flexDirection:"column",gap:6,borderRadius:14,padding:dragOverTarget==="__none__"?8:0,border:dragOverTarget==="__none__"?("1px dashed "+color+"55"):"none",background:dragOverTarget==="__none__"?color+"10":"transparent",transition:"border-color .15s,background .15s"}}>
+              <div {...dropZoneProps(null)} className={"gn-drop" + (dragOverTarget === "__none__" ? " is-hot" : "")}>
                 {noteGroups.ungrouped.map(renderNoteItem)}
               </div>
             ) : null}
@@ -610,45 +740,53 @@ export default function Journal() {
               var collapsed = !!noteBlocks.collapsed[blk.id];
               var hot = dragOverTarget === blk.id;
               return (
-                <div key={blk.id} {...dropZoneProps(blk.id)} style={{border:"1px solid "+(hot?"rgba(255,255,255,0.22)":"rgba(255,255,255,0.06)"),background:hot?"#1A1A1D":"rgba(255,255,255,0.02)",borderRadius:12,padding:10,transition:"border-color var(--dur) var(--ease),background var(--dur) var(--ease)"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:collapsed?0:10}}>
-                    <button type="button" onClick={function(){toggleNoteBlockCollapse(blk.id);}} style={{background:"none",border:"none",color:"#6E6E76",cursor:"pointer",fontSize:11,width:16,padding:0,lineHeight:1}}>{collapsed?"▸":"▾"}</button>
-                    <button type="button" onClick={function(){renameNoteBlock(blk.id);}} title="Renomear bloco" style={{flex:1,minWidth:0,textAlign:"left",background:"none",border:"none",color:"#EDEDEF",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:11.5,letterSpacing:"1px",textTransform:"uppercase",fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",lineHeight:1.3}}>{blk.name} <span style={{color:"#6E6E76",fontWeight:400}}>· {items.length}</span></button>
-                    <button type="button" className="jr-x" onClick={function(){deleteNoteBlock(blk.id);}} title="Eliminar bloco" style={{width:24,height:24,fontSize:14}}>×</button>
+                <div key={blk.id} {...dropZoneProps(blk.id)} className={"gn-group glass-flat" + (hot ? " is-hot" : "")}>
+                  <div className="gn-group-head">
+                    <button type="button" className="gn-chevron" onClick={function() { toggleNoteBlockCollapse(blk.id); }}><IconChevron open={!collapsed} /></button>
+                    <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Renomear bloco">
+                      <IconFolder />
+                      <span>{blk.name}</span>
+                      <span className="gn-count">{items.length}</span>
+                    </button>
+                    <button type="button" className="gn-x" onClick={function() { deleteNoteBlock(blk.id); }} title="Eliminar bloco" style={{ width: 24, height: 24, fontSize: 14 }}>×</button>
                   </div>
                   {!collapsed ? (
-                    <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                      {items.length ? items.map(renderNoteItem) : <p style={{margin:0,padding:"10px",fontSize:11,color:"#6E6E76",fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.5}}>Arrasta notas para aqui</p>}
+                    <div className="gn-group-body">
+                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">Arrasta notas para aqui</p>}
                     </div>
                   ) : null}
                 </div>
               );
             })}
           </div>
-          <div style={{display:"flex",gap:8,marginTop:18}}>
-            <input value={newTitle} onChange={function(e){setNewTitle(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createSpace();}} placeholder="Nova nota..." style={{flex:1,minWidth:0,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.09)",borderRadius:11,color:"#EDEDEF",padding:"11px 12px",outline:"none",fontSize:isMobile?16:13,fontFamily:JOURNAL_FONT,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.4}}/>
-            <button type="button" onClick={createSpace} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.14)",borderRadius:11,color:"#EDEDEF",padding:"0 15px",cursor:"pointer",fontSize:15}}>+</button>
+          <div className="gn-newnote">
+            <input className="gn-input" value={newTitle} onChange={function(e) { setNewTitle(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") createSpace(); }} placeholder="Nova nota…" style={{ fontSize: isMobile ? 16 : 13 }} />
+            <button type="button" className="gn-newnote-btn" onClick={createSpace}>+</button>
           </div>
         </aside>
         ) : null}
 
         {(!isMobile || mobileNoteOpen) ? (
-        <section style={{minWidth:0,maxWidth:720}}>
-          <div style={{marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
-            <span style={{width:8,height:8,borderRadius:999,background:color,flexShrink:0}} />
+        <section style={{ minWidth: 0, maxWidth: 720 }}>
+          <div className="gn-canvashead">
+            <span className="gn-dot" style={{ background: color, "--nc": color }} />
             <h2 style={{ margin: 0, fontSize: "clamp(26px,3.8vw,38px)", fontFamily: JOURNAL_FONT, color: "#EDEDEF", fontWeight: 400, letterSpacing: "-0.03em", lineHeight: 1.2, overflowWrap: "anywhere" }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
-          <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
-            <button type="button" onClick={function(){format("bold");}} style={toolBtn()}>Negrito</button>
-            <button type="button" onClick={function(){format("italic");}} style={toolBtn()}>Itálico</button>
-            <button type="button" onClick={function(){var url=prompt("Link"); if(url) format("createLink",url);}} style={toolBtn()}>Hiperligação</button>
+          <div className="gn-fmtbar">
+            <button type="button" className="gn-fmtbtn" onClick={function() { format("bold"); }}>Negrito</button>
+            <button type="button" className="gn-fmtbtn" onClick={function() { format("italic"); }}>Itálico</button>
+            <button type="button" className="gn-fmtbtn" onClick={function() { var url = prompt("Link"); if (url) format("createLink", url); }}>Hiperligação</button>
+          </div>
+          <div className="gn-insertbar glass-flat">
+            <button type="button" className="gn-insert" onClick={function() { addBlock("title"); }}><IconTitle /> Título</button>
+            <button type="button" className="gn-insert" onClick={function() { addBlock("text"); }}><IconParagraph /> Texto</button>
+            <button type="button" className="gn-insert" onClick={function() { addBlock("image"); }}><IconImage /> Imagem</button>
+            <button type="button" className="gn-insert" onClick={function() { addBlock("document"); }}><IconDocument /> Documento</button>
           </div>
           {activeBlocks.length === 0 ? (
-            <div style={{border:"none",borderTop:"1px dashed rgba(255,255,255,0.12)",minHeight:260,display:"flex",alignItems:"center",justifyContent:"flex-start",textAlign:"left",padding:"32px 0",color:"#6E6E76",fontFamily:JOURNAL_FONT,fontSize:13,letterSpacing:JOURNAL_LETTER_SPACING,lineHeight:1.6}}>
-              Adiciona blocos para começar a escrever.
-            </div>
+            <div className="gn-emptyblocks">Adiciona blocos para começar a escrever.</div>
           ) : (
-            <div data-stagger style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {activeBlocks.map(function(b) {
                 return (
                   <JournalBlock
@@ -686,6 +824,7 @@ function JournalBlock(props) {
   var focusedRef = useRef(false);
   var uploadS = useState("");
   var uploadMsg = uploadS[0], setUploadMsg = uploadS[1];
+  var meta = blockTypeMeta(b.type);
 
   useEffect(function() {
     latestHtml.current = b.content || "";
@@ -742,21 +881,38 @@ function JournalBlock(props) {
   }
 
   return (
-    <div className="jr-blk">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <span className="jr-lbl">{b.type}</span>
-        <button type="button" className="jr-x" onClick={function(){props.onDelete(b.id);}} style={{width:26,height:26,fontSize:15}}>×</button>
+    <div className="gn-block glass" style={{ "--nc": props.color }}>
+      <div className="gn-block-head">
+        <span className="gn-type"><meta.Icon /> {meta.label}</span>
+        <button type="button" className="gn-x" onClick={function() { props.onDelete(b.id); }} style={{ width: 26, height: 26, fontSize: 15 }}>×</button>
       </div>
-      {uploadMsg ? <p style={{margin:"0 0 10px",fontSize:11.5,color:"#A0A0A8",lineHeight:1.5}}>{uploadMsg}</p> : null}
+      {uploadMsg ? <p className="gn-uploadmsg">{uploadMsg}</p> : null}
       {b.type === "image" ? (
         <div>
-          {b.content ? <img src={b.content} alt={b.meta && b.meta.name || "Imagem"} style={{maxWidth:"100%",borderRadius:12,display:"block"}}/> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:150,border:"1px dashed rgba(255,255,255,0.12)",borderRadius:12,background:"transparent",color:"#A0A0A8",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:13}}>Escolher imagem</button>}
-          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={onFile}/>
+          {b.content ? (
+            <img src={b.content} alt={(b.meta && b.meta.name) || "Imagem"} style={{ maxWidth: "100%", borderRadius: 14, display: "block" }} />
+          ) : (
+            <button type="button" className="gn-upload" onClick={function() { fileRef.current.click(); }}>
+              <span className="gn-upload-ic"><IconImage /></span>
+              Escolher imagem
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onFile} />
         </div>
       ) : b.type === "document" ? (
         <div>
-          {b.content ? <a href={b.content} download={b.meta && b.meta.name} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderRadius:12,border:"1px solid rgba(255,255,255,0.09)",background:"#0E0E10",color:"#EDEDEF",textDecoration:"none",fontSize:13.5}}><span style={{fontSize:22}}>📄</span><span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{b.meta && b.meta.name || "Documento"}</span></a> : <button type="button" onClick={function(){fileRef.current.click();}} style={{width:"100%",minHeight:110,border:"1px dashed rgba(255,255,255,0.12)",borderRadius:12,background:"transparent",color:"#A0A0A8",cursor:"pointer",fontFamily:JOURNAL_FONT,fontSize:13}}>Escolher documento</button>}
-          <input ref={fileRef} type="file" style={{display:"none"}} onChange={onFile}/>
+          {b.content ? (
+            <a href={b.content} download={b.meta && b.meta.name} className="gn-doclink">
+              <span className="gn-doclink-ic"><IconDocument /></span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(b.meta && b.meta.name) || "Documento"}</span>
+            </a>
+          ) : (
+            <button type="button" className="gn-upload gn-upload--doc" onClick={function() { fileRef.current.click(); }}>
+              <span className="gn-upload-ic"><IconDocument /></span>
+              Escolher documento
+            </button>
+          )}
+          <input ref={fileRef} type="file" style={{ display: "none" }} onChange={onFile} />
         </div>
       ) : (
         <div
@@ -774,7 +930,7 @@ function JournalBlock(props) {
             if (props.onEditEnd) props.onEditEnd();
           }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
-          className="jr-ed"
+          className="gn-ed"
           style={{
             outline: "none",
             fontSize: b.type === "title" ? 24 : 15,
@@ -788,34 +944,4 @@ function JournalBlock(props) {
       )}
     </div>
   );
-}
-
-function topBtn() {
-  return {
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.09)",
-    borderRadius: 10,
-    color: "#A0A0A8",
-    padding: "9px 13px",
-    cursor: "pointer",
-    fontFamily: JOURNAL_FONT,
-    fontSize: 11.5,
-    letterSpacing: JOURNAL_LETTER_SPACING,
-    lineHeight: 1.2,
-    whiteSpace: "nowrap",
-  };
-}
-function toolBtn() {
-  return {
-    background: "transparent",
-    border: "1px solid rgba(255,255,255,0.09)",
-    borderRadius: 10,
-    color: "#A0A0A8",
-    padding: "9px 13px",
-    cursor: "pointer",
-    fontSize: 12,
-    fontFamily: JOURNAL_FONT,
-    letterSpacing: JOURNAL_LETTER_SPACING,
-    lineHeight: 1.2,
-  };
 }
