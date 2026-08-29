@@ -102,6 +102,8 @@ var JR_CSS = [
   ".gn-ed{outline:none;color:#EDEDEF;line-height:1.75}",
   ".gn-ed:empty:before{content:attr(data-placeholder);color:#6E6E76;pointer-events:none}",
   ".gn-ed a{color:#EDEDEF;text-underline-offset:3px}",
+  ".gn-ed--title{font-size:24px;font-weight:600;line-height:1.3;min-height:36px}",
+  ".gn-ed--text{font-size:15px;font-weight:400;min-height:90px;max-width:74ch}",
 
   ".gn-upload{width:100%;min-height:150px;border-radius:16px;border:1.5px dashed rgba(255,255,255,.13);background:rgba(255,255,255,.015);color:#8A8A90;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:border-color var(--dur) var(--ease),color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".gn-upload:hover{border-color:color-mix(in srgb,var(--nc) 55%,transparent);color:var(--nc);background:color-mix(in srgb,var(--nc) 5%,transparent)}",
@@ -116,6 +118,57 @@ var JR_CSS = [
   ".gn-doclink-ic svg{width:17px;height:17px}",
 
   ".gn-uploadmsg{margin:0 0 10px;font-size:11.5px;color:#A0A0A8;line-height:1.5;font-family:'JetBrains Mono',monospace}",
+
+  /* ---------- responsive ---------- */
+  "@media(max-width:720px){",
+  ".gn-field{height:min(640px,70vh)}",
+  ".gn-orb--a{width:70vw;height:70vw;max-width:none;max-height:none}",
+  ".gn-orb--b{width:55vw;height:55vw;max-width:none;max-height:none}",
+  ".gn-header{padding-top:max(10px,env(safe-area-inset-top))!important}",
+  ".gn-hbtn{min-height:42px;padding:10px 14px;font-size:13px}",
+  ".gn-sidehead{margin-bottom:14px}",
+  ".gn-addblk{min-height:40px;padding:9px 14px;font-size:12px}",
+  ".gn-addblk svg{width:14px;height:14px}",
+  ".gn-note{padding:12px;border-radius:14px;min-height:48px}",
+  ".gn-avatar{width:28px;height:28px;font-size:12px}",
+  ".gn-notetitle{font-size:15px}",
+  ".gn-group{padding:12px}",
+  ".gn-group-name{font-size:12px;min-height:36px}",
+  ".gn-chevron{width:32px;height:32px}",
+  ".gn-chevron svg{width:16px;height:16px}",
+  ".gn-count{padding:3px 9px;font-size:11px}",
+  ".gn-x{opacity:1!important;width:36px!important;height:36px!important;font-size:18px!important}",
+  ".gn-newnote{gap:10px;margin-top:16px;position:sticky;bottom:0;padding-bottom:max(8px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(9,9,10,.92) 30%)}",
+  ".gn-newnote-btn{width:48px;height:48px;font-size:20px}",
+  ".gn-input{font-size:16px!important;min-height:48px;padding:12px 16px}",
+  ".gn-canvashead{margin-bottom:14px;gap:10px}",
+  ".gn-fmtbar{width:100%;display:flex;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}",
+  ".gn-fmtbtn{flex:1;min-height:42px;padding:10px 12px;font-size:13px;white-space:nowrap}",
+  ".gn-insertbar{gap:8px;padding:10px;margin-bottom:16px;justify-content:stretch}",
+  ".gn-insert{flex:1 1 calc(50% - 8px);justify-content:center;min-height:44px;padding:10px 12px;font-size:12px}",
+  ".gn-insert svg{width:16px;height:16px}",
+  ".gn-emptyblocks{min-height:180px;padding:28px 18px;font-size:13px}",
+  ".gn-block{padding:16px 16px 16px 20px}",
+  ".gn-block .gn-x{opacity:1}",
+  ".gn-ed--text{font-size:16px!important;-webkit-text-size-adjust:100%}",
+  ".gn-ed--title{font-size:22px!important}",
+  ".gn-upload{min-height:140px;font-size:14px;padding:18px}",
+  ".gn-upload--doc{min-height:110px}",
+  ".gn-doclink{padding:14px;min-height:52px;font-size:14px}",
+  "}",
+  "@media(pointer:coarse){",
+  ".gn-hbtn{min-height:44px}",
+  ".gn-addblk{min-height:44px}",
+  ".gn-note{min-height:48px}",
+  ".gn-block .gn-x,.gn-noterow .gn-x{opacity:1}",
+  ".gn-insert{min-height:44px}",
+  ".gn-fmtbtn{min-height:44px}",
+  "}",
+  "@media(hover:none){",
+  ".gn-block:hover{border-color:rgba(255,255,255,.09)}",
+  ".gn-insert:hover{transform:none}",
+  ".gn-addblk:hover{transform:none}",
+  "}",
 ].join("");
 
 var SAVE_DEBOUNCE_MS = 1800;
@@ -700,7 +753,7 @@ export default function Journal() {
         <span className="gn-orb gn-orb--b" style={{ background: moduleGlow(ACCENT, "14") }} />
       </div>
 
-      <header className="gn-header" style={{ padding: isMobile ? "12px" : "14px 20px" }}>
+      <header className="gn-header" style={{ padding: isMobile ? "max(12px, env(safe-area-inset-top)) 12px 12px" : "14px 20px" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             {isMobile && mobileNoteOpen ? (
@@ -770,18 +823,18 @@ export default function Journal() {
         <section style={{ minWidth: 0, maxWidth: 720 }}>
           <div className="gn-canvashead">
             <span className="gn-dot" style={{ background: color, "--nc": color }} />
-            <h2 style={{ margin: 0, fontSize: "clamp(26px,3.8vw,38px)", fontFamily: JOURNAL_FONT, color: "#EDEDEF", fontWeight: 400, letterSpacing: "-0.03em", lineHeight: 1.2, overflowWrap: "anywhere" }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
+            <h2 style={{ margin: 0, fontSize: isMobile ? "clamp(22px,7vw,30px)" : "clamp(26px,3.8vw,38px)", fontFamily: JOURNAL_FONT, color: "#EDEDEF", fontWeight: 400, letterSpacing: "-0.03em", lineHeight: 1.2, overflowWrap: "anywhere" }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
           </div>
           <div className="gn-fmtbar">
-            <button type="button" className="gn-fmtbtn" onClick={function() { format("bold"); }}>Negrito</button>
-            <button type="button" className="gn-fmtbtn" onClick={function() { format("italic"); }}>Itálico</button>
-            <button type="button" className="gn-fmtbtn" onClick={function() { var url = prompt("Link"); if (url) format("createLink", url); }}>Hiperligação</button>
+            <button type="button" className="gn-fmtbtn" onClick={function() { format("bold"); }}>{isMobile ? "N" : "Negrito"}</button>
+            <button type="button" className="gn-fmtbtn" onClick={function() { format("italic"); }}>{isMobile ? "I" : "Itálico"}</button>
+            <button type="button" className="gn-fmtbtn" onClick={function() { var url = prompt("Link"); if (url) format("createLink", url); }}>{isMobile ? "Link" : "Hiperligação"}</button>
           </div>
           <div className="gn-insertbar glass-flat">
             <button type="button" className="gn-insert" onClick={function() { addBlock("title"); }}><IconTitle /> Título</button>
             <button type="button" className="gn-insert" onClick={function() { addBlock("text"); }}><IconParagraph /> Texto</button>
-            <button type="button" className="gn-insert" onClick={function() { addBlock("image"); }}><IconImage /> Imagem</button>
-            <button type="button" className="gn-insert" onClick={function() { addBlock("document"); }}><IconDocument /> Documento</button>
+            <button type="button" className="gn-insert" onClick={function() { addBlock("image"); }}><IconImage /> {isMobile ? "Img" : "Imagem"}</button>
+            <button type="button" className="gn-insert" onClick={function() { addBlock("document"); }}><IconDocument /> {isMobile ? "Doc" : "Documento"}</button>
           </div>
           {activeBlocks.length === 0 ? (
             <div className="gn-emptyblocks">Adiciona blocos para começar a escrever.</div>
@@ -930,13 +983,9 @@ function JournalBlock(props) {
             if (props.onEditEnd) props.onEditEnd();
           }}
           data-placeholder={b.type === "title" ? "Título" : "Escreve aqui..."}
-          className="gn-ed"
+          className={"gn-ed" + (b.type === "title" ? " gn-ed--title" : " gn-ed--text")}
           style={{
             outline: "none",
-            fontSize: b.type === "title" ? 24 : 15,
-            fontWeight: b.type === "title" ? 600 : 400,
-            minHeight: b.type === "title" ? 36 : 90,
-            maxWidth: b.type === "title" ? "none" : "74ch",
             ...JOURNAL_TEXT,
             lineHeight: b.type === "title" ? 1.3 : JOURNAL_LINE_HEIGHT,
           }}

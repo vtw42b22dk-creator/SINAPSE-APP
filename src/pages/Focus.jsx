@@ -200,14 +200,83 @@ var FX_CSS = [
   ".fs-immersive .fs-digital{font-size:clamp(60px,16vw,116px)!important}",
   ".fs-immersive-hint{margin:0;font-size:10px;color:#6E6E76;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;opacity:.7}",
   ".fs-immersive-bar{position:fixed;bottom:0;left:0;right:0;padding:20px 24px max(20px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(7,7,8,.92) 45%);display:flex;gap:12px;justify-content:center;pointer-events:auto;z-index:2}",
+  ".fs-sub{display:block}",
+  ".fs-headtitle h1{margin:0}",
   ".fs-phase-flash{position:fixed;inset:0;z-index:190;pointer-events:none;animation:uiFlash .85s var(--ease) both}",
   ".fs-phase-flash--focus{background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.09),transparent 65%)}",
   ".fs-phase-flash--break{background:radial-gradient(circle at 50% 40%,rgba(196,165,124,.14),transparent 65%)}",
 
   /* ---------- responsive ---------- */
-  "@media(max-width:720px){.fs-main{padding:2px 12px 6px}.fs-proj-del{opacity:1}.fs-panel--clock{min-height:calc(100vh - 210px);padding:14px 8px}.fs-halo{width:min(300px,80vw);height:min(300px,80vw)}.fs-input,.fs-area{font-size:16px!important}.fs-dockwrap{padding:6px 8px max(6px,env(safe-area-inset-bottom))}.fs-navitem{height:48px;font-size:15px}.fs-grid{grid-template-columns:1fr}.fs-tcontrols{max-width:none}.fs-prog{max-width:none}}",
-  "@media(pointer:coarse){.fs-hbtn{min-height:44px}.fs-mode{min-height:40px}.fs-stybtn{min-height:40px}.fs-task-check{width:27px;height:27px}.fs-proj-del{width:34px;height:34px}.fs-idea button{width:30px;height:30px;opacity:1}.fs-task .fs-x{opacity:1}}",
-  "@media(hover:none){.fs-proj:hover{transform:none}}",
+  "@media(max-width:720px){",
+  ".fs-headwrap{padding:max(8px,env(safe-area-inset-top)) 8px 6px}",
+  ".fs-head{flex-wrap:wrap;gap:8px;padding:8px 10px;align-items:center}",
+  ".fs-headtitle{flex:1 1 calc(100% - 120px);min-width:0;order:0}",
+  ".fs-head .fs-sub,.fs-badge{display:none}",
+  ".fs-hbtn{padding:10px 12px;font-size:12px;min-height:42px}",
+  ".fs-danger{min-width:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:18px}",
+  ".fs-headic{width:30px;height:30px;font-size:15px;border-radius:10px}",
+  ".fs-main{padding:2px 12px 6px}",
+  ".fs-proj-del{opacity:1}",
+  ".fs-panel{padding:12px 0 24px}",
+  ".fs-panel--clock{min-height:calc(100dvh - 220px);padding:10px 4px 18px}",
+  ".fs-halo{width:min(280px,78vw);height:min(280px,78vw)}",
+  ".fs-digital{font-size:clamp(36px,12vw,56px)}",
+  ".fs-modes{gap:6px;justify-content:center;margin-bottom:12px}",
+  ".fs-mode{padding:10px 12px;font-size:11px;flex:1 1 auto;min-width:0;text-align:center}",
+  ".fs-styletog{gap:6px;max-width:100%}",
+  ".fs-stybtn{padding:10px 12px;font-size:11px;flex:1 1 auto;min-width:0}",
+  ".fs-tcontrols{max-width:none;gap:10px}",
+  ".fs-tbtn{min-height:50px;padding:14px 12px;font-size:12.5px}",
+  ".fs-prog{max-width:none}",
+  ".fs-input,.fs-area{font-size:16px!important;min-height:48px}",
+  ".fs-area{min-height:min(280px,38vh)}",
+  ".fs-dockwrap{padding:6px 6px max(8px,env(safe-area-inset-bottom))}",
+  ".fs-dock{padding:4px}",
+  ".fs-dock-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/5);border-radius:16px}",
+  ".fs-navitem{height:52px;font-size:16px;gap:3px}",
+  ".fs-navitem span{font-size:7.5px;letter-spacing:.4px}",
+  ".fs-grid{grid-template-columns:1fr;gap:12px}",
+  ".fs-proj{padding:18px;min-height:148px}",
+  ".fs-proj-play{min-height:40px;padding:10px 14px;font-size:11.5px}",
+  ".fs-addcard{min-height:132px}",
+  ".fs-statgrid{grid-template-columns:1fr 1fr;gap:8px}",
+  ".fs-stat{padding:14px}",
+  ".fs-stat strong{font-size:18px}",
+  ".fs-chart{height:160px;padding:12px;gap:6px}",
+  ".fs-tablewrap{margin:0 -4px;padding:4px 2px}",
+  ".fs-table{font-size:11px}",
+  ".fs-table th,.fs-table td{padding:10px 8px}",
+  ".fs-modal-bg{padding:12px;align-items:flex-end}",
+  ".fs-modal{width:100%;max-height:92dvh;padding:20px 18px max(20px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
+  ".fs-immersive{padding:24px 14px}",
+  ".fs-immersive .fs-halo{width:min(78vw,340px);height:min(78vw,340px)}",
+  ".fs-immersive .fs-digital{font-size:clamp(48px,14vw,88px)!important}",
+  ".fs-immersive-bar{flex-wrap:wrap;padding:14px 12px max(14px,env(safe-area-inset-bottom));gap:8px}",
+  ".fs-immersive-bar .fs-tbtn{flex:1 1 40%;min-width:0}",
+  ".fs-notes-seg{width:100%}",
+  ".fs-notes-seg button{flex:1;padding:11px 10px;font-size:12px}",
+  ".fs-idea{padding:14px 44px 14px 16px;font-size:14px}",
+  ".fs-task{padding:14px 12px;gap:12px}",
+  "}",
+  "@media(max-width:380px){",
+  ".fs-navitem span{display:none}",
+  ".fs-navitem{height:48px}",
+  ".fs-modes{flex-wrap:wrap}",
+  ".fs-mode{flex:1 1 calc(50% - 6px)}",
+  "}",
+  "@media(pointer:coarse){",
+  ".fs-hbtn{min-height:44px}",
+  ".fs-mode{min-height:42px}",
+  ".fs-stybtn{min-height:42px}",
+  ".fs-task-check{width:28px;height:28px}",
+  ".fs-proj-del{width:36px;height:36px}",
+  ".fs-idea button{width:32px;height:32px;opacity:1}",
+  ".fs-task .fs-x{opacity:1;width:32px;height:32px}",
+  ".fs-iconchip{width:44px;height:44px;font-size:18px}",
+  ".fs-colorchip{width:40px;height:40px}",
+  ".fs-colorchip i{width:28px;height:28px}",
+  "}",
+  "@media(hover:none){.fs-proj:hover{transform:none}.fs-addcard:hover{transform:none}}",
 ].join("");
 
 function playBeep(freq) {
@@ -426,7 +495,7 @@ function ProjectPicker(props) {
             <span className="fs-headic">◷</span>
             <div style={{ minWidth: 0 }}>
               <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 500, color: CYAN, letterSpacing: 1.2 }}>ESTÚDIO DE FOCO</h1>
-              <p style={{ margin: "3px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90" }}>Escolhe ou cria um projeto de estudo</p>
+              <p className="fs-sub" style={{ margin: "3px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90" }}>Escolhe ou cria um projeto de estudo</p>
             </div>
           </div>
         </header>
@@ -571,6 +640,8 @@ export default function Focus() {
   var phaseFlashS = useState(null);
   var phaseFlash = phaseFlashS[0], setPhaseFlash = phaseFlashS[1];
   var prevPhaseRef = useRef(focusTimer.getState().phase);
+  var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  var isMobile = vwS[0] < 720;
 
   var today = focusStore.dayKey();
   var accent = activeProject ? activeProject.color : CYAN;
@@ -607,6 +678,12 @@ export default function Focus() {
     setAllMetrics(next);
     focusStore.saveMetrics(next);
   }, [activeProject, today]);
+
+  useEffect(function() {
+    function onResize() { vwS[1](window.innerWidth); }
+    window.addEventListener("resize", onResize);
+    return function() { window.removeEventListener("resize", onResize); };
+  }, []);
 
   useEffect(function() {
     focusTimer.setTimerHandlers({
@@ -900,21 +977,23 @@ export default function Focus() {
 
       <div className="fs-headwrap">
         <header className="fs-head glass-capsule">
-          <button type="button" className="fs-hbtn" onClick={exitProject} title="Trocar projeto">← Projetos</button>
+          <button type="button" className="fs-hbtn" onClick={exitProject} title="Trocar projeto">{isMobile ? "←" : "← Projetos"}</button>
           <button type="button" className="fs-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
           <div className="fs-headtitle">
             <span className="fs-headic">{activeProject.icon}</span>
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 12.5, color: "#EDEDEF", letterSpacing: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
-              <p style={{ margin: "2px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>
+              <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 13 : 12.5, color: "#EDEDEF", letterSpacing: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
+              <p className="fs-sub" style={{ margin: "2px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>
                 {timer.running ? "● Sessão activa" : "Estúdio de Foco"} · hoje {todayMetric.minutes} min
               </p>
             </div>
           </div>
-          <span className="fs-badge" style={{ color: timer.running ? "#8FB39B" : "#A0A0A8", background: timer.running ? "rgba(143,179,155,0.14)" : "rgba(255,255,255,.04)" }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: timer.running ? "#8FB39B" : "#6E6E76" }} />
-            {timer.running ? "A contar" : (auth.user ? "Sync" : "Local")}
-          </span>
+          {!isMobile ? (
+            <span className="fs-badge" style={{ color: timer.running ? "#8FB39B" : "#A0A0A8", background: timer.running ? "rgba(143,179,155,0.14)" : "rgba(255,255,255,.04)" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: timer.running ? "#8FB39B" : "#6E6E76" }} />
+              {timer.running ? "A contar" : (auth.user ? "Sync" : "Local")}
+            </span>
+          ) : null}
           <button type="button" className="fs-danger" title="Eliminar este projeto"
             onClick={function() {
               if (!window.confirm("Eliminar \"" + activeProject.name + "\" e todos os dados associados?")) return;
