@@ -43,7 +43,7 @@ var FL_CSS = [
   ".fl-line:last-child{border-bottom:none}",
   ".fl-empty{margin:0;padding:40px 20px;text-align:center;font-size:13px;line-height:1.5;color:#6E6E76}",
   "@media(hover:none){.fl-row:hover{background:transparent}}",
-  "@media(max-width:719px){.fl-btn{min-height:44px;font-size:12px}.fl-nav{width:44px;height:44px}.fl-icon{width:38px;height:38px}",
+  "@media(max-width:719px){.fl-btn{min-height:44px;font-size:12px}.fl-nav{width:44px;height:44px}.fl-icon{width:44px;height:44px;font-size:18px}",
   ".fl-pick{min-height:44px;font-size:13px}}",
 ].join("");
 

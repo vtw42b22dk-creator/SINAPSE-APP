@@ -6,6 +6,7 @@ import { PageLoader } from "../components/PageLoader";
 import { fs } from "../lib/mobileUi";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
+import { supabase } from "../lib/supabase";
 
 var ACCENT = moduleColor("tasks");
 var COLUMNS = [
@@ -70,15 +71,15 @@ var TASKS_CSS = [
   ".tk-card:active{transform:scale(.995)}",
   ".tk-card.is-done{opacity:.48}",
   ".tk-card.is-late{border-bottom-color:rgba(192,140,140,.45)}",
-  ".tk-check{display:flex;align-items:center;justify-content:center;width:20px;height:20px;flex-shrink:0;margin-top:3px;border:1px solid rgba(255,255,255,.28);background:transparent;color:transparent;font-size:11px;cursor:pointer;padding:0;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".tk-check:hover{border-color:rgba(255,255,255,.55);transform:scale(1.08)}",
+  ".tk-check{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;margin-top:2px;border:1.5px solid rgba(255,255,255,.35);border-radius:50%;background:transparent;color:transparent;font-size:12px;line-height:1;cursor:pointer;padding:0;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-check:hover{border-color:rgba(255,255,255,.7);transform:scale(1.08)}",
   ".tk-check.on{background:#E6E6E9;border-color:#E6E6E9;color:#070708;animation:uiPop .38s var(--ease)}",
   ".tk-title{margin:0;line-height:1.45;color:#EDEDEF;overflow-wrap:anywhere;transition:color var(--dur) var(--ease)}",
   ".tk-card.is-done .tk-title{text-decoration:line-through;color:#6E6E76}",
   ".tk-notes{margin:7px 0 0;line-height:1.55;color:#A0A0A8;overflow-wrap:anywhere}",
   ".tk-subs{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}",
   ".tk-sub{display:flex;align-items:center;gap:9px;font-size:12.5px}",
-  ".tk-sub>button{display:flex;align-items:center;justify-content:center;width:14px;height:14px;flex-shrink:0;padding:0;border:1px solid rgba(255,255,255,.22);background:transparent;color:transparent;font-size:9px;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-sub>button{display:flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;padding:0;border:1.5px solid rgba(255,255,255,.28);border-radius:50%;background:transparent;color:transparent;font-size:10px;line-height:1;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-sub>button:hover{transform:scale(1.1)}",
   ".tk-sub>button.on{background:#E6E6E9;border-color:#E6E6E9;color:#070708}",
   ".tk-sub>span{color:#A0A0A8;line-height:1.4}",
@@ -88,11 +89,12 @@ var TASKS_CSS = [
   ".tk-due{color:#6E6E76}",
   ".tk-due.late{color:#C08C8C}",
   ".tk-tag{padding:0;color:#A0A0A8;letter-spacing:.3px}",
+  ".tk-move{margin-top:10px;width:100%;min-height:44px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#EDEDEF;font-size:14px;font-family:inherit;padding:8px 10px;color-scheme:dark}",
   ".tk-act{display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity var(--dur) var(--ease)}",
   ".tk-card:hover .tk-act,.tk-card:focus-within .tk-act{opacity:1}",
   ".tk-act>button{background:none;border:none;color:#6E6E76;cursor:pointer;font-size:12px;line-height:1;padding:5px 6px;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-act>button:hover{color:#EDEDEF;transform:scale(1.1)}",
-  "@media(hover:none){.tk-act{opacity:.55}}",
+  "@media(hover:none){.tk-act{opacity:1}}",
   ".tk-lbl{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;font-family:'JetBrains Mono',monospace}",
   ".tk-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6E6E76;padding:0}",
   ".tk-empty{margin:0;padding:22px 0;text-align:left;font-size:12px;color:#6E6E76;line-height:1.5}",
@@ -108,7 +110,17 @@ var TASKS_CSS = [
   ".tk-tab:active{transform:scale(.995)}",
   ".tk-tab-icon{font-size:20px;line-height:1;color:#A0A0A8;flex-shrink:0;width:32px}",
   ".tk-tab-count{font-size:15px;font-family:'JetBrains Mono',monospace;color:#EDEDEF;min-width:34px;text-align:right}",
-  "@media(max-width:719px){.tk-head{padding:12px}.tk-head-inner{flex-direction:column;align-items:stretch}}",
+  "@media(max-width:719px){",
+  ".tk-head{padding:12px;padding-top:max(12px,env(safe-area-inset-top))}",
+  ".tk-head-inner{flex-direction:column;align-items:stretch}",
+  ".tk-check{width:44px;height:44px;margin-top:0;border-width:2px;font-size:20px}",
+  ".tk-sub{gap:12px;min-height:44px}",
+  ".tk-sub>button{width:32px;height:32px;font-size:16px;border-width:2px}",
+  ".tk-act{opacity:1;flex-direction:row;align-items:center}",
+  ".tk-act>button{min-width:44px;min-height:44px;font-size:18px;padding:8px}",
+  ".tk-card{padding:14px 12px}",
+  ".tk-empty{padding:16px 0}",
+  "}",
 ].join("");
 
 function uid() { return "t" + Date.now() + Math.random().toString(36).slice(2, 7); }
@@ -125,12 +137,12 @@ function TaskCard(props) {
   return (
     <article
       className={"tk-card" + (done ? " is-done" : "") + (overdue ? " is-late" : "")}
-      draggable={!props.readOnly}
-      onDragStart={function(e) { if (props.readOnly) return; e.dataTransfer.setData("text/task-id", t.id); }}
-      style={{ cursor: props.readOnly ? "default" : "grab" }}>
+      draggable={!props.readOnly && !props.isMobile}
+      onDragStart={function(e) { if (props.readOnly || props.isMobile) return; e.dataTransfer.setData("text/task-id", t.id); }}
+      style={{ cursor: props.readOnly || props.isMobile ? "default" : "grab" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
         <button type="button" className={"tk-check" + (done ? " on" : "")} onClick={function() { props.onToggle(t.id); }}
-          title={done ? "Reabrir" : "Concluir"}>{done ? "✓" : ""}</button>
+          title={done ? "Reabrir" : "Concluir"}>{done ? "✕" : ""}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p className="tk-title" style={{ fontSize: fs(mob, 13.5, 16) }}>{t.title}</p>
           {t.notes && <p className="tk-notes" style={{ fontSize: fs(mob, 12, 14) }}>{t.notes}</p>}
@@ -140,7 +152,7 @@ function TaskCard(props) {
                 return (
                   <li key={st.id} className={"tk-sub" + (st.done ? " on" : "")}>
                     <button type="button" className={st.done ? "on" : ""}
-                      onClick={function(e) { e.stopPropagation(); if (props.onToggleSubtask) props.onToggleSubtask(st.id); }}>{st.done ? "✓" : ""}</button>
+                      onClick={function(e) { e.stopPropagation(); if (props.onToggleSubtask) props.onToggleSubtask(st.id); }}>{st.done ? "✕" : ""}</button>
                     <span>{st.title}</span>
                   </li>
                 );
@@ -158,6 +170,19 @@ function TaskCard(props) {
               return <span key={tag} className="tk-tag">{tag}</span>;
             })}
           </div>
+          {mob && !props.readOnly ? (
+            <select
+              className="tk-move"
+              value={props.col}
+              aria-label="Mover tarefa"
+              onClick={function(e) { e.stopPropagation(); }}
+              onChange={function(e) { if (props.onMove) props.onMove(t.id, e.target.value); }}
+            >
+              {COLUMNS.map(function(c) {
+                return <option key={c.id} value={c.id}>{c.label}</option>;
+              })}
+            </select>
+          ) : null}
         </div>
         {!props.readOnly && (
           <div className="tk-act">
@@ -317,14 +342,25 @@ export default function Tasks() {
     document.addEventListener("visibilitychange", onVis);
     var timer = setInterval(function() {
       if (document.visibilityState === "visible") syncFromCloud();
-    }, 15000);
+    }, 12000);
+    var channel = null;
+    if (supabase && auth.user) {
+      channel = supabase.channel("sync-tasks-" + auth.user.id.slice(0, 8));
+      channel.on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, function() {
+        syncFromCloud();
+      });
+      channel.subscribe();
+    }
     return function() {
       window.removeEventListener("beforeunload", flush);
       window.removeEventListener("focus", syncFromCloud);
       document.removeEventListener("visibilitychange", onVis);
       clearInterval(timer);
+      if (channel) {
+        try { supabase.removeChannel(channel); } catch (e) {}
+      }
     };
-  }, [loaded, syncFromCloud]);
+  }, [loaded, syncFromCloud, auth.user && auth.user.id]);
 
   var stats = useMemo(function() {
     var done = tasks.filter(function(t) { return t.column === "done"; }).length;
@@ -487,6 +523,11 @@ export default function Tasks() {
     e.preventDefault();
     var id = e.dataTransfer.getData("text/task-id");
     if (!id) return;
+    moveTask(id, col);
+  }
+
+  function moveTask(id, col) {
+    if (!id || !col) return;
     setTasks(function(prev) {
       return prev.map(function(t) { return t.id === id ? taskStore.touchTask(t, { column: col }) : t; });
     });
@@ -640,11 +681,11 @@ export default function Tasks() {
                 <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 80 }}>
                   {list.length === 0 ? (
                     <p className="tk-empty">
-                      Arrasta tarefas para aqui
+                      {isMobile ? "Ainda não há tarefas aqui." : "Arrasta tarefas para aqui"}
                     </p>
                   ) : list.map(function(t) {
                     return (
-                      <TaskCard key={t.id} task={t} col={col.id} isMobile={isMobile} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
+                      <TaskCard key={t.id} task={t} col={col.id} isMobile={isMobile} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onMove={moveTask} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
                     );
                   })}
                 </div>

@@ -71,6 +71,13 @@ var JR_CSS = [
   ".gn-newnote{display:flex;gap:8px;margin-top:18px}",
   ".gn-newnote-btn{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb,var(--mc) 14%,transparent);border:1px solid color-mix(in srgb,var(--mc) 38%,transparent);color:var(--mc);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease),filter var(--dur) var(--ease)}",
   ".gn-newnote-btn:hover{background:color-mix(in srgb,var(--mc) 26%,transparent);filter:drop-shadow(0 0 10px var(--mc))}",
+  ".gn-move{flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:999px;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.3px;padding:8px 10px;min-height:40px;cursor:pointer}",
+  ".gn-noterow-wrap{display:flex;flex-direction:column;gap:6px}",
+  ".gn-movemenu{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}",
+  ".gn-movemenu p{margin:0 0 4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#8A8A90}",
+  ".gn-movemenu button{text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#EDEDEF;padding:11px 12px;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
+  ".gn-movemenu span{font-size:12px;color:#6E6E76;padding:4px 2px}",
+  ".gn-cats-empty{margin:0;padding:14px 10px;font-size:12px;color:#6E6E76;line-height:1.5;font-family:'JetBrains Mono',monospace}",
 
   ".gn-input{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#EDEDEF;padding:11px 15px;outline:none;box-sizing:border-box;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".gn-input:focus{border-color:color-mix(in srgb,var(--mc) 55%,transparent);background:rgba(255,255,255,.05)}",
@@ -138,6 +145,8 @@ var JR_CSS = [
   ".gn-chevron svg{width:16px;height:16px}",
   ".gn-count{padding:3px 9px;font-size:11px}",
   ".gn-x{opacity:1!important;width:36px!important;height:36px!important;font-size:18px!important}",
+  ".gn-move{min-height:44px;padding:10px 12px;font-size:12px}",
+  ".gn-movemenu button{min-height:46px;font-size:14px}",
   ".gn-newnote{gap:10px;margin-top:16px;position:sticky;bottom:0;padding-bottom:max(8px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(9,9,10,.92) 30%)}",
   ".gn-newnote-btn{width:48px;height:48px;font-size:20px}",
   ".gn-input{font-size:16px!important;min-height:48px;padding:12px 16px}",
@@ -277,6 +286,8 @@ export default function Journal() {
   var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
   var mobileNoteOpenS = useState(false);
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
+  var moveNoteS = useState(null);
+  var moveNoteId = moveNoteS[0], setMoveNoteId = moveNoteS[1];
   var dragNoteRef = useRef(null);
   var dragOverS = useState(null);
   var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
@@ -327,13 +338,9 @@ export default function Journal() {
     ]).then(function(local) {
       applyJournalData(local[0], local[1]);
       applyNoteLayout(local[2]);
-      return Promise.all([
-        journalStore.pullSpaces(),
-        journalStore.pullBlocks(getEditingSnapshot()),
-        journalStore.pullNoteLayout(),
-      ]).then(function(sync) {
-        applyJournalData(sync[0], sync[1]);
-        applyNoteLayout(sync[2]);
+      return journalStore.syncJournal(getEditingSnapshot()).then(function(sync) {
+        applyJournalData(sync.spaces, sync.blocks);
+        applyNoteLayout(sync.layout);
       });
     }).finally(function() {
       isHydratedRef.current = true;
@@ -344,16 +351,13 @@ export default function Journal() {
 
   var syncFromCloud = useCallback(function() {
     if (editingBlockRef.current) return Promise.resolve();
-    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
-    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
+    if (Date.now() - lastDeleteAt.current < 12000) return Promise.resolve();
+    if (Date.now() - lastSaveAt.current < 4000) return Promise.resolve();
     skipSaveRef.current = true;
-    return Promise.all([
-      journalStore.pullSpaces(),
-      journalStore.pullBlocks(getEditingSnapshot()),
-      journalStore.pullNoteLayout(),
-    ]).then(function(sync) {
-      applyJournalData(sync[0], sync[1]);
-      applyNoteLayout(sync[2]);
+    return journalStore.syncJournal(getEditingSnapshot()).then(function(sync) {
+      applyJournalData(sync.spaces, sync.blocks);
+      applyNoteLayout(sync.layout);
+      lastSaveAt.current = Date.now();
       setTimeout(function() { skipSaveRef.current = false; }, 150);
     }).catch(function() {
       skipSaveRef.current = false;
@@ -361,22 +365,21 @@ export default function Journal() {
   }, []);
 
   useCloudSync({
+    tables: ["journal_spaces", "journal_blocks", "journal_note_layout"],
+    intervalMs: 10000,
     shouldSkip: function() {
       if (!isHydratedRef.current) return true;
       if (shouldSkipCloudSync()) return true;
       if (editingBlockRef.current) return true;
-      if (Date.now() - lastDeleteAt.current < 20000) return true;
-      if (Date.now() - lastSaveAt.current < 8000) return true;
+      if (Date.now() - lastDeleteAt.current < 12000) return true;
+      if (Date.now() - lastSaveAt.current < 4000) return true;
       return false;
     },
     onPull: syncFromCloud,
     onPush: function() {
       flushAllEditors();
       skipSaveRef.current = true;
-      return Promise.all([
-        persistAll(),
-        journalStore.saveNoteLayout(noteBlocksRef.current),
-      ]).finally(function() {
+      return persistAll().finally(function() {
         lastSaveAt.current = Date.now();
         setTimeout(function() { skipSaveRef.current = false; }, 150);
       });
@@ -415,17 +418,13 @@ export default function Journal() {
         applyJournalData(local[0], local[1]);
         applyNoteLayout(local[2]);
         if (shouldSkipCloudSync()) return null;
-        return Promise.all([
-          journalStore.pullSpaces(),
-          journalStore.pullBlocks(getEditingSnapshot()),
-          journalStore.pullNoteLayout(),
-        ]);
+        return journalStore.syncJournal(getEditingSnapshot());
       })
       .then(function(sync) {
         if (!alive) return;
         if (sync) {
-          applyJournalData(sync[0], sync[1]);
-          applyNoteLayout(sync[2]);
+          applyJournalData(sync.spaces, sync.blocks);
+          applyNoteLayout(sync.layout);
         }
         finishHydration(null);
       })
@@ -473,12 +472,16 @@ export default function Journal() {
 
   async function persistBlocks(nextBlocks) {
     if (!isHydratedRef.current || skipSaveRef.current) return;
-    reportSave(await journalStore.saveBlocks(nextBlocks || blocksRef.current));
+    reportSave(await journalStore.saveBlocks(nextBlocks || blocksRef.current, noteBlocksRef.current));
   }
 
   async function persistAll(nextSpaces, nextBlocks) {
     if (!isHydratedRef.current || skipSaveRef.current) return;
-    reportSave(await journalStore.saveAll(nextSpaces || spacesRef.current, nextBlocks || blocksRef.current));
+    reportSave(await journalStore.saveAll(
+      nextSpaces || spacesRef.current,
+      nextBlocks || blocksRef.current,
+      noteBlocksRef.current
+    ));
   }
 
   useEffect(function() {
@@ -499,7 +502,7 @@ export default function Journal() {
     if (!isHydrated || skipSaveRef.current) return;
     clearTimeout(saveNoteLayoutTimer.current);
     saveNoteLayoutTimer.current = setTimeout(function() {
-      journalStore.saveNoteLayout(noteBlocks).then(reportSave);
+      journalStore.saveNoteLayout(Object.assign({}, noteBlocks, { updated: Date.now() })).then(reportSave);
     }, NOTE_LAYOUT_DEBOUNCE_MS);
     return function() { clearTimeout(saveNoteLayoutTimer.current); };
   }, [noteBlocks, isHydrated]);
@@ -631,7 +634,7 @@ export default function Journal() {
   }
 
   function addNoteBlock() {
-    var name = window.prompt("Nome do bloco:");
+    var name = window.prompt("Nome da categoria:");
     if (name === null) return;
     name = name.trim();
     if (!name) return;
@@ -643,7 +646,7 @@ export default function Journal() {
   function renameNoteBlock(id) {
     var blk = noteBlocks.blocks.find(function(x) { return x.id === id; });
     if (!blk) return;
-    var name = window.prompt("Nome do bloco:", blk.name);
+    var name = window.prompt("Nome da categoria:", blk.name);
     if (name === null) return;
     name = name.trim();
     setNoteBlocks(function(prev) {
@@ -654,7 +657,7 @@ export default function Journal() {
   }
 
   function deleteNoteBlock(id) {
-    if (!window.confirm("Eliminar este bloco? As notas dentro dele voltam para \"Sem bloco\".")) return;
+    if (!window.confirm("Eliminar esta categoria? As notas dentro dela voltam para \"Sem categoria\".")) return;
     setNoteBlocks(function(prev) {
       var assign = Object.assign({}, prev.assign);
       Object.keys(assign).forEach(function(sid) { if (assign[sid] === id) delete assign[sid]; });
@@ -707,24 +710,41 @@ export default function Journal() {
   function renderNoteItem(s) {
     var on = active === s.id;
     var initial = (s.title || "?").trim().charAt(0).toUpperCase() || "?";
+    var moving = moveNoteId === s.id;
     return (
-      <div key={s.id} className="gn-noterow">
-        {!isMobile ? (
-          <span
-            className="gn-drag"
-            title="Arrastar"
-            draggable
-            onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
-            onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
-          >⠿</span>
+      <div key={s.id} className="gn-noterow-wrap">
+        <div className="gn-noterow">
+          {!isMobile ? (
+            <span
+              className="gn-drag"
+              title="Arrastar para uma categoria"
+              draggable
+              onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
+              onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
+            >⠿</span>
+          ) : (
+            <button type="button" className="gn-move" onClick={function() { setMoveNoteId(moving ? null : s.id); }} aria-label="Mover para categoria">Mover</button>
+          )}
+          <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { setMoveNoteId(null); openNote(s.id); }}
+            style={{ "--nc": s.color, fontSize: isMobile ? 15 : 13, padding: isMobile ? "12px 12px" : "9px 11px" }}>
+            <span className="gn-avatar" style={{ background: alpha(s.color, 0.18), color: s.color, borderColor: alpha(s.color, 0.4) }}>{initial}</span>
+            <span className="gn-notetitle">{s.title}</span>
+          </button>
+          <button type="button" className="gn-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
+            style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
+        </div>
+        {moving ? (
+          <div className="gn-movemenu">
+            <p>Mover para</p>
+            <button type="button" onClick={function() { assignNoteToBlock(s.id, null); setMoveNoteId(null); }}>Sem categoria</button>
+            {noteBlocks.blocks.map(function(blk) {
+              return (
+                <button type="button" key={blk.id} onClick={function() { assignNoteToBlock(s.id, blk.id); setMoveNoteId(null); }}>{blk.name}</button>
+              );
+            })}
+            {!noteBlocks.blocks.length ? <span>Cria uma categoria com «+ Categoria».</span> : null}
+          </div>
         ) : null}
-        <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { openNote(s.id); }}
-          style={{ "--nc": s.color, fontSize: isMobile ? 15 : 13, padding: isMobile ? "12px 12px" : "9px 11px" }}>
-          <span className="gn-avatar" style={{ background: alpha(s.color, 0.18), color: s.color, borderColor: alpha(s.color, 0.4) }}>{initial}</span>
-          <span className="gn-notetitle">{s.title}</span>
-        </button>
-        <button type="button" className="gn-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
-          style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
       </div>
     );
   }
@@ -780,13 +800,19 @@ export default function Journal() {
         <aside style={{ height: "fit-content" }}>
           <div className="gn-sidehead">
             <p className="jr-lbl">Notas</p>
-            <button type="button" className="gn-addblk" onClick={addNoteBlock} title="Novo bloco"><IconFolder /> + Bloco</button>
+            <button type="button" className="gn-addblk" onClick={addNoteBlock} title="Nova categoria"><IconFolder /> + Categoria</button>
           </div>
           <div data-scrollable style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: isMobile ? "none" : "62vh", overflowY: isMobile ? "visible" : "auto", paddingRight: isMobile ? 0 : 2 }}>
+            {!spaces.length ? (
+              <p className="gn-cats-empty">Ainda não há notas neste dispositivo. Se já as criaste no computador, espera um momento — estão a sincronizar. Caso contrário, cria a primeira em baixo.</p>
+            ) : null}
             {noteGroups.ungrouped.length > 0 ? (
               <div {...dropZoneProps(null)} className={"gn-drop" + (dragOverTarget === "__none__" ? " is-hot" : "")}>
                 {noteGroups.ungrouped.map(renderNoteItem)}
               </div>
+            ) : null}
+            {!noteBlocks.blocks.length ? (
+              <p className="gn-cats-empty">Ainda não tens categorias. Cria uma com «+ Categoria» para organizar as notas — fica igual no telemóvel e no computador.</p>
             ) : null}
             {noteBlocks.blocks.map(function(blk) {
               var items = noteGroups.byBlock[blk.id] || [];
@@ -796,16 +822,16 @@ export default function Journal() {
                 <div key={blk.id} {...dropZoneProps(blk.id)} className={"gn-group glass-flat" + (hot ? " is-hot" : "")}>
                   <div className="gn-group-head">
                     <button type="button" className="gn-chevron" onClick={function() { toggleNoteBlockCollapse(blk.id); }}><IconChevron open={!collapsed} /></button>
-                    <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Renomear bloco">
+                    <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Renomear categoria">
                       <IconFolder />
                       <span>{blk.name}</span>
                       <span className="gn-count">{items.length}</span>
                     </button>
-                    <button type="button" className="gn-x" onClick={function() { deleteNoteBlock(blk.id); }} title="Eliminar bloco" style={{ width: 24, height: 24, fontSize: 14 }}>×</button>
+                    <button type="button" className="gn-x" onClick={function() { deleteNoteBlock(blk.id); }} title="Eliminar categoria" style={{ width: isMobile ? 36 : 24, height: isMobile ? 36 : 24, fontSize: isMobile ? 18 : 14 }}>×</button>
                   </div>
                   {!collapsed ? (
                     <div className="gn-group-body">
-                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">Arrasta notas para aqui</p>}
+                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">{isMobile ? "Toca em Mover numa nota para a meter aqui" : "Arrasta notas para aqui"}</p>}
                     </div>
                   ) : null}
                 </div>

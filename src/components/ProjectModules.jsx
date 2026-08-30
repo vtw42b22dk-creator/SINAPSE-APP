@@ -67,7 +67,7 @@ var MODULE_CSS = [
   ".pm-seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;gap:3px}",
   ".pm-seg button{padding:8px 16px;border-radius:9px;border:none;background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}",
   ".pm-seg button.on{color:#0E0E10}",
-  "@media(max-width:719px){.pm-notes-grid{grid-template-columns:1fr}}",
+  "@media(max-width:719px){.pm-notes-grid{grid-template-columns:1fr}.pm-note-del,.pm-note-fav{opacity:1;width:40px;height:40px;font-size:16px}.pm-note-item{padding:14px 14px 14px 12px;min-height:56px}.pm-note-item h4{padding-right:88px;font-size:14px}.pm-input{font-size:16px!important;min-height:44px}}",
   ".pm-hero{display:flex;align-items:center;gap:20px;padding:20px 22px;border-radius:17px;margin-bottom:8px;flex-wrap:wrap}",
   ".pm-hero-ring{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
   ".pm-hero-ring i{width:60px;height:60px;border-radius:50%;background:#141416;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;font-family:'JetBrains Mono',monospace}",
@@ -303,23 +303,45 @@ export function ProjectNotes(props) {
   var savedS = useState(true);
   var saved = savedS[0], setSaved = savedS[1];
   var saveTimer = useRef(null);
+  var dirtyRef = useRef(false);
 
   useEffect(function() {
-    projectModuleStore.loadNotes(projectId).then(function(d) {
-      var list = parseNotesList(d.body || "");
-      setNotes(list);
-      setActiveId(list.length ? list[0].id : null);
-      setSaved(true);
-    });
+    function load() {
+      if (dirtyRef.current) return;
+      projectModuleStore.loadNotes(projectId).then(function(d) {
+        var list = parseNotesList(d.body || "");
+        setNotes(list);
+        setActiveId(function(prev) {
+          if (prev && list.some(function(n) { return n.id === prev; })) return prev;
+          return list.length ? list[0].id : null;
+        });
+        setSaved(true);
+      });
+    }
+    load();
+    function onVis() {
+      if (document.visibilityState === "visible") load();
+    }
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", load);
+    window.addEventListener("online", load);
+    return function() {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", load);
+      window.removeEventListener("online", load);
+    };
   }, [projectId]);
 
   function persist(next) {
+    dirtyRef.current = true;
     setNotes(next);
     setSaved(false);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(function() {
-      projectModuleStore.saveNotes(projectId, { body: JSON.stringify(next) });
-      setSaved(true);
+      projectModuleStore.saveNotes(projectId, { body: JSON.stringify(next) }).then(function() {
+        dirtyRef.current = false;
+        setSaved(true);
+      });
     }, 500);
   }
 

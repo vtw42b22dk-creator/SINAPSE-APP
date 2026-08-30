@@ -95,7 +95,8 @@ var WL_CSS = [
   ".wl-head-in{padding:12px}.wl-shell{grid-template-columns:1fr;gap:24px;padding:20px 16px 88px}",
   ".wl-rail{position:static;flex-direction:row;flex-wrap:wrap;gap:8px 16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.06)}",
   ".wl-rail-lbl{width:100%}.wl-grp-wrap{width:auto}.wl-grp{padding:8px 0}.wl-new-grp{width:100%}",
-  ".wl-compose-row{grid-template-columns:1fr}.wl-item{padding-left:14px}.wl-del{opacity:.55}",
+  ".wl-compose-row{grid-template-columns:1fr}.wl-item{padding-left:14px}.wl-del{opacity:1!important;min-width:44px;min-height:44px;font-size:22px}",
+  ".wl-grp-x{opacity:1!important;min-width:40px;min-height:40px}",
   ".wl-hero-name{font-size:32px}.wl-in,.wl-h1{font-size:16px!important}}",
 ].join("");
 
@@ -152,6 +153,8 @@ export default function Wishlist() {
   }, []);
 
   useCloudSync({
+    tables: ["wishlist_items", "wishlist_groups"],
+    intervalMs: 12000,
     shouldSkip: function() {
       if (!loaded) return true;
       if (shouldSkipCloudSync()) return true;

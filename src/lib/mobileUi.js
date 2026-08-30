@@ -12,9 +12,11 @@ export var MOBILE_GLOBAL_CSS = [
   ".mod-lbl{font-size:0.78rem!important;letter-spacing:.5px!important}",
   ".mod-stat{font-size:0.88rem!important}",
   "[data-scrollable]{-webkit-overflow-scrolling:touch}",
+  "input,select,textarea{font-size:16px!important}",
   "}",
   "@media(pointer:coarse){",
   "button,a,[role='button']{touch-action:manipulation}",
+  ".tk-check,.tk-sub>button{min-width:44px;min-height:44px}",
   "}",
 ].join("");
 

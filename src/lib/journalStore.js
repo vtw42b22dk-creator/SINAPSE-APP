@@ -1,5 +1,6 @@
 import {
   deleteRemoteIds,
+  getUser,
   readLocal,
   replaceRows,
   uid,
@@ -8,6 +9,7 @@ import {
 } from "./cloudStore";
 import { safePullMerge } from "./syncEngine";
 import { hydrateJournalBlocks, stripAttachmentRef } from "./attachmentsStore";
+import { supabase } from "./supabase";
 
 var SPACES = "journal-spaces-v1";
 var BLOCKS = "journal-blocks-v1";
@@ -17,7 +19,7 @@ var LAYOUT_ROW_ID = "layout";
 var LEGACY_NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
 
 function emptyNoteLayout() {
-  return { blocks: [], assign: {}, collapsed: {} };
+  return { blocks: [], assign: {}, collapsed: {}, updated: 0 };
 }
 
 function normalizeNoteLayoutRow(row) {
@@ -48,7 +50,19 @@ function noteLayoutToDb(layout) {
   };
 }
 
+function layoutScore(layout) {
+  if (!layout) return 0;
+  var n = (layout.blocks || []).length;
+  var assign = layout.assign || {};
+  n += Object.keys(assign).length;
+  return n;
+}
+
 function pickNewerLayout(a, b) {
+  var sa = layoutScore(a);
+  var sb = layoutScore(b);
+  if (sa === 0 && sb > 0) return b;
+  if (sb === 0 && sa > 0) return a;
   var ta = (a && a.updated) || 0;
   var tb = (b && b.updated) || 0;
   return ta >= tb ? a : b;
@@ -66,8 +80,62 @@ async function migrateLegacyNoteLayout() {
   } catch (e) {}
 }
 
+var LAYOUT_BLOCK_ID = "journal-layout-block";
+var LAYOUT_BLOCK_TYPE = "__layout__";
+
+function isLayoutBlock(b) {
+  return !!(b && (b.id === LAYOUT_BLOCK_ID || b.type === LAYOUT_BLOCK_TYPE));
+}
+
+function layoutFromBlock(b) {
+  if (!b) return null;
+  try {
+    var p = b.content;
+    if (typeof p === "string") p = JSON.parse(p);
+    if (!p || typeof p !== "object") return null;
+    return normalizeNoteLayoutRow({
+      id: LAYOUT_ROW_ID,
+      payload: p,
+      updated: b.updated || (b.updated_at ? new Date(b.updated_at).getTime() : 0),
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+function layoutToBlock(layout) {
+  var l = layout || emptyNoteLayout();
+  return {
+    id: LAYOUT_BLOCK_ID,
+    space_id: LAYOUT_BLOCK_ID,
+    type: LAYOUT_BLOCK_TYPE,
+    content: JSON.stringify({
+      blocks: l.blocks || [],
+      assign: l.assign || {},
+      collapsed: l.collapsed || {},
+    }),
+    meta: {},
+    order_index: 0,
+    updated: l.updated || Date.now(),
+  };
+}
+
+function stripLayoutBlocks(list) {
+  return (list || []).filter(function(b) { return !isLayoutBlock(b); });
+}
+
+function extractLayoutFromBlocks(list) {
+  var found = (list || []).find(isLayoutBlock);
+  return found ? layoutFromBlock(found) : null;
+}
+
 function normalizeSpace(s) {
-  return { id: s.id, title: s.title || "Tema", color: s.color || "#E6E6E9" };
+  return {
+    id: s.id,
+    title: s.title || "Tema",
+    color: s.color || "#E6E6E9",
+    updated: s.updated || (s.updated_at ? new Date(s.updated_at).getTime() : 0),
+  };
 }
 
 function normalizeBlock(b) {
@@ -198,35 +266,27 @@ export async function loadSpacesLocal() {
   var local = await readLocal(SPACES, []);
   if (!local.length) {
     var blocks = await readLocal(BLOCKS, []);
-    if (blocks.length) {
-      var seen = {};
-      blocks.forEach(function(b) {
-        if (b && b.space_id) seen[b.space_id] = true;
-      });
-      local = Object.keys(seen).map(function(id) {
-        return { id: id, title: "Recuperado", color: "#E6E6E9", updated: Date.now() };
-      });
-      if (local.length) await writeLocal(SPACES, local);
-    }
+    var seen = {};
+    (blocks || []).forEach(function(b) {
+      if (b && b.space_id && !isLayoutBlock(b)) seen[b.space_id] = true;
+    });
+    local = Object.keys(seen).map(function(id) {
+      return { id: id, title: "Recuperado", color: "#E6E6E9", updated: Date.now() };
+    });
+    if (local.length) await writeLocal(SPACES, local);
   }
-  if (!local.length) return [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
   return local;
 }
 
 export async function loadBlocksLocal() {
   var local = await readLocal(BLOCKS, []);
-  return blocksToUi(local);
+  return blocksToUi(stripLayoutBlocks(local));
 }
 
 export async function pullSpaces() {
   try {
     var merged = await safePullMerge(SPACES, "journal_spaces", normalizeSpace);
-    if (!merged.length) {
-      var local = await readLocal(SPACES, []);
-      merged = local.length ? local : [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
-      await writeLocal(SPACES, merged);
-    }
-    return merged;
+    return merged || [];
   } catch (e) {
     return loadSpacesLocal();
   }
@@ -237,7 +297,7 @@ export async function pullBlocks(editingBlock) {
     var merged = await safePullMerge(BLOCKS, "journal_blocks", normalizeBlock, function(local, remote, deletedIds) {
       return overlayEditingBlock(mergeBlocksForPull(local, remote, editingBlock, deletedIds), editingBlock);
     });
-    return blocksToUi(merged);
+    return blocksToUi(stripLayoutBlocks(merged));
   } catch (e) {
     return loadBlocksLocal();
   }
@@ -264,18 +324,24 @@ export async function loadBlocks() {
   return loadBlocksLocal();
 }
 
-export async function saveBlocks(blocks) {
-  if (!blocks || !blocks.length) {
+export async function saveBlocks(blocks, layout) {
+  var rows = stripLayoutBlocks(blocks || []).map(sanitizeBlockForSave);
+  if (layout) rows.push(sanitizeBlockForSave(layoutToBlock(layout)));
+  else {
+    var existing = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
+    if (existing) rows.push(sanitizeBlockForSave(layoutToBlock(existing)));
+  }
+  if (!rows.length) {
     return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   }
-  var rows = blocks.map(sanitizeBlockForSave);
   return replaceRows("journal_blocks", BLOCKS, rows, { pruneOrphans: false });
 }
 
-export async function saveAll(spaces, blocks) {
+export async function saveAll(spaces, blocks, layout) {
   var s = await saveSpaces(spaces || []);
-  var b = await saveBlocks(blocks || []);
-  return { ok: s.ok && b.ok, error: s.error || b.error, spaces: s, blocks: b };
+  var b = await saveBlocks(blocks || [], layout);
+  var l = layout ? await saveNoteLayout(layout) : { ok: true };
+  return { ok: s.ok && b.ok && l.ok, error: s.error || b.error || l.error, spaces: s, blocks: b, layout: l };
 }
 
 export async function loadNoteLayoutLocal() {
@@ -291,10 +357,14 @@ export async function pullNoteLayout() {
     var localRows = await readLocal(NOTE_LAYOUT_KEY, []);
     var localRow = localRows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
     var local = normalizeNoteLayoutRow(localRow);
-    var merged = await safePullMerge(NOTE_LAYOUT_KEY, NOTE_LAYOUT_TABLE, normalizeNoteLayoutRow);
-    var remoteRow = merged.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
-    var remote = normalizeNoteLayoutRow(remoteRow);
-    var picked = pickNewerLayout(local, remote);
+    var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
+    var tableRow = null;
+    try {
+      var merged = await safePullMerge(NOTE_LAYOUT_KEY, NOTE_LAYOUT_TABLE, normalizeNoteLayoutRow);
+      tableRow = merged.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+    } catch (e) {}
+    var remote = tableRow ? normalizeNoteLayoutRow(tableRow) : emptyNoteLayout();
+    var picked = pickNewerLayout(pickNewerLayout(local, remote), fromBlocks || emptyNoteLayout());
     await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
     return picked;
   } catch (e) {
@@ -305,7 +375,50 @@ export async function pullNoteLayout() {
 export async function saveNoteLayout(layout) {
   var row = noteLayoutToDb(Object.assign({}, layout || emptyNoteLayout(), { updated: Date.now() }));
   await writeLocal(NOTE_LAYOUT_KEY, [row]);
-  return replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
+  var blockRes = { ok: true };
+  try {
+    var all = await readLocal(BLOCKS, []);
+    var content = stripLayoutBlocks(all);
+    var layoutBlock = sanitizeBlockForSave(layoutToBlock(row));
+    if (content.length || all.length) {
+      await writeLocal(BLOCKS, content.concat([layoutBlock]));
+    }
+    var user = await getUser();
+    if (supabase && user) {
+      var payload = Object.assign({}, layoutBlock, {
+        user_id: user.id,
+        updated_at: new Date(layoutBlock.updated || Date.now()).toISOString(),
+      });
+      delete payload.updated;
+      delete payload.created;
+      var res = await supabase.from("journal_blocks").upsert(payload, { onConflict: "id" });
+      if (res.error) throw res.error;
+      blockRes = { ok: true, cloud: true };
+    }
+  } catch (e) {
+    blockRes = { ok: false, error: e && e.message ? e.message : String(e) };
+  }
+  var tableRes = await replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
+  return {
+    ok: !!(tableRes && tableRes.ok) || !!(blockRes && blockRes.ok),
+    error: (tableRes && tableRes.error) || (blockRes && blockRes.error),
+    cloud: (tableRes && tableRes.cloud) || (blockRes && blockRes.cloud),
+    emergency: tableRes && tableRes.emergency,
+  };
+}
+
+/**
+ * Pull da nuvem + push do que só existe neste dispositivo.
+ * Garante telemóvel ↔ computador alinhados.
+ */
+export async function syncJournal(editingBlock) {
+  var spaces = await pullSpaces();
+  var blocks = await pullBlocks(editingBlock);
+  var layout = await pullNoteLayout();
+  if (spaces.length) await saveSpaces(spaces);
+  await saveBlocks(blocks, layout);
+  await saveNoteLayout(layout);
+  return { spaces: spaces, blocks: blocks, layout: layout };
 }
 
 /** Apaga tema e blocos na nuvem (para sincronizar eliminações). */
