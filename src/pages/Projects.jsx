@@ -4,6 +4,8 @@ import * as synapseStore from "../lib/synapseStore";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
+import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 
 var ACCENT = moduleColor("projects");
@@ -416,7 +418,7 @@ export default function Projects() {
   if (!loaded) {
     return (
       <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'JetBrains Mono',monospace", color: ACCENT, opacity: 0.5 }}>A carregar projetos...</p>
+        <PageLoader accent={ACCENT} label="Projetos" />
       </div>
     );
   }
@@ -451,11 +453,11 @@ export default function Projects() {
 
   return (
     <div className="pj-page" data-scrollable style={{ "--mc": ACCENT }}>
-      <style>{MODULE_ENTRY_CSS + PROJ_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + PROJ_CSS}</style>
       <div className="mod-glow" style={{ top: -80, right: "4%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
 
       <header className={"pj-top" + (isMobile ? " pj-top-mob" : "")}>
-        <button type="button" onClick={function() { navigate("/"); }} className="pj-ghost">← Hub</button>
+        <HubBack />
         {isMobile ? (
           <div className="pj-top-head">
             <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>

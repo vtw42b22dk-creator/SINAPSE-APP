@@ -4,6 +4,8 @@ import { useAuth } from "../lib/AuthContext";
 import * as focusStore from "../lib/focusStore";
 import * as focusTimer from "../lib/focusTimer";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
+import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, alpha } from "../lib/theme";
 import { GLASS_CSS, glowFilter, segThumbStyle } from "../lib/glassUi";
@@ -482,7 +484,7 @@ function ProjectPicker(props) {
 
   return (
     <div className="fs-root" data-scrollable style={{ "--ac": CYAN, "--glow": CYAN }}>
-      <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + FX_CSS}</style>
       <div className="fs-field" aria-hidden="true">
         <span className="fs-orb fs-orb--core" />
         <span className="fs-orb fs-orb--a" style={{ background: moduleGlow(CYAN) }} />
@@ -490,7 +492,7 @@ function ProjectPicker(props) {
       </div>
       <div className="fs-headwrap">
         <header className="fs-head glass-capsule">
-          <button type="button" className="fs-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
+          <HubBack />
           <div className="fs-headtitle">
             <span className="fs-headic">◷</span>
             <div style={{ minWidth: 0 }}>
@@ -917,7 +919,7 @@ export default function Focus() {
   if (!isHydrated) {
     return (
       <div style={{ minHeight: "100vh", background: "#070708", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", fontSize: 12, letterSpacing: 1 }}>A carregar estúdio…</p>
+        <PageLoader accent={CYAN} label="Estúdio" />
       </div>
     );
   }
@@ -951,7 +953,7 @@ export default function Focus() {
 
   return (
     <div className={"fs-root" + (timer.running ? " is-run" : "")} style={{ "--ac": accent, "--glow": phaseColor }}>
-      <style>{MODULE_ENTRY_CSS + FX_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + FX_CSS}</style>
       <div className="fs-field" aria-hidden="true">
         <span className="fs-orb fs-orb--core" />
         <span className="fs-orb fs-orb--a" style={{ background: moduleGlow(accent) }} />
@@ -978,7 +980,7 @@ export default function Focus() {
       <div className="fs-headwrap">
         <header className="fs-head glass-capsule">
           <button type="button" className="fs-hbtn" onClick={exitProject} title="Trocar projeto">{isMobile ? "←" : "← Projetos"}</button>
-          <button type="button" className="fs-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
+          <HubBack />
           <div className="fs-headtitle">
             <span className="fs-headic">{activeProject.icon}</span>
             <div style={{ minWidth: 0 }}>

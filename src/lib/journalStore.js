@@ -2,7 +2,9 @@ import {
   deleteRemoteIds,
   getUser,
   readLocal,
+  fetchRemoteRows,
   replaceRows,
+  selectRowsMerged,
   uid,
   writeLocal,
   scopedKey,
@@ -58,14 +60,41 @@ function layoutScore(layout) {
   return n;
 }
 
-function pickNewerLayout(a, b) {
-  var sa = layoutScore(a);
-  var sb = layoutScore(b);
-  if (sa === 0 && sb > 0) return b;
-  if (sb === 0 && sa > 0) return a;
-  var ta = (a && a.updated) || 0;
-  var tb = (b && b.updated) || 0;
-  return ta >= tb ? a : b;
+function mergeLayouts(a, b) {
+  var left = a || emptyNoteLayout();
+  var right = b || emptyNoteLayout();
+  var sa = layoutScore(left);
+  var sb = layoutScore(right);
+  if (sa === 0 && sb === 0) {
+    return ((left.updated || 0) >= (right.updated || 0)) ? left : right;
+  }
+  if (sa === 0) return right;
+  if (sb === 0) return left;
+  var aFirst = (left.updated || 0) <= (right.updated || 0);
+  var first = aFirst ? left : right;
+  var second = aFirst ? right : left;
+  var blocksById = {};
+  var order = [];
+  function addBlocks(list) {
+    (list || []).forEach(function(blk) {
+      if (!blk || !blk.id) return;
+      if (!blocksById[blk.id]) {
+        order.push(blk.id);
+        blocksById[blk.id] = blk;
+      } else {
+        blocksById[blk.id] = Object.assign({}, blocksById[blk.id], blk);
+      }
+    });
+  }
+  addBlocks(first.blocks);
+  addBlocks(second.blocks);
+  return {
+    id: LAYOUT_ROW_ID,
+    blocks: order.map(function(id) { return blocksById[id]; }),
+    assign: Object.assign({}, first.assign || {}, second.assign || {}),
+    collapsed: Object.assign({}, first.collapsed || {}, second.collapsed || {}),
+    updated: Math.max(left.updated || 0, right.updated || 0),
+  };
 }
 
 async function migrateLegacyNoteLayout() {
@@ -82,6 +111,49 @@ async function migrateLegacyNoteLayout() {
 
 var LAYOUT_BLOCK_ID = "journal-layout-block";
 var LAYOUT_BLOCK_TYPE = "__layout__";
+var CATS_SPACE_ID = "__journal_cats__";
+
+function isCatsSpace(s) {
+  return !!(s && s.id === CATS_SPACE_ID);
+}
+
+function stripCatsSpaces(list) {
+  return (list || []).filter(function(s) { return !isCatsSpace(s); });
+}
+
+function layoutFromSpace(s) {
+  if (!s) return null;
+  try {
+    var p = typeof s.title === "string" ? JSON.parse(s.title) : s.title;
+    if (!p || typeof p !== "object") return null;
+    return normalizeNoteLayoutRow({
+      id: LAYOUT_ROW_ID,
+      payload: p,
+      updated: s.updated || (s.updated_at ? new Date(s.updated_at).getTime() : 0),
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+function spaceFromLayout(layout) {
+  var l = layout || emptyNoteLayout();
+  return {
+    id: CATS_SPACE_ID,
+    title: JSON.stringify({
+      blocks: l.blocks || [],
+      assign: l.assign || {},
+      collapsed: l.collapsed || {},
+    }),
+    color: "#000000",
+    updated: l.updated || Date.now(),
+  };
+}
+
+function extractLayoutFromSpaces(list) {
+  var found = (list || []).find(isCatsSpace);
+  return found ? layoutFromSpace(found) : null;
+}
 
 function isLayoutBlock(b) {
   return !!(b && (b.id === LAYOUT_BLOCK_ID || b.type === LAYOUT_BLOCK_TYPE));
@@ -264,18 +336,21 @@ function sanitizeBlockForSave(b) {
 
 export async function loadSpacesLocal() {
   var local = await readLocal(SPACES, []);
-  if (!local.length) {
+  if (!stripCatsSpaces(local).length) {
     var blocks = await readLocal(BLOCKS, []);
     var seen = {};
     (blocks || []).forEach(function(b) {
-      if (b && b.space_id && !isLayoutBlock(b)) seen[b.space_id] = true;
+      if (b && b.space_id && !isLayoutBlock(b) && b.space_id !== CATS_SPACE_ID) seen[b.space_id] = true;
     });
-    local = Object.keys(seen).map(function(id) {
+    var recovered = Object.keys(seen).map(function(id) {
       return { id: id, title: "Recuperado", color: "#E6E6E9", updated: Date.now() };
     });
-    if (local.length) await writeLocal(SPACES, local);
+    if (recovered.length) {
+      local = local.concat(recovered);
+      await writeLocal(SPACES, local);
+    }
   }
-  return local;
+  return stripCatsSpaces(local);
 }
 
 export async function loadBlocksLocal() {
@@ -286,7 +361,13 @@ export async function loadBlocksLocal() {
 export async function pullSpaces() {
   try {
     var merged = await safePullMerge(SPACES, "journal_spaces", normalizeSpace);
-    return merged || [];
+    var layout = extractLayoutFromSpaces(merged);
+    if (layout && layoutScore(layout) > 0) {
+      var localLayout = await loadNoteLayoutLocal();
+      var picked = mergeLayouts(localLayout, layout);
+      await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
+    }
+    return stripCatsSpaces(merged || []);
   } catch (e) {
     return loadSpacesLocal();
   }
@@ -305,19 +386,22 @@ export async function pullBlocks(editingBlock) {
 
 export async function loadSpaces() {
   var rows = await selectRowsMerged("journal_spaces", SPACES, [], normalizeSpace);
+  rows = stripCatsSpaces(rows);
   if (!rows.length) return [{ id: uid("js"), title: "Livre", color: "#E6E6E9" }];
   return rows;
 }
 
-export async function saveSpaces(spaces) {
-  return replaceRows(
-    "journal_spaces",
-    SPACES,
-    (spaces || []).map(function(s) {
-      return { id: s.id, title: s.title, color: s.color || "#E6E6E9", updated: Date.now() };
-    }),
-    { pruneOrphans: false }
-  );
+export async function saveSpaces(spaces, layout) {
+  var rows = stripCatsSpaces(spaces || []).map(function(s) {
+    return { id: s.id, title: s.title, color: s.color || "#E6E6E9", updated: s.updated || Date.now() };
+  });
+  if (layout && layoutScore(layout) > 0) {
+    rows.push(spaceFromLayout(layout));
+  } else {
+    var existing = extractLayoutFromSpaces(await readLocal(SPACES, []));
+    if (existing && layoutScore(existing) > 0) rows.push(spaceFromLayout(existing));
+  }
+  return replaceRows("journal_spaces", SPACES, rows, { pruneOrphans: false });
 }
 
 export async function loadBlocks() {
@@ -338,7 +422,7 @@ export async function saveBlocks(blocks, layout) {
 }
 
 export async function saveAll(spaces, blocks, layout) {
-  var s = await saveSpaces(spaces || []);
+  var s = await saveSpaces(spaces || [], layout);
   var b = await saveBlocks(blocks || [], layout);
   var l = layout ? await saveNoteLayout(layout) : { ok: true };
   return { ok: s.ok && b.ok && l.ok, error: s.error || b.error || l.error, spaces: s, blocks: b, layout: l };
@@ -358,13 +442,21 @@ export async function pullNoteLayout() {
     var localRow = localRows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
     var local = normalizeNoteLayoutRow(localRow);
     var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
+    var fromSpaces = extractLayoutFromSpaces(await readLocal(SPACES, []));
     var tableRow = null;
     try {
       var merged = await safePullMerge(NOTE_LAYOUT_KEY, NOTE_LAYOUT_TABLE, normalizeNoteLayoutRow);
       tableRow = merged.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
     } catch (e) {}
     var remote = tableRow ? normalizeNoteLayoutRow(tableRow) : emptyNoteLayout();
-    var picked = pickNewerLayout(pickNewerLayout(local, remote), fromBlocks || emptyNoteLayout());
+    var remoteSpacesLayout = null;
+    try {
+      remoteSpacesLayout = extractLayoutFromSpaces(await fetchRemoteRows("journal_spaces", normalizeSpace));
+    } catch (e) {}
+    var picked = mergeLayouts(
+      mergeLayouts(mergeLayouts(mergeLayouts(local, remote), fromBlocks || emptyNoteLayout()), fromSpaces || emptyNoteLayout()),
+      remoteSpacesLayout || emptyNoteLayout()
+    );
     await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
     return picked;
   } catch (e) {
@@ -375,7 +467,26 @@ export async function pullNoteLayout() {
 export async function saveNoteLayout(layout) {
   var row = noteLayoutToDb(Object.assign({}, layout || emptyNoteLayout(), { updated: Date.now() }));
   await writeLocal(NOTE_LAYOUT_KEY, [row]);
-  var blockRes = { ok: true };
+  var spaceRes = { ok: true };
+  try {
+    var spaces = stripCatsSpaces(await readLocal(SPACES, []));
+    spaces.push(spaceFromLayout(row));
+    await writeLocal(SPACES, spaces);
+    var user = await getUser();
+    if (supabase && user) {
+      var spacePayload = Object.assign({}, spaceFromLayout(row), {
+        user_id: user.id,
+        updated_at: new Date(row.updated || Date.now()).toISOString(),
+      });
+      delete spacePayload.updated;
+      var spaceUp = await supabase.from("journal_spaces").upsert(spacePayload, { onConflict: "id" });
+      if (spaceUp.error) throw spaceUp.error;
+    } else {
+      spaceRes = await replaceRows("journal_spaces", SPACES, spaces, { pruneOrphans: false });
+    }
+  } catch (e) {
+    spaceRes = { ok: false, error: e && e.message ? e.message : String(e) };
+  }
   try {
     var all = await readLocal(BLOCKS, []);
     var content = stripLayoutBlocks(all);
@@ -391,19 +502,15 @@ export async function saveNoteLayout(layout) {
       });
       delete payload.updated;
       delete payload.created;
-      var res = await supabase.from("journal_blocks").upsert(payload, { onConflict: "id" });
-      if (res.error) throw res.error;
-      blockRes = { ok: true, cloud: true };
+      await supabase.from("journal_blocks").upsert(payload, { onConflict: "id" });
     }
-  } catch (e) {
-    blockRes = { ok: false, error: e && e.message ? e.message : String(e) };
-  }
+  } catch (e) {}
   var tableRes = await replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
   return {
-    ok: !!(tableRes && tableRes.ok) || !!(blockRes && blockRes.ok),
-    error: (tableRes && tableRes.error) || (blockRes && blockRes.error),
-    cloud: (tableRes && tableRes.cloud) || (blockRes && blockRes.cloud),
-    emergency: tableRes && tableRes.emergency,
+    ok: !!(spaceRes && spaceRes.ok) || !!(tableRes && tableRes.ok),
+    error: (spaceRes && spaceRes.error) || (tableRes && tableRes.error),
+    cloud: (spaceRes && spaceRes.cloud) || (tableRes && tableRes.cloud),
+    emergency: (spaceRes && spaceRes.emergency) || (tableRes && tableRes.emergency),
   };
 }
 
@@ -415,9 +522,9 @@ export async function syncJournal(editingBlock) {
   var spaces = await pullSpaces();
   var blocks = await pullBlocks(editingBlock);
   var layout = await pullNoteLayout();
-  if (spaces.length) await saveSpaces(spaces);
+  await saveSpaces(spaces, layout);
   await saveBlocks(blocks, layout);
-  await saveNoteLayout(layout);
+  if (layoutScore(layout) > 0) await saveNoteLayout(layout);
   return { spaces: spaces, blocks: blocks, layout: layout };
 }
 

@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars, no-empty, react-hooks/refs */
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import * as synapseStore from "../lib/synapseStore";
 import * as taskStore from "../lib/tasksStore";
 import * as journalStore from "../lib/journalStore";
@@ -8,6 +7,8 @@ import * as attachmentsStore from "../lib/attachmentsStore";
 import * as wishlistStore from "../lib/wishlistStore";
 import * as financeStore from "../lib/financeStore";
 import { DOC_RECENT_CSS } from "../lib/pageMotion";
+import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 
 var DOC_ACCEPT = "image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png,.pdf,application/pdf";
 var DOC_RECENT_MS = 15 * 60 * 1000;
@@ -703,7 +704,6 @@ function DocPanel(props) {
 export default function Synapse(props) {
   var embedded = !!(props && props.embedded);
   var routeProjectId = props && props.projectId;
-  var navigate = useNavigate();
   var device = useDevice();
   var isMob = device==="mobile", isTab = device==="tablet";
   var touchUI = isMob || isTab;
@@ -1186,7 +1186,7 @@ export default function Synapse(props) {
 
   if(!loaded) return (
     <div style={{width:"100vw",height:"100vh",background:"#0A0A0B",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <p style={{fontFamily:"'JetBrains Mono',monospace",color:"#E6E6E9",fontSize:14,opacity:0.5}}>A carregar...</p>
+      <PageLoader accent="#E6E6E9" label="Sinapse" />
     </div>
   );
 
@@ -1196,7 +1196,7 @@ export default function Synapse(props) {
     if (embedded && routeProjectId) {
       return (
         <div style={{ width: "100%", height: "100%", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ fontFamily: "'JetBrains Mono',monospace", color: "#E6E6E9", fontSize: 14, opacity: 0.5 }}>A carregar...</p>
+          <PageLoader accent="#E6E6E9" compact label="Sinapse" />
         </div>
       );
     }
@@ -1204,7 +1204,8 @@ export default function Synapse(props) {
     return (
     <div data-scrollable style={{minHeight:"100vh",background:"#0A0A0B",color:"#EDEDEF",fontFamily:"'IBM Plex Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",padding:isMob?16:24,overflow:"auto"}}>
       <div style={{width:"min(920px,94vw)"}}>
-        <button onClick={function(){window.history.back();}} style={{background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#A0A0A8",padding:"8px 12px",cursor:"pointer",marginBottom:22}}>← Hub</button>
+        <style>{HUB_BACK_CSS}</style>
+        <div style={{ marginBottom: 22 }}><HubBack /></div>
         <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:2,color:"#6E6E76",margin:0}}>PROJETOS DE SINAPSE</p>
         <h1 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"clamp(30px,6vw,54px)",margin:"8px 0 18px",color:"#EDEDEF"}}>Escolhe um projeto</h1>
         <div style={{display:"flex",gap:10,marginBottom:22,flexWrap:isMob?"wrap":"nowrap"}}>
@@ -1241,8 +1242,9 @@ export default function Synapse(props) {
       <div data-no-canvas-zoom style={{position:"absolute",top:0,left:0,right:0,height:isMob?58:52,background:embedded?"transparent":"rgba(12,12,14,0.92)",borderBottom:embedded?"none":"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:embedded?"flex-end":"space-between",padding:isMob?"0 10px":"0 16px",zIndex:isMob?85:20,pointerEvents:"auto"}}>
         {!embedded && (
         <div style={{display:"flex",alignItems:"center",gap:isMob?10:14}}>
-          <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "← Projetos" : "\u2190"}</button>
-          {isMob && <button onClick={function(){navigate("/");}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#EDEDEF",padding:"8px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>Hub</button>}
+          <style>{HUB_BACK_CSS}</style>
+          <HubBack />
+          <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "Projetos" : "\u2190"}</button>
           <h1 style={{fontSize:isMob?12:15,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:"#EDEDEF",letterSpacing:1,maxWidth:isMob?110:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
         )}

@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import * as calendarStore from "../lib/calendarStore";
 import { MICRO_CSS, attachSwipe } from "../lib/microUi";
 import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 
 var ACCENT = moduleColor("calendar");
@@ -166,10 +166,22 @@ var CHRO_CSS = [
   ".ch-save:hover{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--mc) 55%,transparent))}",
   ".ch-del{padding:10px 4px;border:none;border-bottom:1px solid rgba(192,140,140,.4);background:transparent;color:#C08C8C;font-size:12px;cursor:pointer;font-family:inherit}",
   ".ch-cancel{padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;cursor:pointer;font-family:inherit}",
-  ".ch-fab{position:fixed;z-index:50;right:20px;bottom:max(20px,env(safe-area-inset-bottom));padding:10px 4px;border:none;border-bottom:2px solid var(--mc);background:transparent;color:var(--mc);font-size:24px;font-weight:300;line-height:1;cursor:pointer;transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease),filter var(--dur) var(--ease)}",
+  ".ch-month-org{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
+  ".ch-month-org .ch-month{flex:none;overflow:visible;padding:8px 12px 0}",
+  ".ch-month-org .ch-agenda{flex:none;overflow:visible;padding:8px 16px 110px}",
+  ".ch-month-count{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mc);line-height:1;min-width:14px;text-align:center}",
+  ".ch-ag-daylbl{margin:8px 16px 0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.8px;text-transform:capitalize;color:#A0A0A8}",
+  ".ch-agenda{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 100px}",
+  ".ch-ag-empty{margin:36px 4px 0;padding:28px 16px;text-align:center;border:1px dashed rgba(255,255,255,.1);border-radius:16px;color:#6E6E76;font-size:14px;line-height:1.5}",
+  ".ch-ag-card{display:flex;align-items:stretch;gap:12px;width:100%;text-align:left;padding:14px 12px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03);cursor:pointer;color:inherit}",
+  ".ch-ag-bar{width:4px;border-radius:4px;background:var(--ec);flex-shrink:0}",
+  ".ch-ag-time{margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ec);letter-spacing:.3px}",
+  ".ch-ag-title{margin:4px 0 0;font-size:16px;color:#EDEDEF;line-height:1.35}",
+  ".ch-ag-add{width:100%;min-height:48px;margin-top:8px;border:1px dashed color-mix(in srgb,var(--mc) 40%,transparent);border-radius:14px;background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
+  ".ch-fab{position:fixed;z-index:50;right:20px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer}",
   ".ch-fab:hover{transform:scale(1.1) rotate(90deg);filter:drop-shadow(0 0 10px color-mix(in srgb,var(--mc) 55%,transparent))}",
   ".ch-fab:active{transform:scale(.92) rotate(90deg)}",
-  "@media(max-width:719px){.ch-head{padding:14px 16px 12px;flex-wrap:wrap}.ch-actions{width:100%;flex-direction:column;align-items:stretch}.ch-modes{justify-content:center}.ch-quick{flex-wrap:wrap;justify-content:center}.ch-btn{flex:1;min-width:72px;text-align:center}.ch-track{margin-left:40px}.ch-hour-lbl{left:-40px;width:34px;font-size:9px}.ch-wk-board--mob{min-width:560px}}",
+  "@media(max-width:719px){.ch-head{padding:12px 14px 10px;flex-wrap:wrap;gap:12px}.ch-day-num{font-size:42px}.ch-actions{width:100%;flex-direction:column;align-items:stretch}.ch-modes{justify-content:stretch}.ch-mode{flex:1;text-align:center;padding:10px 8px}.ch-quick{flex-wrap:wrap;justify-content:center}.ch-btn{flex:1;min-width:64px;text-align:center;min-height:42px}.ch-rail-day{padding:10px 16px}.ch-rail-n{font-size:20px}.ch-month-cell{aspect-ratio:auto;min-height:52px;padding:8px 0}.ch-month-n{font-size:15px}.ch-month-cell.is-on::after{bottom:6px}.ch-ag-empty{margin-top:16px}}",
   "@media(min-width:720px){.ch-fab{display:none}}",
 ].join("");
 
@@ -665,11 +677,15 @@ function MonthBoard(props) {
               onClick={function() { props.onSelectDay(k, cell); }}>
               <span className="ch-month-n">{cell.d}</span>
               {evs.length > 0 ? (
+                props.compactDots ? (
+                  <span className="ch-month-count">{evs.length}</span>
+                ) : (
                 <span className="ch-month-bars">
                   {evs.slice(0, 4).map(function(ev, j) {
                     return <span key={j} className="ch-month-bar" style={{ "--ec": ev.color || ACCENT, height: (4 + j * 3) + "px" }} />;
                   })}
                 </span>
+                )
               ) : null}
             </button>
           );
@@ -706,6 +722,29 @@ function MonthRail(props) {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MobileAgenda(props) {
+  var list = sortEvents(props.events[props.dayKey] || []);
+  return (
+    <div className="ch-agenda">
+      {list.length === 0 ? (
+        <p className="ch-ag-empty">Nada marcado neste dia.<br />Toca em + para adicionar.</p>
+      ) : list.map(function(ev) {
+        return (
+          <button key={ev.id} type="button" className="ch-ag-card" style={{ "--ec": ev.color || ACCENT }}
+            onClick={function() { props.onEventClick(ev, props.dayKey); }}>
+            <span className="ch-ag-bar" />
+            <span>
+              <p className="ch-ag-time">{formatEventTime(ev)}</p>
+              <p className="ch-ag-title">{ev.title || "Sem título"}</p>
+            </span>
+          </button>
+        );
+      })}
+      <button type="button" className="ch-ag-add" onClick={function() { props.onAdd(); }}>+ Novo evento neste dia</button>
     </div>
   );
 }
@@ -790,7 +829,6 @@ function EventSheet(props) {
 }
 
 export default function Calendar() {
-  var navigate = useNavigate();
   var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
   var isMobile = vwS[0] < 720;
   var today = useMemo(function() { return new Date(); }, []);
@@ -804,7 +842,9 @@ export default function Calendar() {
   var events = evS[0], setEvents = evS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
-  var modeS = useState("week");
+  var modeS = useState(function() {
+    return (typeof window !== "undefined" && window.innerWidth < 720) ? "month" : "week";
+  });
   var mode = modeS[0], setMode = modeS[1];
   var navDirS = useState(0);
   var navDir = navDirS[0], setNavDir = navDirS[1];
@@ -829,6 +869,10 @@ export default function Calendar() {
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
+
+  useEffect(function() {
+    if (isMobile && mode === "week") setMode("month");
+  }, [isMobile]);
 
   useEffect(function() {
     if (!loaded) return;
@@ -905,7 +949,7 @@ export default function Calendar() {
       var p = parseKey(k);
       setView({ y: p.y, m: p.m });
     }
-    if (mode === "month") setMode("line");
+    if (mode === "month" && !isMobile) setMode("line");
   }
 
   function prevMonth() {
@@ -1014,8 +1058,8 @@ export default function Calendar() {
   if (!loaded) {
     return (
       <div className="ch-root">
-        <style>{CHRO_CSS}</style>
-        <PageLoader accent={ACCENT} lines={5} />
+        <style>{HUB_BACK_CSS + CHRO_CSS}</style>
+        <PageLoader accent={ACCENT} label="Calendário" />
       </div>
     );
   }
@@ -1024,14 +1068,14 @@ export default function Calendar() {
 
   return (
     <div className="ch-root" data-scrollable style={{ "--mc": ACCENT }}>
-      <style>{CHRO_CSS}</style>
+      <style>{HUB_BACK_CSS + CHRO_CSS}</style>
       <div className="ch-glow ch-glow--a" style={{ background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <div className="ch-glow ch-glow--b" style={{ background: moduleGlow(ACCENT, "12") }} aria-hidden="true" />
       <div className="ch-glow ch-glow--c" style={{ width: 260, height: 260, top: "45%", left: "40%", opacity: 0.22, background: moduleGlow(ACCENT, "0e"), animationDelay: "-15s" }} aria-hidden="true" />
 
       <header className="ch-head">
         <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
-          <button type="button" className="ch-back ui-tap" onClick={function() { navigate("/"); }}>← Hub</button>
+          <HubBack />
           <div className="ch-hero">
             {mode === "week" ? (
               <>
@@ -1051,7 +1095,10 @@ export default function Calendar() {
         </div>
         <div className="ch-actions">
           <div className="ch-modes" role="tablist">
-            {[{ id: "line", label: "Linha" }, { id: "week", label: "Semana" }, { id: "month", label: "Mês" }].map(function(m) {
+            {(isMobile
+              ? [{ id: "line", label: "Dia" }, { id: "month", label: "Mês" }]
+              : [{ id: "line", label: "Linha" }, { id: "week", label: "Semana" }, { id: "month", label: "Mês" }]
+            ).map(function(m) {
               return (
                 <button key={m.id} type="button" role="tab" aria-selected={mode === m.id}
                   className={"ch-mode ui-tap ch-mode--" + m.id + (mode === m.id ? " is-on" : "")}
@@ -1062,7 +1109,7 @@ export default function Calendar() {
           <div className="ch-quick">
             <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(-1) : shiftDay(-1); }} title={mode === "week" ? "Semana anterior" : "Dia anterior"}>‹</button>
             <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(1) : shiftDay(1); }} title={mode === "week" ? "Semana seguinte" : "Dia seguinte"}>›</button>
-            <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button>
+            {!isMobile ? <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button> : null}
             <button type="button" className={"ch-btn ui-tap" + (selected === todayKey ? " ch-btn--accent" : "")} onClick={goToday}>Hoje</button>
             {!isMobile ? <button type="button" className="ch-btn ui-tap ch-btn--accent" onClick={function() { openCreate(); }}>+ Evento</button> : null}
           </div>
@@ -1084,11 +1131,23 @@ export default function Calendar() {
       <div className="ch-body">
         <div ref={stageRef} className={stageClass} key={mode + selected}>
           {mode === "month" ? (
-            <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
-          ) : mode === "week" ? (
+            isMobile ? (
+              <div className="ch-month-org">
+                <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} compactDots />
+                <p className="ch-ag-daylbl">
+                  {dayDate.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
+                </p>
+                <MobileAgenda dayKey={selected} events={events} onEventClick={openEdit} onAdd={function() { openCreate(); }} />
+              </div>
+            ) : (
+              <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
+            )
+          ) : mode === "week" && !isMobile ? (
             <WeekPlanner weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
               isMobile={isMobile} scrollNow={scrollNow} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
               readOnly={false} onSelectDay={selectDay} onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
+          ) : isMobile ? (
+            <MobileAgenda dayKey={selected} events={events} onEventClick={openEdit} onAdd={function() { openCreate(); }} />
           ) : (
             <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
               scrollNow={scrollNow} readOnly={false}

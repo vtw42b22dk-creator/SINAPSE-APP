@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { COLORS, MODULE_COLORS, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
+import { PageLoader } from "./PageLoader";
 
 export default function AuthGate(props) {
   var auth = useAuth();
@@ -18,14 +19,13 @@ export default function AuthGate(props) {
   if (auth && auth.loading) {
     return (
       <div style={{
-        minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "flex-end",
-        justifyContent: "flex-start", color: MODULE_COLORS.auth, fontFamily: "'JetBrains Mono',monospace",
-        letterSpacing: 2.2, fontSize: 11, padding: "0 0 48px 48px", position: "relative", overflow: "hidden",
+        minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "center",
+        justifyContent: "center", position: "relative", overflow: "hidden",
         "--mc": MODULE_COLORS.auth,
       }}>
         <style>{MODULE_GLOW_CSS}</style>
         <div className="mod-glow" style={{ top: -80, right: "10%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
-        A carregar
+        <PageLoader accent={MODULE_COLORS.auth} label="Sinapse" />
       </div>
     );
   }

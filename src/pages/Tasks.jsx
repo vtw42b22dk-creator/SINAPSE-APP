@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { fs } from "../lib/mobileUi";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
@@ -120,6 +120,16 @@ var TASKS_CSS = [
   ".tk-act>button{min-width:44px;min-height:44px;font-size:18px;padding:8px}",
   ".tk-card{padding:14px 12px}",
   ".tk-empty{padding:16px 0}",
+  ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer}",
+  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
+  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:#0C0C0E;border-top:1px solid color-mix(in srgb,var(--mc) 40%,transparent);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
+  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
+  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'IBM Plex Sans',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
+  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
+  ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
+  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;cursor:pointer}",
+  ".tk-sheet-cancel{width:100%;min-height:46px;margin-top:8px;border:none;background:transparent;color:#6E6E76;font-size:14px;cursor:pointer}",
   "}",
 ].join("");
 
@@ -170,19 +180,6 @@ function TaskCard(props) {
               return <span key={tag} className="tk-tag">{tag}</span>;
             })}
           </div>
-          {mob && !props.readOnly ? (
-            <select
-              className="tk-move"
-              value={props.col}
-              aria-label="Mover tarefa"
-              onClick={function(e) { e.stopPropagation(); }}
-              onChange={function(e) { if (props.onMove) props.onMove(t.id, e.target.value); }}
-            >
-              {COLUMNS.map(function(c) {
-                return <option key={c.id} value={c.id}>{c.label}</option>;
-              })}
-            </select>
-          ) : null}
         </div>
         {!props.readOnly && (
           <div className="tk-act">
@@ -196,7 +193,6 @@ function TaskCard(props) {
 }
 
 export default function Tasks() {
-  var navigate = useNavigate();
   var auth = useAuth();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
@@ -537,15 +533,15 @@ export default function Tasks() {
 
   return (
     <div className="mod-main tk-page" style={{ "--mc": ACCENT }}>
-      <style>{TASKS_CSS}</style>
+      <style>{HUB_BACK_CSS + TASKS_CSS}</style>
       <div className="mod-glow" style={{ top: -100, right: "4%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <header className={"tk-head" + (isMobile ? " tk-head--mob" : "")}>
         <div className={"tk-head-inner" + (isMobile ? " tk-head-inner--mob" : "")}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, width: isMobile ? "100%" : "auto" }}>
             {isMobile && mobileTab ? (
-              <button type="button" className="tk-back ui-tap" onClick={function() { setMobileTab(null); }}>← Voltar</button>
+              <HubBack label="Listas" onClick={function() { setMobileTab(null); }} />
             ) : (
-              <button type="button" className="tk-back ui-tap" onClick={function() { navigate("/"); }}>← Hub</button>
+              <HubBack />
             )}
             <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, fontWeight: 500, letterSpacing: 0.5 }}>
               {isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
@@ -560,8 +556,8 @@ export default function Tasks() {
             </button>
           </div>
           ) : null}
-          {!(isMobile && !mobileTab) ? (
-          <button type="button" className="tk-new-btn ui-tap" style={{ width: isMobile ? "100%" : "auto" }} onClick={function() { resetDraft(); setShowForm(true); setDraft(function(d) { return Object.assign({}, d, { column: activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox" }); }); }}>
+          {!isMobile ? (
+          <button type="button" className="tk-new-btn ui-tap" onClick={function() { resetDraft(); setShowForm(true); }}>
             + Nova
           </button>
           ) : null}
@@ -585,7 +581,7 @@ export default function Tasks() {
         </div>
         ) : null}
 
-        {showForm && !(isMobile && !mobileTab) ? (
+        {showForm && !isMobile ? (
           <div className="tk-form">
             <p className="tk-lbl" style={{ margin: "0 0 14px" }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
             <div className={"tk-form-grid" + (isMobile ? " tk-form-grid--mob" : "")}>
@@ -697,6 +693,68 @@ export default function Tasks() {
         </>
         )}
       </div>
+
+      {isMobile && showForm ? (
+        <div className="tk-sheet-bg" onClick={resetDraft}>
+          <div className="tk-sheet" onClick={function(e) { e.stopPropagation(); }}>
+            <div className="tk-sheet-handle" />
+            <p className="tk-lbl" style={{ margin: "0 0 8px" }}>{editId ? "Editar tarefa" : "Nova tarefa"}</p>
+            <input
+              className="tk-sheet-title"
+              value={draft.title}
+              autoFocus
+              placeholder="O que tens de fazer?"
+              onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }}
+            />
+            <p className="tk-lbl" style={{ margin: "16px 0 0" }}>Onde</p>
+            <div className="tk-chips">
+              {COLUMNS.map(function(c) {
+                return (
+                  <button key={c.id} type="button" className={"tk-chip" + (draft.column === c.id ? " is-on" : "")}
+                    onClick={function() { setDraft(Object.assign({}, draft, { column: c.id })); }}>
+                    {c.icon} {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="tk-lbl" style={{ margin: "4px 0 0" }}>Prioridade</p>
+            <div className="tk-chips">
+              {PRIORITIES.map(function(p) {
+                return (
+                  <button key={p.id} type="button" className={"tk-chip" + (draft.priority === p.id ? " is-on" : "")}
+                    onClick={function() { setDraft(Object.assign({}, draft, { priority: p.id })); }}>
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+            <input className="tk-in ui-in" type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
+              style={{ width: "100%", padding: "12px 4px", fontSize: 16, marginTop: 4 }} />
+            <textarea className="tk-in ui-in" value={draft.notes} rows={2} placeholder="Notas (opcional)"
+              onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }}
+              style={{ width: "100%", padding: "12px 4px", fontSize: 16, marginTop: 12, resize: "vertical" }} />
+            <button type="button" className="tk-sheet-go" onClick={function() { saveTask(); }}>{editId ? "Guardar" : "Adicionar"}</button>
+            <button type="button" className="tk-sheet-cancel" onClick={resetDraft}>Cancelar</button>
+          </div>
+        </div>
+      ) : null}
+
+      {isMobile ? (
+        <button type="button" className="tk-fab" aria-label="Nova tarefa" onClick={function() {
+          setEditId(null);
+          setSubDraft("");
+          setDraft({
+            title: "",
+            notes: "",
+            priority: "med",
+            due: "",
+            tags: "",
+            column: activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox",
+            subtasks: [],
+          });
+          setShowForm(true);
+        }}>+</button>
+      ) : null}
     </div>
   );
 }

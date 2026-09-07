@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import * as journalStore from "../lib/journalStore";
 import * as attachmentsStore from "../lib/attachmentsStore";
 import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
@@ -71,12 +71,14 @@ var JR_CSS = [
   ".gn-newnote{display:flex;gap:8px;margin-top:18px}",
   ".gn-newnote-btn{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb,var(--mc) 14%,transparent);border:1px solid color-mix(in srgb,var(--mc) 38%,transparent);color:var(--mc);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease),filter var(--dur) var(--ease)}",
   ".gn-newnote-btn:hover{background:color-mix(in srgb,var(--mc) 26%,transparent);filter:drop-shadow(0 0 10px var(--mc))}",
-  ".gn-move{flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:999px;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.3px;padding:8px 10px;min-height:40px;cursor:pointer}",
+  ".gn-catbtn{flex-shrink:0;width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,.04);color:#8A8A90;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0}",
+  ".gn-catbtn svg{width:15px;height:15px}",
+  ".gn-catbtn.is-on{color:var(--mc);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
   ".gn-noterow-wrap{display:flex;flex-direction:column;gap:6px}",
-  ".gn-movemenu{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}",
-  ".gn-movemenu p{margin:0 0 4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#8A8A90}",
-  ".gn-movemenu button{text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#EDEDEF;padding:11px 12px;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
-  ".gn-movemenu span{font-size:12px;color:#6E6E76;padding:4px 2px}",
+  ".gn-catmenu{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}",
+  ".gn-catmenu p{margin:0 0 4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#8A8A90}",
+  ".gn-catmenu button{text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#EDEDEF;padding:11px 12px;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
+  ".gn-catmenu button.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 40%,transparent)}",
   ".gn-cats-empty{margin:0;padding:14px 10px;font-size:12px;color:#6E6E76;line-height:1.5;font-family:'JetBrains Mono',monospace}",
 
   ".gn-input{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#EDEDEF;padding:11px 15px;outline:none;box-sizing:border-box;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
@@ -145,8 +147,8 @@ var JR_CSS = [
   ".gn-chevron svg{width:16px;height:16px}",
   ".gn-count{padding:3px 9px;font-size:11px}",
   ".gn-x{opacity:1!important;width:36px!important;height:36px!important;font-size:18px!important}",
-  ".gn-move{min-height:44px;padding:10px 12px;font-size:12px}",
-  ".gn-movemenu button{min-height:46px;font-size:14px}",
+  ".gn-catbtn{display:flex}",
+  ".gn-catmenu button{min-height:46px;font-size:14px}",
   ".gn-newnote{gap:10px;margin-top:16px;position:sticky;bottom:0;padding-bottom:max(8px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(9,9,10,.92) 30%)}",
   ".gn-newnote-btn{width:48px;height:48px;font-size:20px}",
   ".gn-input{font-size:16px!important;min-height:48px;padding:12px 16px}",
@@ -266,7 +268,6 @@ function blockTypeMeta(type) {
 }
 
 export default function Journal() {
-  var navigate = useNavigate();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
@@ -286,8 +287,8 @@ export default function Journal() {
   var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
   var mobileNoteOpenS = useState(false);
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
-  var moveNoteS = useState(null);
-  var moveNoteId = moveNoteS[0], setMoveNoteId = moveNoteS[1];
+  var catPickS = useState(null);
+  var catPick = catPickS[0], setCatPick = catPickS[1];
   var dragNoteRef = useRef(null);
   var dragOverS = useState(null);
   var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
@@ -320,7 +321,7 @@ export default function Journal() {
   }
 
   function applyJournalData(spacesList, blocksList) {
-    setSpaces(spacesList);
+    setSpaces((spacesList || []).filter(function(s) { return s && s.id !== "__journal_cats__"; }));
     setBlocks(blocksList);
     setActive(function(prev) {
       if (prev && spacesList.some(function(s) { return s.id === prev; })) return prev;
@@ -467,7 +468,7 @@ export default function Journal() {
 
   async function persistSpaces(nextSpaces) {
     if (!isHydratedRef.current || skipSaveRef.current) return;
-    reportSave(await journalStore.saveSpaces(nextSpaces || spacesRef.current));
+    reportSave(await journalStore.saveSpaces(nextSpaces || spacesRef.current, noteBlocksRef.current));
   }
 
   async function persistBlocks(nextBlocks) {
@@ -710,7 +711,8 @@ export default function Journal() {
   function renderNoteItem(s) {
     var on = active === s.id;
     var initial = (s.title || "?").trim().charAt(0).toUpperCase() || "?";
-    var moving = moveNoteId === s.id;
+    var currentCat = noteBlocks.assign[s.id];
+    var picking = catPick === s.id;
     return (
       <div key={s.id} className="gn-noterow-wrap">
         <div className="gn-noterow">
@@ -722,27 +724,31 @@ export default function Journal() {
               onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
               onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
             >⠿</span>
-          ) : (
-            <button type="button" className="gn-move" onClick={function() { setMoveNoteId(moving ? null : s.id); }} aria-label="Mover para categoria">Mover</button>
-          )}
-          <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { setMoveNoteId(null); openNote(s.id); }}
+          ) : null}
+          <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { openNote(s.id); }}
             style={{ "--nc": s.color, fontSize: isMobile ? 15 : 13, padding: isMobile ? "12px 12px" : "9px 11px" }}>
             <span className="gn-avatar" style={{ background: alpha(s.color, 0.18), color: s.color, borderColor: alpha(s.color, 0.4) }}>{initial}</span>
             <span className="gn-notetitle">{s.title}</span>
           </button>
+          {isMobile && noteBlocks.blocks.length ? (
+            <button type="button" className={"gn-catbtn" + (picking || currentCat ? " is-on" : "")} aria-label="Categoria"
+              onClick={function(e) { e.stopPropagation(); setCatPick(picking ? null : s.id); }}>
+              <IconFolder />
+            </button>
+          ) : null}
           <button type="button" className="gn-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
             style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
         </div>
-        {moving ? (
-          <div className="gn-movemenu">
-            <p>Mover para</p>
-            <button type="button" onClick={function() { assignNoteToBlock(s.id, null); setMoveNoteId(null); }}>Sem categoria</button>
+        {picking ? (
+          <div className="gn-catmenu">
+            <p>Categoria</p>
+            <button type="button" className={!currentCat ? "is-on" : ""} onClick={function() { assignNoteToBlock(s.id, null); setCatPick(null); }}>Sem categoria</button>
             {noteBlocks.blocks.map(function(blk) {
               return (
-                <button type="button" key={blk.id} onClick={function() { assignNoteToBlock(s.id, blk.id); setMoveNoteId(null); }}>{blk.name}</button>
+                <button key={blk.id} type="button" className={currentCat === blk.id ? "is-on" : ""}
+                  onClick={function() { assignNoteToBlock(s.id, blk.id); setCatPick(null); }}>{blk.name}</button>
               );
             })}
-            {!noteBlocks.blocks.length ? <span>Cria uma categoria com «+ Categoria».</span> : null}
           </div>
         ) : null}
       </div>
@@ -767,7 +773,7 @@ export default function Journal() {
         overflowX: "hidden",
         "--mc": ACCENT,
       }}>
-      <style>{MODULE_ENTRY_CSS + JR_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + JR_CSS}</style>
       <div className="gn-field" aria-hidden="true">
         <span className="gn-orb gn-orb--a" style={{ background: moduleGlow(ACCENT) }} />
         <span className="gn-orb gn-orb--b" style={{ background: moduleGlow(ACCENT, "14") }} />
@@ -777,9 +783,9 @@ export default function Journal() {
         <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
             {isMobile && mobileNoteOpen ? (
-              <button type="button" className="gn-hbtn" onClick={function() { setMobileNoteOpen(false); }}>← Notas</button>
+              <HubBack label="Notas" onClick={function() { setMobileNoteOpen(false); }} />
             ) : (
-              <button type="button" className="gn-hbtn" onClick={function() { navigate("/"); }}>← Hub</button>
+              <HubBack />
             )}
             <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: activeSpace ? activeSpace.color : ACCENT, margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
           </div>
@@ -831,7 +837,7 @@ export default function Journal() {
                   </div>
                   {!collapsed ? (
                     <div className="gn-group-body">
-                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">{isMobile ? "Toca em Mover numa nota para a meter aqui" : "Arrasta notas para aqui"}</p>}
+                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">{isMobile ? "Categoria vazia" : "Arrasta notas para aqui"}</p>}
                     </div>
                   ) : null}
                 </div>

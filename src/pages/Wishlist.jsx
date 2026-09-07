@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import * as wishlistStore from "../lib/wishlistStore";
 import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
@@ -101,7 +101,6 @@ var WL_CSS = [
 ].join("");
 
 export default function Wishlist() {
-  var navigate = useNavigate();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
@@ -322,13 +321,13 @@ export default function Wishlist() {
 
   return (
     <div className="wl-page mod-main" style={{ color: pageText(), "--gc": accent }}>
-      <style>{MODULE_ENTRY_CSS + WL_CSS}</style>
+      <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + WL_CSS}</style>
       <div className="wl-glow" style={{ top: -120, right: "5%", background: accent + "18" }} aria-hidden="true" />
 
       <header className="wl-head">
         <div className="wl-head-in">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <button type="button" className="wl-back" onClick={function() { navigate("/"); }}>← Hub</button>
+            <HubBack />
             <h1 className="wl-h1 mod-h1" style={{ fontSize: isMobile ? 20 : 15, color: accent }}>Wishlist</h1>
           </div>
           <label className="wl-toggle">

@@ -6,6 +6,8 @@ import Synapse from "./Synapse";
 import { ProjectInvestments, ProjectNotes, ProjectAnalytics, ProjectInventory } from "../components/ProjectModules";
 
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
+import { PageLoader } from "../components/PageLoader";
+import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 
 var ACCENT = moduleColor("projects");
 
@@ -128,7 +130,7 @@ export default function ProjectWorkspace() {
   if (!loaded) {
     return (
       <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'JetBrains Mono',monospace", color: ACCENT, opacity: 0.5 }}>A carregar...</p>
+        <PageLoader accent={ACCENT} label="Projeto" />
       </div>
     );
   }
@@ -182,7 +184,7 @@ export default function ProjectWorkspace() {
 
   return (
     <div className="pw" style={{ "--mc": pColor }}>
-      <style>{SIDEBAR_CSS}</style>
+      <style>{HUB_BACK_CSS + SIDEBAR_CSS}</style>
       <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(pColor) }} aria-hidden="true" />
 
       <header className="pw-head">
@@ -196,7 +198,7 @@ export default function ProjectWorkspace() {
             <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor }}>{project.name}</h1>
           </div>
         </div>
-        <button type="button" className="pw-hbtn" onClick={function() { navigate("/"); }}>Hub</button>
+        <HubBack />
       </header>
 
       <div className="pw-shell">
