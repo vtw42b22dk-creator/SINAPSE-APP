@@ -27,40 +27,35 @@ var CHRO_CSS = [
   ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55;z-index:0;animation:chDrift 20s ease-in-out infinite;transition:background 1s var(--ease)}",
   ".ch-glow--a{width:440px;height:440px;top:-10%;right:-8%}",
   ".ch-glow--b{width:320px;height:320px;bottom:6%;left:-6%;opacity:.32;animation-delay:-9s}",
-  ".ch-head{flex-shrink:0;padding:18px 22px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-bottom:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(7,7,8,.96),rgba(7,7,8,.86));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:30;position:relative;border-radius:0 0 var(--radius-lg) var(--radius-lg)}",
-  ".ch-head::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--mc) 55%,transparent) 40%,color-mix(in srgb,var(--mc) 55%,transparent) 60%,transparent)}",
-  ".ch-back{position:relative;padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;overflow:hidden;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".ch-back:hover{color:var(--mc);border-bottom-color:var(--mc)}",
-  ".ch-hero{flex:1;min-width:0;animation:chIn var(--dur-slow) var(--ease) both}",
-  ".ch-day-num{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(52px,10vw,76px);line-height:.85;letter-spacing:-0.06em;margin:0;background-image:linear-gradient(135deg,#EDEDEF 55%,var(--mc));-webkit-background-clip:text;background-clip:text;color:transparent}",
-  ".ch-day-meta{margin:10px 0 0;font-size:13px;color:#A0A0A8;text-transform:capitalize;letter-spacing:.2px}",
-  ".ch-day-meta strong{color:var(--mc);font-weight:500;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-right:8px}",
-  ".ch-actions{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex-shrink:0}",
-  ".ch-modes{display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius-md)}",
-  ".ch-mode{position:relative;padding:10px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;cursor:pointer;border-radius:var(--radius-sm);transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".ch-mode:hover{color:#A0A0A8;background:rgba(255,255,255,.05)}",
-  ".ch-mode.is-on{color:var(--mc);border-bottom-color:transparent;background:color-mix(in srgb,var(--mc) 16%,transparent)}",
+  ".ch-head{flex-shrink:0;padding:16px 22px 14px;display:flex;flex-direction:column;gap:18px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(7,7,8,.97),rgba(7,7,8,.82));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:30;position:relative}",
+  ".ch-head::after{content:'';position:absolute;left:12%;right:12%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--mc) 50%,transparent),transparent)}",
+  ".ch-head-top{display:flex;align-items:center;justify-content:space-between;gap:12px}",
+  ".ch-head-tools{display:flex;align-items:center;gap:10px;flex-shrink:0}",
+  ".ch-new{padding:8px 2px;border:none;border-bottom:1px solid color-mix(in srgb,var(--mc) 55%,transparent);background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;cursor:pointer}",
+  ".ch-hero{min-width:0;animation:chIn var(--dur-slow) var(--ease) both}",
+  ".ch-day-num,.ch-month-title{display:block;width:auto;max-width:100%;padding:0;border:none;background:transparent;cursor:pointer;text-align:left;font-family:'JetBrains Mono',monospace;font-weight:300;line-height:.85;letter-spacing:-0.055em;margin:0;background-image:linear-gradient(135deg,#EDEDEF 48%,var(--mc));-webkit-background-clip:text;background-clip:text;color:transparent}",
+  ".ch-day-num{font-size:clamp(52px,10vw,76px)}",
+  ".ch-month-title{font-size:clamp(34px,8vw,58px);text-transform:capitalize}",
+  ".ch-day-meta{margin:10px 0 0;font-size:13px;color:#8A8A92;text-transform:capitalize;letter-spacing:.15px}",
+  ".ch-day-meta em{font-style:normal;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;margin-right:8px}",
+  ".ch-modes{display:flex;gap:3px;padding:3px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:999px}",
+  ".ch-mode{padding:8px 14px;border:none;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px;cursor:pointer;border-radius:999px;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".ch-mode:hover{color:#A0A0A8}",
+  ".ch-mode.is-on{color:#0C0C0E;background:var(--mc)}",
   ".ch-mode:active{transform:scale(.96)}",
-  ".ch-quick{display:flex;gap:6px;align-items:center;padding:5px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius-md)}",
-  ".ch-btn{padding:11px 16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2px;cursor:pointer;border-radius:var(--radius-sm);transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".ch-btn:hover{color:#EDEDEF;background:rgba(255,255,255,.09);border-color:color-mix(in srgb,var(--mc) 40%,rgba(255,255,255,.2))}",
-  ".ch-btn:active{transform:scale(.97)}",
-  ".ch-btn--accent{color:var(--mc);background:color-mix(in srgb,var(--mc) 14%,transparent);border-color:color-mix(in srgb,var(--mc) 45%,transparent)}",
-  ".ch-btn--accent:hover{background:color-mix(in srgb,var(--mc) 20%,transparent);color:var(--mc)}",
-  ".ch-btn--nav{padding:11px 14px;font-size:15px;line-height:1;color:#EDEDEF}",
-  ".ch-rail{flex-shrink:0;display:flex;gap:0;overflow-x:auto;padding:0 16px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,.05)}",
+  ".ch-btn{padding:11px 16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2px;cursor:pointer;border-radius:var(--radius-sm)}",
+  ".ch-rail{flex-shrink:0;display:flex;gap:2px;overflow-x:auto;padding:10px 16px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}",
   ".ch-rail::-webkit-scrollbar{display:none}",
-  ".ch-rail-day{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:none;background:transparent;color:#6E6E76;cursor:pointer;font-family:'JetBrains Mono',monospace;border-radius:var(--radius-sm);transition:color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
-  ".ch-rail-day::after{content:'';position:absolute;bottom:4px;left:22%;right:22%;height:2px;background:var(--mc);border-radius:var(--radius-pill);transform:scaleX(0);transition:transform var(--dur) var(--ease)}",
-  ".ch-rail-day:hover{color:#A0A0A8;background:rgba(255,255,255,.04);transform:translateY(-1px)}",
-  ".ch-rail-day.is-on{color:var(--mc);background:color-mix(in srgb,var(--mc) 10%,transparent)}",
-  ".ch-rail-day.is-on::after{transform:scaleX(1)}",
-  ".ch-rail-day.is-today .ch-rail-n{color:#EDEDEF}",
-  ".ch-rail-dow{font-size:9px;letter-spacing:1px;opacity:.55}",
-  ".ch-rail-n{font-size:18px;font-weight:400;line-height:1}",
-  ".ch-rail-dot{width:4px;height:4px;border-radius:50%;background:var(--mc);opacity:0;transition:opacity var(--dur) var(--ease)}",
-  ".ch-rail-day.has-ev .ch-rail-dot{opacity:.5}",
-  ".ch-rail-day.is-on .ch-rail-dot{opacity:1}",
+  ".ch-rail-day{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 8px;border:none;background:transparent;color:#6E6E76;cursor:pointer;font-family:'JetBrains Mono',monospace}",
+  ".ch-rail-day:hover{color:#A0A0A8}",
+  ".ch-rail-day.is-on{color:var(--mc)}",
+  ".ch-rail-day.is-today .ch-rail-n{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mc) 55%,transparent)}",
+  ".ch-rail-dow{font-size:9px;letter-spacing:1.2px;opacity:.5}",
+  ".ch-rail-n{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:400;line-height:1;border-radius:50%;transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".ch-rail-day.is-on .ch-rail-n{background:var(--mc);color:#0C0C0E}",
+  ".ch-rail-dot{width:4px;height:4px;border-radius:50%;background:var(--mc);opacity:0}",
+  ".ch-rail-day.has-ev .ch-rail-dot{opacity:.7}",
+  ".ch-rail-day.is-on .ch-rail-dot{opacity:0}",
   ".ch-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
   ".ch-stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}",
   ".ch-stage--left{animation:chSlideL .36s var(--ease) both}",
@@ -132,16 +127,20 @@ var CHRO_CSS = [
   ".ch-wk-scroll-h{overflow-x:auto;overflow-y:auto}",
   ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-0.03em;margin:0;background-image:linear-gradient(135deg,#EDEDEF 60%,var(--mc));-webkit-background-clip:text;background-clip:text;color:transparent}",
   ".ch-week-hero span{font-size:.5em;color:var(--mc);-webkit-background-clip:initial;background-clip:initial;background-image:none;font-weight:400;letter-spacing:1.2px;display:block;margin-bottom:8px;text-transform:uppercase}",
-  ".ch-month{flex:1;overflow-y:auto;padding:16px 20px 80px;-webkit-overflow-scrolling:touch}",
-  ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:8px}",
-  ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:6px 0;letter-spacing:1px}",
-  ".ch-month-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;cursor:pointer;border-radius:var(--radius-md);transition:color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease);position:relative}",
-  ".ch-month-cell:hover{color:#EDEDEF;background:rgba(255,255,255,.04);transform:scale(1.04)}",
-  ".ch-month-cell.is-out{opacity:.25}",
-  ".ch-month-cell.is-on{color:var(--mc);background:color-mix(in srgb,var(--mc) 12%,transparent)}",
-  ".ch-month-cell.is-on::after{content:'';position:absolute;bottom:10px;width:14px;height:2px;background:var(--mc);border-radius:var(--radius-pill)}",
-  ".ch-month-cell.is-today{font-weight:600;color:#EDEDEF}",
-  ".ch-month-n{font-size:14px;line-height:1}",
+  ".ch-month{flex:1;overflow-y:auto;padding:8px 16px 80px;-webkit-overflow-scrolling:touch}",
+  ".ch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}",
+  ".ch-month-wd{text-align:center;font-size:9px;font-family:'JetBrains Mono',monospace;color:#5C5C64;padding:4px 0 8px;letter-spacing:1.4px;text-transform:uppercase}",
+  ".ch-month-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;cursor:pointer;border-radius:16px;position:relative}",
+  ".ch-month-cell:hover{color:#EDEDEF;background:rgba(255,255,255,.04)}",
+  ".ch-month-cell.is-out{opacity:.22}",
+  ".ch-month-cell.is-today .ch-month-n{color:#EDEDEF}",
+  ".ch-month-cell.is-on{background:color-mix(in srgb,var(--mc) 16%,transparent)}",
+  ".ch-month-cell.is-on.is-today{background:var(--mc)}",
+  ".ch-month-cell.is-on.is-today .ch-month-n{color:#0C0C0E}",
+  ".ch-month-cell.is-on.is-today .ch-month-dot{background:#0C0C0E}",
+  ".ch-month-n{font-size:14px;line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}",
+  ".ch-month-dots{display:flex;gap:3px;height:4px;align-items:center;min-height:4px}",
+  ".ch-month-dot{width:4px;height:4px;border-radius:50%;background:var(--ec);opacity:.85}",
   ".ch-month-bars{display:flex;gap:2px;height:3px;align-items:flex-end}",
   ".ch-month-bar{width:3px;background:var(--ec);opacity:.7}",
   ".ch-sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;animation:chIn var(--dur-fast) var(--ease) both}",
@@ -167,21 +166,21 @@ var CHRO_CSS = [
   ".ch-del{padding:10px 4px;border:none;border-bottom:1px solid rgba(192,140,140,.4);background:transparent;color:#C08C8C;font-size:12px;cursor:pointer;font-family:inherit}",
   ".ch-cancel{padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;cursor:pointer;font-family:inherit}",
   ".ch-month-org{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}",
-  ".ch-month-org .ch-month{flex:none;overflow:visible;padding:8px 12px 0}",
-  ".ch-month-org .ch-agenda{flex:none;overflow:visible;padding:8px 16px 110px}",
-  ".ch-month-count{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mc);line-height:1;min-width:14px;text-align:center}",
-  ".ch-ag-daylbl{margin:8px 16px 0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.8px;text-transform:capitalize;color:#A0A0A8}",
+  ".ch-month-org .ch-month{flex:none;overflow:visible;padding:4px 14px 0}",
+  ".ch-month-org .ch-agenda{flex:none;overflow:visible;padding:6px 16px 110px}",
+  ".ch-ag-daylbl{margin:18px 4px 12px;padding:0 2px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
   ".ch-agenda{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 100px}",
-  ".ch-ag-empty{margin:36px 4px 0;padding:28px 16px;text-align:center;border:1px dashed rgba(255,255,255,.1);border-radius:16px;color:#6E6E76;font-size:14px;line-height:1.5}",
-  ".ch-ag-card{display:flex;align-items:stretch;gap:12px;width:100%;text-align:left;padding:14px 12px;margin-bottom:10px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.03);cursor:pointer;color:inherit}",
-  ".ch-ag-bar{width:4px;border-radius:4px;background:var(--ec);flex-shrink:0}",
-  ".ch-ag-time{margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ec);letter-spacing:.3px}",
-  ".ch-ag-title{margin:4px 0 0;font-size:16px;color:#EDEDEF;line-height:1.35}",
-  ".ch-ag-add{width:100%;min-height:48px;margin-top:8px;border:1px dashed color-mix(in srgb,var(--mc) 40%,transparent);border-radius:14px;background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
+  ".ch-ag-empty{margin:8px 0 0;padding:28px 8px;text-align:left;border:none;color:#6E6E76;font-size:14px;line-height:1.55}",
+  ".ch-ag-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 4px;margin-bottom:0;border:none;border-bottom:1px solid rgba(255,255,255,.06);border-radius:0;background:transparent;cursor:pointer;color:inherit}",
+  ".ch-ag-when{flex-shrink:0;width:44px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ec);letter-spacing:.2px;line-height:1.3}",
+  ".ch-ag-bar{width:3px;align-self:stretch;min-height:28px;border-radius:3px;background:var(--ec);flex-shrink:0}",
+  ".ch-ag-title{margin:0;font-size:16px;color:#EDEDEF;line-height:1.35}",
+  ".ch-ag-notes{margin:4px 0 0;font-size:12px;color:#6E6E76;line-height:1.4}",
+  ".ch-ag-add{width:100%;min-height:46px;margin-top:14px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 10%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3px;cursor:pointer}",
   ".ch-fab{position:fixed;z-index:50;right:20px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer}",
   ".ch-fab:hover{transform:scale(1.1) rotate(90deg);filter:drop-shadow(0 0 10px color-mix(in srgb,var(--mc) 55%,transparent))}",
   ".ch-fab:active{transform:scale(.92) rotate(90deg)}",
-  "@media(max-width:719px){.ch-head{padding:12px 14px 10px;flex-wrap:wrap;gap:12px}.ch-day-num{font-size:42px}.ch-actions{width:100%;flex-direction:column;align-items:stretch}.ch-modes{justify-content:stretch}.ch-mode{flex:1;text-align:center;padding:10px 8px}.ch-quick{flex-wrap:wrap;justify-content:center}.ch-btn{flex:1;min-width:64px;text-align:center;min-height:42px}.ch-rail-day{padding:10px 16px}.ch-rail-n{font-size:20px}.ch-month-cell{aspect-ratio:auto;min-height:52px;padding:8px 0}.ch-month-n{font-size:15px}.ch-month-cell.is-on::after{bottom:6px}.ch-ag-empty{margin-top:16px}}",
+  "@media(max-width:719px){.ch-head{padding:12px 16px 12px;padding-top:max(12px,env(safe-area-inset-top));gap:14px}.ch-day-num{font-size:56px}.ch-month-title{font-size:40px}.ch-mode{flex:1;text-align:center;padding:9px 10px;font-size:11px}.ch-modes{flex:1;max-width:220px}.ch-rail{padding:6px 12px 12px}.ch-month-cell{aspect-ratio:auto;min-height:48px;border-radius:14px}.ch-month-n{font-size:14px}.ch-ag-title{font-size:15.5px}}",
   "@media(min-width:720px){.ch-fab{display:none}}",
 ].join("");
 
@@ -676,17 +675,11 @@ function MonthBoard(props) {
               className={"ch-month-cell" + (cell.outside ? " is-out" : "") + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
               onClick={function() { props.onSelectDay(k, cell); }}>
               <span className="ch-month-n">{cell.d}</span>
-              {evs.length > 0 ? (
-                props.compactDots ? (
-                  <span className="ch-month-count">{evs.length}</span>
-                ) : (
-                <span className="ch-month-bars">
-                  {evs.slice(0, 4).map(function(ev, j) {
-                    return <span key={j} className="ch-month-bar" style={{ "--ec": ev.color || ACCENT, height: (4 + j * 3) + "px" }} />;
-                  })}
-                </span>
-                )
-              ) : null}
+              <span className="ch-month-dots">
+                {evs.slice(0, 3).map(function(ev, j) {
+                  return <i key={j} className="ch-month-dot" style={{ "--ec": ev.color || ACCENT }} />;
+                })}
+              </span>
             </button>
           );
         })}
@@ -731,15 +724,16 @@ function MobileAgenda(props) {
   return (
     <div className="ch-agenda">
       {list.length === 0 ? (
-        <p className="ch-ag-empty">Nada marcado neste dia.<br />Toca em + para adicionar.</p>
+        <p className="ch-ag-empty">Nada neste dia.</p>
       ) : list.map(function(ev) {
         return (
           <button key={ev.id} type="button" className="ch-ag-card" style={{ "--ec": ev.color || ACCENT }}
             onClick={function() { props.onEventClick(ev, props.dayKey); }}>
+            <span className="ch-ag-when">{ev.allDay ? "todo" : (ev.time || "")}</span>
             <span className="ch-ag-bar" />
             <span>
-              <p className="ch-ag-time">{formatEventTime(ev)}</p>
               <p className="ch-ag-title">{ev.title || "Sem título"}</p>
+              {ev.notes ? <p className="ch-ag-notes">{ev.notes}</p> : null}
             </span>
           </button>
         );
@@ -913,14 +907,28 @@ export default function Calendar() {
 
   var weekRangeLabel = useMemo(function() { return formatWeekRange(weekDays); }, [weekDays]);
 
+  function shiftMonth(delta) {
+    setNavDir(delta > 0 ? 1 : -1);
+    var m = view.m + delta;
+    var y = view.y;
+    if (m < 0) { m = 11; y--; }
+    if (m > 11) { m = 0; y++; }
+    var last = new Date(y, m + 1, 0).getDate();
+    var d = Math.min(selParsed.d, last);
+    setView({ y: y, m: m });
+    setSelected(dateKey(y, m, d));
+  }
+
   var onSwipePrev = useCallback(function() {
     if (mode === "week") shiftWeek(-1);
+    else if (mode === "month") shiftMonth(-1);
     else shiftDay(-1);
-  }, [mode, selected]);
+  }, [mode, selected, view, selParsed.d]);
   var onSwipeNext = useCallback(function() {
     if (mode === "week") shiftWeek(1);
+    else if (mode === "month") shiftMonth(1);
     else shiftDay(1);
-  }, [mode, selected]);
+  }, [mode, selected, view, selParsed.d]);
 
   useEffect(function() {
     var el = stageRef.current;
@@ -950,13 +958,6 @@ export default function Calendar() {
       setView({ y: p.y, m: p.m });
     }
     if (mode === "month" && !isMobile) setMode("line");
-  }
-
-  function prevMonth() {
-    setView(function(v) { return v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 }; });
-  }
-  function nextMonth() {
-    setView(function(v) { return v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 }; });
   }
 
   function openCreate(slotMin) {
@@ -1074,58 +1075,56 @@ export default function Calendar() {
       <div className="ch-glow ch-glow--c" style={{ width: 260, height: 260, top: "45%", left: "40%", opacity: 0.22, background: moduleGlow(ACCENT, "0e"), animationDelay: "-15s" }} aria-hidden="true" />
 
       <header className="ch-head">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+        <div className="ch-head-top">
           <HubBack />
-          <div className="ch-hero">
-            {mode === "week" ? (
-              <>
-                <h1 className="ch-week-hero"><span>Semana</span>{weekRangeLabel}</h1>
-                <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
-              </>
-            ) : (
-              <>
-                <h1 className="ch-day-num">{selParsed.d}</h1>
-                <p className="ch-day-meta">
-                  <strong>{selected === todayKey ? "Hoje" : WEEKDAYS[(dayDate.getDay() + 6) % 7]}</strong>
-                  {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long", year: "numeric" })}
-                </p>
-              </>
-            )}
+          <div className="ch-head-tools">
+            <div className="ch-modes" role="tablist">
+              {(isMobile
+                ? [{ id: "line", label: "Dia" }, { id: "month", label: "Mês" }]
+                : [{ id: "line", label: "Linha" }, { id: "week", label: "Semana" }, { id: "month", label: "Mês" }]
+              ).map(function(m) {
+                return (
+                  <button key={m.id} type="button" role="tab" aria-selected={mode === m.id}
+                    className={"ch-mode ui-tap ch-mode--" + m.id + (mode === m.id ? " is-on" : "")}
+                    onClick={function() { setMode(m.id); setNavDir(0); }}>{m.label}</button>
+                );
+              })}
+            </div>
+            {!isMobile ? (
+              <button type="button" className="ch-new ui-tap" onClick={function() { openCreate(); }}>+ Evento</button>
+            ) : null}
           </div>
         </div>
-        <div className="ch-actions">
-          <div className="ch-modes" role="tablist">
-            {(isMobile
-              ? [{ id: "line", label: "Dia" }, { id: "month", label: "Mês" }]
-              : [{ id: "line", label: "Linha" }, { id: "week", label: "Semana" }, { id: "month", label: "Mês" }]
-            ).map(function(m) {
-              return (
-                <button key={m.id} type="button" role="tab" aria-selected={mode === m.id}
-                  className={"ch-mode ui-tap ch-mode--" + m.id + (mode === m.id ? " is-on" : "")}
-                  onClick={function() { setMode(m.id); setNavDir(0); }}>{m.label}</button>
-              );
-            })}
-          </div>
-          <div className="ch-quick">
-            <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(-1) : shiftDay(-1); }} title={mode === "week" ? "Semana anterior" : "Dia anterior"}>‹</button>
-            <button type="button" className="ch-btn ch-btn--nav ui-tap" onClick={function() { mode === "week" ? shiftWeek(1) : shiftDay(1); }} title={mode === "week" ? "Semana seguinte" : "Dia seguinte"}>›</button>
-            {!isMobile ? <button type="button" className="ch-btn ui-tap" onClick={jumpNow}>Agora</button> : null}
-            <button type="button" className={"ch-btn ui-tap" + (selected === todayKey ? " ch-btn--accent" : "")} onClick={goToday}>Hoje</button>
-            {!isMobile ? <button type="button" className="ch-btn ui-tap ch-btn--accent" onClick={function() { openCreate(); }}>+ Evento</button> : null}
-          </div>
+        <div className="ch-hero">
+          {mode === "week" ? (
+            <>
+              <h1 className="ch-week-hero"><span>Semana</span>{weekRangeLabel}</h1>
+              <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
+            </>
+          ) : mode === "month" ? (
+            <>
+              <button type="button" className="ch-month-title" onClick={goToday}>
+                {new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long" })}
+              </button>
+              <p className="ch-day-meta">
+                {view.y}
+                {selected === todayKey ? "  ·  hoje" : "  ·  " + dayDate.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric" })}
+              </p>
+            </>
+          ) : (
+            <>
+              <button type="button" className="ch-day-num" onClick={goToday}>{selParsed.d}</button>
+              <p className="ch-day-meta">
+                {selected === todayKey ? <em>hoje</em> : null}
+                {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long" })}
+              </p>
+            </>
+          )}
         </div>
       </header>
 
       {mode === "line" ? (
         <MonthRail view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
-      ) : mode === "month" ? (
-        <div className="ch-quick" style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,.05)", justifyContent: "center", display: "flex", gap: 16, alignItems: "center" }}>
-          <button type="button" className="ch-btn ui-tap" onClick={prevMonth}>‹</button>
-          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#A0A0A8", textTransform: "capitalize" }}>
-            {new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
-          </span>
-          <button type="button" className="ch-btn ui-tap" onClick={nextMonth}>›</button>
-        </div>
       ) : null}
 
       <div className="ch-body">
@@ -1134,9 +1133,7 @@ export default function Calendar() {
             isMobile ? (
               <div className="ch-month-org">
                 <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} compactDots />
-                <p className="ch-ag-daylbl">
-                  {dayDate.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
-                </p>
+                <p className="ch-ag-daylbl">agenda</p>
                 <MobileAgenda dayKey={selected} events={events} onEventClick={openEdit} onAdd={function() { openCreate(); }} />
               </div>
             ) : (
