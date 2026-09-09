@@ -67,12 +67,12 @@ export async function scopedKey(key) {
 export async function readLocal(key, fallback) {
   try {
     var sk = await scopedKey(key);
-    return await readWithRecovery(key, sk, async function() {
-      var raw = localStorage.getItem(sk);
-      if (!raw) raw = localStorage.getItem(key);
-      if (!raw) return Array.isArray(fallback) ? fallback.slice() : fallback;
-      return JSON.parse(raw);
-    });
+    var raw = localStorage.getItem(sk);
+    if (!raw) raw = localStorage.getItem(key);
+    if (!raw) return Array.isArray(fallback) ? fallback.slice() : fallback;
+    var parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return parsed;
+    return await readWithRecovery(key, sk, async function() { return parsed; });
   } catch (e) {
     return Array.isArray(fallback) ? fallback.slice() : fallback;
   }
@@ -81,7 +81,7 @@ export async function readLocal(key, fallback) {
 export async function writeLocal(key, value) {
   try {
     var sk = await scopedKey(key);
-    var prev = [];
+    var prev = null;
     try {
       var raw = localStorage.getItem(sk);
       if (raw) prev = JSON.parse(raw);
@@ -89,10 +89,17 @@ export async function writeLocal(key, value) {
     if (Array.isArray(prev) && prev.length) {
       await backupBeforeWrite(sk, prev);
     }
-    if ((!value || !value.length) && Array.isArray(prev) && prev.length) {
+    if (Array.isArray(value)) {
+      if (!value.length && Array.isArray(prev) && prev.length) return;
+      localStorage.setItem(sk, JSON.stringify(value));
       return;
     }
-    localStorage.setItem(sk, JSON.stringify(value || []));
+    if (value === undefined || value === null) {
+      if (Array.isArray(prev) && prev.length) return;
+      localStorage.setItem(sk, JSON.stringify(Array.isArray(prev) ? [] : value));
+      return;
+    }
+    localStorage.setItem(sk, JSON.stringify(value));
   } catch (e) {}
 }
 

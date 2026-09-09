@@ -105,7 +105,7 @@ export default function ProjectWorkspace() {
   }, [projectId]);
 
   useCloudSync({
-    tables: ["synapse_projects", "project_stock", "project_investments", "project_notes", "project_kpis", "project_inventory"],
+    tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory"],
     intervalMs: 2500,
     shouldSkip: function() { return !loaded || isCloudPullPaused(); },
     onPull: function() {

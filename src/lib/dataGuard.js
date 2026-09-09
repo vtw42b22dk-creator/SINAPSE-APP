@@ -132,6 +132,8 @@ export function guardMergeResult(localBefore, merged, deletedIds) {
 export async function readWithRecovery(baseKey, scopedDataKey, readScopedFn) {
   var cur = await readScopedFn();
   if (hasUsefulRows(cur)) return cur;
+  if (cur && typeof cur === "object" && !Array.isArray(cur)) return cur;
+  if (typeof cur === "string" || typeof cur === "boolean" || typeof cur === "number") return cur;
 
   var fromRing = recoverFromRing(scopedDataKey);
   if (hasUsefulRows(fromRing)) {
@@ -143,7 +145,9 @@ export async function readWithRecovery(baseKey, scopedDataKey, readScopedFn) {
     return scanned.data;
   }
 
-  return Array.isArray(cur) ? cur : [];
+  if (Array.isArray(cur)) return cur;
+  if (cur == null) return [];
+  return cur;
 }
 
 export async function writeSafe(scopedDataKey, next, readScopedFn, writeScopedFn) {

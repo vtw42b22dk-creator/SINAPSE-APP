@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn } from "./ProjectModules";
-import { useCloudSync } from "../lib/useCloudSync";
-import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var MC = "#8FA8C4";
 
@@ -132,7 +130,6 @@ export function ProjectStock(props) {
   var dataS = useState(null);
   var data = dataS[0], setData = dataS[1];
   var dataRef = useRef(null);
-  var dirtyRef = useRef(false);
   var msgS = useState(null);
   var msg = msgS[0], setMsg = msgS[1];
   var nomeS = useState("");
@@ -169,38 +166,10 @@ export function ProjectStock(props) {
     projectModuleStore.loadStock(projectId).then(applyData);
   }, [projectId]);
 
-  useCloudSync({
-    tables: ["project_stock"],
-    intervalMs: 4000,
-    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
-    onPull: function() {
-      if (dirtyRef.current || isCloudPullPaused()) return Promise.resolve();
-      var before = dataRef.current;
-      return projectModuleStore.loadStock(projectId).then(function(d) {
-        if (dirtyRef.current || isCloudPullPaused()) return;
-        if (before && (before.updated || 0) > (d.updated || 0)) return;
-        if (before && before.items && d && d.items && before.items.length > d.items.length && (before.updated || 0) >= (d.updated || 0)) return;
-        applyData(d);
-      });
-    },
-    onPush: function() {
-      if (dirtyRef.current || !dataRef.current) return Promise.resolve();
-      return projectModuleStore.saveStock(projectId, dataRef.current);
-    },
-  });
-
   function persist(next) {
     var payload = Object.assign({}, next, { seeded: true, updated: Date.now() });
-    dirtyRef.current = true;
-    pauseCloudPull(8000);
     applyData(payload);
-    return projectModuleStore.saveStock(projectId, payload).then(function(d) {
-      applyData(d);
-      setTimeout(function() { dirtyRef.current = false; }, 2500);
-      return d;
-    }).catch(function() {
-      setTimeout(function() { dirtyRef.current = false; }, 2500);
-    });
+    return projectModuleStore.saveStock(projectId, payload);
   }
 
   function flash(text, kind) {
@@ -208,9 +177,10 @@ export function ProjectStock(props) {
   }
 
   function addCompra() {
+    var src = dataRef.current || data;
     var val = parseMoney(compra);
-    if (!nome.trim() || isNaN(val) || val < 0) { flash("Preço de compra inválido.", "err"); return; }
-    var next = Object.assign({}, data, { items: data.items.slice(), next_id: data.next_id });
+    if (!src || !nome.trim() || isNaN(val) || val < 0) { flash("Preço de compra inválido.", "err"); return; }
+    var next = Object.assign({}, src, { items: src.items.slice(), next_id: src.next_id });
     var id = next.next_id;
     next.next_id = id + 1;
     next.items.push({
@@ -243,8 +213,9 @@ export function ProjectStock(props) {
     var vendaVal = parseMoney(venda);
     var extraVal = extra ? parseMoney(extra) : 0;
     if (isNaN(vendaVal) || vendaVal <= 0 || isNaN(extraVal)) { flash("Valores inválidos.", "err"); return; }
-    persist(Object.assign({}, data, {
-      items: data.items.map(function(i) {
+    var src = dataRef.current || data;
+    persist(Object.assign({}, src, {
+      items: src.items.map(function(i) {
         if (i.id !== idVal) return i;
         return Object.assign({}, i, {
           venda: vendaVal,
@@ -265,8 +236,9 @@ export function ProjectStock(props) {
     if (!editNome.trim() || isNaN(c) || isNaN(x)) { flash("Valores inválidos.", "err"); return; }
     var vendaVal = venda.trim() === "" ? null : parseMoney(venda);
     if (vendaVal != null && isNaN(vendaVal)) { flash("Venda inválida.", "err"); return; }
-    persist(Object.assign({}, data, {
-      items: data.items.map(function(i) {
+    var src = dataRef.current || data;
+    persist(Object.assign({}, src, {
+      items: src.items.map(function(i) {
         if (i.id !== idVal) return i;
         var sold = vendaVal != null && vendaVal > 0;
         return Object.assign({}, i, {
@@ -285,8 +257,9 @@ export function ProjectStock(props) {
 
   function removeItem(item) {
     if (!window.confirm("Remover " + item.nome + "?")) return;
-    persist(Object.assign({}, data, {
-      items: data.items.filter(function(i) { return i.id !== item.id; }),
+    var src = dataRef.current || data;
+    persist(Object.assign({}, src, {
+      items: src.items.filter(function(i) { return i.id !== item.id; }),
     }));
     flash("Removido.");
   }
@@ -294,13 +267,13 @@ export function ProjectStock(props) {
   function definirMeta() {
     var val = parseMoney(metaVal);
     if (isNaN(val) || val <= 0) { flash("Meta inválida.", "err"); return; }
-    persist(Object.assign({}, data, { meta_lucro: val, meta_ativa: true, meta_data_inicio: todayKey() }));
+    persist(Object.assign({}, dataRef.current || data, { meta_lucro: val, meta_ativa: true, meta_data_inicio: todayKey() }));
     setSheet(null);
     flash("Meta ativada.");
   }
 
   function retirarMeta() {
-    persist(Object.assign({}, data, { meta_ativa: false }));
+    persist(Object.assign({}, dataRef.current || data, { meta_ativa: false }));
     flash("Meta retirada.");
   }
 
