@@ -115,6 +115,12 @@ do $rl$ begin alter publication supabase_realtime add table public.finance_categ
 do $rl$ begin alter publication supabase_realtime add table public.expenses; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.income_categories; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.incomes; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.synapse_projects; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.project_stock; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.project_investments; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.project_notes; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.project_kpis; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.project_inventory; exception when others then null; end $rl$;
 
 -- ---------- PROJETOS MODULARES (2025) ----------
 -- Ver também: supabase/project-modules.sql

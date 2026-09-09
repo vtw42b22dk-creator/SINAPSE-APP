@@ -7,6 +7,8 @@ import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
+import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("projects");
 
@@ -309,6 +311,20 @@ export default function Projects() {
       setLoaded(true);
     });
   }, []);
+
+  useCloudSync({
+    tables: ["synapse_projects"],
+    intervalMs: 10000,
+    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    onPull: function() {
+      return synapseStore.loadProjects().then(function(list) {
+        if (list && list.length) setProjects(list);
+      });
+    },
+    onPush: function() {
+      return synapseStore.saveProjects(projects);
+    },
+  });
 
   useEffect(function() {
     if (!projects.length) return;

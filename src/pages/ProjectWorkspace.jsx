@@ -9,6 +9,8 @@ import { ProjectStock } from "../components/ProjectStock";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
+import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("projects");
 
@@ -100,17 +102,19 @@ export default function ProjectWorkspace() {
   useEffect(function() {
     if (!projectId) return;
     projectModuleStore.pullProjectModules(projectId);
-    function refreshModules() {
-      if (document.visibilityState !== "visible") return;
-      projectModuleStore.pullProjectModules(projectId);
-    }
-    document.addEventListener("visibilitychange", refreshModules);
-    window.addEventListener("focus", refreshModules);
-    return function() {
-      document.removeEventListener("visibilitychange", refreshModules);
-      window.removeEventListener("focus", refreshModules);
-    };
   }, [projectId]);
+
+  useCloudSync({
+    tables: ["synapse_projects", "project_stock", "project_investments", "project_notes", "project_kpis", "project_inventory"],
+    intervalMs: 10000,
+    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    onPull: function() {
+      return Promise.all([
+        synapseStore.loadProjects().then(setProjects),
+        projectId ? projectModuleStore.pullProjectModules(projectId) : Promise.resolve(),
+      ]);
+    },
+  });
 
   useEffect(function() {
     if (isMobile) setSidebarOpen(false);

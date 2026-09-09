@@ -17,3 +17,5 @@ create policy "own project stock" on public.project_stock
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create index if not exists project_stock_project_idx on public.project_stock (user_id, project_id);
+
+do $rl$ begin alter publication supabase_realtime add table public.project_stock; exception when others then null; end $rl$;

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
+import { useCloudSync } from "../lib/useCloudSync";
+import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var MC = {
   investments: "#8FB39B",
@@ -33,8 +35,16 @@ var MODULE_CSS = [
   ".pm-f-type{flex:0 0 148px}",
   ".pm-sec{margin:26px 0 12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:1.4px;display:flex;align-items:center;gap:10px}",
   ".pm-sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07)}",
-  ".pm-tablecard{border:none;background:transparent;overflow:hidden}",
-  ".pm-table{width:100%;border-collapse:collapse;font-size:13px}",
+  ".pm-tablecard{border:none;background:transparent;overflow:visible}",
+  ".pm-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}",
+  ".pm-table th,.pm-table td{overflow-wrap:anywhere;word-break:break-word}",
+  ".pm-rows{display:flex;flex-direction:column}",
+  ".pm-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.08);align-items:start}",
+  ".pm-row h4{margin:0;font-size:14px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}",
+  ".pm-row .meta{margin:6px 0 0;font-size:12px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.45;overflow-wrap:anywhere}",
+  ".pm-inv-card{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
+  ".pm-inv-grid{display:grid;grid-template-columns:1fr 72px;gap:8px}",
+  ".pm-inv-grid-3{display:grid;grid-template-columns:1fr 1fr;gap:8px}",
   ".pm-table thead th{padding:13px 16px 11px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#6E6E76;letter-spacing:.7px;text-transform:uppercase;text-align:left;background:#0E0E10}",
   ".pm-table tbody td{padding:11px 16px;border-top:1px solid rgba(255,255,255,0.07);vertical-align:middle}",
   ".pm-table tbody tr{transition:background .14s}",
@@ -79,7 +89,7 @@ var MODULE_CSS = [
   ".pm-kpi-bar-fill{height:100%;border-radius:999px;transition:width .4s ease}",
   ".pm-kpi-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}",
   ".pm-kpi-remain{margin:10px 0 0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
-  "@media(max-width:719px){.pm-wrap{padding:18px 16px 60px}.pm-head h2{font-size:18px}.pm-f-amt,.pm-f-type{flex:1 1 calc(50% - 6px)}.pm-form .pm-btn{flex:1 1 100%;justify-content:center}}",
+  "@media(max-width:719px){.pm-wrap{padding:18px 16px 60px}.pm-head h2{font-size:18px}.pm-f-amt,.pm-f-type{flex:1 1 calc(50% - 6px)}.pm-form .pm-btn{flex:1 1 100%;justify-content:center}.pm-stats{grid-template-columns:1fr 1fr}.pm-stat-v{font-size:18px}.pm-row{grid-template-columns:1fr}.pm-inv-grid,.pm-inv-grid-3{grid-template-columns:1fr 1fr}}",
 ].join("");
 
 var STATUS_META = {
@@ -186,7 +196,16 @@ export function ProjectInvestments(props) {
     projectModuleStore.loadInvestments(projectId).then(setRows);
   }, [projectId]);
 
+  useCloudSync({
+    tables: ["project_investments"],
+    intervalMs: 10000,
+    shouldSkip: function() { return isCloudPullPaused(); },
+    onPull: function() { return projectModuleStore.loadInvestments(projectId).then(setRows); },
+    onPush: function() { return projectModuleStore.saveInvestments(projectId, rows); },
+  });
+
   function persist(next) {
+    pauseCloudPull(8000);
     setRows(next);
     projectModuleStore.saveInvestments(projectId, next);
   }
@@ -238,32 +257,18 @@ export function ProjectInvestments(props) {
       {rows.length === 0 ? (
         <div className="pm-empty">Ainda sem movimentos. Regista o primeiro acima.</div>
       ) : (
-        <div className="pm-tablecard">
-          <table className="pm-table">
-            <colgroup>
-              <col style={{ width: 96 }} />
-              <col />
-              <col style={{ width: 116 }} />
-              <col style={{ width: 120 }} />
-              <col style={{ width: 56 }} />
-            </colgroup>
-            <thead>
-              <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th style={{ textAlign: "right" }}>Valor</th><th></th></tr>
-            </thead>
-            <tbody>
-              {slice.map(function(r) {
-                return (
-                  <tr key={r.id}>
-                    <td style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#6E6E76" }}>{r.day}</td>
-                    <td style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 0 }}>{r.title}</td>
-                    <td><FlowBadge type={r.type} /></td>
-                    <td className="pm-num" style={{ fontWeight: 600, color: r.type === "credit" ? "#8FB39B" : "#C08C8C" }}>{r.type === "credit" ? "+" : "−"}{fmtEuro(r.amount).replace("−", "")}</td>
-                    <td style={{ textAlign: "center" }}><button type="button" className="pm-del" onClick={function() { removeRow(r.id); }}>×</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="pm-rows">
+          {slice.map(function(r) {
+            return (
+              <article key={r.id} className="pm-row">
+                <div>
+                  <h4>{r.title}</h4>
+                  <p className="meta">{r.day} · <FlowBadge type={r.type} /> · <span style={{ color: r.type === "credit" ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{r.type === "credit" ? "+" : "−"}{fmtEuro(r.amount)}</span></p>
+                </div>
+                <button type="button" className="pm-del" onClick={function() { removeRow(r.id); }}>×</button>
+              </article>
+            );
+          })}
         </div>
       )}
       {pages > 1 && (
@@ -305,6 +310,22 @@ export function ProjectNotes(props) {
   var saveTimer = useRef(null);
   var dirtyRef = useRef(false);
 
+  useCloudSync({
+    tables: ["project_notes"],
+    intervalMs: 10000,
+    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
+    onPull: function() {
+      if (dirtyRef.current) return Promise.resolve();
+      return projectModuleStore.loadNotes(projectId).then(function(d) {
+        var list = parseNotesList(d.body || "");
+        setNotes(list);
+      });
+    },
+    onPush: function() {
+      return projectModuleStore.saveNotes(projectId, { body: JSON.stringify(notes) });
+    },
+  });
+
   useEffect(function() {
     function load() {
       if (dirtyRef.current) return;
@@ -334,6 +355,7 @@ export function ProjectNotes(props) {
 
   function persist(next) {
     dirtyRef.current = true;
+    pauseCloudPull(8000);
     setNotes(next);
     setSaved(false);
     clearTimeout(saveTimer.current);
@@ -443,7 +465,21 @@ export function ProjectAnalytics(props) {
     projectModuleStore.loadInventory(projectId).then(setItems);
   }, [projectId]);
 
+  useCloudSync({
+    tables: ["project_kpis", "project_investments", "project_inventory"],
+    intervalMs: 10000,
+    shouldSkip: function() { return isCloudPullPaused(); },
+    onPull: function() {
+      return Promise.all([
+        projectModuleStore.loadKpis(projectId).then(setKpis),
+        projectModuleStore.loadInvestments(projectId).then(setInvestments),
+        projectModuleStore.loadInventory(projectId).then(setItems),
+      ]);
+    },
+  });
+
   function persist(next) {
+    pauseCloudPull(8000);
     setKpis(next);
     projectModuleStore.saveKpis(projectId, next);
   }
@@ -585,7 +621,16 @@ export function ProjectInventory(props) {
     projectModuleStore.loadInventory(projectId).then(setRows);
   }, [projectId]);
 
+  useCloudSync({
+    tables: ["project_inventory"],
+    intervalMs: 10000,
+    shouldSkip: function() { return isCloudPullPaused(); },
+    onPull: function() { return projectModuleStore.loadInventory(projectId).then(setRows); },
+    onPush: function() { return projectModuleStore.saveInventory(projectId, rows); },
+  });
+
   function persist(next) {
+    pauseCloudPull(8000);
     setRows(next);
     projectModuleStore.saveInventory(projectId, next);
   }
@@ -635,35 +680,32 @@ export function ProjectInventory(props) {
       {visible.length === 0 ? (
         <div className="pm-empty">Sem itens em "{catMeta.label}". Adiciona o primeiro acima.</div>
       ) : (
-        <div className="pm-tablecard">
-          <table className="pm-table">
-            <colgroup>
-              <col />
-              <col style={{ width: 84 }} />
-              <col style={{ width: 142 }} />
-              <col style={{ width: 110 }} />
-              <col style={{ width: 100 }} />
-              <col style={{ width: 56 }} />
-            </colgroup>
-            <thead>
-              <tr><th>Item</th><th>Qtd</th><th>Estado</th><th style={{ textAlign: "right" }}>Custo un.</th><th style={{ textAlign: "right" }}>Subtotal</th><th></th></tr>
-            </thead>
-            <tbody>
-              {visible.map(function(r) {
-                var sub = (r.quantity || 0) * (r.unitCost || 0);
-                return (
-                  <tr key={r.id}>
-                    <td><input className="pm-input" value={r.name} onChange={function(e) { updateItem(r.id, { name: e.target.value }); }} style={{ padding: "8px 11px", fontSize: 13 }} /></td>
-                    <td><input type="number" min={0} className="pm-input" value={r.quantity} onChange={function(e) { updateItem(r.id, { quantity: +e.target.value }); }} style={{ padding: "8px 10px", fontFamily: "'JetBrains Mono',monospace", textAlign: "center" }} /></td>
-                    <td><StatusSelect value={r.status} onChange={function(v) { updateItem(r.id, { status: v }); }} /></td>
-                    <td><input type="number" min={0} step="0.01" className="pm-input" value={r.unitCost} onChange={function(e) { updateItem(r.id, { unitCost: +e.target.value }); }} style={{ padding: "8px 10px", fontFamily: "'JetBrains Mono',monospace", textAlign: "right" }} /></td>
-                    <td className="pm-num" style={{ color: "#A0A0A8", fontSize: 12 }}>{fmtEuro(sub)}</td>
-                    <td style={{ textAlign: "center" }}><button type="button" className="pm-del" onClick={function() { removeItem(r.id); }}>×</button></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="pm-rows">
+          {visible.map(function(r) {
+            var sub = (r.quantity || 0) * (r.unitCost || 0);
+            return (
+              <article key={r.id} className="pm-inv-card">
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <input className="pm-input" value={r.name} onChange={function(e) { updateItem(r.id, { name: e.target.value }); }} placeholder="Nome do item" />
+                  <button type="button" className="pm-del" onClick={function() { removeItem(r.id); }}>×</button>
+                </div>
+                <div className="pm-inv-grid-3">
+                  <div>
+                    <label className="pm-label">Qtd</label>
+                    <input type="number" min={0} className="pm-input" value={r.quantity} onChange={function(e) { updateItem(r.id, { quantity: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                  </div>
+                  <div>
+                    <label className="pm-label">Custo un.</label>
+                    <input type="number" min={0} step="0.01" className="pm-input" value={r.unitCost} onChange={function(e) { updateItem(r.id, { unitCost: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <StatusSelect value={r.status} onChange={function(v) { updateItem(r.id, { status: v }); }} />
+                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#A0A0A8" }}>{fmtEuro(sub)}</span>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </ModuleShell>

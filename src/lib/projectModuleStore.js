@@ -318,9 +318,11 @@ function todayKey() {
 function emptyStock() {
   return {
     next_id: 1,
-    meta_lucro: 1000,
+    meta_lucro: 0,
+    meta_ativa: false,
     meta_data_inicio: todayKey(),
     items: [],
+    seeded: false,
     updated: Date.now(),
   };
 }
@@ -357,11 +359,15 @@ function normStock(raw) {
   var items = (src.items || []).map(normStockItem);
   var nextId = Number(src.next_id != null ? src.next_id : src.nextId) || 1;
   items.forEach(function(it) { if (it.id >= nextId) nextId = it.id + 1; });
+  var metaLucro = Number(src.meta_lucro != null ? src.meta_lucro : src.metaLucro) || 0;
+  var metaAtiva = src.meta_ativa != null ? !!src.meta_ativa : src.metaAtiva != null ? !!src.metaAtiva : metaLucro > 0;
   return {
     next_id: nextId,
-    meta_lucro: Number(src.meta_lucro != null ? src.meta_lucro : src.metaLucro) || 1000,
+    meta_lucro: metaLucro,
+    meta_ativa: metaAtiva,
     meta_data_inicio: src.meta_data_inicio || src.metaDataInicio || todayKey(),
     items: items,
+    seeded: !!src.seeded,
     updated: Number(src.updated) || (src.updated_at ? new Date(src.updated_at).getTime() : Date.now()),
   };
 }
@@ -383,8 +389,8 @@ export async function loadStock(projectId) {
       }
     } catch (e) {}
   }
-  if (!local.items.length) {
-    var seeded = importStockPayload(STOCK_HISTORY_SEED);
+  if (!local.items.length && !local.seeded) {
+    var seeded = importStockPayload(Object.assign({}, STOCK_HISTORY_SEED, { seeded: true, meta_ativa: true }));
     if (seeded && seeded.items.length) {
       local = await saveStock(projectId, seeded);
       return local;
@@ -430,8 +436,9 @@ export function stockStats(data) {
   var lucroTotal = totalFaturado - custoCompraVendidos - extrasVendidos;
   var mediaLucro = vendidos.length ? lucroTotal / vendidos.length : 0;
   var margemMedia = totalFaturado > 0 ? (lucroTotal / totalFaturado) * 100 : 0;
-  var meta = Number(data && data.meta_lucro) || 1000;
-  var percentagem = meta > 0 ? Math.min((lucroTotal / meta) * 100, 100) : 0;
+  var meta = Number(data && data.meta_lucro) || 0;
+  var metaAtiva = !!(data && data.meta_ativa && meta > 0);
+  var percentagem = metaAtiva && meta > 0 ? Math.min((lucroTotal / meta) * 100, 100) : 0;
   var inicio = (data && data.meta_data_inicio) || todayKey();
   var dias = Math.max(0, Math.floor((Date.now() - new Date(inicio + "T00:00:00").getTime()) / 86400000));
   var capitalAtivo = disponiveis.reduce(function(s, i) { return s + (Number(i.compra) || 0); }, 0);
@@ -446,6 +453,7 @@ export function stockStats(data) {
     extrasTotais: extrasTotais,
     capitalAtivo: capitalAtivo,
     meta: meta,
+    metaAtiva: metaAtiva,
     percentagem: percentagem,
     inicio: inicio,
     dias: dias,
