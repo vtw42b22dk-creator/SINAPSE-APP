@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { readLocal, writeLocal, uid, getUser, cloudErrorMessage } from "./cloudStore";
 import { supabase } from "./supabase";
+import { STOCK_HISTORY_SEED } from "./stockHistorySeed";
 
 var PREFIX = "project-module-v1";
 var TABLES = {
@@ -325,16 +326,30 @@ function emptyStock() {
 }
 
 function normStockItem(row) {
+  var status = row.status === "Vendido" || Number(row.venda) > 0 ? "Vendido" : "Disponível";
+  var dataCompra = row.data_compra || row.dataCompra || todayKey();
+  var dataVenda = row.data_venda || row.dataVenda || null;
+  if (status === "Vendido" && !dataVenda) dataVenda = dataCompra;
   return {
     id: Number(row.id) || 0,
     nome: row.nome || row.name || "",
     compra: Number(row.compra != null ? row.compra : row.buy) || 0,
     venda: Number(row.venda != null ? row.venda : row.sell) || 0,
     custo_adicional: Number(row.custo_adicional != null ? row.custo_adicional : row.custoAdicional) || 0,
-    status: row.status === "Vendido" ? "Vendido" : "Disponível",
-    data_venda: row.data_venda || row.dataVenda || null,
-    data_compra: row.data_compra || row.dataCompra || todayKey(),
+    status: status,
+    data_venda: status === "Vendido" ? dataVenda : null,
+    data_compra: dataCompra,
   };
+}
+
+export function importStockPayload(raw) {
+  var src = raw;
+  if (typeof raw === "string") {
+    try { src = JSON.parse(raw); } catch (e) { return null; }
+  }
+  if (!src || typeof src !== "object") return null;
+  if (!Array.isArray(src.items)) return null;
+  return normStock(src);
 }
 
 function normStock(raw) {
@@ -367,6 +382,13 @@ export async function loadStock(projectId) {
         if ((remote.updated || 0) >= (local.updated || 0)) local = remote;
       }
     } catch (e) {}
+  }
+  if (!local.items.length) {
+    var seeded = importStockPayload(STOCK_HISTORY_SEED);
+    if (seeded && seeded.items.length) {
+      local = await saveStock(projectId, seeded);
+      return local;
+    }
   }
   await writeLocal(key, local);
   return local;

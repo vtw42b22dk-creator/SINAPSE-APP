@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn, Stat, fmtEuro } from "./ProjectModules";
 
@@ -123,6 +123,7 @@ export function ProjectStock(props) {
   var novo = novoS[0], setNovo = novoS[1];
   var metaS = useState("");
   var metaVal = metaS[0], setMetaVal = metaS[1];
+  var fileRef = useRef(null);
 
   useEffect(function() {
     projectModuleStore.loadStock(projectId).then(function(d) {
@@ -223,6 +224,22 @@ export function ProjectStock(props) {
     flash("Meta de lucro atualizada para " + fmtEuro(val) + ".");
   }
 
+  function importJsonFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function() {
+      var imported = projectModuleStore.importStockPayload(String(reader.result || ""));
+      if (!imported || !imported.items.length) {
+        flash("JSON inválido. Usa o stock_data.json do bot.", "err");
+        return;
+      }
+      persist(imported);
+      setMetaVal(String(imported.meta_lucro || 1000));
+      flash(imported.items.length + " artigos importados do histórico.");
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
   var stats = useMemo(function() { return data ? projectModuleStore.stockStats(data) : null; }, [data]);
   var weekly = useMemo(function() { return data ? projectModuleStore.stockWeeklySeries(data) : { labels: ["Semana Atual"], lucros: [0], compras: [0] }; }, [data]);
   var disponiveis = data ? data.items.filter(function(i) { return i.status === "Disponível"; }) : [];
@@ -248,6 +265,7 @@ export function ProjectStock(props) {
             ["editar", "✏️ Editar"],
             ["remover", "🗑️ Remover"],
             ["meta", "🎯 Meta"],
+            ["importar", "📥 Importar"],
           ].map(function(pair) {
             var on = mode === pair[0];
             return (
@@ -349,6 +367,16 @@ export function ProjectStock(props) {
               style={{ fontFamily: "'JetBrains Mono',monospace" }} />
           </div>
           <PrimaryBtn onClick={definirMeta}>Definir meta</PrimaryBtn>
+        </div>
+      )}
+      {mode === "importar" && (
+        <div className="ps-form">
+          <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: "none" }}
+            onChange={function(e) { importJsonFile(e.target.files && e.target.files[0]); e.target.value = ""; }} />
+          <p style={{ margin: 0, flex: "1 1 220px", fontSize: 13, color: "#A0A0A8", lineHeight: 1.5 }}>
+            O histórico do bot já entra automaticamente na primeira abertura. Podes voltar a carregar o <code>stock_data.json</code> se atualizares o Discord.
+          </p>
+          <PrimaryBtn onClick={function() { if (fileRef.current) fileRef.current.click(); }}>Escolher JSON</PrimaryBtn>
         </div>
       )}
 
