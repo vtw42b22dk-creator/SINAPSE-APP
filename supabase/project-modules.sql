@@ -82,6 +82,23 @@ create policy "own project kpis" on public.project_kpis
 create policy "own project inventory" on public.project_inventory
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- Loja / stock (compras, vendas, meta e histórico — um documento JSON por projeto)
+create table if not exists public.project_stock (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  project_id text not null,
+  body text default '',
+  updated_at timestamptz default now(),
+  created_at timestamptz default now(),
+  unique (user_id, project_id)
+);
+
+alter table public.project_stock enable row level security;
+drop policy if exists "own project stock" on public.project_stock;
+create policy "own project stock" on public.project_stock
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 create index if not exists project_investments_project_idx on public.project_investments (user_id, project_id);
 create index if not exists project_kpis_project_idx on public.project_kpis (user_id, project_id);
 create index if not exists project_inventory_project_idx on public.project_inventory (user_id, project_id);
+create index if not exists project_stock_project_idx on public.project_stock (user_id, project_id);

@@ -16,15 +16,17 @@ var MODULE_ICONS = {
   notes: "✎",
   analytics: "◈",
   inventory: "▦",
+  stock: "◎",
 };
 
 var PIN_KEY = "sinapse-pinned-projects-v1";
 var VIEW_KEY = "sinapse-projects-view-v1";
 
 var PRESETS = [
-  { id: "full", label: "Completo", mods: { documents: true, investments: true, notes: true, analytics: true, inventory: true } },
-  { id: "fin", label: "Financeiro", mods: { documents: true, investments: true, notes: false, analytics: true, inventory: true } },
-  { id: "simple", label: "Sem finanças", mods: { documents: true, investments: false, notes: true, analytics: false, inventory: false } },
+  { id: "full", label: "Completo", mods: { documents: true, investments: true, notes: true, analytics: true, inventory: true, stock: true } },
+  { id: "stock", label: "Loja", mods: { documents: false, investments: false, notes: false, analytics: false, inventory: false, stock: true } },
+  { id: "fin", label: "Financeiro", mods: { documents: true, investments: true, notes: false, analytics: true, inventory: true, stock: false } },
+  { id: "simple", label: "Sem finanças", mods: { documents: true, investments: false, notes: true, analytics: false, inventory: false, stock: false } },
 ];
 
 function loadPins() {
@@ -105,7 +107,7 @@ var PROJ_CSS = [
   ".pj-empty::before{content:'✦';font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1;color:#6E6E76;margin-bottom:16px}",
   ".pj-mbk{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;animation:pjFade var(--dur) var(--ease)}",
   ".pj-modal{width:min(450px,100%);border:none;border-top:1px solid rgba(255,255,255,0.16);background:#070708;padding:24px 4px;animation:pjFade var(--dur-slow) var(--ease)}",
-  ".pj-mods-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}",
+  ".pj-mods-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}",
   ".pj-mods-grid button{padding:10px 4px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#6E6E76;font-size:10px;line-height:1.4;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-mods-grid button.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
   ".pj-pal{display:flex;gap:8px;flex-wrap:wrap}",
@@ -342,6 +344,11 @@ export default function Projects() {
     setModules(Object.assign({}, synapseStore.DEFAULT_MODULES, pr.mods));
   }
 
+  function modulesForPreset(id) {
+    var pr = PRESETS.find(function(p) { return p.id === id; }) || PRESETS[0];
+    return Object.assign({}, synapseStore.DEFAULT_MODULES, pr.mods);
+  }
+
   function togglePin(e, id) {
     e.stopPropagation();
     setPins(function(prev) {
@@ -391,7 +398,7 @@ export default function Projects() {
   function openModal() {
     setColor(PALETTE[projects.length % PALETTE.length]);
     setPreset("full");
-    setModules(Object.assign({}, synapseStore.DEFAULT_MODULES));
+    setModules(modulesForPreset("full"));
     setModalOpen(true);
   }
 
@@ -541,6 +548,11 @@ export default function Projects() {
                     return <button type="button" key={pr.id} className={preset === pr.id ? "on" : ""} onClick={function() { applyPreset(pr); }}>{pr.label}</button>;
                   })}
                 </div>
+                {preset === "stock" ? (
+                  <p style={{ margin: "8px 0 0", fontSize: 12, color: "#A0A0A8", lineHeight: 1.5 }}>
+                    Loja completa: stock, vendas, custos extra, meta de lucro, estatísticas e gráficos semanais.
+                  </p>
+                ) : null}
               </div>
               <div>
                 <p style={lblMini()}>COR</p>

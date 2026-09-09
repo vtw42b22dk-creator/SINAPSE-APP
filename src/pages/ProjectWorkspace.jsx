@@ -4,6 +4,7 @@ import * as synapseStore from "../lib/synapseStore";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import Synapse from "./Synapse";
 import { ProjectInvestments, ProjectNotes, ProjectAnalytics, ProjectInventory } from "../components/ProjectModules";
+import { ProjectStock } from "../components/ProjectStock";
 
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { PageLoader } from "../components/PageLoader";
@@ -17,6 +18,7 @@ var MODULE_ICONS = {
   notes: "✎",
   analytics: "◈",
   inventory: "▦",
+  stock: "◎",
 };
 
 var MODULE_COLORS = {
@@ -25,6 +27,7 @@ var MODULE_COLORS = {
   notes: "#C4A57C",
   analytics: "#C08C8C",
   inventory: "#A0A0A8",
+  stock: "#8FA8C4",
 };
 
 var SIDEBAR_CSS = [
@@ -58,7 +61,7 @@ var SIDEBAR_CSS = [
 ].join("");
 
 function firstActiveModule(modules) {
-  var order = ["documents", "investments", "notes", "analytics", "inventory"];
+  var order = ["documents", "investments", "notes", "analytics", "inventory", "stock"];
   for (var i = 0; i < order.length; i++) {
     if (modules[order[i]]) return order[i];
   }
@@ -143,6 +146,17 @@ export default function ProjectWorkspace() {
     return <Navigate to={"/projects/" + projectId + "/" + (resolvedModule || firstActiveModule(project.modules))} replace />;
   }
 
+  function enableStockModule() {
+    var nextMods = Object.assign({}, project.modules, { stock: true });
+    var nextProjects = projects.map(function(p) {
+      return p.id === project.id ? Object.assign({}, p, { modules: nextMods }) : p;
+    });
+    setProjects(nextProjects);
+    synapseStore.saveProjects(nextProjects);
+    navigate("/projects/" + projectId + "/stock");
+    if (isMobile) setSidebarOpen(false);
+  }
+
   function goModule(id) {
     navigate("/projects/" + projectId + "/" + id);
     if (isMobile) setSidebarOpen(false);
@@ -173,6 +187,7 @@ export default function ProjectWorkspace() {
     if (moduleId === "notes") return <ProjectNotes projectId={projectId} />;
     if (moduleId === "analytics") return <ProjectAnalytics projectId={projectId} />;
     if (moduleId === "inventory") return <ProjectInventory projectId={projectId} />;
+    if (moduleId === "stock") return <ProjectStock projectId={projectId} />;
     return null;
   }
 
@@ -222,6 +237,12 @@ export default function ProjectWorkspace() {
               </button>
             );
           })}
+          {!(project.modules && project.modules.stock) && (
+            <button type="button" className="pw-link" onClick={function() { enableStockModule(); }} title="Ativar Loja">
+              <span className="pw-lic" style={{ color: "#6E6E76" }}>◎</span>
+              <span className="pw-lbl">Ativar Loja</span>
+            </button>
+          )}
           {project.description && (
             <p className="pw-foot">{project.description}</p>
           )}

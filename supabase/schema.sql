@@ -186,6 +186,19 @@ create policy "own project notes" on public.project_notes for all using (auth.ui
 create policy "own project kpis" on public.project_kpis for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own project inventory" on public.project_inventory for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+create table if not exists public.project_stock (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  project_id text not null,
+  body text default '',
+  updated_at timestamptz default now(),
+  created_at timestamptz default now(),
+  unique (user_id, project_id)
+);
+
+alter table public.project_stock enable row level security;
+create policy "own project stock" on public.project_stock for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 create table if not exists public.wishlist_groups (
   id text primary key,
   user_id uuid not null references auth.users(id) on delete cascade,

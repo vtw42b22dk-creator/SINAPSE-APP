@@ -8,6 +8,7 @@ var TABLES = {
   kpis: "project_kpis",
   inventory: "project_inventory",
   notes: "project_notes",
+  stock: "project_stock",
 };
 
 function localKey(projectId, module) {
@@ -278,17 +279,18 @@ export async function pullProjectModules(projectId) {
     loadNotes(projectId),
     loadKpis(projectId),
     loadInventory(projectId),
+    loadStock(projectId),
   ]);
 }
 
 export async function deleteProjectModules(projectId) {
-  var modules = ["investments", "kpis", "inventory", "notes"];
+  var modules = ["investments", "kpis", "inventory", "notes", "stock"];
   modules.forEach(function(m) {
     try { localStorage.removeItem(localKey(projectId, m)); } catch (e) {}
   });
   var user = await getUser();
   if (!supabase || !user) return;
-  var tables = [TABLES.investments, TABLES.kpis, TABLES.inventory, TABLES.notes];
+  var tables = [TABLES.investments, TABLES.kpis, TABLES.inventory, TABLES.notes, TABLES.stock];
   for (var i = 0; i < tables.length; i++) {
     try {
       await supabase.from(tables[i]).delete().eq("user_id", user.id).eq("project_id", projectId);
@@ -306,4 +308,167 @@ export function newInventoryItem(partial) {
 
 export function newKpi(partial) {
   return normKpi(Object.assign({ label: "Nova meta", target: 100, current: 0 }, partial || {}));
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function emptyStock() {
+  return {
+    next_id: 1,
+    meta_lucro: 1000,
+    meta_data_inicio: todayKey(),
+    items: [],
+    updated: Date.now(),
+  };
+}
+
+function normStockItem(row) {
+  return {
+    id: Number(row.id) || 0,
+    nome: row.nome || row.name || "",
+    compra: Number(row.compra != null ? row.compra : row.buy) || 0,
+    venda: Number(row.venda != null ? row.venda : row.sell) || 0,
+    custo_adicional: Number(row.custo_adicional != null ? row.custo_adicional : row.custoAdicional) || 0,
+    status: row.status === "Vendido" ? "Vendido" : "Disponível",
+    data_venda: row.data_venda || row.dataVenda || null,
+    data_compra: row.data_compra || row.dataCompra || todayKey(),
+  };
+}
+
+function normStock(raw) {
+  var src = raw && typeof raw === "object" ? raw : emptyStock();
+  var items = (src.items || []).map(normStockItem);
+  var nextId = Number(src.next_id != null ? src.next_id : src.nextId) || 1;
+  items.forEach(function(it) { if (it.id >= nextId) nextId = it.id + 1; });
+  return {
+    next_id: nextId,
+    meta_lucro: Number(src.meta_lucro != null ? src.meta_lucro : src.metaLucro) || 1000,
+    meta_data_inicio: src.meta_data_inicio || src.metaDataInicio || todayKey(),
+    items: items,
+    updated: Number(src.updated) || (src.updated_at ? new Date(src.updated_at).getTime() : Date.now()),
+  };
+}
+
+export async function loadStock(projectId) {
+  var key = localKey(projectId, "stock");
+  var local = normStock(await readLocal(key, emptyStock()));
+  var user = await getUser();
+  if (supabase && user) {
+    try {
+      var res = await supabase.from(TABLES.stock).select("*").eq("user_id", user.id).eq("project_id", projectId).maybeSingle();
+      if (!res.error && res.data) {
+        var parsed = {};
+        try { parsed = JSON.parse(res.data.body || "{}"); } catch (e) {}
+        var remote = normStock(Object.assign({}, parsed, {
+          updated: res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0,
+        }));
+        if ((remote.updated || 0) >= (local.updated || 0)) local = remote;
+      }
+    } catch (e) {}
+  }
+  await writeLocal(key, local);
+  return local;
+}
+
+export async function saveStock(projectId, data) {
+  var key = localKey(projectId, "stock");
+  var payload = normStock(Object.assign({}, data, { updated: Date.now() }));
+  await writeLocal(key, payload);
+  var user = await getUser();
+  if (supabase && user) {
+    try {
+      await supabase.from(TABLES.stock).upsert({
+        id: projectId + "-stock",
+        user_id: user.id,
+        project_id: projectId,
+        body: JSON.stringify(payload),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
+    } catch (e) {
+      console.warn("[Projetos] stock", cloudErrorMessage(e));
+    }
+  }
+  return payload;
+}
+
+export function stockItemProfit(item) {
+  return (Number(item.venda) || 0) - (Number(item.compra) || 0) - (Number(item.custo_adicional) || 0);
+}
+
+export function stockStats(data) {
+  var items = (data && data.items) || [];
+  var vendidos = items.filter(function(i) { return i.status === "Vendido"; });
+  var disponiveis = items.filter(function(i) { return i.status === "Disponível"; });
+  var totalFaturado = vendidos.reduce(function(s, i) { return s + (Number(i.venda) || 0); }, 0);
+  var custoCompraVendidos = vendidos.reduce(function(s, i) { return s + (Number(i.compra) || 0); }, 0);
+  var extrasVendidos = vendidos.reduce(function(s, i) { return s + (Number(i.custo_adicional) || 0); }, 0);
+  var extrasTotais = items.reduce(function(s, i) { return s + (Number(i.custo_adicional) || 0); }, 0);
+  var lucroTotal = totalFaturado - custoCompraVendidos - extrasVendidos;
+  var mediaLucro = vendidos.length ? lucroTotal / vendidos.length : 0;
+  var margemMedia = totalFaturado > 0 ? (lucroTotal / totalFaturado) * 100 : 0;
+  var meta = Number(data && data.meta_lucro) || 1000;
+  var percentagem = meta > 0 ? Math.min((lucroTotal / meta) * 100, 100) : 0;
+  var inicio = (data && data.meta_data_inicio) || todayKey();
+  var dias = Math.max(0, Math.floor((Date.now() - new Date(inicio + "T00:00:00").getTime()) / 86400000));
+  var capitalAtivo = disponiveis.reduce(function(s, i) { return s + (Number(i.compra) || 0); }, 0);
+  return {
+    items: items.length,
+    disponiveis: disponiveis.length,
+    vendidos: vendidos.length,
+    totalFaturado: totalFaturado,
+    lucroTotal: lucroTotal,
+    mediaLucro: mediaLucro,
+    margemMedia: margemMedia,
+    extrasTotais: extrasTotais,
+    capitalAtivo: capitalAtivo,
+    meta: meta,
+    percentagem: percentagem,
+    inicio: inicio,
+    dias: dias,
+  };
+}
+
+function weekKeyFromDate(dateStr) {
+  try {
+    var dt = new Date(dateStr + "T12:00:00");
+    if (isNaN(dt.getTime())) return "Outros";
+    var jan1 = new Date(dt.getFullYear(), 0, 1);
+    var days = Math.floor((dt - jan1) / 86400000);
+    var week = Math.floor((days + jan1.getDay()) / 7);
+    var ww = week < 10 ? "0" + week : String(week);
+    return "Sem " + ww + "/" + dt.getFullYear();
+  } catch (e) {
+    return "Outros";
+  }
+}
+
+export function stockWeeklySeries(data) {
+  var items = (data && data.items) || [];
+  var lucroPorSemana = {};
+  var comprasPorSemana = {};
+  items.forEach(function(item) {
+    if (item.status === "Vendido" && item.data_venda) {
+      var sk = weekKeyFromDate(item.data_venda);
+      lucroPorSemana[sk] = (lucroPorSemana[sk] || 0) + stockItemProfit(item);
+    }
+    var ck = weekKeyFromDate(item.data_compra || todayKey());
+    comprasPorSemana[ck] = (comprasPorSemana[ck] || 0) + 1;
+  });
+  var semanas = Object.keys(lucroPorSemana).concat(Object.keys(comprasPorSemana)).filter(function(v, i, a) { return a.indexOf(v) === i; });
+  semanas.sort(function(a, b) {
+    function parts(s) {
+      var m = String(s).match(/(\d+)\s*\/\s*(\d+)/);
+      return m ? [Number(m[2]), Number(m[1])] : [0, 0];
+    }
+    var pa = parts(a), pb = parts(b);
+    return pa[0] !== pb[0] ? pa[0] - pb[0] : pa[1] - pb[1];
+  });
+  if (!semanas.length) semanas = ["Semana Atual"];
+  return {
+    labels: semanas,
+    lucros: semanas.map(function(s) { return lucroPorSemana[s] || 0; }),
+    compras: semanas.map(function(s) { return comprasPorSemana[s] || 0; }),
+  };
 }

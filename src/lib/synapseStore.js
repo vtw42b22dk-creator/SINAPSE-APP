@@ -13,6 +13,7 @@ export var DEFAULT_MODULES = {
   analytics: true,
   inventory: true,
   documents: true,
+  stock: false,
 };
 
 export var MODULE_META = [
@@ -21,6 +22,7 @@ export var MODULE_META = [
   { id: "notes", label: "Notas", desc: "Wiki técnica e documentação" },
   { id: "analytics", label: "Analytics", desc: "KPIs e metas" },
   { id: "inventory", label: "Inventário", desc: "Stock e componentes" },
+  { id: "stock", label: "Loja", desc: "Compras, vendas, lucro e gráficos semanais" },
 ];
 
 function normalizeProject(p) {

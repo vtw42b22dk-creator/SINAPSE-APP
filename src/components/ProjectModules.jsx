@@ -92,7 +92,7 @@ function localId(prefix) {
   return (prefix || "n") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-function fmtEuro(n) {
+export function fmtEuro(n) {
   return (n || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 }
 function fmtNum(n) {
@@ -103,7 +103,7 @@ function mcVars(mc) {
   return { "--mc": mc, "--mcf": mc + "22" };
 }
 
-function ModuleShell(props) {
+export function ModuleShell(props) {
   var mc = props.mc;
   return (
     <div className="pm-root" style={mcVars(mc)}>
@@ -125,7 +125,7 @@ function ModuleShell(props) {
   );
 }
 
-function PrimaryBtn(props) {
+export function PrimaryBtn(props) {
   return (
     <button type="button" className="pm-btn" onClick={props.onClick}
       style={{ background: "#1A1A1D", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF" }}>
@@ -134,7 +134,7 @@ function PrimaryBtn(props) {
   );
 }
 
-function Stat(props) {
+export function Stat(props) {
   return (
     <div className="pm-stat">
       <p className="pm-stat-l">{props.label}</p>
