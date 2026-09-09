@@ -372,6 +372,30 @@ function normStock(raw) {
   };
 }
 
+function mergeStockDocs(local, remote) {
+  var a = normStock(local);
+  var b = remote ? normStock(remote) : null;
+  if (!b) return a;
+  var newer = (a.updated || 0) >= (b.updated || 0) ? a : b;
+  var older = newer === a ? b : a;
+  var map = {};
+  (older.items || []).forEach(function(it) { map[it.id] = it; });
+  (newer.items || []).forEach(function(it) { map[it.id] = it; });
+  var items = Object.keys(map).map(function(k) { return map[k]; });
+  items.sort(function(x, y) { return (x.id || 0) - (y.id || 0); });
+  var nextId = Math.max(a.next_id || 1, b.next_id || 1);
+  items.forEach(function(it) { if (it.id >= nextId) nextId = it.id + 1; });
+  return normStock({
+    next_id: nextId,
+    meta_lucro: newer.meta_lucro,
+    meta_ativa: newer.meta_ativa,
+    meta_data_inicio: newer.meta_data_inicio,
+    items: items,
+    seeded: !!(a.seeded || b.seeded),
+    updated: Math.max(a.updated || 0, b.updated || 0),
+  });
+}
+
 export async function loadStock(projectId) {
   var key = localKey(projectId, "stock");
   var local = normStock(await readLocal(key, emptyStock()));
@@ -382,10 +406,12 @@ export async function loadStock(projectId) {
       if (!res.error && res.data) {
         var parsed = {};
         try { parsed = JSON.parse(res.data.body || "{}"); } catch (e) {}
+        var bodyUpdated = Number(parsed.updated) || 0;
+        var colUpdated = res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0;
         var remote = normStock(Object.assign({}, parsed, {
-          updated: res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0,
+          updated: Math.max(bodyUpdated, colUpdated),
         }));
-        if ((remote.updated || 0) >= (local.updated || 0)) local = remote;
+        local = mergeStockDocs(local, remote);
       }
     } catch (e) {}
   }
@@ -396,6 +422,8 @@ export async function loadStock(projectId) {
       return local;
     }
   }
+  var latest = normStock(await readLocal(key, emptyStock()));
+  local = mergeStockDocs(latest, local);
   await writeLocal(key, local);
   return local;
 }

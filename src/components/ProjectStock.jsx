@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn } from "./ProjectModules";
 import { useCloudSync } from "../lib/useCloudSync";
-import { pauseCloudPull } from "../lib/cloudSyncGuard";
+import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var MC = "#8FA8C4";
 
@@ -171,29 +171,35 @@ export function ProjectStock(props) {
 
   useCloudSync({
     tables: ["project_stock"],
-    intervalMs: 2500,
-    shouldSkip: function() { return dirtyRef.current; },
+    intervalMs: 4000,
+    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
     onPull: function() {
+      if (dirtyRef.current || isCloudPullPaused()) return Promise.resolve();
+      var before = dataRef.current;
       return projectModuleStore.loadStock(projectId).then(function(d) {
-        if (dirtyRef.current) return;
+        if (dirtyRef.current || isCloudPullPaused()) return;
+        if (before && (before.updated || 0) > (d.updated || 0)) return;
+        if (before && before.items && d && d.items && before.items.length > d.items.length && (before.updated || 0) >= (d.updated || 0)) return;
         applyData(d);
       });
     },
     onPush: function() {
-      if (!dataRef.current) return Promise.resolve();
+      if (dirtyRef.current || !dataRef.current) return Promise.resolve();
       return projectModuleStore.saveStock(projectId, dataRef.current);
     },
   });
 
   function persist(next) {
-    var payload = Object.assign({}, next, { seeded: true });
+    var payload = Object.assign({}, next, { seeded: true, updated: Date.now() });
     dirtyRef.current = true;
-    pauseCloudPull(1500);
+    pauseCloudPull(8000);
     applyData(payload);
     return projectModuleStore.saveStock(projectId, payload).then(function(d) {
       applyData(d);
-      setTimeout(function() { dirtyRef.current = false; }, 300);
+      setTimeout(function() { dirtyRef.current = false; }, 2500);
       return d;
+    }).catch(function() {
+      setTimeout(function() { dirtyRef.current = false; }, 2500);
     });
   }
 
