@@ -24,7 +24,8 @@ var STOCK_CSS = [
   ".ps-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}",
   ".ps-chart h3{margin:0 0 4px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px}",
   ".ps-chart svg{width:100%;height:auto;display:block}",
-  ".ps-h{margin:10px 0 0;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
+  ".ps-tabs{display:flex;gap:8px;margin:0 0 6px}",
+  ".ps-h{margin:0 0 2px;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
   ".ps-list{display:flex;flex-direction:column;margin:0}",
   ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
@@ -155,6 +156,8 @@ export function ProjectStock(props) {
   var fileRef = useRef(null);
   var showMoreS = useState(false);
   var showMore = showMoreS[0], setShowMore = showMoreS[1];
+  var tabS = useState("stock");
+  var tab = tabS[0], setTab = tabS[1];
 
   function applyData(d) {
     dataRef.current = d;
@@ -310,39 +313,82 @@ export function ProjectStock(props) {
     reader.readAsText(file, "utf-8");
   }
 
-  function csvCell(v) {
-    var s = String(v == null ? "" : v).replace(/"/g, '""');
-    if (/[;"\n\r]/.test(s)) return '"' + s + '"';
-    return s;
+  function xmlEsc(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function moneyPt(v) {
+    if (v == null || v === "") return "";
+    var n = Number(v);
+    if (isNaN(n)) return "";
+    return String(Math.round(n * 100) / 100).replace(".", ",");
+  }
+
+  function itemCells(item, withProfit) {
+    var lucro = withProfit ? projectModuleStore.stockItemProfit(item) : "";
+    return [
+      item.id,
+      item.nome,
+      item.status,
+      moneyPt(item.compra),
+      item.venda ? moneyPt(item.venda) : "",
+      moneyPt(item.custo_adicional || 0),
+      withProfit ? moneyPt(lucro) : "",
+      item.data_compra || "",
+      item.data_venda || "",
+    ];
+  }
+
+  function htmlTable(title, headers, rows) {
+    var head = headers.map(function(h) { return "<th>" + xmlEsc(h) + "</th>"; }).join("");
+    var body = rows.map(function(r) {
+      return "<tr>" + r.map(function(c) { return "<td>" + xmlEsc(c) + "</td>"; }).join("") + "</tr>";
+    }).join("");
+    return "<h2>" + xmlEsc(title) + "</h2><table border=\"1\" cellspacing=\"0\" cellpadding=\"4\"><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table>";
   }
 
   function exportExcel() {
-    if (!data) return;
-    var lines = [
-      ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda"].map(csvCell).join(";"),
-    ];
-    data.items.forEach(function(item) {
-      var lucro = item.status === "Vendido" ? projectModuleStore.stockItemProfit(item) : "";
-      lines.push([
-        item.id,
-        item.nome,
-        item.status,
-        String(item.compra).replace(".", ","),
-        item.venda ? String(item.venda).replace(".", ",") : "",
-        String(item.custo_adicional || 0).replace(".", ","),
-        lucro === "" ? "" : String(Math.round(lucro * 100) / 100).replace(".", ","),
-        item.data_compra || "",
-        item.data_venda || "",
-      ].map(csvCell).join(";"));
-    });
-    var statsNow = projectModuleStore.stockStats(data);
-    lines.push("");
-    lines.push(["Resumo"].map(csvCell).join(";"));
-    lines.push(["Lucro", String(statsNow.lucroTotal).replace(".", ",")].map(csvCell).join(";"));
-    lines.push(["Faturação", String(statsNow.totalFaturado).replace(".", ",")].map(csvCell).join(";"));
-    lines.push(["Capital em stock", String(statsNow.capitalAtivo).replace(".", ",")].map(csvCell).join(";"));
-    if (statsNow.metaAtiva) lines.push(["Meta", String(statsNow.meta).replace(".", ",")].map(csvCell).join(";"));
-    var blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    var src = dataRef.current || data;
+    if (!src || !src.items || !src.items.length) { flash("Ainda sem dados para exportar.", "err"); return; }
+    var statsNow = projectModuleStore.stockStats(src);
+    var weeklyNow = projectModuleStore.stockWeeklySeries(src);
+    var stockItems = src.items.filter(function(i) { return i.status === "Disponível"; });
+    var soldItems = src.items.filter(function(i) { return i.status === "Vendido"; });
+    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda"];
+
+    var html = [
+      "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\">",
+      "<head><meta charset=\"UTF-8\"><title>Loja backup</title></head><body>",
+      htmlTable("Stock (" + stockItems.length + ")", header, stockItems.map(function(item) { return itemCells(item, false); })),
+      htmlTable("Vendidos (" + soldItems.length + ")", header, soldItems.map(function(item) { return itemCells(item, true); })),
+      htmlTable("Tudo (" + src.items.length + ")", header, src.items.map(function(item) { return itemCells(item, item.status === "Vendido"); })),
+      htmlTable("Resumo", ["Campo", "Valor"], [
+        ["Peças registadas", statsNow.items],
+        ["Em stock", statsNow.disponiveis],
+        ["Vendidas", statsNow.vendidos],
+        ["Lucro líquido", moneyPt(statsNow.lucroTotal)],
+        ["Faturação", moneyPt(statsNow.totalFaturado)],
+        ["Capital em stock", moneyPt(statsNow.capitalAtivo)],
+        ["Custos extra", moneyPt(statsNow.extrasTotais)],
+        ["Média por peça", moneyPt(statsNow.mediaLucro)],
+        ["Margem %", moneyPt(statsNow.margemMedia)],
+        ["Meta ativa", statsNow.metaAtiva ? "Sim" : "Não"],
+        ["Meta", moneyPt(statsNow.meta || 0)],
+        ["Progresso %", moneyPt(statsNow.percentagem)],
+        ["Desde", statsNow.inicio || ""],
+        ["Exportado em", todayKey()],
+      ]),
+      htmlTable("Semanas", ["Semana", "Lucro", "Compras"], weeklyNow.labels.map(function(label, i) {
+        return [label, moneyPt(weeklyNow.lucros[i] || 0), weeklyNow.compras[i] || 0];
+      })),
+      "</body></html>",
+    ].join("");
+
+    var blob = new Blob(["\uFEFF" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "loja-backup-" + todayKey() + ".xls";
@@ -351,8 +397,8 @@ export function ProjectStock(props) {
     setTimeout(function() {
       URL.revokeObjectURL(a.href);
       a.remove();
-    }, 500);
-    flash("Cópia Excel guardada.");
+    }, 800);
+    flash(src.items.length + " artigos exportados para Excel.");
   }
 
   var stats = useMemo(function() { return data ? projectModuleStore.stockStats(data) : null; }, [data]);
@@ -433,56 +479,67 @@ export function ProjectStock(props) {
         </div>
       </div>
 
-      <p className="ps-h">Stock · {disponiveis.length}</p>
-      {disponiveis.length === 0 ? (
-        <p className="ps-empty">Nada em stock. Adiciona uma compra acima.</p>
-      ) : (
-        <div className="ps-list">
-          {disponiveis.map(function(item) {
-            return (
-              <article key={item.id} className="ps-card">
-                <div>
-                  <h4>{item.nome}</h4>
-                  <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
-                </div>
-                <div className="ps-acts">
-                  <button type="button" className="ps-ibtn sell" onClick={function() { openSell(item); }}>Vender</button>
-                  <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                  <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
-                </div>
-              </article>
-            );
-          })}
+      <div className="ps-tabs">
+        <div className="pm-seg">
+          <button type="button" className={tab === "stock" ? "on" : ""} onClick={function() { setTab("stock"); }}
+            style={tab === "stock" ? { background: "#E6E6E9" } : null}>Stock · {disponiveis.length}</button>
+          <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { setTab("vendas"); }}
+            style={tab === "vendas" ? { background: "#E6E6E9" } : null}>Vendidos · {vendidos.length}</button>
         </div>
+      </div>
+
+      {tab === "stock" && (
+        disponiveis.length === 0 ? (
+          <p className="ps-empty">Nada em stock. Adiciona uma compra acima.</p>
+        ) : (
+          <div className="ps-list">
+            {disponiveis.map(function(item) {
+              return (
+                <article key={item.id} className="ps-card">
+                  <div>
+                    <h4>{item.nome}</h4>
+                    <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
+                  </div>
+                  <div className="ps-acts">
+                    <button type="button" className="ps-ibtn sell" onClick={function() { openSell(item); }}>Vender</button>
+                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
+                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )
       )}
 
-      <p className="ps-h">Vendidos · {vendidos.length}</p>
-      {vendidos.length === 0 ? (
-        <p className="ps-empty">Ainda sem vendas.</p>
-      ) : (
-        <div className="ps-list">
-          {vendidos.map(function(item) {
-            var lucro = projectModuleStore.stockItemProfit(item);
-            return (
-              <article key={item.id} className="ps-card">
-                <div>
-                  <h4>{item.nome}</h4>
-                  <p className="meta">
-                    #{item.id} · {fmtShort(item.compra)} → {fmtShort(item.venda)}
-                    {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
-                    {" · "}
-                    <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>
-                    {item.data_venda ? " · " + fmtDay(item.data_venda) : ""}
-                  </p>
-                </div>
-                <div className="ps-acts">
-                  <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                  <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+      {tab === "vendas" && (
+        vendidos.length === 0 ? (
+          <p className="ps-empty">Ainda sem vendas.</p>
+        ) : (
+          <div className="ps-list">
+            {vendidos.map(function(item) {
+              var lucro = projectModuleStore.stockItemProfit(item);
+              return (
+                <article key={item.id} className="ps-card">
+                  <div>
+                    <h4>{item.nome}</h4>
+                    <p className="meta">
+                      #{item.id} · {fmtShort(item.compra)} → {fmtShort(item.venda)}
+                      {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
+                      {" · "}
+                      <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>
+                      {item.data_venda ? " · " + fmtDay(item.data_venda) : ""}
+                    </p>
+                  </div>
+                  <div className="ps-acts">
+                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
+                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )
       )}
 
       <button type="button" className="ps-more" onClick={function() { setShowMore(!showMore); }}>
