@@ -41,8 +41,8 @@ function savePins(arr) {
 var PROJ_CSS = [
   MODULE_GLOW_CSS,
   "@keyframes pjFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;min-height:100vh;overflow:hidden;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
-  ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B}",
+  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;pointer-events:auto}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
   ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--mc);letter-spacing:1.6px}",
   ".pj-brand span{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
@@ -59,7 +59,7 @@ var PROJ_CSS = [
   ".pj-preset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}",
   ".pj-preset button{flex:1;min-width:90px;padding:10px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-preset button.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
-  ".pj-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:0 20px 28px;-webkit-overflow-scrolling:touch}",
+  ".pj-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 20px 28px;-webkit-overflow-scrolling:touch;pointer-events:auto;touch-action:pan-y}",
   ".pj-body{width:100%;max-width:920px;margin:0 auto;padding-top:20px}",
   ".pj-body.dense{max-width:1180px}",
   ".pj-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px;padding:8px 0 24px;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;position:relative}",
@@ -117,7 +117,8 @@ var PROJ_CSS = [
   ".pj-ghost{padding:9px 13px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;font-size:11.5px;cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-ghost:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
   "@media(hover:hover){.pj-card:hover{border-bottom-color:rgba(255,255,255,0.28)}.pj-rowcard:hover{border-bottom-color:rgba(255,255,255,0.28)}.pj-card:hover .pj-act,.pj-rowcard:hover .pj-act{opacity:1}.pj-new:hover{color:#fff}.pj-viewtog button:hover{color:#EDEDEF}.pj-preset button:hover{color:#EDEDEF}.pj-mods-grid button:hover{color:#A0A0A8}}",
-  "@media(hover:none){.pj-act{opacity:1}.pj-card:hover,.pj-rowcard:hover,.pj-addcard:hover{transform:none;box-shadow:none}}",
+  "@media(hover:none),(pointer:coarse){.pj-act{opacity:1}.pj-card:hover,.pj-rowcard:hover,.pj-addcard:hover{transform:none;box-shadow:none}#root .pj-card:hover,#root .pj-rowcard:hover,#root .pj-addcard:hover{transform:none!important;filter:none!important}}",
+  "@media(max-width:719px){.pj-page{height:100dvh;max-height:100dvh}.pj-top,.pj-scroll,.pj-card,.pj-rowcard,.pj-addcard,.pj-new,.hub-back{pointer-events:auto}.pj-card,.pj-rowcard,.pj-addcard{touch-action:manipulation}.mod-glow{pointer-events:none!important}}",
   "@media(max-width:719px){.pj-top{flex-direction:column;align-items:stretch;padding:12px 16px;gap:12px}.pj-top>.pj-ghost{align-self:flex-start;padding:11px 16px;font-size:13px;min-height:44px}.pj-top-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}.pj-brand h1{font-size:16px;letter-spacing:1.2px}.pj-brand span{font-size:11px;padding:3px 9px}.pj-search{order:unset;max-width:none;flex-basis:auto;width:100%}.pj-search input{font-size:16px;padding:12px 12px 12px 36px;border-radius:12px;min-height:46px}.pj-top-actions{display:flex;align-items:center;gap:10px;width:100%}.pj-top-actions .pj-new{flex:1;padding:13px 16px;font-size:13px;border-radius:12px;min-height:46px}.pj-viewtog button{width:46px;height:46px}.pj-scroll{padding:0 16px 88px}.pj-body{padding-top:16px}.pj-hero{padding:16px;margin-bottom:16px}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr;gap:14px}.pj-chips{width:100%}.pj-card-in{min-height:136px;padding:16px}.pj-card-name{font-size:16px}.pj-card-desc{font-size:13.5px;-webkit-line-clamp:3}.pj-card-ic{width:46px;height:46px;font-size:20px}.pj-act{opacity:1;top:12px;right:12px}.pj-act button{width:36px;height:36px;font-size:15px}.pj-rowcard{padding:14px 16px;gap:14px}.pj-empty{margin-top:24px;padding:40px 20px}.pj-modal{width:100%;max-width:100%;border-radius:16px;padding:16px}.pj-mods-grid{grid-template-columns:repeat(3,1fr);gap:8px}.pj-mods-grid button{font-size:11px;padding:14px 6px;min-height:56px}.pj-preset button{min-width:0;padding:14px 8px;font-size:12px;min-height:46px}.pj-pal button{width:36px;height:36px}}",
 ].join("");
 
@@ -314,7 +315,7 @@ export default function Projects() {
 
   useCloudSync({
     tables: ["synapse_projects"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return !loaded || isCloudPullPaused(); },
     onPull: function() {
       return synapseStore.loadProjects().then(function(list) {
@@ -475,9 +476,9 @@ export default function Projects() {
   }
 
   return (
-    <div className="pj-page" data-scrollable style={{ "--mc": ACCENT }}>
+    <div className="pj-page" style={{ "--mc": ACCENT }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + PROJ_CSS}</style>
-      <div className="mod-glow" style={{ top: -80, right: "4%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
+      <div className="mod-glow" style={{ top: -80, right: "4%", background: moduleGlow(ACCENT), pointerEvents: "none" }} aria-hidden="true" />
 
       <header className={"pj-top" + (isMobile ? " pj-top-mob" : "")}>
         <HubBack />
@@ -501,7 +502,7 @@ export default function Projects() {
         </div>
       </header>
 
-      <div className="pj-scroll">
+      <div className="pj-scroll" data-scrollable>
         <div className={"pj-body" + (isSparse ? "" : " dense")}>
           {filtered.length > 0 && isSparse ? (
             <div className="pj-hero">

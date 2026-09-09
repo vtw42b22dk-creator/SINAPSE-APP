@@ -50,11 +50,16 @@ export function useCloudSync(opts) {
         pull();
       }
 
+      function onPageShow() { pull(); }
+
       document.addEventListener("visibilitychange", onVisibility);
       window.addEventListener("online", onOnline);
       window.addEventListener("focus", onFocus);
+      window.addEventListener("pageshow", onPageShow);
 
-      var intervalMs = optsRef.current.intervalMs || 12000;
+      pull();
+
+      var intervalMs = optsRef.current.intervalMs || 4000;
       var interval = setInterval(function() {
         if (document.visibilityState === "visible") pull();
       }, intervalMs);
@@ -64,14 +69,11 @@ export function useCloudSync(opts) {
       if (supabase && tables && tables.length) {
         channel = supabase.channel("sync-" + tables.join("-") + "-" + userId.slice(0, 8));
         tables.forEach(function(table) {
-          channel.on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: table },
-            function() {
-              clearTimeout(pullTimer);
-              pullTimer = setTimeout(pull, 400);
-            }
-          );
+          var filter = { event: "*", schema: "public", table: table, filter: "user_id=eq." + userId };
+          channel.on("postgres_changes", filter, function() {
+            clearTimeout(pullTimer);
+            pullTimer = setTimeout(pull, 250);
+          });
         });
         channel.subscribe();
       }
@@ -80,6 +82,7 @@ export function useCloudSync(opts) {
         document.removeEventListener("visibilitychange", onVisibility);
         window.removeEventListener("online", onOnline);
         window.removeEventListener("focus", onFocus);
+        window.removeEventListener("pageshow", onPageShow);
         clearInterval(interval);
         clearTimeout(pullTimer);
         if (channel) {

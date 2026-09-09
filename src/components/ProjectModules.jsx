@@ -198,7 +198,7 @@ export function ProjectInvestments(props) {
 
   useCloudSync({
     tables: ["project_investments"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return isCloudPullPaused(); },
     onPull: function() { return projectModuleStore.loadInvestments(projectId).then(setRows); },
     onPush: function() { return projectModuleStore.saveInvestments(projectId, rows); },
@@ -312,7 +312,7 @@ export function ProjectNotes(props) {
 
   useCloudSync({
     tables: ["project_notes"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
     onPull: function() {
       if (dirtyRef.current) return Promise.resolve();
@@ -467,7 +467,7 @@ export function ProjectAnalytics(props) {
 
   useCloudSync({
     tables: ["project_kpis", "project_investments", "project_inventory"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return isCloudPullPaused(); },
     onPull: function() {
       return Promise.all([
@@ -623,7 +623,7 @@ export function ProjectInventory(props) {
 
   useCloudSync({
     tables: ["project_inventory"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return isCloudPullPaused(); },
     onPull: function() { return projectModuleStore.loadInventory(projectId).then(setRows); },
     onPush: function() { return projectModuleStore.saveInventory(projectId, rows); },

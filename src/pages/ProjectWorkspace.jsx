@@ -34,12 +34,12 @@ var MODULE_COLORS = {
 
 var SIDEBAR_CSS = [
   MODULE_GLOW_CSS,
-  ".pw{height:100vh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif}",
-  ".pw-head{flex-shrink:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:30}",
+  ".pw{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;isolation:isolate}",
+  ".pw-head{position:relative;flex-shrink:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:60;pointer-events:auto}",
   ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 4px;border:none;border-bottom:1px solid currentColor;background:transparent;color:#A0A0A8;cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0}",
   ".pw-shell{flex:1;display:flex;min-height:0}",
   ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:16px 12px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;transition:width var(--dur) var(--ease),padding var(--dur) var(--ease)}",
-  ".pw-side--closed{width:0;padding:0;border:none;overflow:hidden}",
+  ".pw-side--closed{width:0;min-width:0;padding:0;border:none;overflow:hidden;pointer-events:none;visibility:hidden}",
   ".pw-side--mini{width:66px;padding:16px 8px;align-items:center}",
   ".pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:none}",
   ".pw-pcard{display:flex;align-items:center;gap:12px;padding:14px 0;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;margin-bottom:20px}",
@@ -55,11 +55,11 @@ var SIDEBAR_CSS = [
   ".pw-lic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
   ".pw-foot{margin-top:auto;padding:16px 8px 4px;font-size:11px;color:#6E6E76;line-height:1.55;border-top:1px solid rgba(255,255,255,0.06)}",
-  ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}",
-  ".pw-main-in{flex:1;min-height:0;overflow:hidden}",
+  ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;z-index:1;pointer-events:auto}",
+  ".pw-main-in{flex:1;min-width:0;min-height:0;overflow:hidden;pointer-events:auto}",
   ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40;animation:appearIn var(--dur) var(--ease)}",
   "@media(hover:hover){.pw-hbtn:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}.pw-link:hover{color:#EDEDEF;background:#1A1A1D}}",
-  "@media(max-width:719px){.pw-head{height:58px;padding:0 14px}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}}",
+  "@media(max-width:719px){.pw{height:100dvh;max-height:100dvh}.pw-head{height:58px;padding:0 14px;z-index:60}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-shell{position:relative;z-index:1;min-height:0}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5);pointer-events:auto;visibility:visible;transform:none}.pw-side.pw-side--closed,.pw-side--closed{width:0!important;min-width:0;padding:0;border:none;box-shadow:none;overflow:hidden;pointer-events:none!important;visibility:hidden;transform:translate3d(-110%,0,0)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}.pw-bk{top:58px;z-index:45}.pw-main-in{overflow-y:auto;-webkit-overflow-scrolling:touch}}",
 ].join("");
 
 function firstActiveModule(modules) {
@@ -79,7 +79,7 @@ export default function ProjectWorkspace() {
   var projects = projectsS[0], setProjects = projectsS[1];
   var loadedS = useState(false);
   var loaded = loadedS[0], setLoaded = loadedS[1];
-  var sidebarS = useState(true);
+  var sidebarS = useState(function() { return window.innerWidth >= 720; });
   var sidebarOpen = sidebarS[0], setSidebarOpen = sidebarS[1];
   var navCollapsedS = useState(false);
   var navCollapsed = navCollapsedS[0], setNavCollapsed = navCollapsedS[1];
@@ -106,7 +106,7 @@ export default function ProjectWorkspace() {
 
   useCloudSync({
     tables: ["synapse_projects", "project_stock", "project_investments", "project_notes", "project_kpis", "project_inventory"],
-    intervalMs: 10000,
+    intervalMs: 2500,
     shouldSkip: function() { return !loaded || isCloudPullPaused(); },
     onPull: function() {
       return Promise.all([
@@ -204,7 +204,7 @@ export default function ProjectWorkspace() {
   return (
     <div className="pw" style={{ "--mc": pColor }}>
       <style>{HUB_BACK_CSS + SIDEBAR_CSS}</style>
-      <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(pColor) }} aria-hidden="true" />
+      <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(pColor), pointerEvents: "none" }} aria-hidden="true" />
 
       <header className="pw-head">
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
@@ -222,7 +222,7 @@ export default function ProjectWorkspace() {
 
       <div className="pw-shell">
         {sidebarOpen && isMobile && <div className="pw-bk" onClick={function() { setSidebarOpen(false); }} />}
-        <aside className={sidebarClass} data-stagger>
+        <aside className={sidebarClass} data-stagger aria-hidden={!sidebarOpen ? "true" : undefined}>
           <div className="pw-pcard">
             <div className="pw-pic" style={{ background: pColor + "14", color: pColor }}>✦</div>
             <div style={{ minWidth: 0 }}>
@@ -252,7 +252,7 @@ export default function ProjectWorkspace() {
           )}
         </aside>
         <main className="pw-main">
-          <div className="pw-main-in" style={isFullBleed ? { padding: 0 } : null}>
+          <div className="pw-main-in" style={isFullBleed ? { padding: 0, overflow: "hidden" } : null}>
             {renderModule()}
           </div>
         </main>

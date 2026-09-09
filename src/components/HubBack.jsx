@@ -9,7 +9,7 @@ export var HUB_BACK_CSS = [
   ".hub-back:active{transform:scale(.96)}",
   ".hub-back-ic{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:12px;height:12px}",
   ".hub-back-ic i{display:block;border-radius:1px;background:currentColor;opacity:.85}",
-  "@media(max-width:719px){.hub-back{min-height:42px;padding:9px 14px 9px 12px;font-size:12px}",
+  "@media(max-width:719px){.hub-back{position:relative;z-index:3;pointer-events:auto;min-height:42px;padding:9px 14px 9px 12px;font-size:12px}",
   ".hub-back-ic{width:13px;height:13px}}",
 ].join("");
 

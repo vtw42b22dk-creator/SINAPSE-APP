@@ -2,51 +2,54 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn } from "./ProjectModules";
 import { useCloudSync } from "../lib/useCloudSync";
-import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { pauseCloudPull } from "../lib/cloudSyncGuard";
 
 var MC = "#8FA8C4";
 
 var STOCK_CSS = [
-  ".ps-top{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}",
-  ".ps-add{display:grid;grid-template-columns:1fr 120px auto;gap:10px;align-items:end}",
-  ".ps-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:6px 0 18px}",
-  ".ps-stat{min-width:0;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
+  ".pm-wrap{padding:14px 16px 40px!important}",
+  ".pm-head{margin-bottom:10px!important;align-items:center!important}",
+  ".ps-actions{display:flex;gap:8px;flex-wrap:wrap}",
+  ".ps-top{margin-bottom:8px}",
+  ".ps-add{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}",
+  ".ps-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 8px}",
+  ".ps-stat{min-width:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
-  ".ps-stat b{display:block;margin-top:7px;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;line-height:1.15;word-break:break-word}",
-  ".ps-meta{padding:14px 0 4px;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08)}",
-  ".ps-meta-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}",
-  ".ps-meta-bar{height:8px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin:10px 0 0}",
+  ".ps-stat b{display:block;margin-top:5px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;line-height:1.15;word-break:break-word}",
+  ".ps-meta{padding:8px 0;margin:0 0 8px;border-bottom:1px solid rgba(255,255,255,0.08)}",
+  ".ps-meta-row{display:flex;align-items:center;justify-content:space-between;gap:12px}",
+  ".ps-meta-bar{height:7px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin:8px 0 0}",
   ".ps-meta-fill{height:100%;border-radius:999px;background:#8FA8C4}",
   ".ps-ghost{border:none;border-bottom:1px solid rgba(255,255,255,0.2);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 2px;cursor:pointer}",
-  ".ps-charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 20px}",
-  ".ps-chart h3{margin:0 0 8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px}",
+  ".ps-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}",
+  ".ps-chart h3{margin:0 0 4px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px}",
   ".ps-chart svg{width:100%;height:auto;display:block}",
-  ".ps-tabs{display:flex;gap:8px;margin:4px 0 14px}",
-  ".ps-list{display:flex;flex-direction:column}",
-  ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
-  ".ps-card h4{margin:0;font-size:14px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}",
-  ".ps-card .meta{margin:6px 0 0;font-size:12px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.45;overflow-wrap:anywhere}",
-  ".ps-acts{display:flex;flex-direction:column;gap:6px;align-items:stretch}",
-  ".ps-ibtn{min-height:36px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,0.1);background:#141416;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}",
+  ".ps-h{margin:10px 0 0;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
+  ".ps-list{display:flex;flex-direction:column;margin:0}",
+  ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
+  ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
+  ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
+  ".ps-acts{display:flex;flex-direction:row;gap:5px;align-items:center;flex-wrap:wrap}",
+  ".ps-ibtn{min-height:32px;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#141416;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;cursor:pointer;white-space:nowrap}",
   ".ps-ibtn.sell{border-color:rgba(143,179,155,0.35);color:#8FB39B}",
   ".ps-ibtn.edit{color:#A0A0A8}",
   ".ps-ibtn.del{border-color:rgba(192,140,140,0.3);color:#C08C8C}",
-  ".ps-err{margin:0 0 12px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
-  ".ps-ok{margin:0 0 12px;font-size:12px;color:#8FB39B;font-family:'JetBrains Mono',monospace}",
+  ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
+  ".ps-ok{margin:0 0 8px;font-size:12px;color:#8FB39B;font-family:'JetBrains Mono',monospace}",
+  ".ps-empty{padding:10px 0;font-size:12px;color:#6E6E76}",
   ".ps-sheet-bk{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.62);display:flex;align-items:flex-end;justify-content:center;padding:12px}",
   ".ps-sheet{width:min(440px,100%);background:#0E0E10;border:1px solid rgba(255,255,255,0.12);border-radius:18px 18px 12px 12px;padding:18px 16px 16px}",
   ".ps-sheet h3{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}",
   ".ps-sheet .row{display:flex;flex-direction:column;gap:10px}",
   ".ps-sheet .acts{display:flex;gap:8px;margin-top:14px}",
-  ".ps-more{margin:8px 0 0;font-size:11px;color:#6E6E76;background:none;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace}",
+  ".ps-more{margin:12px 0 0;font-size:11px;color:#6E6E76;background:none;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace}",
   "@media(max-width:719px){",
-  ".ps-add{grid-template-columns:1fr 1fr}.ps-add .pm-btn{grid-column:1/-1;justify-content:center;min-height:46px}",
-  ".ps-stats{grid-template-columns:1fr 1fr;gap:8px}",
-  ".ps-stat b{font-size:16px}",
-  ".ps-charts{grid-template-columns:1fr;gap:12px}",
-  ".ps-card{grid-template-columns:1fr;padding:14px 0 16px}",
-  ".ps-acts{flex-direction:row;flex-wrap:wrap}",
-  ".ps-ibtn{flex:1 1 auto;min-height:42px}",
+  ".ps-add{grid-template-columns:1fr 1fr}.ps-add .pm-btn{grid-column:1/-1;justify-content:center;min-height:44px}",
+  ".ps-stats{grid-template-columns:1fr 1fr;gap:6px}",
+  ".ps-stat b{font-size:15px}",
+  ".ps-charts{grid-template-columns:1fr;gap:8px}",
+  ".ps-card{grid-template-columns:1fr;padding:8px 0 10px}",
+  ".ps-ibtn{flex:1 1 auto;min-height:40px}",
   ".ps-sheet-bk{padding:0}.ps-sheet{border-radius:18px 18px 0 0;padding:18px 16px 22px}",
   "}",
   "@media(min-width:720px){.ps-sheet-bk{align-items:center}.ps-sheet{border-radius:16px}}",
@@ -129,8 +132,6 @@ export function ProjectStock(props) {
   var data = dataS[0], setData = dataS[1];
   var dataRef = useRef(null);
   var dirtyRef = useRef(false);
-  var tabS = useState("stock");
-  var tab = tabS[0], setTab = tabS[1];
   var msgS = useState(null);
   var msg = msgS[0], setMsg = msgS[1];
   var nomeS = useState("");
@@ -167,8 +168,8 @@ export function ProjectStock(props) {
 
   useCloudSync({
     tables: ["project_stock"],
-    intervalMs: 10000,
-    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
+    intervalMs: 2500,
+    shouldSkip: function() { return dirtyRef.current; },
     onPull: function() {
       return projectModuleStore.loadStock(projectId).then(function(d) {
         if (dirtyRef.current) return;
@@ -184,11 +185,11 @@ export function ProjectStock(props) {
   function persist(next) {
     var payload = Object.assign({}, next, { seeded: true });
     dirtyRef.current = true;
-    pauseCloudPull(8000);
+    pauseCloudPull(1500);
     applyData(payload);
     return projectModuleStore.saveStock(projectId, payload).then(function(d) {
       applyData(d);
-      setTimeout(function() { dirtyRef.current = false; }, 400);
+      setTimeout(function() { dirtyRef.current = false; }, 300);
       return d;
     });
   }
@@ -309,6 +310,51 @@ export function ProjectStock(props) {
     reader.readAsText(file, "utf-8");
   }
 
+  function csvCell(v) {
+    var s = String(v == null ? "" : v).replace(/"/g, '""');
+    if (/[;"\n\r]/.test(s)) return '"' + s + '"';
+    return s;
+  }
+
+  function exportExcel() {
+    if (!data) return;
+    var lines = [
+      ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda"].map(csvCell).join(";"),
+    ];
+    data.items.forEach(function(item) {
+      var lucro = item.status === "Vendido" ? projectModuleStore.stockItemProfit(item) : "";
+      lines.push([
+        item.id,
+        item.nome,
+        item.status,
+        String(item.compra).replace(".", ","),
+        item.venda ? String(item.venda).replace(".", ",") : "",
+        String(item.custo_adicional || 0).replace(".", ","),
+        lucro === "" ? "" : String(Math.round(lucro * 100) / 100).replace(".", ","),
+        item.data_compra || "",
+        item.data_venda || "",
+      ].map(csvCell).join(";"));
+    });
+    var statsNow = projectModuleStore.stockStats(data);
+    lines.push("");
+    lines.push(["Resumo"].map(csvCell).join(";"));
+    lines.push(["Lucro", String(statsNow.lucroTotal).replace(".", ",")].map(csvCell).join(";"));
+    lines.push(["Faturação", String(statsNow.totalFaturado).replace(".", ",")].map(csvCell).join(";"));
+    lines.push(["Capital em stock", String(statsNow.capitalAtivo).replace(".", ",")].map(csvCell).join(";"));
+    if (statsNow.metaAtiva) lines.push(["Meta", String(statsNow.meta).replace(".", ",")].map(csvCell).join(";"));
+    var blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "loja-backup-" + todayKey() + ".xls";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 500);
+    flash("Cópia Excel guardada.");
+  }
+
   var stats = useMemo(function() { return data ? projectModuleStore.stockStats(data) : null; }, [data]);
   var weekly = useMemo(function() { return data ? projectModuleStore.stockWeeklySeries(data) : { labels: ["Semana Atual"], lucros: [0], compras: [0] }; }, [data]);
   var disponiveis = data ? data.items.filter(function(i) { return i.status === "Disponível"; }) : [];
@@ -325,7 +371,12 @@ export function ProjectStock(props) {
 
   return (
     <ModuleShell mc={MC} icon="◎" title="Loja" subtitle={stats.disponiveis + " em stock · " + stats.vendidos + " vendidas"}
-      action={<PrimaryBtn onClick={function() { document.getElementById("ps-nome") && document.getElementById("ps-nome").focus(); }}>+ Comprar</PrimaryBtn>}>
+      action={(
+        <div className="ps-actions">
+          <PrimaryBtn onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>+ Meta</PrimaryBtn>
+          <button type="button" className="ps-ibtn" onClick={exportExcel}>Excel</button>
+        </div>
+      )}>
       <style>{STOCK_CSS}</style>
 
       <div className="ps-top">
@@ -369,11 +420,7 @@ export function ProjectStock(props) {
           </div>
           <div className="ps-meta-bar"><div className="ps-meta-fill" style={{ width: stats.percentagem + "%" }} /></div>
         </div>
-      ) : (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <button type="button" className="ps-ghost" onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>Ativar meta</button>
-        </div>
-      )}
+      ) : null}
 
       <div className="ps-charts">
         <div className="ps-chart">
@@ -386,71 +433,60 @@ export function ProjectStock(props) {
         </div>
       </div>
 
-      <div className="ps-tabs">
-        <div className="pm-seg">
-          <button type="button" className={tab === "stock" ? "on" : ""} onClick={function() { setTab("stock"); }}
-            style={tab === "stock" ? { background: "#E6E6E9" } : null}>Stock · {disponiveis.length}</button>
-          <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { setTab("vendas"); }}
-            style={tab === "vendas" ? { background: "#E6E6E9" } : null}>Vendas · {vendidos.length}</button>
+      <p className="ps-h">Stock · {disponiveis.length}</p>
+      {disponiveis.length === 0 ? (
+        <p className="ps-empty">Nada em stock. Adiciona uma compra acima.</p>
+      ) : (
+        <div className="ps-list">
+          {disponiveis.map(function(item) {
+            return (
+              <article key={item.id} className="ps-card">
+                <div>
+                  <h4>{item.nome}</h4>
+                  <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
+                </div>
+                <div className="ps-acts">
+                  <button type="button" className="ps-ibtn sell" onClick={function() { openSell(item); }}>Vender</button>
+                  <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
+                  <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                </div>
+              </article>
+            );
+          })}
         </div>
-      </div>
-
-      {tab === "stock" && (
-        disponiveis.length === 0 ? (
-          <div className="pm-empty">Nada em stock. Adiciona uma compra acima.</div>
-        ) : (
-          <div className="ps-list">
-            {disponiveis.map(function(item) {
-              return (
-                <article key={item.id} className="ps-card">
-                  <div>
-                    <h4>{item.nome}</h4>
-                    <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
-                  </div>
-                  <div className="ps-acts">
-                    <button type="button" className="ps-ibtn sell" onClick={function() { openSell(item); }}>Vender</button>
-                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )
       )}
 
-      {tab === "vendas" && (
-        vendidos.length === 0 ? (
-          <div className="pm-empty">Ainda sem vendas.</div>
-        ) : (
-          <div className="ps-list">
-            {vendidos.map(function(item) {
-              var lucro = projectModuleStore.stockItemProfit(item);
-              return (
-                <article key={item.id} className="ps-card">
-                  <div>
-                    <h4>{item.nome}</h4>
-                    <p className="meta">
-                      #{item.id} · {fmtShort(item.compra)} → {fmtShort(item.venda)}
-                      {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
-                      {" · "}
-                      <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>
-                      {item.data_venda ? " · " + fmtDay(item.data_venda) : ""}
-                    </p>
-                  </div>
-                  <div className="ps-acts">
-                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )
+      <p className="ps-h">Vendidos · {vendidos.length}</p>
+      {vendidos.length === 0 ? (
+        <p className="ps-empty">Ainda sem vendas.</p>
+      ) : (
+        <div className="ps-list">
+          {vendidos.map(function(item) {
+            var lucro = projectModuleStore.stockItemProfit(item);
+            return (
+              <article key={item.id} className="ps-card">
+                <div>
+                  <h4>{item.nome}</h4>
+                  <p className="meta">
+                    #{item.id} · {fmtShort(item.compra)} → {fmtShort(item.venda)}
+                    {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
+                    {" · "}
+                    <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>
+                    {item.data_venda ? " · " + fmtDay(item.data_venda) : ""}
+                  </p>
+                </div>
+                <div className="ps-acts">
+                  <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
+                  <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
 
       <button type="button" className="ps-more" onClick={function() { setShowMore(!showMore); }}>
-        {showMore ? "Esconder extras" : "Importar JSON / mais"}
+        {showMore ? "Esconder extras" : "Importar JSON"}
       </button>
       {showMore && (
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
@@ -516,7 +552,7 @@ export function ProjectStock(props) {
             )}
             {sheet.type === "meta" && (
               <>
-                <h3>Ativar meta</h3>
+                <h3>{stats.metaAtiva ? "Alterar meta" : "Nova meta"}</h3>
                 <div className="row">
                   <div>
                     <label className="pm-label">Objetivo de lucro €</label>
