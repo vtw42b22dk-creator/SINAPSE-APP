@@ -10,7 +10,7 @@ import {
   mergeRowArrays,
   isValidRowArray,
 } from "./dataGuard";
-import { ensureWriteSession, saveEmergencyDraft, clearEmergencyDraft } from "./safeCloudWrite";
+import { isCloudPullPaused, pauseCloudPull } from "./cloudSyncGuard";
 
 var LAST_USER_KEY = "sinapse-last-user-id-v1";
 
@@ -104,11 +104,7 @@ export async function writeLocal(key, value) {
 }
 
 function pickNewerRow(a, b) {
-  var ta = a.updated || a.updated_at || 0;
-  var tb = b.updated || b.updated_at || 0;
-  if (typeof ta === "string") ta = new Date(ta).getTime();
-  if (typeof tb === "string") tb = new Date(tb).getTime();
-  return Number(ta) >= Number(tb) ? a : b;
+  return ts(a) >= ts(b) ? a : b;
 }
 
 /** Grava à força e confirma que ficou guardado (recuperação). */
@@ -149,13 +145,18 @@ export async function restoreFromBackups(key) {
   return { ok: true, count: wrote.count, source: "backup" };
 }
 
+function msOf(value) {
+  if (value == null) return 0;
+  var n = typeof value === "string" ? new Date(value).getTime() : Number(value);
+  return isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Data de edição mais recente da linha, venha de onde vier o campo. */
 function ts(row) {
   if (!row) return 0;
-  if (row.updated_at) return new Date(row.updated_at).getTime();
-  if (row.updated) return Number(row.updated);
-  if (row.created_at) return new Date(row.created_at).getTime();
-  if (row.created) return Number(row.created);
-  return 0;
+  var best = Math.max(msOf(row.updated_at), msOf(row.updated));
+  if (best) return best;
+  return Math.max(msOf(row.created_at), msOf(row.created));
 }
 
 export function mergeRowsByTimestamp(local, remote) {
@@ -226,7 +227,9 @@ export function mergePullFromRemote(local, remote, deletedIds) {
     if (!l || !l.id || deleted[l.id]) return;
     var r = map[l.id];
     if (r) {
-      if (ts(l) > ts(r)) map[l.id] = l;
+      var paused = false;
+      try { paused = isCloudPullPaused(); } catch (e) {}
+      if (paused && ts(l) > ts(r)) map[l.id] = l;
     } else {
       map[l.id] = l;
     }
@@ -267,8 +270,21 @@ function safeOrderIndex(value) {
   return Math.floor(n);
 }
 
+/**
+ * Prepara a linha para a nuvem.
+ *
+ * `updated_at` TEM de ir no payload: a coluna só tem `default now()`, que o
+ * Postgres aplica no INSERT e não no UPDATE do upsert. Sem isto a nuvem ficava
+ * com a data da primeira gravação, o merge por timestamp dava sempre vitória à
+ * cópia local (mais recente) e as alterações de outro dispositivo eram
+ * descartadas e escritas por cima.
+ */
 function cleanPayload(row, userId) {
   var out = Object.assign({}, row, { user_id: userId });
+  var ms = row.updated ? Number(row.updated) : 0;
+  if (!ms && row.updated_at) ms = new Date(row.updated_at).getTime();
+  if (!ms || !isFinite(ms) || ms < 1) ms = Date.now();
+  out.updated_at = new Date(ms).toISOString();
   delete out.updated;
   delete out.created;
   if (out.order_index != null) out.order_index = safeOrderIndex(out.order_index);
@@ -293,7 +309,8 @@ export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
   try {
     var remote = await fetchRemoteRows(table, normalizeFn);
     if (!remote.length) return local.length ? local : (fallback ? fallback.slice() : []);
-    var merged = mergeRowsByTimestamp(local, remote);
+    var deletedIds = await getLocalDeletedIds(localKey);
+    var merged = mergePullFromRemote(local, remote, deletedIds);
     await writeLocal(localKey, merged);
     return merged;
   } catch (e) {
@@ -328,13 +345,13 @@ export async function replaceRows(table, localKey, rows, options) {
   }
 
   if (!supabase) {
-    saveEmergencyDraft(localKey, stamped);
+    saveEmergencyDraft(localKey, stamped, table);
     return { ok: true, cloud: false, emergency: true, error: "Supabase não configurado.", rows: stamped };
   }
 
   var session = await ensureWriteSession();
   if (!session.canWriteCloud || !session.user) {
-    saveEmergencyDraft(localKey, stamped);
+    saveEmergencyDraft(localKey, stamped, table);
     return {
       ok: true,
       cloud: false,
@@ -351,6 +368,7 @@ export async function replaceRows(table, localKey, rows, options) {
     var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
     if (res.error) throw res.error;
     clearEmergencyDraft(localKey);
+    pauseCloudPull(6000);
 
     if (options.pruneOrphans === true) {
       var ids = stamped.map(function(r) { return r.id; });
@@ -360,7 +378,7 @@ export async function replaceRows(table, localKey, rows, options) {
         .map(function(r) { return r.id; })
         .filter(function(id) { return ids.indexOf(id) < 0; });
       if (orphanIds.length) {
-        var del = await supabase.from(table).delete().eq("user_id", user.id).in("id", orphanIds);
+        var del = await supabase.from(table).delete().eq("user_id", session.user.id).in("id", orphanIds);
         if (del.error) throw del.error;
         await markLocalDeleted(localKey, orphanIds);
       }
@@ -373,6 +391,7 @@ export async function replaceRows(table, localKey, rows, options) {
     try {
       sessionStorage.setItem("sinapse-last-cloud-error", table + ": " + msg);
     } catch (ex) {}
+    saveEmergencyDraft(localKey, stamped, table);
     return { ok: false, cloud: false, error: msg, rows: stamped };
   }
 }
@@ -413,13 +432,152 @@ export async function deleteRemoteIds(table, ids, localKey) {
     await removeLocalIds(localKey, ids);
     await markLocalDeleted(localKey, ids);
   }
-  var user = await getUser();
-  if (!supabase || !user) return { ok: true, cloud: false };
+  if (!supabase) {
+    await queuePendingDeletes(table, ids);
+    return { ok: true, cloud: false };
+  }
+  var session = await ensureWriteSession();
+  if (!session.canWriteCloud || !session.user) {
+    await queuePendingDeletes(table, ids);
+    return { ok: true, cloud: false, pending: true };
+  }
   try {
-    var res = await supabase.from(table).delete().eq("user_id", user.id).in("id", ids);
+    var res = await supabase.from(table).delete().eq("user_id", session.user.id).in("id", ids);
     if (res.error) throw res.error;
     return { ok: true, cloud: true };
   } catch (e) {
-    return { ok: false, error: cloudErrorMessage(e) };
+    await queuePendingDeletes(table, ids);
+    return { ok: false, error: cloudErrorMessage(e), pending: true };
   }
+}
+
+/* ───────────────────────── reconciliação entre dispositivos ─────────────────────────
+ * Três problemas resolvidos aqui:
+ *  1. eliminações que falharam por falta de sessão ficavam só locais — a linha
+ *     continuava na nuvem e voltava no próximo pull de outro dispositivo;
+ *  2. gravações sem sessão guardavam um rascunho que nunca era reenviado;
+ *  3. dados escritos antes do login ficavam presos no âmbito ":local".
+ */
+
+var PENDING_DEL_KEY = "sinapse-pending-deletes-v1";
+
+async function readRawScoped(key, fallback) {
+  try {
+    var sk = await scopedKey(key);
+    var raw = localStorage.getItem(sk);
+    if (!raw) return fallback;
+    var parsed = JSON.parse(raw);
+    return parsed == null ? fallback : parsed;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+/** Escrita directa: ao contrário de writeLocal, aceita ficar vazio. */
+async function writeRawScoped(key, value) {
+  try {
+    var sk = await scopedKey(key);
+    localStorage.setItem(sk, JSON.stringify(value));
+  } catch (e) {}
+}
+
+async function queuePendingDeletes(table, ids) {
+  if (!table || !ids || !ids.length) return;
+  var q = await readRawScoped(PENDING_DEL_KEY, {});
+  if (!q || typeof q !== "object" || Array.isArray(q)) q = {};
+  var cur = Array.isArray(q[table]) ? q[table] : [];
+  var map = deletedSet(cur);
+  ids.forEach(function(id) { if (id) map[id] = true; });
+  var list = Object.keys(map);
+  if (list.length > 2000) list = list.slice(-2000);
+  q[table] = list;
+  await writeRawScoped(PENDING_DEL_KEY, q);
+}
+
+/** Reenvia as eliminações que ficaram pendentes. */
+export async function flushPendingDeletes() {
+  if (!supabase) return { ok: false, pending: true };
+  var q = await readRawScoped(PENDING_DEL_KEY, {});
+  if (!q || typeof q !== "object" || Array.isArray(q)) return { ok: true, done: 0 };
+  var tables = Object.keys(q).filter(function(t) { return Array.isArray(q[t]) && q[t].length; });
+  if (!tables.length) return { ok: true, done: 0 };
+
+  var session = await ensureWriteSession();
+  if (!session.canWriteCloud || !session.user) return { ok: false, pending: true };
+
+  var done = 0;
+  var next = {};
+  for (var i = 0; i < tables.length; i++) {
+    var table = tables[i];
+    var ids = q[table];
+    try {
+      var res = await supabase.from(table).delete().eq("user_id", session.user.id).in("id", ids);
+      if (res.error) throw res.error;
+      done += ids.length;
+    } catch (e) {
+      next[table] = ids;
+    }
+  }
+  await writeRawScoped(PENDING_DEL_KEY, next);
+  return { ok: true, done: done };
+}
+
+/** Reenvia gravações que ficaram em rascunho por falta de sessão/rede. */
+export async function replayEmergencyDrafts() {
+  if (!supabase) return { ok: false, pending: true };
+  var drafts = listEmergencyDrafts();
+  if (!drafts.length) return { ok: true, done: 0 };
+
+  var session = await ensureWriteSession();
+  if (!session.canWriteCloud || !session.user) return { ok: false, pending: true };
+
+  var done = 0;
+  for (var i = 0; i < drafts.length; i++) {
+    var d = drafts[i];
+    try {
+      var payload = d.rows.map(function(row) { return cleanPayload(row, session.user.id); });
+      var res = await supabase.from(d.table).upsert(payload, { onConflict: "id" });
+      if (res.error) throw res.error;
+      clearEmergencyDraft(d.localKey);
+      done++;
+    } catch (e) {
+      console.warn("[Sinapse] rascunho pendente:", d.table, cloudErrorMessage(e));
+    }
+  }
+  return { ok: true, done: done };
+}
+
+/**
+ * Dados gravados antes do login ficam em "chave:local" (ou na chave antiga sem
+ * âmbito). Depois de entrar, a app passa a ler "chave:<uuid>" e parecia que
+ * tinha perdido tudo. Traz esses dados para o âmbito do utilizador — só quando o
+ * destino ainda está vazio, para nunca escrever por cima do que já existe.
+ */
+export async function migrateLegacyScopes(keys) {
+  var id = await currentUserId();
+  if (!id || id === "local") return { ok: false, reason: "sem sessão" };
+  var moved = [];
+  (keys || []).forEach(function(key) {
+    try {
+      var target = key + ":" + id;
+      var existingRaw = localStorage.getItem(target);
+      if (existingRaw) {
+        var existing = JSON.parse(existingRaw);
+        var hasData = Array.isArray(existing) ? existing.length > 0 : !!existing;
+        if (hasData) return;
+      }
+      var sources = [key + ":local", key];
+      for (var i = 0; i < sources.length; i++) {
+        var raw = localStorage.getItem(sources[i]);
+        if (!raw) continue;
+        var parsed = JSON.parse(raw);
+        var count = Array.isArray(parsed) ? parsed.length : (parsed ? 1 : 0);
+        if (!count) continue;
+        localStorage.setItem(target, raw);
+        moved.push({ key: key, from: sources[i], count: count });
+        break;
+      }
+    } catch (e) {}
+  });
+  return { ok: true, moved: moved };
 }

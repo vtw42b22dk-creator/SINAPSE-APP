@@ -2,6 +2,7 @@
 import { readLocal, writeLocal, uid, getUser, cloudErrorMessage } from "./cloudStore";
 import { supabase } from "./supabase";
 import { STOCK_HISTORY_SEED } from "./stockHistorySeed";
+import { pauseCloudPull, isCloudPullPaused } from "./cloudSyncGuard";
 
 var PREFIX = "project-module-v1";
 var TABLES = {
@@ -32,7 +33,7 @@ function mergeRows(local, remote, normalize) {
   (local || []).forEach(function(r) {
     var n = normalize(r);
     var ex = map[n.id];
-    if (!ex || rowUpdated(n) >= rowUpdated(ex)) map[n.id] = n;
+    if (!ex || rowUpdated(n) > rowUpdated(ex)) map[n.id] = n;
   });
   return Object.values(map);
 }
@@ -55,9 +56,10 @@ async function upsertProjectRows(table, projectId, rows, toDb) {
   if (!supabase || !user) return { ok: false, cloud: false };
   try {
     var payload = (rows || []).map(function(r) {
+      var ms = rowUpdated(r) || Date.now();
       return Object.assign({}, toDb(r, projectId), {
         user_id: user.id,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date(ms).toISOString(),
       });
     });
     if (payload.length) {
@@ -186,6 +188,7 @@ async function saveListModule(projectId, module, table, rows, normalize, toDb) {
   var key = localKey(projectId, module);
   var normalized = (rows || []).map(normalize);
   await writeLocal(key, normalized);
+  pauseCloudPull(6000);
   await upsertProjectRows(table, projectId, normalized, toDb);
   return normalized;
 }
@@ -280,6 +283,7 @@ export async function pullProjectModules(projectId) {
     loadNotes(projectId),
     loadKpis(projectId),
     loadInventory(projectId),
+    loadStock(projectId),
   ]);
 }
 
@@ -374,20 +378,24 @@ function normStock(raw) {
 export async function loadStock(projectId) {
   var key = localKey(projectId, "stock");
   var local = normStock(await readLocal(key, emptyStock()));
-  var hasLocal = !!(local.seeded || (local.items && local.items.length));
-  if (!hasLocal) {
-    var user = await getUser();
-    if (supabase && user) {
-      try {
-        var res = await supabase.from(TABLES.stock).select("*").eq("user_id", user.id).eq("project_id", projectId).maybeSingle();
-        if (!res.error && res.data) {
-          var parsed = {};
-          try { parsed = JSON.parse(res.data.body || "{}"); } catch (e) {}
-          if (parsed && Array.isArray(parsed.items) && parsed.items.length) {
-            local = normStock(Object.assign({}, parsed, { seeded: true }));
-          }
-        }
-      } catch (e) {}
+  var user = await getUser();
+  if (supabase && user) {
+    try {
+      var res = await supabase.from(TABLES.stock).select("*").eq("user_id", user.id).eq("project_id", projectId).maybeSingle();
+      if (!res.error && res.data) {
+        var parsed = {};
+        try { parsed = JSON.parse(res.data.body || "{}"); } catch (e) {}
+        var remoteUpdated = res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0;
+        var remote = normStock(Object.assign({}, parsed, {
+          seeded: true,
+          updated: Math.max(remoteUpdated, Number(parsed.updated) || 0),
+        }));
+        var localUpdated = Number(local.updated) || 0;
+        var keepLocal = isCloudPullPaused() && localUpdated > remoteUpdated && (local.items || []).length;
+        if (!keepLocal) local = remote;
+      }
+    } catch (e) {
+      console.warn("[Projetos] stock leitura", cloudErrorMessage(e));
     }
   }
   if (!local.items.length && !local.seeded) {
@@ -403,8 +411,9 @@ export async function loadStock(projectId) {
 
 export async function saveStock(projectId, data) {
   var key = localKey(projectId, "stock");
-  var payload = normStock(Object.assign({}, data, { updated: Date.now() }));
+  var payload = normStock(Object.assign({}, data, { updated: Date.now(), seeded: true }));
   await writeLocal(key, payload);
+  pauseCloudPull(6000);
   var user = await getUser();
   if (supabase && user) {
     try {

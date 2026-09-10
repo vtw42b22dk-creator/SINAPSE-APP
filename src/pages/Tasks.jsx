@@ -142,11 +142,6 @@ function todayKey() {
   var t = new Date();
   return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
 }
-function notesAreLong(notes) {
-  if (!notes) return false;
-  return notes.length > 72 || notes.split("\n").length > 2;
-}
-
 function TaskCard(props) {
   var t = props.task, p = PRIORITIES.find(function(x) { return x.id === t.priority; }) || PRIORITIES[0];
   var overdue = t.due && t.due < todayKey() && props.col !== "done";
@@ -154,8 +149,25 @@ function TaskCard(props) {
   var done = props.col === "done";
   var notesOpenS = useState(false);
   var notesOpen = notesOpenS[0], setNotesOpen = notesOpenS[1];
+  var overflowS = useState(false);
+  var overflow = overflowS[0], setOverflow = overflowS[1];
+  var notesRef = useRef(null);
   var notes = t.notes || "";
-  var longNotes = notesAreLong(notes);
+
+  useEffect(function() {
+    setNotesOpen(false);
+  }, [notes]);
+
+  useEffect(function() {
+    var el = notesRef.current;
+    if (!el || !notes || notesOpen) return;
+    function measure() {
+      if (!notesRef.current) return;
+      setOverflow(notesRef.current.scrollHeight > notesRef.current.clientHeight + 1);
+    }
+    var id = requestAnimationFrame(measure);
+    return function() { cancelAnimationFrame(id); };
+  }, [notes, notesOpen, mob]);
   return (
     <article
       className={"tk-card" + (done ? " is-done" : "") + (overdue ? " is-late" : "")}
@@ -169,8 +181,8 @@ function TaskCard(props) {
           <p className="tk-title" style={{ fontSize: fs(mob, 13.5, 16) }}>{t.title}</p>
           {notes ? (
             <div>
-              <p className={"tk-notes" + (!notesOpen && longNotes ? " is-min" : "")} style={{ fontSize: fs(mob, 12, 14) }}>{notes}</p>
-              {longNotes ? (
+              <p ref={notesRef} className={"tk-notes" + (!notesOpen ? " is-min" : "")} style={{ fontSize: fs(mob, 12, 14) }}>{notes}</p>
+              {(overflow || notesOpen) ? (
                 <button type="button" className="tk-notes-tog" onClick={function(e) {
                   e.preventDefault();
                   e.stopPropagation();

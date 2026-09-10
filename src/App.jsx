@@ -10,6 +10,7 @@ import Wishlist from './pages/Wishlist'
 import Finance from './pages/Finance'
 import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
+import SyncRoot from './components/SyncRoot'
 import RouteAccent from './lib/RouteAccent'
 import { AuthProvider } from './lib/AuthContext'
 import { ThemeProvider } from './lib/ThemeContext'
@@ -24,6 +25,7 @@ export default function App() {
           <RouteAccent />
           <style>{MOBILE_GLOBAL_CSS + MODULE_ACCENT_CSS}</style>
           <AuthGate>
+            <SyncRoot>
             <Routes>
               <Route path="/" element={<Hub />} />
               <Route path="/projects" element={<Projects />} />
@@ -37,6 +39,7 @@ export default function App() {
               <Route path="/finance" element={<Finance />} />
               <Route path="/focus" element={<Focus />} />
             </Routes>
+            </SyncRoot>
           </AuthGate>
         </HashRouter>
       </AuthProvider>

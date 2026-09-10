@@ -6,6 +6,7 @@ import * as tasksStore from "../lib/tasksStore";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
+import { InlineName } from "../components/InlineName";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 import { useCloudSync } from "../lib/useCloudSync";
 import { isCloudPullPaused } from "../lib/cloudSyncGuard";
@@ -206,7 +207,7 @@ function ProjectCard(props) {
         <div className="pj-card-row">
           <div className="pj-card-ic" style={{ background: meta.color + "14", color: meta.color }}>{meta.icon}</div>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 44 }}>
-            <h2 className="pj-card-name">{p.name}</h2>
+            <InlineName tag="h2" className="pj-card-name" value={p.name} onSave={props.onRename} />
             <span className="pj-card-tag" style={{ color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
           </div>
         </div>
@@ -241,7 +242,7 @@ function ProjectRow(props) {
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {props.pinned && <span style={{ color: "#C4A57C", fontSize: 11 }}>★</span>}
-          <h2 className="pj-card-name" style={{ fontSize: 14 }}>{p.name}</h2>
+          <InlineName tag="h2" className="pj-card-name" style={{ fontSize: 14 }} value={p.name} onSave={props.onRename} />
           <span className="pj-card-tag" style={{ marginTop: 0, color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
         </div>
         {p.description ? <p className="pj-card-desc" style={{ WebkitLineClamp: 1, marginTop: 4 }}>{p.description}</p> : null}
@@ -439,6 +440,16 @@ export default function Projects() {
 
   function openProject(p) { navigate("/projects/" + p.id); }
 
+  function renameProject(id, name) {
+    var nextName = (name || "").trim();
+    if (!nextName) return;
+    var next = projects.map(function(p) {
+      return p.id === id ? Object.assign({}, p, { name: nextName }) : p;
+    });
+    setProjects(next);
+    synapseStore.saveProjects(next);
+  }
+
   if (!loaded) {
     return (
       <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -469,6 +480,7 @@ export default function Projects() {
     var common = {
       key: p.id, project: p, meta: meta, stats: stats[p.id], activeMods: activeMods, index: idx, pinned: pinned,
       onOpen: function() { openProject(p); },
+      onRename: function(name) { renameProject(p.id, name); },
       onDelete: function(e) { removeProject(e, p); },
       onPin: function(e) { togglePin(e, p.id); },
     };

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn } from "./ProjectModules";
+import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var MC = "#8FA8C4";
 
@@ -28,11 +30,11 @@ var STOCK_CSS = [
   ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
   ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
-  ".ps-acts{display:flex;flex-direction:row;gap:5px;align-items:center;flex-wrap:wrap}",
-  ".ps-ibtn{min-height:32px;padding:0 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#141416;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;cursor:pointer;white-space:nowrap}",
-  ".ps-ibtn.sell{border-color:rgba(143,179,155,0.35);color:#8FB39B}",
-  ".ps-ibtn.edit{color:#A0A0A8}",
-  ".ps-ibtn.del{border-color:rgba(192,140,140,0.3);color:#C08C8C}",
+  ".ps-acts{display:flex;flex-direction:row;gap:14px;align-items:center;flex-wrap:wrap}",
+  ".ps-link{border:none;background:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
+  ".ps-link.sell{color:#8FB39B}",
+  ".ps-link.del{color:#C08C8C}",
+  ".ps-stat-sub{display:block;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#A0A0A8}",
   ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
   ".ps-ok{margin:0 0 8px;font-size:12px;color:#8FB39B;font-family:'JetBrains Mono',monospace}",
   ".ps-empty{padding:10px 0;font-size:12px;color:#6E6E76}",
@@ -48,7 +50,7 @@ var STOCK_CSS = [
   ".ps-stat b{font-size:15px}",
   ".ps-charts{grid-template-columns:1fr;gap:8px}",
   ".ps-card{grid-template-columns:1fr;padding:8px 0 10px}",
-  ".ps-ibtn{flex:1 1 auto;min-height:40px}",
+  ".ps-link{min-height:32px;font-size:12px}",
   ".ps-sheet-bk{padding:0}.ps-sheet{border-radius:18px 18px 0 0;padding:18px 16px 22px}",
   "}",
   "@media(min-width:720px){.ps-sheet-bk{align-items:center}.ps-sheet{border-radius:16px}}",
@@ -155,6 +157,8 @@ export function ProjectStock(props) {
   var showMore = showMoreS[0], setShowMore = showMoreS[1];
   var tabS = useState("stock");
   var tab = tabS[0], setTab = tabS[1];
+  var sheetRef = useRef(null);
+  sheetRef.current = sheet;
 
   function applyData(d) {
     dataRef.current = d;
@@ -165,6 +169,15 @@ export function ProjectStock(props) {
   useEffect(function() {
     projectModuleStore.loadStock(projectId).then(applyData);
   }, [projectId]);
+
+  useCloudSync({
+    tables: ["project_stock"],
+    intervalMs: 2500,
+    shouldSkip: function() { return isCloudPullPaused() || !!sheetRef.current; },
+    onPull: function() {
+      return projectModuleStore.loadStock(projectId).then(applyData);
+    },
+  });
 
   function persist(next) {
     var payload = Object.assign({}, next, { seeded: true, updated: Date.now() });
@@ -399,7 +412,7 @@ export function ProjectStock(props) {
       action={(
         <div className="ps-actions">
           <PrimaryBtn onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>+ Meta</PrimaryBtn>
-          <button type="button" className="ps-ibtn" onClick={exportExcel}>Excel</button>
+          <button type="button" className="ps-ghost" onClick={exportExcel}>Excel</button>
         </div>
       )}>
       <style>{STOCK_CSS}</style>
@@ -426,7 +439,11 @@ export function ProjectStock(props) {
         <div className="ps-stat"><p>Lucro</p><b style={{ color: stats.lucroTotal >= 0 ? "#8FB39B" : "#C08C8C" }}>{fmtShort(stats.lucroTotal)}</b></div>
         <div className="ps-stat"><p>Faturação</p><b>{fmtShort(stats.totalFaturado)}</b></div>
         <div className="ps-stat"><p>Em stock</p><b style={{ color: "#C4A57C" }}>{fmtShort(stats.capitalAtivo)}</b></div>
-        <div className="ps-stat"><p>Margem</p><b>{stats.margemMedia.toFixed(0)}%</b></div>
+        <div className="ps-stat">
+          <p>Margem</p>
+          <b>{stats.margemMedia.toFixed(0)}%</b>
+          <span className="ps-stat-sub">média {fmtShort(stats.mediaLucro)}</span>
+        </div>
       </div>
 
       {stats.metaAtiva ? (
@@ -480,9 +497,9 @@ export function ProjectStock(props) {
                     <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
                   </div>
                   <div className="ps-acts">
-                    <button type="button" className="ps-ibtn sell" onClick={function() { openSell(item); }}>Vender</button>
-                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                    <button type="button" className="ps-link sell" onClick={function() { openSell(item); }}>Vender</button>
+                    <button type="button" className="ps-link" onClick={function() { openEdit(item); }}>Editar</button>
+                    <button type="button" className="ps-link del" onClick={function() { removeItem(item); }}>Remover</button>
                   </div>
                 </article>
               );
@@ -511,8 +528,8 @@ export function ProjectStock(props) {
                     </p>
                   </div>
                   <div className="ps-acts">
-                    <button type="button" className="ps-ibtn edit" onClick={function() { openEdit(item); }}>Editar</button>
-                    <button type="button" className="ps-ibtn del" onClick={function() { removeItem(item); }}>Remover</button>
+                    <button type="button" className="ps-link" onClick={function() { openEdit(item); }}>Editar</button>
+                    <button type="button" className="ps-link del" onClick={function() { removeItem(item); }}>Remover</button>
                   </div>
                 </article>
               );

@@ -9,6 +9,7 @@ import { ProjectStock } from "../components/ProjectStock";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
+import { InlineName } from "../components/InlineName";
 import { useCloudSync } from "../lib/useCloudSync";
 import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
@@ -105,7 +106,7 @@ export default function ProjectWorkspace() {
   }, [projectId]);
 
   useCloudSync({
-    tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory"],
+    tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory", "project_stock"],
     intervalMs: 2500,
     shouldSkip: function() { return !loaded || isCloudPullPaused(); },
     onPull: function() {
@@ -161,6 +162,16 @@ export default function ProjectWorkspace() {
     if (isMobile) setSidebarOpen(false);
   }
 
+  function renameProject(name) {
+    var nextName = (name || "").trim();
+    if (!nextName || nextName === project.name) return;
+    var nextProjects = projects.map(function(p) {
+      return p.id === project.id ? Object.assign({}, p, { name: nextName }) : p;
+    });
+    setProjects(nextProjects);
+    synapseStore.saveProjects(nextProjects);
+  }
+
   function goModule(id) {
     navigate("/projects/" + projectId + "/" + id);
     if (isMobile) setSidebarOpen(false);
@@ -214,7 +225,12 @@ export default function ProjectWorkspace() {
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, marginLeft: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
-            <h1 style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor }}>{project.name}</h1>
+            <InlineName
+              tag="h1"
+              value={project.name}
+              onSave={renameProject}
+              style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor }}
+            />
           </div>
         </div>
         <HubBack />
@@ -226,7 +242,7 @@ export default function ProjectWorkspace() {
           <div className="pw-pcard">
             <div className="pw-pic" style={{ background: pColor + "14", color: pColor }}>✦</div>
             <div style={{ minWidth: 0 }}>
-              <p className="pw-pname">{project.name}</p>
+              <InlineName tag="p" className="pw-pname" value={project.name} onSave={renameProject} />
               <p className="pw-pcard-meta">{activeModules.length} módulos</p>
             </div>
           </div>

@@ -5,6 +5,8 @@ import { MICRO_CSS, attachSwipe } from "../lib/microUi";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
+import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("calendar");
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -14,6 +16,7 @@ var WK_HOUR_H = 42;
 var HOURS = 24;
 var WK_START = 6;
 var SNAP = 15;
+var MIN_DURS = [15, 30, 45, 60, 90, 120, 180];
 
 var CHRO_CSS = [
   MICRO_CSS,
@@ -168,6 +171,9 @@ var CHRO_CSS = [
   ".ch-rep{display:flex;gap:4px}",
   ".ch-rep-btn{flex:1;padding:8px 0;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".ch-rep-btn.is-on,.ch-rep-btn.is-base{color:var(--rc);border-bottom-color:var(--rc)}",
+  ".ch-mins{display:flex;flex-wrap:wrap;gap:6px}",
+  ".ch-min{padding:8px 10px;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer}",
+  ".ch-min.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".ch-sheet-actions{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}",
   ".ch-save{padding:10px 4px;border:none;border-bottom:2px solid var(--mc);background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:filter var(--dur) var(--ease)}",
   ".ch-save:hover{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--mc) 55%,transparent))}",
@@ -250,8 +256,7 @@ function snapMin(m) { return Math.round(m / SNAP) * SNAP; }
 function isOpenEnd(ev) { return !!(ev && !ev.allDay && (ev.openEnd || ev.duration === 0)); }
 function evDuration(ev) {
   if (ev.allDay) return 1440;
-  if (isOpenEnd(ev)) return 30;
-  return Math.max(SNAP, ev.duration || 60);
+  return Math.max(SNAP, Number(ev.duration) || (isOpenEnd(ev) ? 30 : 60));
 }
 function durationLabel(minutes) {
   if (minutes >= 60) {
@@ -453,7 +458,7 @@ function DayStream(props) {
       var mins = posFromY(pe.clientY);
       if (mins != null && props.onMove) {
         mins = Math.max(0, Math.min(1440 - d.dur, mins));
-        props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.openEnd ? 0 : d.dur);
+        props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.dur);
       }
     }
     window.addEventListener("pointermove", onMove);
@@ -726,7 +731,7 @@ function WeekPlanner(props) {
       var np = posFromPointer(pe.clientX, pe.clientY, d.dur);
       if (np && props.onMove) {
         var mins = Math.max(0, Math.min(1440 - d.dur, np.minutes));
-        props.onMove(d.id, d.fromKey, np.key, minToTime(mins), d.openEnd ? 0 : d.dur);
+        props.onMove(d.id, d.fromKey, np.key, minToTime(mins), d.dur);
         props.onSelectDay(np.key);
       }
     }
@@ -948,7 +953,14 @@ function EventSheet(props) {
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: ev.allDay ? "#6E6E76" : "#A0A0A8", cursor: ev.allDay ? "default" : "pointer" }}>
             <input type="checkbox" checked={!!ev.openEnd && !ev.allDay} disabled={ev.allDay} onChange={function(e) {
-              p.setDraft(Object.assign({}, ev, { openEnd: e.target.checked, allDay: false }));
+              var on = e.target.checked;
+              var dur = Math.max(SNAP, Number(ev.duration) || durationFromTimes(ev.time, ev.endTime) || 30);
+              p.setDraft(Object.assign({}, ev, {
+                openEnd: on,
+                allDay: false,
+                duration: dur,
+                endTime: on ? ev.endTime : addMinutes(ev.time || "09:00", dur),
+              }));
             }} />
             Sem hora de fim
           </label>
@@ -966,7 +978,22 @@ function EventSheet(props) {
                 <input type="time" className="ch-in ui-in" value={ev.endTime || "10:00"}
                   onChange={function(e) { p.setDraft(Object.assign({}, ev, { endTime: e.target.value })); }} />
               </div>
-            ) : null}
+            ) : (
+              <div>
+                <label className="ch-lbl">Duração mínima</label>
+                <div className="ch-mins">
+                  {MIN_DURS.map(function(m) {
+                    var on = Math.max(SNAP, Number(ev.duration) || 30) === m;
+                    return (
+                      <button key={m} type="button" className={"ch-min ui-tap" + (on ? " is-on" : "")}
+                        onClick={function() { p.setDraft(Object.assign({}, ev, { duration: m })); }}>
+                        {durationLabel(m)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
         <div className="ch-field">
@@ -1038,14 +1065,38 @@ export default function Calendar() {
   var repS = useState([false, false, false, false, false, false, false]);
   var repeatDays = repS[0], setRepeatDays = repS[1];
   var stageRef = useRef(null);
+  var skipSaveRef = useRef(false);
+  var didHydrateRef = useRef(false);
+  var eventsRef = useRef(events);
+  eventsRef.current = events;
 
   var weekDays = useMemo(function() { return weekKeys(selected); }, [selected]);
   var selParsed = parseKey(selected);
   var dayDate = new Date(selParsed.y, selParsed.m, selParsed.d);
 
   useEffect(function() {
-    calendarStore.loadEvents().then(function(data) { setEvents(data); setLoaded(true); });
+    calendarStore.loadEvents().then(function(data) {
+      skipSaveRef.current = true;
+      setEvents(data);
+      setLoaded(true);
+    });
   }, []);
+
+  useCloudSync({
+    tables: ["calendar_events"],
+    intervalMs: 4000,
+    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    onPull: function() {
+      return calendarStore.loadEvents().then(function(data) {
+        skipSaveRef.current = true;
+        setEvents(data);
+      });
+    },
+    onPush: function() {
+      if (!loaded || skipSaveRef.current) return Promise.resolve();
+      return calendarStore.saveEvents(eventsRef.current);
+    },
+  });
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
@@ -1059,6 +1110,15 @@ export default function Calendar() {
 
   useEffect(function() {
     if (!loaded) return;
+    if (!didHydrateRef.current) {
+      didHydrateRef.current = true;
+      skipSaveRef.current = false;
+      return;
+    }
+    if (skipSaveRef.current) {
+      skipSaveRef.current = false;
+      return;
+    }
     calendarStore.saveEvents(events);
   }, [events, loaded]);
 
@@ -1159,7 +1219,7 @@ export default function Calendar() {
     setSheet({
       isEdit: false,
       dayKey: key,
-      draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, openEnd: false, time: t, endTime: end },
+      draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, openEnd: false, time: t, endTime: end, duration: Math.max(SNAP, durationFromTimes(t, end)) },
     });
   }
 
@@ -1174,7 +1234,8 @@ export default function Calendar() {
       draft: {
         id: ev.id, title: ev.title || "", notes: ev.notes || "", color: ev.color || ACCENT,
         allDay: !!ev.allDay, openEnd: isOpenEnd(ev), time: ev.time || "09:00",
-        endTime: isOpenEnd(ev) ? addMinutes(ev.time || "09:00", 60) : (eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev))),
+        duration: Math.max(SNAP, Number(ev.duration) || 30),
+        endTime: isOpenEnd(ev) ? addMinutes(ev.time || "09:00", Math.max(SNAP, Number(ev.duration) || 30)) : (eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev))),
       },
     });
   }
@@ -1183,6 +1244,7 @@ export default function Calendar() {
 
   function saveSheet() {
     if (!sheet || !sheet.draft.title.trim()) return;
+    var minDur = Math.max(SNAP, Number(sheet.draft.duration) || 30);
     var item = {
       id: sheet.draft.id,
       title: sheet.draft.title.trim(),
@@ -1191,7 +1253,8 @@ export default function Calendar() {
       allDay: !!sheet.draft.allDay,
       openEnd: !sheet.draft.allDay && !!sheet.draft.openEnd,
       time: sheet.draft.allDay ? null : sheet.draft.time,
-      duration: sheet.draft.allDay ? null : (sheet.draft.openEnd ? 0 : durationFromTimes(sheet.draft.time, sheet.draft.endTime)),
+      duration: sheet.draft.allDay ? null : (sheet.draft.openEnd ? minDur : durationFromTimes(sheet.draft.time, sheet.draft.endTime)),
+      updated: Date.now(),
     };
     var targets = [sheet.dayKey];
     weekDays.forEach(function(k, i) {
@@ -1240,9 +1303,10 @@ export default function Calendar() {
       if (!next[fromKey] || !next[fromKey].length) delete next[fromKey];
       var updated = Object.assign({}, ev, {
         time: newTime,
-        duration: ev.openEnd || dur === 0 ? 0 : dur,
-        openEnd: !!(ev.openEnd || dur === 0),
+        duration: isOpenEnd(ev) ? Math.max(SNAP, Number(ev.duration) || dur || 30) : dur,
+        openEnd: isOpenEnd(ev),
         allDay: false,
+        updated: Date.now(),
       });
       next[toKey] = sortEvents((next[toKey] || []).concat([updated]));
       return next;
