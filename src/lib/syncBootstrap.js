@@ -7,7 +7,10 @@ import * as calendarStore from "./calendarStore";
 import * as tasksStore from "./tasksStore";
 import * as synapseStore from "./synapseStore";
 import * as projectModuleStore from "./projectModuleStore";
-import { isCloudPullPaused } from "./cloudSyncGuard";
+import * as journalStore from "./journalStore";
+import * as wishlistStore from "./wishlistStore";
+import * as financeStore from "./financeStore";
+import * as incomeStore from "./incomeStore";
 
 var CORE_KEYS = [
   "sinapse-calendar-v3",
@@ -49,10 +52,18 @@ export async function bootstrapSync() {
 }
 
 export async function pullAllCore() {
-  if (isCloudPullPaused()) return;
   var projects = [];
   try { await calendarStore.loadEvents(); } catch (e) {}
   try { await tasksStore.loadTasks(); } catch (e) {}
+  try { await journalStore.pullSpaces(); } catch (e) {}
+  try { await journalStore.pullBlocks(); } catch (e) {}
+  try { await journalStore.pullNoteLayout(); } catch (e) {}
+  try { await wishlistStore.loadGroups(); } catch (e) {}
+  try { await wishlistStore.loadItems(); } catch (e) {}
+  try { await financeStore.loadCategories(); } catch (e) {}
+  try { await financeStore.loadExpenses(); } catch (e) {}
+  try { await incomeStore.loadCategories(); } catch (e) {}
+  try { await incomeStore.loadIncomes(); } catch (e) {}
   try { projects = await synapseStore.loadProjects(); } catch (e) { projects = []; }
   await Promise.all((projects || []).map(function(p) {
     if (!p || !p.id) return Promise.resolve();

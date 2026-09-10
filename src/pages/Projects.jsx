@@ -9,7 +9,7 @@ import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { InlineName } from "../components/InlineName";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 import { useCloudSync } from "../lib/useCloudSync";
-import { isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { isCloudPullPaused, pauseCloudPull } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("projects");
 
@@ -85,7 +85,7 @@ var PROJ_CSS = [
   ".pj-card-in{padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px;min-height:128px}",
   ".pj-card-row{display:flex;align-items:flex-start;gap:12px}",
   ".pj-card-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}",
-  ".pj-card-name{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".pj-card-name{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;z-index:3;cursor:text}",
   ".pj-card-tag{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:10px;line-height:1.4;font-family:'JetBrains Mono',monospace;letter-spacing:.6px}",
   ".pj-card-desc{margin:0;font-size:12.5px;color:#A0A0A8;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
   ".pj-mods{display:flex;flex-wrap:wrap;gap:6px}",
@@ -207,7 +207,7 @@ function ProjectCard(props) {
         <div className="pj-card-row">
           <div className="pj-card-ic" style={{ background: meta.color + "14", color: meta.color }}>{meta.icon}</div>
           <div style={{ minWidth: 0, flex: 1, paddingRight: 44 }}>
-            <InlineName tag="h2" className="pj-card-name" value={p.name} onSave={props.onRename} />
+            <InlineName tag="h2" className="pj-card-name" value={p.name} onSave={props.onRename} onSingleClick={props.onOpen} />
             <span className="pj-card-tag" style={{ color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
           </div>
         </div>
@@ -242,7 +242,7 @@ function ProjectRow(props) {
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {props.pinned && <span style={{ color: "#C4A57C", fontSize: 11 }}>★</span>}
-          <InlineName tag="h2" className="pj-card-name" style={{ fontSize: 14 }} value={p.name} onSave={props.onRename} />
+          <InlineName tag="h2" className="pj-card-name" style={{ fontSize: 14 }} value={p.name} onSave={props.onRename} onSingleClick={props.onOpen} />
           <span className="pj-card-tag" style={{ marginTop: 0, color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
         </div>
         {p.description ? <p className="pj-card-desc" style={{ WebkitLineClamp: 1, marginTop: 4 }}>{p.description}</p> : null}
@@ -317,7 +317,7 @@ export default function Projects() {
   useCloudSync({
     tables: ["synapse_projects"],
     intervalMs: 2500,
-    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    shouldSkip: function() { return !loaded || isCloudPullPaused("synapse_projects"); },
     onPull: function() {
       return synapseStore.loadProjects().then(function(list) {
         if (list && list.length) setProjects(list);
@@ -447,6 +447,7 @@ export default function Projects() {
       return p.id === id ? Object.assign({}, p, { name: nextName }) : p;
     });
     setProjects(next);
+    pauseCloudPull(6000, "synapse_projects");
     synapseStore.saveProjects(next);
   }
 

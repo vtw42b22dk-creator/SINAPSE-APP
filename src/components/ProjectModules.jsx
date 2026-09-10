@@ -199,13 +199,13 @@ export function ProjectInvestments(props) {
   useCloudSync({
     tables: ["project_investments"],
     intervalMs: 2500,
-    shouldSkip: function() { return isCloudPullPaused(); },
+    shouldSkip: function() { return isCloudPullPaused("project_investments"); },
     onPull: function() { return projectModuleStore.loadInvestments(projectId).then(setRows); },
     onPush: function() { return projectModuleStore.saveInvestments(projectId, rows); },
   });
 
   function persist(next) {
-    pauseCloudPull(8000);
+    pauseCloudPull(8000, "project_investments");
     setRows(next);
     projectModuleStore.saveInvestments(projectId, next);
   }
@@ -313,7 +313,7 @@ export function ProjectNotes(props) {
   useCloudSync({
     tables: ["project_notes"],
     intervalMs: 2500,
-    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused(); },
+    shouldSkip: function() { return dirtyRef.current || isCloudPullPaused("project_notes"); },
     onPull: function() {
       if (dirtyRef.current) return Promise.resolve();
       return projectModuleStore.loadNotes(projectId).then(function(d) {
@@ -355,7 +355,7 @@ export function ProjectNotes(props) {
 
   function persist(next) {
     dirtyRef.current = true;
-    pauseCloudPull(8000);
+    pauseCloudPull(8000, "project_notes");
     setNotes(next);
     setSaved(false);
     clearTimeout(saveTimer.current);
@@ -468,7 +468,7 @@ export function ProjectAnalytics(props) {
   useCloudSync({
     tables: ["project_kpis", "project_investments", "project_inventory"],
     intervalMs: 2500,
-    shouldSkip: function() { return isCloudPullPaused(); },
+    shouldSkip: function() { return isCloudPullPaused("project_kpis"); },
     onPull: function() {
       return Promise.all([
         projectModuleStore.loadKpis(projectId).then(setKpis),
@@ -479,7 +479,7 @@ export function ProjectAnalytics(props) {
   });
 
   function persist(next) {
-    pauseCloudPull(8000);
+    pauseCloudPull(8000, "project_kpis");
     setKpis(next);
     projectModuleStore.saveKpis(projectId, next);
   }
@@ -624,13 +624,13 @@ export function ProjectInventory(props) {
   useCloudSync({
     tables: ["project_inventory"],
     intervalMs: 2500,
-    shouldSkip: function() { return isCloudPullPaused(); },
+    shouldSkip: function() { return isCloudPullPaused("project_inventory"); },
     onPull: function() { return projectModuleStore.loadInventory(projectId).then(setRows); },
     onPush: function() { return projectModuleStore.saveInventory(projectId, rows); },
   });
 
   function persist(next) {
-    pauseCloudPull(8000);
+    pauseCloudPull(8000, "project_inventory");
     setRows(next);
     projectModuleStore.saveInventory(projectId, next);
   }

@@ -3,6 +3,7 @@ import { readLocal, writeLocal, uid, getUser, cloudErrorMessage } from "./cloudS
 import { supabase } from "./supabase";
 import { STOCK_HISTORY_SEED } from "./stockHistorySeed";
 import { pauseCloudPull, isCloudPullPaused } from "./cloudSyncGuard";
+import { ensureWriteSession } from "./safeCloudWrite";
 
 var PREFIX = "project-module-v1";
 var TABLES = {
@@ -188,7 +189,7 @@ async function saveListModule(projectId, module, table, rows, normalize, toDb) {
   var key = localKey(projectId, module);
   var normalized = (rows || []).map(normalize);
   await writeLocal(key, normalized);
-  pauseCloudPull(6000);
+  pauseCloudPull(6000, table);
   await upsertProjectRows(table, projectId, normalized, toDb);
   return normalized;
 }
@@ -228,7 +229,8 @@ export async function loadNotes(projectId) {
         var remoteBody = res.data.body || "";
         var remoteUpdated = res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0;
         var localUpdated = local.updated || 0;
-        if (remoteUpdated >= localUpdated) {
+        var keepLocal = isCloudPullPaused("project_notes") && localUpdated > remoteUpdated;
+        if (!keepLocal) {
           local = { body: remoteBody, updated: remoteUpdated, id: res.data.id };
         }
       }
@@ -242,6 +244,7 @@ export async function saveNotes(projectId, data) {
   var key = localKey(projectId, "notes");
   var payload = { body: data.body || "", updated: Date.now(), id: projectId + "-notes" };
   await writeLocal(key, payload);
+  pauseCloudPull(6000, "project_notes");
   var user = await getUser();
   if (supabase && user) {
     try {
@@ -375,58 +378,185 @@ function normStock(raw) {
   };
 }
 
+function stockFingerprint(data) {
+  return (data && data.items ? data.items : []).map(function(i) {
+    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0);
+  }).sort().join("|");
+}
+
+function parseRemoteStockRow(row) {
+  if (!row) return null;
+  var parsed = {};
+  try { parsed = JSON.parse(row.body || "{}"); } catch (e) { parsed = {}; }
+  var updated = Math.max(
+    row.updated_at ? new Date(row.updated_at).getTime() : 0,
+    Number(parsed.updated) || 0
+  );
+  var data = normStock(Object.assign({}, parsed, { seeded: true, updated: updated }));
+  data._rowId = row.id;
+  return data;
+}
+
+function soldCount(data) {
+  return (data.items || []).filter(function(i) { return i.status === "Vendido"; }).length;
+}
+
+function isStockSeed(data) {
+  var seedItems = STOCK_HISTORY_SEED.items || [];
+  if (!data || !data.items || data.items.length !== seedItems.length) return false;
+  var seedIds = {};
+  seedItems.forEach(function(it) { seedIds[it.id] = true; });
+  return data.items.every(function(it) { return seedIds[it.id]; });
+}
+
+function pickPrimaryStock(blobs) {
+  return blobs.slice().sort(function(a, b) {
+    var ds = soldCount(b) - soldCount(a);
+    if (ds) return ds;
+    var aSeed = isStockSeed(a) ? 1 : 0;
+    var bSeed = isStockSeed(b) ? 1 : 0;
+    if (aSeed !== bSeed) return aSeed - bSeed;
+    var di = (b.items || []).length - (a.items || []).length;
+    if (di) return di;
+    return (b.updated || 0) - (a.updated || 0);
+  })[0];
+}
+
+function pickStockItem(a, b) {
+  var aSold = a.status === "Vendido";
+  var bSold = b.status === "Vendido";
+  if (bSold && !aSold) return b;
+  if (aSold && !bSold) return a;
+  if ((Number(b.venda) || 0) !== (Number(a.venda) || 0)) {
+    return (Number(b.venda) || 0) > (Number(a.venda) || 0) ? b : a;
+  }
+  if ((b.data_venda || "") !== (a.data_venda || "")) {
+    return (b.data_venda || "") > (a.data_venda || "") ? b : a;
+  }
+  return b;
+}
+
+function mergeStockBlobs(blobs) {
+  blobs = (blobs || []).filter(function(b) { return b && Array.isArray(b.items); });
+  if (!blobs.length) return emptyStock();
+  var primary = pickPrimaryStock(blobs);
+  var map = {};
+  (primary.items || []).forEach(function(it) { map[it.id] = it; });
+  blobs.forEach(function(blob) {
+    var fromSeed = isStockSeed(blob) && !isStockSeed(primary);
+    (blob.items || []).forEach(function(it) {
+      var ex = map[it.id];
+      if (!ex) {
+        if (it.status === "Vendido" || !fromSeed) map[it.id] = it;
+        return;
+      }
+      map[it.id] = pickStockItem(ex, it);
+    });
+  });
+  var items = Object.keys(map).map(function(k) { return map[k]; });
+  var nextId = 1;
+  blobs.forEach(function(b) { if ((Number(b.next_id) || 1) > nextId) nextId = Number(b.next_id); });
+  items.forEach(function(it) { if (it.id >= nextId) nextId = it.id + 1; });
+  var newestMeta = blobs.slice().sort(function(a, b) { return (b.updated || 0) - (a.updated || 0); })[0];
+  var merged = normStock({
+    next_id: nextId,
+    meta_lucro: newestMeta.meta_lucro,
+    meta_ativa: newestMeta.meta_ativa,
+    meta_data_inicio: newestMeta.meta_data_inicio,
+    items: items,
+    seeded: true,
+    updated: Math.max.apply(null, blobs.map(function(b) { return b.updated || 0; })),
+  });
+  merged._rowId = primary._rowId || newestMeta._rowId;
+  return merged;
+}
+
+function stockBody(payload) {
+  var copy = Object.assign({}, payload);
+  delete copy._rowId;
+  return JSON.stringify(copy);
+}
+
 export async function loadStock(projectId) {
   var key = localKey(projectId, "stock");
   var local = normStock(await readLocal(key, emptyStock()));
+  var remoteBlobs = [];
+  var remoteIds = [];
+  var fetchOk = false;
   var user = await getUser();
   if (supabase && user) {
     try {
-      var res = await supabase.from(TABLES.stock).select("*").eq("user_id", user.id).eq("project_id", projectId).maybeSingle();
-      if (!res.error && res.data) {
-        var parsed = {};
-        try { parsed = JSON.parse(res.data.body || "{}"); } catch (e) {}
-        var remoteUpdated = res.data.updated_at ? new Date(res.data.updated_at).getTime() : 0;
-        var remote = normStock(Object.assign({}, parsed, {
-          seeded: true,
-          updated: Math.max(remoteUpdated, Number(parsed.updated) || 0),
-        }));
-        var localUpdated = Number(local.updated) || 0;
-        var keepLocal = isCloudPullPaused() && localUpdated > remoteUpdated && (local.items || []).length;
-        if (!keepLocal) local = remote;
-      }
+      var res = await supabase.from(TABLES.stock).select("*").eq("user_id", user.id).eq("project_id", projectId);
+      if (res.error) throw res.error;
+      fetchOk = true;
+      (res.data || []).forEach(function(row) {
+        var parsed = parseRemoteStockRow(row);
+        if (parsed) {
+          remoteBlobs.push(parsed);
+          if (row.id) remoteIds.push(row.id);
+        }
+      });
     } catch (e) {
       console.warn("[Projetos] stock leitura", cloudErrorMessage(e));
     }
   }
-  if (!local.items.length && !local.seeded) {
+
+  if (isCloudPullPaused("project_stock") && (local.items || []).length) {
+    await writeLocal(key, local);
+    return local;
+  }
+
+  var merged = local;
+  if (remoteBlobs.length) {
+    merged = mergeStockBlobs([local].concat(remoteBlobs));
+  } else if (fetchOk && !local.items.length && !local.seeded) {
     var seeded = importStockPayload(Object.assign({}, STOCK_HISTORY_SEED, { seeded: true, meta_ativa: true }));
     if (seeded && seeded.items.length) {
-      local = await saveStock(projectId, seeded);
-      return local;
+      merged = seeded;
+      await writeLocal(key, merged);
+      return merged;
     }
   }
-  await writeLocal(key, local);
-  return local;
+
+  await writeLocal(key, merged);
+
+  if (fetchOk && remoteBlobs.length && stockFingerprint(merged) !== stockFingerprint(pickPrimaryStock(remoteBlobs))) {
+    saveStock(projectId, merged).catch(function() {});
+  } else if (fetchOk && !remoteBlobs.length && (merged.items || []).length && !isStockSeed(merged)) {
+    saveStock(projectId, merged).catch(function() {});
+  }
+
+  return merged;
 }
 
 export async function saveStock(projectId, data) {
   var key = localKey(projectId, "stock");
   var payload = normStock(Object.assign({}, data, { updated: Date.now(), seeded: true }));
+  payload._rowId = data && data._rowId;
   await writeLocal(key, payload);
-  pauseCloudPull(6000);
-  var user = await getUser();
-  if (supabase && user) {
-    try {
-      await supabase.from(TABLES.stock).upsert({
-        id: projectId + "-stock",
-        user_id: user.id,
-        project_id: projectId,
-        body: JSON.stringify(payload),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "id" });
-    } catch (e) {
-      console.warn("[Projetos] stock", cloudErrorMessage(e));
+  pauseCloudPull(6000, "project_stock");
+
+  var session = await ensureWriteSession();
+  if (!supabase || !session.canWriteCloud || !session.user) return payload;
+
+  try {
+    var existing = await supabase.from(TABLES.stock).select("id,updated_at").eq("user_id", session.user.id).eq("project_id", projectId);
+    var ids = ((existing.data || []).map(function(r) { return r.id; })).filter(Boolean);
+    var rowId = payload._rowId || ids[0] || (projectId + "-stock");
+    var upsert = await supabase.from(TABLES.stock).upsert({
+      id: rowId,
+      user_id: session.user.id,
+      project_id: projectId,
+      body: stockBody(payload),
+      updated_at: new Date(payload.updated).toISOString(),
+    }, { onConflict: "id" });
+    if (upsert.error) throw upsert.error;
+    var extras = ids.filter(function(id) { return id !== rowId; });
+    if (extras.length) {
+      await supabase.from(TABLES.stock).delete().eq("user_id", session.user.id).in("id", extras);
     }
+  } catch (e) {
+    console.warn("[Projetos] stock", cloudErrorMessage(e));
   }
   return payload;
 }

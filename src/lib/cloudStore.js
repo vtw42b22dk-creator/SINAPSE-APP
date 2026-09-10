@@ -209,7 +209,7 @@ export async function clearLocalDeleted(localKey) {
  * Ao trazer da nuvem: remoto define existência, mas NUNCA apaga tudo local
  * se a nuvem vier vazia; ids em tombstones não voltam.
  */
-export function mergePullFromRemote(local, remote, deletedIds) {
+export function mergePullFromRemote(local, remote, deletedIds, table) {
   var loc = local || [];
   var rem = remote || [];
   var deleted = deletedSet(deletedIds);
@@ -228,7 +228,7 @@ export function mergePullFromRemote(local, remote, deletedIds) {
     var r = map[l.id];
     if (r) {
       var paused = false;
-      try { paused = isCloudPullPaused(); } catch (e) {}
+      try { paused = isCloudPullPaused(table); } catch (e) {}
       if (paused && ts(l) > ts(r)) map[l.id] = l;
     } else {
       map[l.id] = l;
@@ -310,7 +310,7 @@ export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
     var remote = await fetchRemoteRows(table, normalizeFn);
     if (!remote.length) return local.length ? local : (fallback ? fallback.slice() : []);
     var deletedIds = await getLocalDeletedIds(localKey);
-    var merged = mergePullFromRemote(local, remote, deletedIds);
+    var merged = mergePullFromRemote(local, remote, deletedIds, table);
     await writeLocal(localKey, merged);
     return merged;
   } catch (e) {
@@ -368,7 +368,7 @@ export async function replaceRows(table, localKey, rows, options) {
     var res = await supabase.from(table).upsert(payload, { onConflict: "id" });
     if (res.error) throw res.error;
     clearEmergencyDraft(localKey);
-    pauseCloudPull(6000);
+    pauseCloudPull(6000, table);
 
     if (options.pruneOrphans === true) {
       var ids = stamped.map(function(r) { return r.id; });

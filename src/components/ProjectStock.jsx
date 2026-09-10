@@ -173,7 +173,7 @@ export function ProjectStock(props) {
   useCloudSync({
     tables: ["project_stock"],
     intervalMs: 2500,
-    shouldSkip: function() { return isCloudPullPaused() || !!sheetRef.current; },
+    shouldSkip: function() { return isCloudPullPaused("project_stock") || !!sheetRef.current; },
     onPull: function() {
       return projectModuleStore.loadStock(projectId).then(applyData);
     },

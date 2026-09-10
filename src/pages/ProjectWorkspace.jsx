@@ -11,7 +11,7 @@ import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { InlineName } from "../components/InlineName";
 import { useCloudSync } from "../lib/useCloudSync";
-import { isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { pauseCloudPull } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("projects");
 
@@ -46,7 +46,7 @@ var SIDEBAR_CSS = [
   ".pw-pcard{display:flex;align-items:center;gap:12px;padding:14px 0;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;margin-bottom:20px}",
   ".pw-side--mini .pw-pcard{padding:0;border:none;background:none;justify-content:center;margin-bottom:20px}",
   ".pw-pic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}",
-  ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".pw-pname{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text;position:relative;z-index:3}",
   ".pw-pcard-meta{margin:4px 0 0;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.4px}",
   ".pw-sec{margin:4px 4px 12px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#6E6E76;letter-spacing:1.6px}",
   ".pw-link{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin-bottom:4px;border-radius:10px;border:1px solid transparent;background:transparent;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;text-align:left;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);overflow:hidden}",
@@ -108,7 +108,7 @@ export default function ProjectWorkspace() {
   useCloudSync({
     tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory", "project_stock"],
     intervalMs: 2500,
-    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    shouldSkip: function() { return !loaded; },
     onPull: function() {
       return Promise.all([
         synapseStore.loadProjects().then(setProjects),
@@ -169,6 +169,7 @@ export default function ProjectWorkspace() {
       return p.id === project.id ? Object.assign({}, p, { name: nextName }) : p;
     });
     setProjects(nextProjects);
+    pauseCloudPull(6000, "synapse_projects");
     synapseStore.saveProjects(nextProjects);
   }
 
@@ -223,13 +224,13 @@ export default function ProjectWorkspace() {
           <button type="button" className="pw-hbtn" onClick={toggleSidebar} title="Menu de módulos">
             {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
           </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, marginLeft: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1, marginLeft: 8 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
             <InlineName
               tag="h1"
               value={project.name}
               onSave={renameProject}
-              style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor }}
+              style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor, flex: 1 }}
             />
           </div>
         </div>

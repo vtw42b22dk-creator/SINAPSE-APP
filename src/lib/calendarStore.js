@@ -117,7 +117,7 @@ export async function loadEvents() {
   }
 
   var deletedIds = await getLocalDeletedIds(KEY);
-  var merged = mergePullFromRemote(local, remote, deletedIds);
+  var merged = mergePullFromRemote(local, remote, deletedIds, TABLE);
   await writeLocal(KEY, merged.map(function(ev) { return toDb(ev.day_key, ev); }));
 
   var remoteIds = {};
@@ -132,7 +132,7 @@ export async function loadEvents() {
 
 export async function saveEvents(events) {
   var rows = daysToRows(events);
-  pauseCloudPull(6000);
+  pauseCloudPull(6000, TABLE);
   await replaceRows(TABLE, KEY, rows, { pruneOrphans: false });
   return events;
 }

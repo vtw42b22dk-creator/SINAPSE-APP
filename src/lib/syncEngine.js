@@ -24,7 +24,7 @@ export async function safePullMerge(localKey, table, normalizeFn, customMerge) {
   if (customMerge) {
     merged = customMerge(local, remote, deletedIds);
   } else {
-    merged = mergePullFromRemote(local, remote, deletedIds);
+    merged = mergePullFromRemote(local, remote, deletedIds, table);
   }
 
   merged = guardMergeResult(local, merged, deletedIds);

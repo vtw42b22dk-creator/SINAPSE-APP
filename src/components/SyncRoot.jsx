@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { bootstrapSync, pullAllCore, pushPendingSync } from "../lib/syncBootstrap";
-import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var SYNC_TABLES = [
   "calendar_events",
@@ -13,6 +12,12 @@ var SYNC_TABLES = [
   "project_notes",
   "project_kpis",
   "project_inventory",
+  "journal_spaces",
+  "journal_blocks",
+  "wishlist_items",
+  "wishlist_groups",
+  "expenses",
+  "incomes",
 ];
 
 export default function SyncRoot(props) {
@@ -27,7 +32,7 @@ export default function SyncRoot(props) {
   useCloudSync({
     tables: SYNC_TABLES,
     intervalMs: 4000,
-    shouldSkip: function() { return !userId || isCloudPullPaused(); },
+    shouldSkip: function() { return !userId; },
     onPull: pullAllCore,
     onPush: pushPendingSync,
   });

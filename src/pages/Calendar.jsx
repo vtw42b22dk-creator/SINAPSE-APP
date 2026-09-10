@@ -1085,7 +1085,7 @@ export default function Calendar() {
   useCloudSync({
     tables: ["calendar_events"],
     intervalMs: 4000,
-    shouldSkip: function() { return !loaded || isCloudPullPaused(); },
+    shouldSkip: function() { return !loaded || isCloudPullPaused("calendar_events"); },
     onPull: function() {
       return calendarStore.loadEvents().then(function(data) {
         skipSaveRef.current = true;
