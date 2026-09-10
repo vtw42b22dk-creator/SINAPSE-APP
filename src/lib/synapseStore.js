@@ -25,6 +25,13 @@ export var MODULE_META = [
   { id: "stock", label: "Loja", desc: "Compras, vendas, lucro e gráficos semanais" },
 ];
 
+function rowUpdated(p) {
+  if (!p) return 0;
+  if (p.updated) return Number(p.updated) || 0;
+  if (p.updated_at) return new Date(p.updated_at).getTime() || 0;
+  return 0;
+}
+
 function normalizeProject(p) {
   return {
     id: p.id || uid("sp"),
@@ -33,6 +40,7 @@ function normalizeProject(p) {
     color: p.color || "#E6E6E9",
     collapsed: p.collapsed || [],
     modules: Object.assign({}, DEFAULT_MODULES, p.modules || {}),
+    updated: rowUpdated(p),
   };
 }
 
@@ -74,6 +82,7 @@ export async function saveProjects(projects) {
       color: n.color,
       collapsed: n.collapsed,
       modules: n.modules,
+      updated: n.updated || 0,
     };
   }));
 }
@@ -172,5 +181,6 @@ export function newProject(name, opts) {
     color: o.color || "#E6E6E9",
     collapsed: [],
     modules: Object.assign({}, DEFAULT_MODULES, o.modules || {}),
+    updated: Date.now(),
   });
 }

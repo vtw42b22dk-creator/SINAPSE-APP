@@ -11,6 +11,7 @@ import * as journalStore from "./journalStore";
 import * as wishlistStore from "./wishlistStore";
 import * as financeStore from "./financeStore";
 import * as incomeStore from "./incomeStore";
+import { emitSync } from "./syncEvents";
 
 var CORE_KEYS = [
   "sinapse-calendar-v3",
@@ -69,6 +70,7 @@ export async function pullAllCore() {
     if (!p || !p.id) return Promise.resolve();
     return projectModuleStore.pullProjectModules(p.id).catch(function() {});
   }));
+  emitSync("*");
 }
 
 export async function pushPendingSync() {

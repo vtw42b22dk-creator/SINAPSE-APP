@@ -92,6 +92,7 @@ var HUB_CSS = [
   ".hub-row{position:relative;display:grid;grid-template-columns:44px 28px 1fr auto;align-items:center;gap:16px;width:100%;text-align:left;overflow:hidden;",
   "padding:20px 16px 20px 12px;background:none;border:none;border-bottom:none;color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;border-radius:var(--radius-md);",
   "transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease),background var(--dur) var(--ease)}",
+  "@media(hover:hover) and (pointer:fine){.hub-row{cursor:grab}.hub-row.is-dragging{cursor:grabbing;opacity:.42}.hub-row.is-over{background:rgba(255,255,255,.05)}.hub-row.is-over::before{height:32px;opacity:1}}",
   ".hub-row::before{content:'';position:absolute;left:8px;top:50%;transform:translateY(-50%);width:3px;height:0;border-radius:var(--radius-pill);background:var(--mc);",
   "transition:height var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0;z-index:2}",
   ".hub-row::after{content:'';position:absolute;inset:0;background:radial-gradient(240px circle at var(--mx,15%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 10%,transparent),transparent 72%);opacity:0;transition:opacity .4s var(--ease);pointer-events:none;z-index:0;border-radius:inherit}",
@@ -152,12 +153,47 @@ var HUB_CSS = [
   "@media(prefers-reduced-motion:reduce){.hub-glow{animation:none}.hub-time-grad{animation:none}}",
 ].join("");
 
+var ORDER_KEY = "sinapse-hub-order-v1";
+
+function loadHubOrder() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(ORDER_KEY) || "[]");
+    if (!Array.isArray(raw) || !raw.length) return MODULES.slice();
+    var map = {};
+    MODULES.forEach(function(m) { map[m.id] = m; });
+    var out = [];
+    raw.forEach(function(id) {
+      if (map[id]) { out.push(map[id]); delete map[id]; }
+    });
+    MODULES.forEach(function(m) { if (map[m.id]) out.push(m); });
+    return out;
+  } catch (e) {
+    return MODULES.slice();
+  }
+}
+
+function saveHubOrder(list) {
+  try {
+    localStorage.setItem(ORDER_KEY, JSON.stringify(list.map(function(m) { return m.id; })));
+  } catch (e) {}
+}
+
+function canDesktopReorder() {
+  try {
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  } catch (e) {
+    return true;
+  }
+}
+
 function ModuleRow(props) {
   var mod = props.module;
   var n = String(props.index + 1).padStart(2, "0");
   var pressS = useState(false);
   var pressed = pressS[0], setPressed = pressS[1];
   var startRef = useRef(null);
+  var dragRef = useRef(false);
+  var canDrag = !!props.canReorder;
 
   function onPointerDown(e) {
     if (!props.isMobile) return;
@@ -180,10 +216,38 @@ function ModuleRow(props) {
   }
 
   return (
-    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "")} style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
+    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
+      style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
+      draggable={canDrag}
       onMouseMove={props.isMobile ? undefined : trackSpotlight}
       onPointerDown={onPointerDown}
-      onClick={function() { if (mod.path) props.onClick(mod); }}>
+      onDragStart={function(e) {
+        if (!canDrag) { e.preventDefault(); return; }
+        dragRef.current = true;
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", mod.id);
+        if (props.onDragStart) props.onDragStart(mod.id);
+      }}
+      onDragOver={function(e) {
+        if (!canDrag) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (props.onDragOver) props.onDragOver(mod.id);
+      }}
+      onDrop={function(e) {
+        if (!canDrag) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (props.onDrop) props.onDrop(mod.id);
+      }}
+      onDragEnd={function() {
+        if (props.onDragEnd) props.onDragEnd();
+        setTimeout(function() { dragRef.current = false; }, 120);
+      }}
+      onClick={function() {
+        if (dragRef.current || props.dragging || (props.dragLockRef && props.dragLockRef.current)) return;
+        if (mod.path) props.onClick(mod);
+      }}>
       <span className="hub-idx">{n}</span>
       <span className="hub-ic-wrap" aria-hidden="true">
         <span className="hub-dot" />
@@ -236,10 +300,47 @@ export default function Hub() {
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
     window.addEventListener("resize", onResize);
-    return function() { window.removeEventListener("resize", onResize); };
+    var mq = null;
+    try { mq = window.matchMedia("(hover: hover) and (pointer: fine)"); } catch (e) {}
+    if (mq) {
+      if (mq.addEventListener) mq.addEventListener("change", onResize);
+      else if (mq.addListener) mq.addListener(onResize);
+    }
+    return function() {
+      window.removeEventListener("resize", onResize);
+      if (!mq) return;
+      if (mq.removeEventListener) mq.removeEventListener("change", onResize);
+      else if (mq.removeListener) mq.removeListener(onResize);
+    };
   }, []);
 
   var who = auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Martim";
+  var canReorder = !isMobile && canDesktopReorder();
+  var modsS = useState(loadHubOrder);
+  var mods = modsS[0], setMods = modsS[1];
+  var dragIdS = useState(null);
+  var dragId = dragIdS[0], setDragId = dragIdS[1];
+  var overIdS = useState(null);
+  var overId = overIdS[0], setOverId = overIdS[1];
+  var dragLockRef = useRef(false);
+  var dragIdRef = useRef(null);
+
+  function moveModule(fromId, toId) {
+    if (!fromId || !toId || fromId === toId) return;
+    setMods(function(prev) {
+      var next = prev.slice();
+      var from = -1, to = -1;
+      next.forEach(function(m, i) {
+        if (m.id === fromId) from = i;
+        if (m.id === toId) to = i;
+      });
+      if (from < 0 || to < 0) return prev;
+      var item = next.splice(from, 1)[0];
+      next.splice(to, 0, item);
+      saveHubOrder(next);
+      return next;
+    });
+  }
 
   return (
     <div className="hub-root hub-scroll" data-scrollable>
@@ -260,17 +361,46 @@ export default function Hub() {
         <div className="hub-index-head">
           <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
           <p className="hub-sec">Índice</p>
-          <p className="hub-sec">0{MODULES.length}</p>
+          <p className="hub-sec">0{mods.length}</p>
         </div>
 
         <nav className="hub-list" aria-label="Módulos">
-          {MODULES.map(function(mod, i) {
-            return <ModuleRow key={mod.id} module={mod} index={i} isMobile={isMobile} onClick={function() { navigate(mod.path); }} />;
+          {mods.map(function(mod, i) {
+            return (
+              <ModuleRow
+                key={mod.id}
+                module={mod}
+                index={i}
+                isMobile={isMobile}
+                canReorder={canReorder}
+                dragging={dragId === mod.id}
+                over={overId === mod.id && dragId && dragId !== mod.id}
+                onClick={function() { navigate(mod.path); }}
+                dragLockRef={dragLockRef}
+                onDragStart={function(id) {
+                  dragLockRef.current = true;
+                  dragIdRef.current = id;
+                  setDragId(id);
+                }}
+                onDragOver={function(id) { setOverId(id); }}
+                onDrop={function(id) {
+                  moveModule(dragIdRef.current, id);
+                  setDragId(null);
+                  setOverId(null);
+                }}
+                onDragEnd={function() {
+                  dragIdRef.current = null;
+                  setDragId(null);
+                  setOverId(null);
+                  setTimeout(function() { dragLockRef.current = false; }, 150);
+                }}
+              />
+            );
           })}
         </nav>
 
         <footer className="hub-foot">
-          <p>Desliza para explorar · {MODULES.length} módulos activos</p>
+          <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {mods.length} módulos activos</p>
         </footer>
       </div>
     </div>

@@ -11,7 +11,8 @@ import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { InlineName } from "../components/InlineName";
 import { useCloudSync } from "../lib/useCloudSync";
-import { pauseCloudPull } from "../lib/cloudSyncGuard";
+import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { onSync } from "../lib/syncEvents";
 
 var ACCENT = moduleColor("projects");
 
@@ -55,7 +56,9 @@ var SIDEBAR_CSS = [
   ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:0 2px 2px 0;background:var(--lc);opacity:.7}",
   ".pw-lic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
-  ".pw-foot{margin-top:auto;padding:16px 8px 4px;font-size:11px;color:#6E6E76;line-height:1.55;border-top:1px solid rgba(255,255,255,0.06)}",
+  ".pw-foot{margin-top:auto;padding:16px 8px 4px;font-size:11px;color:#6E6E76;line-height:1.55;border-top:1px solid rgba(255,255,255,0.06);cursor:text;white-space:pre-line}",
+  ".pw-foot.is-editing{overflow:visible}",
+  ".pw-foot.is-editing textarea{display:block;width:100%;min-height:3.2em;color:inherit;font:inherit}",
   ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;z-index:1;pointer-events:auto}",
   ".pw-main-in{flex:1;min-width:0;min-height:0;overflow:hidden;pointer-events:auto}",
   ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40;animation:appearIn var(--dur) var(--ease)}",
@@ -108,7 +111,7 @@ export default function ProjectWorkspace() {
   useCloudSync({
     tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory", "project_stock"],
     intervalMs: 2500,
-    shouldSkip: function() { return !loaded; },
+    shouldSkip: function() { return !loaded || isCloudPullPaused("synapse_projects"); },
     onPull: function() {
       return Promise.all([
         synapseStore.loadProjects().then(setProjects),
@@ -116,6 +119,14 @@ export default function ProjectWorkspace() {
       ]);
     },
   });
+
+  useEffect(function() {
+    if (!loaded) return;
+    return onSync(function() {
+      synapseStore.loadProjects().then(setProjects);
+      if (projectId) projectModuleStore.pullProjectModules(projectId);
+    });
+  }, [loaded, projectId]);
 
   useEffect(function() {
     if (isMobile) setSidebarOpen(false);
@@ -154,7 +165,7 @@ export default function ProjectWorkspace() {
   function enableStockModule() {
     var nextMods = Object.assign({}, project.modules, { stock: true });
     var nextProjects = projects.map(function(p) {
-      return p.id === project.id ? Object.assign({}, p, { modules: nextMods }) : p;
+      return p.id === project.id ? Object.assign({}, p, { modules: nextMods, updated: Date.now() }) : p;
     });
     setProjects(nextProjects);
     synapseStore.saveProjects(nextProjects);
@@ -166,7 +177,16 @@ export default function ProjectWorkspace() {
     var nextName = (name || "").trim();
     if (!nextName || nextName === project.name) return;
     var nextProjects = projects.map(function(p) {
-      return p.id === project.id ? Object.assign({}, p, { name: nextName }) : p;
+      return p.id === project.id ? Object.assign({}, p, { name: nextName, updated: Date.now() }) : p;
+    });
+    setProjects(nextProjects);
+    pauseCloudPull(6000, "synapse_projects");
+    synapseStore.saveProjects(nextProjects);
+  }
+
+  function renameDescription(description) {
+    var nextProjects = projects.map(function(p) {
+      return p.id === project.id ? Object.assign({}, p, { description: description || "", updated: Date.now() }) : p;
     });
     setProjects(nextProjects);
     pauseCloudPull(6000, "synapse_projects");
@@ -264,9 +284,16 @@ export default function ProjectWorkspace() {
               <span className="pw-lbl">Ativar Loja</span>
             </button>
           )}
-          {project.description && (
-            <p className="pw-foot">{project.description}</p>
-          )}
+          <InlineName
+            tag="p"
+            className="pw-foot"
+            multiline
+            allowEmpty
+            placeholder="Adicionar descrição"
+            title="Duplo clique para editar a descrição"
+            value={project.description || ""}
+            onSave={renameDescription}
+          />
         </aside>
         <main className="pw-main">
           <div className="pw-main-in" style={isFullBleed ? { padding: 0, overflow: "hidden" } : null}>

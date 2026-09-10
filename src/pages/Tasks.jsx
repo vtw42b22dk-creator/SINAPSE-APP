@@ -7,6 +7,8 @@ import { fs } from "../lib/mobileUi";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { supabase } from "../lib/supabase";
+import { onSync } from "../lib/syncEvents";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var ACCENT = moduleColor("tasks");
 var COLUMNS = [
@@ -257,6 +259,7 @@ export default function Tasks() {
   var saveTimerRef = useRef(null);
   var lastSaveAt = useRef(0);
   var lastDeleteAt = useRef(0);
+  var dirtyRef = useRef(false);
   var syncWarnS = useState("");
   var syncWarn = syncWarnS[0], setSyncWarn = syncWarnS[1];
 
@@ -281,10 +284,11 @@ export default function Tasks() {
 
   var syncFromCloud = useCallback(function() {
     if (!isHydratedRef.current) return Promise.resolve();
-    if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
-    if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
+    if (dirtyRef.current) return Promise.resolve();
+    if (isCloudPullPaused("tasks")) return Promise.resolve();
+    if (Date.now() - lastDeleteAt.current < 4000) return Promise.resolve();
     return taskStore.pullTasks().then(function(merged) {
-      if (skipSaveRef.current) return;
+      if (skipSaveRef.current || dirtyRef.current) return;
       skipSaveRef.current = true;
       commitTasks(merged);
       setTimeout(function() { skipSaveRef.current = false; }, 150);
@@ -293,10 +297,14 @@ export default function Tasks() {
 
   function persistDebounced() {
     if (!isHydratedRef.current || skipSaveRef.current) return;
+    dirtyRef.current = true;
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(function() {
       if (skipSaveRef.current) return;
-      taskStore.saveTasks(tasksRef.current).then(reportSave);
+      taskStore.saveTasks(tasksRef.current).then(function(res) {
+        dirtyRef.current = false;
+        reportSave(res);
+      });
     }, SAVE_DEBOUNCE_MS);
   }
 
@@ -305,7 +313,11 @@ export default function Tasks() {
     var list = next || tasksRef.current;
     tasksRef.current = list;
     setTasks(list);
-    return taskStore.saveTasksNow(list).then(reportSave);
+    dirtyRef.current = true;
+    return taskStore.saveTasksNow(list).then(function(res) {
+      dirtyRef.current = false;
+      reportSave(res);
+    });
   }
 
   useEffect(function() {
@@ -316,14 +328,11 @@ export default function Tasks() {
       .then(function(local) {
         if (!alive) return;
         commitTasks(local);
-        return taskStore.pullTasks();
+        return taskStore.loadTasks();
       })
       .then(function(merged) {
         if (!alive) return;
         commitTasks(merged || []);
-        return taskStore.pushTasks(merged || []).then(function(res) {
-          if (res && res.emergency) reportSave(res);
-        });
       })
       .finally(function() {
         if (!alive) return;
@@ -335,9 +344,13 @@ export default function Tasks() {
   }, []);
 
   useEffect(function() {
-    if (!loaded || auth.loading) return;
-    syncFromCloud();
-  }, [auth.user && auth.user.id, loaded, syncFromCloud]);
+    if (!loaded) return;
+    return onSync(function(detail) {
+      var table = detail && detail.table;
+      if (table && table !== "*" && table !== "tasks") return;
+      syncFromCloud();
+    });
+  }, [loaded, syncFromCloud]);
 
   useEffect(function() {
     function onResize() {
@@ -359,8 +372,9 @@ export default function Tasks() {
   useEffect(function() {
     if (!loaded) return;
     function flush() {
-      if (!isHydratedRef.current) return;
+      if (!isHydratedRef.current || !dirtyRef.current) return;
       clearTimeout(saveTimerRef.current);
+      dirtyRef.current = false;
       taskStore.saveTasksNow(tasksRef.current).then(reportSave);
     }
     function onVis() {

@@ -32,7 +32,6 @@ function parseSubtasks(row) {
 
 function normalize(row) {
   var updated = rowUpdated(row);
-  if (!updated) updated = Date.now();
   return {
     id: row.id || uid("t"),
     title: row.title || "",
@@ -48,8 +47,8 @@ function normalize(row) {
     source_id: row.source_id || null,
     synapse_project_id: row.synapse_project_id || null,
     synapse_node_id: row.synapse_node_id || null,
-    created: row.created || row.created_at || updated,
-    updated: updated,
+    created: row.created || row.created_at || updated || Date.now(),
+    updated: updated || 0,
   };
 }
 

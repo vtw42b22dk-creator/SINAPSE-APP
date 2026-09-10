@@ -39,7 +39,11 @@ export function InlineName(props) {
     var next = (val || "").trim();
     setEditing(false);
     editingRef.current = false;
-    if (!next || next === props.value) {
+    if (next === (props.value || "").trim()) {
+      setVal(props.value || "");
+      return;
+    }
+    if (!next && !props.allowEmpty) {
       setVal(props.value || "");
       return;
     }
@@ -84,48 +88,81 @@ export function InlineName(props) {
   }, props.wrapStyle || {});
 
   if (editing) {
+    var fieldStyle = Object.assign({
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box",
+      margin: 0,
+      padding: "2px 0",
+      border: "none",
+      borderBottom: "1px solid rgba(255,255,255,0.28)",
+      background: "transparent",
+      color: "inherit",
+      font: "inherit",
+      letterSpacing: "inherit",
+      outline: "none",
+    }, props.inputStyle || {});
+    var field = props.multiline ? (
+      <textarea
+        ref={inputRef}
+        className={props.inputClassName || ""}
+        rows={3}
+        style={Object.assign(fieldStyle, { resize: "vertical", lineHeight: 1.5 })}
+        value={val}
+        onClick={stop}
+        onPointerDown={stop}
+        onMouseDown={stop}
+        onChange={function(e) { setVal(e.target.value); }}
+        onBlur={function() {
+          if (ignoreBlurRef.current) {
+            if (inputRef.current) inputRef.current.focus();
+            return;
+          }
+          commit();
+        }}
+        onKeyDown={function(e) {
+          e.stopPropagation();
+          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commit(); }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setEditing(false);
+            editingRef.current = false;
+            setVal(props.value || "");
+          }
+        }}
+      />
+    ) : (
+      <input
+        ref={inputRef}
+        className={props.inputClassName || ""}
+        style={fieldStyle}
+        value={val}
+        onClick={stop}
+        onPointerDown={stop}
+        onMouseDown={stop}
+        onChange={function(e) { setVal(e.target.value); }}
+        onBlur={function() {
+          if (ignoreBlurRef.current) {
+            if (inputRef.current) inputRef.current.focus();
+            return;
+          }
+          commit();
+        }}
+        onKeyDown={function(e) {
+          stop(e);
+          if (e.key === "Enter") { e.preventDefault(); commit(); }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            setEditing(false);
+            editingRef.current = false;
+            setVal(props.value || "");
+          }
+        }}
+      />
+    );
     return (
-      <span className={props.className || ""} style={wrapStyle} onClick={stop} onPointerDown={stop} onMouseDown={stop}>
-        <input
-          ref={inputRef}
-          className={props.inputClassName || ""}
-          style={Object.assign({
-            width: "100%",
-            minWidth: 0,
-            boxSizing: "border-box",
-            margin: 0,
-            padding: "2px 0",
-            border: "none",
-            borderBottom: "1px solid rgba(255,255,255,0.28)",
-            background: "transparent",
-            color: "inherit",
-            font: "inherit",
-            letterSpacing: "inherit",
-            outline: "none",
-          }, props.inputStyle || {})}
-          value={val}
-          onClick={stop}
-          onPointerDown={stop}
-          onMouseDown={stop}
-          onChange={function(e) { setVal(e.target.value); }}
-          onBlur={function() {
-            if (ignoreBlurRef.current) {
-              if (inputRef.current) inputRef.current.focus();
-              return;
-            }
-            commit();
-          }}
-          onKeyDown={function(e) {
-            stop(e);
-            if (e.key === "Enter") { e.preventDefault(); commit(); }
-            if (e.key === "Escape") {
-              e.preventDefault();
-              setEditing(false);
-              editingRef.current = false;
-              setVal(props.value || "");
-            }
-          }}
-        />
+      <span className={(props.className ? props.className + " " : "") + "is-editing"} style={wrapStyle} onClick={stop} onPointerDown={stop} onMouseDown={stop}>
+        {field}
       </span>
     );
   }
@@ -135,7 +172,7 @@ export function InlineName(props) {
     <Tag
       className={props.className}
       style={Object.assign(wrapStyle, props.style || {})}
-      title="Duplo clique para editar o nome"
+      title={props.title || "Duplo clique para editar"}
       onClick={onClick}
       onDoubleClick={function(e) {
         stop(e);
@@ -145,7 +182,7 @@ export function InlineName(props) {
       onPointerDown={stop}
       onMouseDown={stop}
     >
-      {props.value}
+      {props.value || (props.placeholder ? <span style={{ opacity: 0.45 }}>{props.placeholder}</span> : null)}
     </Tag>
   );
 }

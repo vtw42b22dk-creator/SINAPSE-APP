@@ -10,6 +10,7 @@ import { InlineName } from "../components/InlineName";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 import { useCloudSync } from "../lib/useCloudSync";
 import { isCloudPullPaused, pauseCloudPull } from "../lib/cloudSyncGuard";
+import { onSync } from "../lib/syncEvents";
 
 var ACCENT = moduleColor("projects");
 
@@ -88,6 +89,8 @@ var PROJ_CSS = [
   ".pj-card-name{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;z-index:3;cursor:text}",
   ".pj-card-tag{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:10px;line-height:1.4;font-family:'JetBrains Mono',monospace;letter-spacing:.6px}",
   ".pj-card-desc{margin:0;font-size:12.5px;color:#A0A0A8;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
+  ".pj-card-desc.is-editing,.pj-grid.sparse .pj-card-desc.is-editing{display:block;-webkit-line-clamp:unset;line-clamp:unset;-webkit-box-orient:unset;overflow:visible;white-space:normal}",
+  ".pj-card-desc.is-editing textarea{display:block;width:100%;min-height:3.2em;overflow:auto}",
   ".pj-mods{display:flex;flex-wrap:wrap;gap:6px}",
   ".pj-mod{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
   ".pj-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)}",
@@ -121,6 +124,7 @@ var PROJ_CSS = [
   "@media(hover:none),(pointer:coarse){.pj-act{opacity:1}.pj-card:hover,.pj-rowcard:hover,.pj-addcard:hover{transform:none;box-shadow:none}#root .pj-card:hover,#root .pj-rowcard:hover,#root .pj-addcard:hover{transform:none!important;filter:none!important}}",
   "@media(max-width:719px){.pj-page{height:100dvh;max-height:100dvh}.pj-top,.pj-scroll,.pj-card,.pj-rowcard,.pj-addcard,.pj-new,.hub-back{pointer-events:auto}.pj-card,.pj-rowcard,.pj-addcard{touch-action:manipulation}.mod-glow{pointer-events:none!important}}",
   "@media(max-width:719px){.pj-top{flex-direction:column;align-items:stretch;padding:12px 16px;gap:12px}.pj-top>.pj-ghost{align-self:flex-start;padding:11px 16px;font-size:13px;min-height:44px}.pj-top-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}.pj-brand h1{font-size:16px;letter-spacing:1.2px}.pj-brand span{font-size:11px;padding:3px 9px}.pj-search{order:unset;max-width:none;flex-basis:auto;width:100%}.pj-search input{font-size:16px;padding:12px 12px 12px 36px;border-radius:12px;min-height:46px}.pj-top-actions{display:flex;align-items:center;gap:10px;width:100%}.pj-top-actions .pj-new{flex:1;padding:13px 16px;font-size:13px;border-radius:12px;min-height:46px}.pj-viewtog button{width:46px;height:46px}.pj-scroll{padding:0 16px 88px}.pj-body{padding-top:16px}.pj-hero{padding:16px;margin-bottom:16px}.pj-grid,.pj-grid.sparse{grid-template-columns:1fr;gap:14px}.pj-chips{width:100%}.pj-card-in{min-height:136px;padding:16px}.pj-card-name{font-size:16px}.pj-card-desc{font-size:13.5px;-webkit-line-clamp:3}.pj-card-ic{width:46px;height:46px;font-size:20px}.pj-act{opacity:1;top:12px;right:12px}.pj-act button{width:36px;height:36px;font-size:15px}.pj-rowcard{padding:14px 16px;gap:14px}.pj-empty{margin-top:24px;padding:40px 20px}.pj-modal{width:100%;max-width:100%;border-radius:16px;padding:16px}.pj-mods-grid{grid-template-columns:repeat(3,1fr);gap:8px}.pj-mods-grid button{font-size:11px;padding:14px 6px;min-height:56px}.pj-preset button{min-width:0;padding:14px 8px;font-size:12px;min-height:46px}.pj-pal button{width:36px;height:36px}}",
+  "@media(max-width:719px){.pj-card-desc.is-editing{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}}",
 ].join("");
 
 function ProjectsIcon() {
@@ -211,7 +215,17 @@ function ProjectCard(props) {
             <span className="pj-card-tag" style={{ color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
           </div>
         </div>
-        {p.description ? <p className="pj-card-desc">{p.description}</p> : null}
+          <InlineName
+            tag="p"
+            className="pj-card-desc"
+            multiline
+            allowEmpty
+            placeholder="Adicionar descrição"
+            title="Duplo clique para editar a descrição"
+            value={p.description || ""}
+            onSave={props.onRenameDesc}
+            onSingleClick={props.onOpen}
+          />
         <div className="pj-mods">
           {activeMods.map(function(m) {
             return <span key={m.id} className="pj-mod" title={m.label} style={{ borderColor: meta.color + "22", color: meta.color + "cc" }}>{MODULE_ICONS[m.id] || "·"}</span>;
@@ -245,7 +259,18 @@ function ProjectRow(props) {
           <InlineName tag="h2" className="pj-card-name" style={{ fontSize: 14 }} value={p.name} onSave={props.onRename} onSingleClick={props.onOpen} />
           <span className="pj-card-tag" style={{ marginTop: 0, color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
         </div>
-        {p.description ? <p className="pj-card-desc" style={{ WebkitLineClamp: 1, marginTop: 4 }}>{p.description}</p> : null}
+        <InlineName
+          tag="p"
+          className="pj-card-desc"
+          style={{ WebkitLineClamp: 1, marginTop: 4 }}
+          multiline
+          allowEmpty
+          placeholder="Adicionar descrição"
+          title="Duplo clique para editar a descrição"
+          value={p.description || ""}
+          onSave={props.onRenameDesc}
+          onSingleClick={props.onOpen}
+        />
       </div>
       <div className="pj-mods" style={{ flexShrink: 0 }}>
         {activeMods.slice(0, 5).map(function(m) {
@@ -306,10 +331,7 @@ export default function Projects() {
 
   useEffect(function() {
     synapseStore.loadProjects().then(function(list) {
-      if (list.length) { setProjects(list); setLoaded(true); return; }
-      var p = synapseStore.newProject("Principal");
-      setProjects([p]);
-      synapseStore.saveProjects([p]);
+      setProjects(list || []);
       setLoaded(true);
     });
   }, []);
@@ -323,10 +345,18 @@ export default function Projects() {
         if (list && list.length) setProjects(list);
       });
     },
-    onPush: function() {
-      return synapseStore.saveProjects(projects);
-    },
   });
+
+  useEffect(function() {
+    if (!loaded) return;
+    return onSync(function(detail) {
+      var table = detail && detail.table;
+      if (table && table !== "*" && table !== "synapse_projects") return;
+      synapseStore.loadProjects().then(function(list) {
+        if (list && list.length) setProjects(list);
+      });
+    });
+  }, [loaded]);
 
   useEffect(function() {
     if (!projects.length) return;
@@ -444,7 +474,16 @@ export default function Projects() {
     var nextName = (name || "").trim();
     if (!nextName) return;
     var next = projects.map(function(p) {
-      return p.id === id ? Object.assign({}, p, { name: nextName }) : p;
+      return p.id === id ? Object.assign({}, p, { name: nextName, updated: Date.now() }) : p;
+    });
+    setProjects(next);
+    pauseCloudPull(6000, "synapse_projects");
+    synapseStore.saveProjects(next);
+  }
+
+  function renameDescription(id, description) {
+    var next = projects.map(function(p) {
+      return p.id === id ? Object.assign({}, p, { description: description || "", updated: Date.now() }) : p;
     });
     setProjects(next);
     pauseCloudPull(6000, "synapse_projects");
@@ -482,6 +521,7 @@ export default function Projects() {
       key: p.id, project: p, meta: meta, stats: stats[p.id], activeMods: activeMods, index: idx, pinned: pinned,
       onOpen: function() { openProject(p); },
       onRename: function(name) { renameProject(p.id, name); },
+      onRenameDesc: function(description) { renameDescription(p.id, description); },
       onDelete: function(e) { removeProject(e, p); },
       onPin: function(e) { togglePin(e, p.id); },
     };
