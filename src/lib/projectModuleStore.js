@@ -317,8 +317,13 @@ export function newKpi(partial) {
   return normKpi(Object.assign({ label: "Nova meta", target: 100, current: 0 }, partial || {}));
 }
 
+function pad2(n) {
+  return n < 10 ? "0" + n : String(n);
+}
+
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  var t = new Date();
+  return t.getFullYear() + "-" + pad2(t.getMonth() + 1) + "-" + pad2(t.getDate());
 }
 
 function emptyStock() {
@@ -597,6 +602,92 @@ export function stockStats(data) {
     percentagem: percentagem,
     inicio: inicio,
     dias: dias,
+  };
+}
+
+function localKeyFromDate(d) {
+  if (!d || isNaN(d.getTime())) return "";
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+
+function itemDayKey(raw) {
+  if (raw == null || raw === "") return "";
+  if (typeof raw === "number" && isFinite(raw)) return localKeyFromDate(new Date(raw));
+  var s = String(raw).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  return localKeyFromDate(new Date(Date.parse(s)));
+}
+
+export function stockItemPurchaseDay(item) {
+  return itemDayKey(item && (item.data_compra || item.dataCompra)) || "";
+}
+
+export function stockItemSaleDay(item) {
+  return itemDayKey(item && (item.data_venda || item.dataVenda)) || stockItemPurchaseDay(item);
+}
+
+function mondaySundayRange(now) {
+  now = now || new Date();
+  var dow = (now.getDay() + 6) % 7;
+  var mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+  var sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+  return { start: localKeyFromDate(mon), end: localKeyFromDate(sun) };
+}
+
+function dayInRange(day, start, end) {
+  return !!day && day >= start && day <= end;
+}
+
+function compareDayDesc(a, b) {
+  if (a === b) return 0;
+  if (!a) return 1;
+  if (!b) return -1;
+  return a > b ? -1 : 1;
+}
+
+export function sortStockByPurchaseDate(items) {
+  return (items || []).slice().sort(function(a, b) {
+    var byDay = compareDayDesc(stockItemPurchaseDay(a), stockItemPurchaseDay(b));
+    if (byDay) return byDay;
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
+  });
+}
+
+export function sortStockBySaleDate(items) {
+  return (items || []).slice().sort(function(a, b) {
+    var byDay = compareDayDesc(stockItemSaleDay(a), stockItemSaleDay(b));
+    if (byDay) return byDay;
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
+  });
+}
+
+export function stockThisWeek(data, now) {
+  var range = mondaySundayRange(now);
+  var items = (data && data.items) || [];
+  var lucro = 0;
+  var vendas = 0;
+  var compras = 0;
+  var nVendas = 0;
+  var nCompras = 0;
+  items.forEach(function(item) {
+    if (dayInRange(stockItemPurchaseDay(item), range.start, range.end)) {
+      compras += Number(item.compra) || 0;
+      nCompras += 1;
+    }
+    if (item.status === "Vendido" && dayInRange(stockItemSaleDay(item), range.start, range.end)) {
+      vendas += Number(item.venda) || 0;
+      lucro += stockItemProfit(item);
+      nVendas += 1;
+    }
+  });
+  return {
+    start: range.start,
+    end: range.end,
+    lucro: lucro,
+    vendas: vendas,
+    compras: compras,
+    nVendas: nVendas,
+    nCompras: nCompras,
   };
 }
 

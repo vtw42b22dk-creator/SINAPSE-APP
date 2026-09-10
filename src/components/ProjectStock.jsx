@@ -12,6 +12,10 @@ var STOCK_CSS = [
   ".ps-actions{display:flex;gap:8px;flex-wrap:wrap}",
   ".ps-top{margin-bottom:8px}",
   ".ps-add{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}",
+  ".ps-week{margin:0 0 10px}",
+  ".ps-week-h{margin:0 0 2px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px;text-transform:uppercase}",
+  ".ps-week-h span{color:#6E6E76;letter-spacing:0;text-transform:none;font-weight:400;margin-left:8px}",
+  ".ps-week .ps-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin:0}",
   ".ps-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 8px}",
   ".ps-stat{min-width:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
@@ -47,6 +51,7 @@ var STOCK_CSS = [
   "@media(max-width:719px){",
   ".ps-add{grid-template-columns:1fr 1fr}.ps-add .pm-btn{grid-column:1/-1;justify-content:center;min-height:44px}",
   ".ps-stats{grid-template-columns:1fr 1fr;gap:6px}",
+  ".ps-week .ps-stats{grid-template-columns:1fr 1fr}",
   ".ps-stat b{font-size:15px}",
   ".ps-charts{grid-template-columns:1fr;gap:8px}",
   ".ps-card{grid-template-columns:1fr;padding:8px 0 10px}",
@@ -63,7 +68,10 @@ function parseMoney(raw) {
 }
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  var t = new Date();
+  var m = t.getMonth() + 1;
+  var d = t.getDate();
+  return t.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d);
 }
 
 function fmtShort(n) {
@@ -394,9 +402,16 @@ export function ProjectStock(props) {
   }
 
   var stats = useMemo(function() { return data ? projectModuleStore.stockStats(data) : null; }, [data]);
+  var week = useMemo(function() { return data ? projectModuleStore.stockThisWeek(data) : null; }, [data]);
   var weekly = useMemo(function() { return data ? projectModuleStore.stockWeeklySeries(data) : { labels: ["Semana Atual"], lucros: [0], compras: [0] }; }, [data]);
-  var disponiveis = data ? data.items.filter(function(i) { return i.status === "Disponível"; }) : [];
-  var vendidos = data ? data.items.filter(function(i) { return i.status === "Vendido"; }).slice().reverse() : [];
+  var disponiveis = useMemo(function() {
+    if (!data) return [];
+    return projectModuleStore.sortStockByPurchaseDate(data.items.filter(function(i) { return i.status === "Disponível"; }));
+  }, [data]);
+  var vendidos = useMemo(function() {
+    if (!data) return [];
+    return projectModuleStore.sortStockBySaleDate(data.items.filter(function(i) { return i.status === "Vendido"; }));
+  }, [data]);
   var sheetItem = sheet && data ? data.items.find(function(i) { return i.id === sheet.id; }) : null;
 
   if (!data || !stats) {
@@ -435,6 +450,29 @@ export function ProjectStock(props) {
 
       {msg && <p className={msg.kind === "err" ? "ps-err" : "ps-ok"}>{msg.text}</p>}
 
+      {week ? (
+        <div className="ps-week">
+          <h3 className="ps-week-h">Esta semana<span>{fmtDay(week.start)} – {fmtDay(week.end)}</span></h3>
+          <div className="ps-stats">
+            <div className="ps-stat">
+              <p>Lucro</p>
+              <b style={{ color: week.lucro >= 0 ? "#8FB39B" : "#C08C8C" }}>{fmtShort(week.lucro)}</b>
+            </div>
+            <div className="ps-stat">
+              <p>Vendas</p>
+              <b>{fmtShort(week.vendas)}</b>
+              <span className="ps-stat-sub">{week.nVendas} {week.nVendas === 1 ? "venda" : "vendas"}</span>
+            </div>
+            <div className="ps-stat">
+              <p>Compras</p>
+              <b>{fmtShort(week.compras)}</b>
+              <span className="ps-stat-sub">{week.nCompras} {week.nCompras === 1 ? "artigo" : "artigos"}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <h3 className="ps-week-h">Total</h3>
       <div className="ps-stats">
         <div className="ps-stat"><p>Lucro</p><b style={{ color: stats.lucroTotal >= 0 ? "#8FB39B" : "#C08C8C" }}>{fmtShort(stats.lucroTotal)}</b></div>
         <div className="ps-stat"><p>Faturação</p><b>{fmtShort(stats.totalFaturado)}</b></div>
