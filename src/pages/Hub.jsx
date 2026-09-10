@@ -401,6 +401,7 @@ export default function Hub() {
 
         <footer className="hub-foot">
           <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {mods.length} módulos activos</p>
+          <button type="button" className="ui-line-btn ui-tap" style={{ marginTop: 14 }} onClick={function() { navigate("/quick"); }}>Atalhos iPhone</button>
         </footer>
       </div>
     </div>

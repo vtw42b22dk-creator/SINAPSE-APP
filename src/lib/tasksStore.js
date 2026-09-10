@@ -197,3 +197,16 @@ export async function createLinkedTask(tasks, source) {
 export function touchTask(task, patch) {
   return Object.assign({}, task, patch || {}, { updated: Date.now() });
 }
+
+export function newInboxTask(title, notes) {
+  var now = Date.now();
+  return normalize({
+    id: uid("t"),
+    title: title || "Nova tarefa",
+    notes: notes || "",
+    column: "inbox",
+    source_type: "shortcut",
+    created: now,
+    updated: now,
+  });
+}

@@ -45,6 +45,7 @@ export function moduleFromPath(path) {
   if (path.indexOf("/projects") === 0) return "projects";
   if (path.indexOf("/wishlist") === 0) return "wishlist";
   if (path.indexOf("/finance") === 0) return "finance";
+  if (path.indexOf("/quick") === 0) return "finance";
   return "hub";
 }
 

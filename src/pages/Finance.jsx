@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import * as financeStore from "../lib/financeStore";
 import * as incomeStore from "../lib/incomeStore";
 import FinanceLedger from "../components/FinanceLedger";
@@ -64,6 +65,7 @@ var incomeAdapter = {
 };
 
 export default function Finance() {
+  var navigate = useNavigate();
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
@@ -136,9 +138,10 @@ export default function Finance() {
             <HubBack />
             <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 18 : 16, fontWeight: 500, letterSpacing: 0.2, color: MODULE_ACCENT, margin: 0 }}>Financeiro</h1>
           </div>
-          <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto" }}>
+          <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto", flexWrap: "wrap" }}>
             <button className="fin-btn" onClick={function() { setTab("expense"); }} style={Object.assign({}, tabBtn(tab === "expense", EXPENSE_ACCENT), isMobile ? { flex: 1 } : null)}>Gastos</button>
             <button className="fin-btn" onClick={function() { setTab("income"); }} style={Object.assign({}, tabBtn(tab === "income", INCOME_ACCENT), isMobile ? { flex: 1 } : null)}>Recursos</button>
+            <button className="fin-btn" onClick={function() { navigate("/quick"); }} style={Object.assign({}, tabBtn(false, MODULE_ACCENT), isMobile ? { flex: 1 } : null)}>Atalhos</button>
           </div>
         </div>
       </header>
