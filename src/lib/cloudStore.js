@@ -11,6 +11,12 @@ import {
   isValidRowArray,
 } from "./dataGuard";
 import { isCloudPullPaused, pauseCloudPull } from "./cloudSyncGuard";
+import {
+  ensureWriteSession,
+  saveEmergencyDraft,
+  clearEmergencyDraft,
+  listEmergencyDrafts,
+} from "./safeCloudWrite";
 
 var LAST_USER_KEY = "sinapse-last-user-id-v1";
 
@@ -349,19 +355,19 @@ export async function replaceRows(table, localKey, rows, options) {
     return { ok: true, cloud: false, emergency: true, error: "Supabase não configurado.", rows: stamped };
   }
 
-  var session = await ensureWriteSession();
-  if (!session.canWriteCloud || !session.user) {
-    saveEmergencyDraft(localKey, stamped, table);
-    return {
-      ok: true,
-      cloud: false,
-      emergency: true,
-      error: session.reason || "Sem sessão",
-      rows: stamped,
-    };
-  }
-
   try {
+    var session = await ensureWriteSession();
+    if (!session.canWriteCloud || !session.user) {
+      saveEmergencyDraft(localKey, stamped, table);
+      return {
+        ok: true,
+        cloud: false,
+        emergency: true,
+        error: session.reason || "Sem sessão",
+        rows: stamped,
+      };
+    }
+
     var payload = stamped.map(function(row) {
       return cleanPayload(row, session.user.id);
     });

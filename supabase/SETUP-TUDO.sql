@@ -107,8 +107,11 @@ create policy "own income categories" on public.income_categories for all using 
 create policy "own incomes" on public.incomes for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ---------- REALTIME (opcional; ignora se já existir) ----------
+do $rl$ begin alter publication supabase_realtime add table public.calendar_events; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.tasks; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.journal_spaces; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.journal_blocks; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.journal_note_layout; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.wishlist_groups; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.wishlist_items; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.finance_categories; exception when others then null; end $rl$;
