@@ -8,7 +8,8 @@ export var MOBILE_GLOBAL_CSS = [
   "body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}",
   ".mod-main header h1,.mod-h1{font-size:1.2rem!important;letter-spacing:.6px!important}",
   ".mod-main input,.mod-main select,.mod-main textarea{font-size:1rem!important;min-height:44px}",
-  ".mod-main button:not(.mod-icon-btn){font-size:0.92rem!important;min-height:42px}",
+  ".mod-main button:not(.mod-icon-btn):not(.tk-check):not(.tk-notes-tog){font-size:0.92rem!important;min-height:42px}",
+  ".mod-main .tk-check,.mod-main .tk-sub>button,.mod-main .tk-act>button,.mod-main .tk-notes-tog{min-height:0!important;font-size:inherit!important}",
   ".mod-lbl{font-size:0.78rem!important;letter-spacing:.5px!important}",
   ".mod-stat{font-size:0.88rem!important}",
   "[data-scrollable]{-webkit-overflow-scrolling:touch}",
@@ -20,7 +21,7 @@ export var MOBILE_GLOBAL_CSS = [
   "}",
   "@media(pointer:coarse){",
   "button,a,[role='button']{touch-action:manipulation}",
-  ".tk-check,.tk-sub>button{min-width:44px;min-height:44px}",
+  ".tk-check,.tk-sub>button{min-width:22px;min-height:22px}",
   "}",
 ].join("");
 

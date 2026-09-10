@@ -64,7 +64,7 @@ export var MODULE_GLOW_CSS = ".mod-glow{position:fixed;width:min(520px,70vw);hei
 /** Regras partilhadas — acentos com var(--mc) em toda a app (base B&W). */
 export var MODULE_ACCENT_CSS = [
   ":root{--mc:var(--accent,#E6E6E9)}",
-  ".ui-line-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}",
+  "@media(hover:hover) and (pointer:fine){.ui-line-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}}",
   ".ui-in:focus{border-color:color-mix(in srgb,var(--mc) 70%,#fff 30%);padding-left:12px}",
   ".mod-accent{color:var(--mc)!important}",
   ".mod-accent-bd{border-bottom-color:var(--mc)!important;color:var(--mc)!important}",

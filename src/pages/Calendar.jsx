@@ -68,19 +68,25 @@ var CHRO_CSS = [
   ".ch-allday-bar{width:3px;align-self:stretch;flex-shrink:0;background:var(--ec)}",
   ".ch-allday-title{margin:0;font-size:14px;color:#EDEDEF;line-height:1.4}",
   ".ch-track{position:relative;margin-left:48px;min-height:" + (HOURS * HOUR_H) + "px}",
-  ".ch-hour{position:absolute;left:-48px;right:0;height:" + HOUR_H + "px;border-top:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background var(--dur) var(--ease)}",
-  ".ch-hour:hover{background:rgba(255,255,255,.02)}",
-  ".ch-hour-lbl{position:absolute;left:-48px;top:-7px;width:40px;text-align:right;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76}",
+  ".ch-hour{position:absolute;left:-48px;right:0;height:" + HOUR_H + "px;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease);pointer-events:none}",
+  ".ch-hour-lbl{position:absolute;left:-48px;top:-7px;width:40px;text-align:right;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;pointer-events:none}",
+  ".ch-track.is-paint{cursor:ns-resize;user-select:none}",
+  ".ch-draft{position:absolute;left:0;right:0;z-index:12;pointer-events:none;border-radius:5px;overflow:hidden;border:1px dashed color-mix(in srgb,var(--mc) 55%,transparent);background:color-mix(in srgb,var(--mc) 16%,transparent)}",
+  ".ch-draft-lbl{margin:0;padding:6px 10px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--mc)}",
   ".ch-now{position:absolute;left:-52px;right:0;height:2px;background:var(--mc);z-index:20;pointer-events:none;animation:chNow 2.4s ease infinite;filter:drop-shadow(0 0 6px var(--mc))}",
   ".ch-now-dot{position:absolute;left:0;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--mc)}",
   ".ch-now-time{position:absolute;left:-48px;top:-8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mc);font-weight:500}",
-  ".ch-ev{position:absolute;left:0;right:8px;z-index:10;display:flex;align-items:stretch;min-height:28px;cursor:grab;touch-action:none;border-radius:var(--radius-sm);overflow:hidden;transition:transform .2s var(--ease),filter .2s}",
-  ".ch-ev:hover{transform:translateX(4px);filter:brightness(1.12) drop-shadow(0 6px 14px rgba(0,0,0,.4));z-index:15}",
+  ".ch-ev{position:absolute;left:0;right:auto;z-index:10;display:flex;align-items:stretch;min-height:28px;cursor:grab;touch-action:none;border-radius:5px;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;transition:filter .2s}",
+  ".ch-ev:hover{filter:brightness(1.1);z-index:15}",
   ".ch-ev.is-edit{outline:1px solid var(--mc);outline-offset:2px;z-index:25}",
+  ".ch-ev--open{min-height:32px}",
+  ".ch-ev--open .ch-ev-body{background:linear-gradient(180deg,color-mix(in srgb,var(--ec) 18%,transparent),color-mix(in srgb,var(--ec) 4%,transparent))}",
   ".ch-ev-bar{width:3px;flex-shrink:0;background:var(--ec);filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ec) 55%,transparent))}",
-  ".ch-ev-body{flex:1;min-width:0;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(135deg,color-mix(in srgb,var(--ec) 10%,transparent),rgba(255,255,255,.02))}",
-  ".ch-ev-time{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);letter-spacing:.3px}",
-  ".ch-ev-title{margin:3px 0 0;font-size:12px;color:#EDEDEF;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-ev-body{flex:1;min-width:0;padding:7px 11px 8px;border-bottom:none;background:color-mix(in srgb,var(--ec) 12%,rgba(255,255,255,.03))}",
+  ".ch-ev-time{margin:0;font-size:10.5px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--ec);letter-spacing:.04em}",
+  ".ch-ev-title{margin:2px 0 0;font-size:13px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:#EDEDEF;line-height:1.3;letter-spacing:-0.02em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}",
+  ".ch-resize{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize;z-index:4}",
+  ".ch-resize:hover{background:linear-gradient(transparent,color-mix(in srgb,var(--ec) 28%,transparent))}",
   ".ch-wk{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
   ".ch-wk-board{min-width:100%}",
   ".ch-wk-board--mob{min-width:640px}",
@@ -112,17 +118,19 @@ var CHRO_CSS = [
   ".ch-wk-col:first-child{border-left:none}",
   ".ch-wk-col.is-on{background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%)}",
   ".ch-wk-col.is-today{background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,transparent 40%)}",
-  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background var(--dur) var(--ease)}",
-  ".ch-wk-hour:hover{background:rgba(255,255,255,.03)}",
+  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease)}",
+  ".ch-wk-col.is-paint{cursor:ns-resize;user-select:none}",
   ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:var(--mc);z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite;filter:drop-shadow(0 0 6px var(--mc))}",
   ".ch-wk-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--mc)}",
-  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:24px;cursor:grab;touch-action:none;overflow:hidden;border-radius:var(--radius-sm);transition:transform .18s var(--ease),filter .18s,z-index 0s}",
-  ".ch-wk-ev:hover{transform:translateY(-2px) scale(1.015);filter:brightness(1.12) drop-shadow(0 8px 16px rgba(0,0,0,.4));z-index:16}",
+  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:24px;cursor:grab;touch-action:none;overflow:hidden;border-radius:5px;font-family:'IBM Plex Sans',sans-serif;transition:filter .18s,z-index 0s}",
+  ".ch-wk-ev:hover{filter:brightness(1.1);z-index:16}",
   ".ch-wk-ev.is-edit{z-index:24;outline:1px solid var(--mc);outline-offset:1px}",
   ".ch-wk-ev-bar{width:3px;flex-shrink:0;background:var(--ec);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--ec) 55%,transparent))}",
-  ".ch-wk-ev-body{flex:1;min-width:0;padding:4px 6px;background:linear-gradient(135deg,color-mix(in srgb,var(--ec) 14%,transparent),rgba(255,255,255,.03));border-bottom:1px solid rgba(255,255,255,.08)}",
-  ".ch-wk-ev-t{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--ec);line-height:1.2;opacity:.9}",
-  ".ch-wk-ev-n{margin:2px 0 0;font-size:10px;color:#EDEDEF;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".ch-wk-ev-body{flex:1;min-width:0;padding:5px 7px;background:color-mix(in srgb,var(--ec) 14%,rgba(255,255,255,.03));border-bottom:none}",
+  ".ch-wk-ev-t{margin:0;font-size:10px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--ec);line-height:1.2;letter-spacing:.03em}",
+  ".ch-wk-ev-n{margin:2px 0 0;font-size:12px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:#EDEDEF;line-height:1.25;letter-spacing:-0.02em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}",
+  ".ch-wk-ev--open .ch-wk-ev-body{background:linear-gradient(180deg,color-mix(in srgb,var(--ec) 18%,transparent),color-mix(in srgb,var(--ec) 4%,transparent))}",
+  ".ch-wk-resize{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize;z-index:4}",
   ".ch-wk-ev--ghost{opacity:.55;pointer-events:none;z-index:30}",
   ".ch-wk-scroll-h{overflow-x:auto;overflow-y:auto}",
   ".ch-week-hero{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-0.03em;margin:0;background-image:linear-gradient(135deg,#EDEDEF 60%,var(--mc));-webkit-background-clip:text;background-clip:text;color:transparent}",
@@ -239,7 +247,12 @@ function minToTime(m) {
   return pad(Math.floor(m / 60)) + ":" + pad(m % 60);
 }
 function snapMin(m) { return Math.round(m / SNAP) * SNAP; }
-function evDuration(ev) { return ev.allDay ? 1440 : Math.max(SNAP, ev.duration || 60); }
+function isOpenEnd(ev) { return !!(ev && !ev.allDay && (ev.openEnd || ev.duration === 0)); }
+function evDuration(ev) {
+  if (ev.allDay) return 1440;
+  if (isOpenEnd(ev)) return 30;
+  return Math.max(SNAP, ev.duration || 60);
+}
 function durationLabel(minutes) {
   if (minutes >= 60) {
     var h = Math.floor(minutes / 60), r = minutes % 60;
@@ -249,7 +262,7 @@ function durationLabel(minutes) {
 }
 function addMinutes(t, minutes) { return minToTime(timeToMin(t) + minutes); }
 function eventEndTime(ev) {
-  if (ev.allDay || !ev.time) return null;
+  if (ev.allDay || !ev.time || isOpenEnd(ev)) return null;
   return minToTime(timeToMin(ev.time) + evDuration(ev));
 }
 function durationFromTimes(start, end) {
@@ -257,23 +270,59 @@ function durationFromTimes(start, end) {
 }
 function formatEventTime(ev) {
   if (ev.allDay) return "Dia todo";
+  if (isOpenEnd(ev)) return (ev.time || "") + " →";
   return ev.time + " – " + eventEndTime(ev);
 }
 function layoutDayEvents(list) {
-  var timed = list.filter(function(ev) { return !ev.allDay && ev.time; });
-  timed.sort(function(a, b) { return timeToMin(a.time) - timeToMin(b.time); });
-  var colEnds = [];
-  return timed.map(function(ev) {
+  var timed = (list || []).filter(function(ev) { return !ev.allDay && ev.time; }).map(function(ev) {
     var start = timeToMin(ev.time);
     var dur = evDuration(ev);
+    return { ev: ev, start: start, end: start + dur, dur: dur };
+  });
+  timed.sort(function(a, b) {
+    if (a.start !== b.start) return a.start - b.start;
+    return b.dur - a.dur;
+  });
+  var colEnds = [];
+  timed.forEach(function(item) {
     var col = 0;
     for (var i = 0; i < colEnds.length; i++) {
-      if (colEnds[i] <= start) { col = i; break; }
+      if (colEnds[i] <= item.start) { col = i; break; }
       col = i + 1;
     }
-    if (col >= colEnds.length) colEnds.push(start + dur);
-    else colEnds[col] = start + dur;
-    return { ev: ev, start: start, dur: dur, col: col, cols: colEnds.length };
+    if (col >= colEnds.length) colEnds.push(item.end);
+    else colEnds[col] = item.end;
+    item.col = col;
+  });
+  var n = timed.length;
+  var parent = timed.map(function(_, i) { return i; });
+  function find(i) { return parent[i] === i ? i : (parent[i] = find(parent[i])); }
+  function union(a, b) { a = find(a); b = find(b); if (a !== b) parent[a] = b; }
+  function overlaps(a, b) { return a.start < b.end && b.start < a.end; }
+  for (var i = 0; i < n; i++) {
+    for (var j = i + 1; j < n; j++) {
+      if (overlaps(timed[i], timed[j])) union(i, j);
+    }
+  }
+  var groupMax = {};
+  timed.forEach(function(item, i) {
+    var g = find(i);
+    groupMax[g] = Math.max(groupMax[g] || 0, item.col + 1);
+  });
+  return timed.map(function(item, i) {
+    var g = find(i);
+    var cols = groupMax[g] || 1;
+    var occupied = {};
+    timed.forEach(function(other, j) {
+      if (j === i || find(j) !== g || !overlaps(item, other)) return;
+      occupied[other.col] = true;
+    });
+    var span = 1;
+    for (var c = item.col + 1; c < cols; c++) {
+      if (occupied[c]) break;
+      span++;
+    }
+    return { ev: item.ev, start: item.start, dur: item.dur, col: item.col, cols: cols, span: span };
   });
 }
 function scrollToNow(el, dayKey, todayKey, smooth) {
@@ -284,11 +333,28 @@ function scrollToNow(el, dayKey, todayKey, smooth) {
   else el.scrollTop = Math.max(0, top);
 }
 
+function eventTimeLabel(ev, dur) {
+  if (isOpenEnd(ev)) return (ev.time || "") + " →";
+  return (ev.time || "") + " · " + durationLabel(dur);
+}
+
+function evBlockStyle(seg, hourH, gapPx) {
+  var cols = Math.max(1, seg.cols);
+  var span = Math.max(1, seg.span || 1);
+  var gap = gapPx == null ? 2 : gapPx;
+  return {
+    left: (seg.col / cols * 100) + "%",
+    width: "calc(" + (span / cols * 100) + "% - " + gap + "px)",
+  };
+}
+
 /* ── Timeline do dia ── */
 function DayStream(props) {
   var scrollRef = useRef(null);
   var trackRef = useRef(null);
   var dragRef = useRef(null);
+  var draftS = useState(null);
+  var draftRange = draftS[0], setDraftRange = draftS[1];
   var tickS = useState(0);
   useEffect(function() {
     var id = setInterval(function() { tickS[1](Date.now()); }, 1000);
@@ -317,13 +383,53 @@ function DayStream(props) {
     var el = trackRef.current;
     if (!el) return null;
     var r = el.getBoundingClientRect();
-    var y = clientY - r.top;
+    var y = Math.max(0, Math.min(r.height, clientY - r.top));
     return snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
   }
 
-  function onHourClick(mins) {
+  function openRange(origin, current, moved) {
+    var end = current == null ? origin : current;
+    var a = Math.min(origin, end);
+    var b = Math.max(origin, end);
+    var dur = moved ? Math.max(SNAP, b - a) : 60;
+    if (props.onSlotRange) props.onSlotRange(dayKey, a, a + dur);
+    else props.onSlotClick(dayKey, a);
+  }
+
+  function onTrackPointerDown(e) {
     if (props.readOnly) return;
-    props.onSlotClick(dayKey, mins);
+    if (e.button != null && e.button !== 0) return;
+    if (e.target && e.target.closest && e.target.closest(".ch-ev")) return;
+    var origin = posFromY(e.clientY);
+    if (origin == null) return;
+    e.preventDefault();
+    dragRef.current = { kind: "create", origin: origin, startY: e.clientY, moved: false };
+    setDraftRange({ start: origin, dur: 60 });
+    function onMove(pe) {
+      if (!dragRef.current || dragRef.current.kind !== "create") return;
+      var mins = posFromY(pe.clientY);
+      if (mins == null) return;
+      if (Math.abs(pe.clientY - dragRef.current.startY) > 6) dragRef.current.moved = true;
+      var a = Math.min(dragRef.current.origin, mins);
+      var b = Math.max(dragRef.current.origin, mins);
+      var dur = Math.max(SNAP, b - a);
+      if (!dragRef.current.moved || dur < SNAP) dur = 60;
+      setDraftRange({ start: a, dur: dur });
+    }
+    function onUp(pe) {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      var d = dragRef.current;
+      dragRef.current = null;
+      setDraftRange(null);
+      if (!d || d.kind !== "create") return;
+      if (pe && pe.type === "pointercancel") return;
+      openRange(d.origin, d.moved ? posFromY(pe.clientY) : d.origin, d.moved);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
 
   function onEvPointerDown(e, ev) {
@@ -331,26 +437,58 @@ function DayStream(props) {
     e.stopPropagation();
     var startMin = timeToMin(ev.time);
     var dur = evDuration(ev);
-    dragRef.current = { id: ev.id, startMin: startMin, dur: dur, startY: e.clientY, moved: false };
+    dragRef.current = { kind: "move", id: ev.id, startMin: startMin, dur: dur, startY: e.clientY, moved: false, openEnd: isOpenEnd(ev) };
     function onMove(pe) {
-      if (!dragRef.current) return;
+      if (!dragRef.current || dragRef.current.kind !== "move") return;
       if (Math.abs(pe.clientY - dragRef.current.startY) > 8) dragRef.current.moved = true;
     }
     function onUp(pe) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      if (!dragRef.current) return;
+      window.removeEventListener("pointercancel", onUp);
+      if (!dragRef.current || dragRef.current.kind !== "move") return;
       var d = dragRef.current;
       dragRef.current = null;
       if (!d.moved) { props.onEventClick(ev, dayKey); return; }
       var mins = posFromY(pe.clientY);
       if (mins != null && props.onMove) {
         mins = Math.max(0, Math.min(1440 - d.dur, mins));
-        props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.dur);
+        props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.openEnd ? 0 : d.dur);
       }
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  }
+
+  function onResizePointerDown(e, ev) {
+    if (props.readOnly || isOpenEnd(ev)) return;
+    e.stopPropagation();
+    e.preventDefault();
+    var startDur = evDuration(ev);
+    var startMin = timeToMin(ev.time);
+    dragRef.current = { kind: "resize", id: ev.id, startDur: startDur, startMin: startMin, startY: e.clientY, dur: startDur };
+    setDraftRange({ start: startMin, dur: startDur, live: true });
+    function onMove(pe) {
+      if (!dragRef.current || dragRef.current.kind !== "resize") return;
+      var delta = snapMin(((pe.clientY - dragRef.current.startY) / HOUR_H) * 60);
+      var dur = Math.max(SNAP, Math.min(1440 - startMin, startDur + delta));
+      dragRef.current.dur = dur;
+      setDraftRange({ start: startMin, dur: dur, live: true });
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      var d = dragRef.current;
+      dragRef.current = null;
+      setDraftRange(null);
+      if (!d || d.kind !== "resize" || !props.onMove) return;
+      props.onMove(ev.id, dayKey, dayKey, ev.time, d.dur);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
 
   return (
@@ -370,11 +508,10 @@ function DayStream(props) {
           })}
         </div>
       ) : null}
-      <div ref={trackRef} className="ch-track">
+      <div ref={trackRef} className={"ch-track" + (draftRange ? " is-paint" : "")} onPointerDown={onTrackPointerDown}>
         {Array.from({ length: HOURS }, function(_, h) {
           return (
-            <div key={h} className="ch-hour" style={{ top: h * HOUR_H }}
-              onClick={function() { onHourClick(h * 60); }}>
+            <div key={h} className="ch-hour" style={{ top: h * HOUR_H }}>
               <span className="ch-hour-lbl">{pad(h)}:00</span>
             </div>
           );
@@ -390,22 +527,30 @@ function DayStream(props) {
           var c = ev.color || ACCENT;
           var top = (seg.start / 60) * HOUR_H;
           var h = Math.max(28, (seg.dur / 60) * HOUR_H - 2);
-          var w = 100 / Math.max(1, seg.cols);
           var isEdit = props.editId === ev.id;
+          var open = isOpenEnd(ev);
+          var box = evBlockStyle(seg, HOUR_H, 2);
           return (
-            <div key={ev.id} className={"ch-ev" + (isEdit ? " is-edit" : "")} style={{
-              "--ec": c, top: top, height: h,
-              left: (seg.col / seg.cols * 100) + "%",
-              width: "calc(" + w + "% - 4px)",
+            <div key={ev.id} className={"ch-ev" + (isEdit ? " is-edit" : "") + (open ? " ch-ev--open" : "")} style={{
+              "--ec": c, top: top, height: h, left: box.left, width: box.width,
             }} onPointerDown={function(e) { onEvPointerDown(e, ev); }}>
               <span className="ch-ev-bar" />
               <div className="ch-ev-body">
-                <p className="ch-ev-time">{ev.time} · {durationLabel(seg.dur)}</p>
+                <p className="ch-ev-time">{eventTimeLabel(ev, seg.dur)}</p>
                 <p className="ch-ev-title">{ev.title || "Sem título"}</p>
               </div>
+              {!open ? <span className="ch-resize" onPointerDown={function(e) { onResizePointerDown(e, ev); }} /> : null}
             </div>
           );
         })}
+        {draftRange ? (
+          <div className="ch-draft" style={{
+            top: (draftRange.start / 60) * HOUR_H,
+            height: Math.max(24, (draftRange.dur / 60) * HOUR_H - 2),
+          }}>
+            <p className="ch-draft-lbl">{minToTime(draftRange.start)} – {minToTime(draftRange.start + draftRange.dur)}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -511,19 +656,47 @@ function WeekPlanner(props) {
 
   function onColPointerDown(e, dayIdx) {
     if (props.readOnly || dragRef.current) return;
+    if (e.button != null && e.button !== 0) return;
     var p = posFromPointer(e.clientX, e.clientY, 15);
     if (!p) return;
-    var slotRef = { minutes: p.minutes, moved: false, startX: e.clientX, startY: e.clientY };
+    e.preventDefault();
+    dragRef.current = { kind: "create", dayIdx: dayIdx, origin: p.minutes, startY: e.clientY, moved: false };
+    setPreview({ kind: "create", dayIdx: dayIdx, minutes: p.minutes, dur: 60, color: ACCENT, title: "Novo" });
     function onMove(pe) {
-      if (Math.abs(pe.clientX - slotRef.startX) + Math.abs(pe.clientY - slotRef.startY) > 10) slotRef.moved = true;
+      var d = dragRef.current;
+      if (!d || d.kind !== "create") return;
+      var np = posFromPointer(pe.clientX, pe.clientY, 15);
+      if (!np) return;
+      if (Math.abs(pe.clientY - d.startY) > 6) d.moved = true;
+      var a = Math.min(d.origin, np.minutes);
+      var b = Math.max(d.origin, np.minutes);
+      var dur = Math.max(SNAP, b - a);
+      if (!d.moved || dur < SNAP) dur = 60;
+      d.dur = dur;
+      d.start = a;
+      setPreview({ kind: "create", dayIdx: dayIdx, minutes: a, dur: dur, color: ACCENT, title: minToTime(a) + " – " + minToTime(a + dur) });
     }
-    function onUp() {
+    function onUp(pe) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      if (!slotRef.moved) props.onSlotClick(weekDays[dayIdx], slotRef.minutes);
+      window.removeEventListener("pointercancel", onUp);
+      var d = dragRef.current;
+      dragRef.current = null;
+      setPreview(null);
+      if (!d || d.kind !== "create") return;
+      if (pe && pe.type === "pointercancel") return;
+      var np = posFromPointer(pe.clientX, pe.clientY, 15);
+      var current = d.moved && np ? np.minutes : d.origin;
+      var a = Math.min(d.origin, current);
+      var b = Math.max(d.origin, current);
+      var dur = d.moved ? Math.max(SNAP, b - a) : 60;
+      var key = weekDays[dayIdx];
+      if (props.onSlotRange) props.onSlotRange(key, a, a + dur);
+      else props.onSlotClick(key, a);
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
 
   function onEvPointerDown(e, ev, dayKey, dayIdx) {
@@ -532,7 +705,7 @@ function WeekPlanner(props) {
     if (e.pointerType === "mouse") e.preventDefault();
     var dur = evDuration(ev);
     var startMin = timeToMin(ev.time);
-    dragRef.current = { id: ev.id, fromKey: dayKey, dayIdx: dayIdx, dur: dur, startX: e.clientX, startY: e.clientY, moved: false, color: ev.color || ACCENT, title: ev.title };
+    dragRef.current = { kind: "move", id: ev.id, fromKey: dayKey, dayIdx: dayIdx, dur: dur, startX: e.clientX, startY: e.clientY, moved: false, color: ev.color || ACCENT, title: ev.title, openEnd: isOpenEnd(ev) };
     setPreview({ id: ev.id, dayIdx: dayIdx, minutes: startMin, dur: dur, color: ev.color || ACCENT, title: ev.title });
 
     function onMove(pe) {
@@ -544,6 +717,7 @@ function WeekPlanner(props) {
     function onUp(pe) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
       if (!dragRef.current) return;
       var d = dragRef.current;
       dragRef.current = null;
@@ -552,12 +726,13 @@ function WeekPlanner(props) {
       var np = posFromPointer(pe.clientX, pe.clientY, d.dur);
       if (np && props.onMove) {
         var mins = Math.max(0, Math.min(1440 - d.dur, np.minutes));
-        props.onMove(d.id, d.fromKey, np.key, minToTime(mins), d.dur);
+        props.onMove(d.id, d.fromKey, np.key, minToTime(mins), d.openEnd ? 0 : d.dur);
         props.onSelectDay(np.key);
       }
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
 
   return (
@@ -618,18 +793,20 @@ function WeekPlanner(props) {
                     var c = ev.color || ACCENT;
                     var top = (seg.start / 60) * WK_HOUR_H;
                     var h = Math.max(20, (seg.dur / 60) * WK_HOUR_H - 1);
-                    var w = 100 / Math.max(1, seg.cols);
                     var compact = h < 26;
                     var isEdit = props.editId === ev.id;
+                    var open = isOpenEnd(ev);
+                    var cols = Math.max(1, seg.cols);
+                    var span = Math.max(1, seg.span || 1);
                     return (
-                      <div key={ev.id} className={"ch-wk-ev" + (isEdit ? " is-edit" : "")} style={{
+                      <div key={ev.id} className={"ch-wk-ev" + (isEdit ? " is-edit" : "") + (open ? " ch-wk-ev--open" : "")} style={{
                         "--ec": c, top: top, height: h,
-                        left: "calc(" + (seg.col / seg.cols * 100) + "% + 1px)",
-                        width: "calc(" + w + "% - 2px)",
+                        left: "calc(" + (seg.col / cols * 100) + "% + 1px)",
+                        width: "calc(" + (span / cols * 100) + "% - 2px)",
                       }} onPointerDown={function(e) { onEvPointerDown(e, ev, k, dayIdx); }}>
                         <span className="ch-wk-ev-bar" />
                         <div className="ch-wk-ev-body">
-                          {!compact ? <p className="ch-wk-ev-t">{ev.time}</p> : null}
+                          {!compact ? <p className="ch-wk-ev-t">{open ? (ev.time + " →") : ev.time}</p> : null}
                           <p className="ch-wk-ev-n">{ev.title || "·"}</p>
                         </div>
                       </div>
@@ -729,7 +906,7 @@ function MobileAgenda(props) {
         return (
           <button key={ev.id} type="button" className="ch-ag-card" style={{ "--ec": ev.color || ACCENT }}
             onClick={function() { props.onEventClick(ev, props.dayKey); }}>
-            <span className="ch-ag-when">{ev.allDay ? "todo" : (ev.time || "")}</span>
+            <span className="ch-ag-when">{ev.allDay ? "todo" : isOpenEnd(ev) ? ((ev.time || "") + " →") : (ev.time || "")}</span>
             <span className="ch-ag-bar" />
             <span>
               <p className="ch-ag-title">{ev.title || "Sem título"}</p>
@@ -762,22 +939,34 @@ function EventSheet(props) {
           <input type="date" className="ch-in ui-in" value={p.dayKey}
             onChange={function(e) { if (e.target.value) p.onDayChange(e.target.value); }} />
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#A0A0A8", marginBottom: 16, cursor: "pointer" }}>
-          <input type="checkbox" checked={ev.allDay} onChange={function(e) { p.setDraft(Object.assign({}, ev, { allDay: e.target.checked })); }} />
-          Dia todo
-        </label>
+        <div className="ch-field" style={{ display: "flex", flexWrap: "wrap", gap: 18, marginBottom: 16 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#A0A0A8", cursor: "pointer" }}>
+            <input type="checkbox" checked={ev.allDay} onChange={function(e) {
+              p.setDraft(Object.assign({}, ev, { allDay: e.target.checked, openEnd: e.target.checked ? false : ev.openEnd }));
+            }} />
+            Dia todo
+          </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: ev.allDay ? "#6E6E76" : "#A0A0A8", cursor: ev.allDay ? "default" : "pointer" }}>
+            <input type="checkbox" checked={!!ev.openEnd && !ev.allDay} disabled={ev.allDay} onChange={function(e) {
+              p.setDraft(Object.assign({}, ev, { openEnd: e.target.checked, allDay: false }));
+            }} />
+            Sem hora de fim
+          </label>
+        </div>
         {!ev.allDay ? (
-          <div className="ch-row2 ch-field">
+          <div className={ev.openEnd ? "ch-field" : "ch-row2 ch-field"}>
             <div>
               <label className="ch-lbl">Início</label>
               <input type="time" className="ch-in ui-in" value={ev.time || "09:00"}
                 onChange={function(e) { p.setDraft(Object.assign({}, ev, { time: e.target.value })); }} />
             </div>
-            <div>
-              <label className="ch-lbl">Fim</label>
-              <input type="time" className="ch-in ui-in" value={ev.endTime || "10:00"}
-                onChange={function(e) { p.setDraft(Object.assign({}, ev, { endTime: e.target.value })); }} />
-            </div>
+            {!ev.openEnd ? (
+              <div>
+                <label className="ch-lbl">Fim</label>
+                <input type="time" className="ch-in ui-in" value={ev.endTime || "10:00"}
+                  onChange={function(e) { p.setDraft(Object.assign({}, ev, { endTime: e.target.value })); }} />
+              </div>
+            ) : null}
           </div>
         ) : null}
         <div className="ch-field">
@@ -960,13 +1149,17 @@ export default function Calendar() {
     if (mode === "month" && !isMobile) setMode("line");
   }
 
-  function openCreate(slotMin) {
+  function openCreate(slotMin, endMin, dayKey) {
+    var key = dayKey || selected;
     var t = slotMin != null ? minToTime(slotMin) : "09:00";
+    var end = endMin != null ? minToTime(endMin) : addMinutes(t, 60);
+    if (timeToMin(end) <= timeToMin(t)) end = addMinutes(t, 60);
     setRepeatDays([false, false, false, false, false, false, false]);
+    if (dayKey) setSelected(dayKey);
     setSheet({
       isEdit: false,
-      dayKey: selected,
-      draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, time: t, endTime: addMinutes(t, 60) },
+      dayKey: key,
+      draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, openEnd: false, time: t, endTime: end },
     });
   }
 
@@ -980,8 +1173,8 @@ export default function Calendar() {
       dayKey: dayKey,
       draft: {
         id: ev.id, title: ev.title || "", notes: ev.notes || "", color: ev.color || ACCENT,
-        allDay: !!ev.allDay, time: ev.time || "09:00",
-        endTime: eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev)),
+        allDay: !!ev.allDay, openEnd: isOpenEnd(ev), time: ev.time || "09:00",
+        endTime: isOpenEnd(ev) ? addMinutes(ev.time || "09:00", 60) : (eventEndTime(ev) || addMinutes(ev.time || "09:00", evDuration(ev))),
       },
     });
   }
@@ -996,8 +1189,9 @@ export default function Calendar() {
       notes: (sheet.draft.notes || "").trim(),
       color: sheet.draft.color || ACCENT,
       allDay: !!sheet.draft.allDay,
+      openEnd: !sheet.draft.allDay && !!sheet.draft.openEnd,
       time: sheet.draft.allDay ? null : sheet.draft.time,
-      duration: sheet.draft.allDay ? null : durationFromTimes(sheet.draft.time, sheet.draft.endTime),
+      duration: sheet.draft.allDay ? null : (sheet.draft.openEnd ? 0 : durationFromTimes(sheet.draft.time, sheet.draft.endTime)),
     };
     var targets = [sheet.dayKey];
     weekDays.forEach(function(k, i) {
@@ -1044,7 +1238,12 @@ export default function Calendar() {
       });
       if (!ev) return prev;
       if (!next[fromKey] || !next[fromKey].length) delete next[fromKey];
-      var updated = Object.assign({}, ev, { time: newTime, duration: dur, allDay: false });
+      var updated = Object.assign({}, ev, {
+        time: newTime,
+        duration: ev.openEnd || dur === 0 ? 0 : dur,
+        openEnd: !!(ev.openEnd || dur === 0),
+        allDay: false,
+      });
       next[toKey] = sortEvents((next[toKey] || []).concat([updated]));
       return next;
     });
@@ -1052,8 +1251,11 @@ export default function Calendar() {
   }
 
   function onSlotClick(dayKey, mins) {
-    setSelected(dayKey);
-    openCreate(mins);
+    openCreate(mins, null, dayKey);
+  }
+
+  function onSlotRange(dayKey, startMin, endMin) {
+    openCreate(startMin, endMin, dayKey);
   }
 
   if (!loaded) {
@@ -1142,13 +1344,13 @@ export default function Calendar() {
           ) : mode === "week" && !isMobile ? (
             <WeekPlanner weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
               isMobile={isMobile} scrollNow={scrollNow} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
-              readOnly={false} onSelectDay={selectDay} onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
+              readOnly={false} onSelectDay={selectDay} onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
           ) : isMobile ? (
             <MobileAgenda dayKey={selected} events={events} onEventClick={openEdit} onAdd={function() { openCreate(); }} />
           ) : (
             <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
               scrollNow={scrollNow} readOnly={false}
-              onEventClick={openEdit} onSlotClick={onSlotClick} onMove={moveEvent} />
+              onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
           )}
         </div>
       </div>

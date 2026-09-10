@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { ProjectsIcon } from "./Projects";
@@ -115,11 +115,29 @@ var HUB_CSS = [
   ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:var(--mc)}",
   ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
+  "@media(hover:none),(pointer:coarse){",
+  ".hub-row:hover{color:" + COLORS.muted + ";padding-left:12px;background:none}",
+  ".hub-row:hover::after{opacity:0}",
+  ".hub-row:hover::before{height:0;opacity:0}",
+  ".hub-row:hover .hub-idx{color:" + COLORS.faint + "}",
+  ".hub-row:hover .hub-dot{opacity:.45;transform:translateY(-50%)}",
+  ".hub-row:hover svg{opacity:.4;color:inherit;transform:none}",
+  ".hub-row:hover h2{color:" + COLORS.text + "}",
+  ".hub-row:hover p{color:" + COLORS.faint + "}",
+  ".hub-row:hover .hub-go{opacity:.45;transform:none;color:" + COLORS.faint + "}",
+  ".hub-row:active{transform:none;background:none;color:" + COLORS.muted + "}",
+  ".hub-row.ui-tap:active:not(:disabled){transform:none}",
+  ".hub-row.is-press{color:" + COLORS.text + ";background:rgba(255,255,255,.04)}",
+  ".hub-row.is-press::before{height:32px;opacity:1}",
+  ".hub-row.is-press h2{color:var(--mc)}",
+  ".hub-row.is-press svg{opacity:1;color:var(--mc)}",
+  "}",
   "@media(max-width:719px){",
   ".hub-inner{padding:36px 16px max(100px,env(safe-area-inset-bottom))}",
   ".hub-top{flex-direction:column;gap:14px;margin-bottom:36px}",
   ".hub-out{align-self:flex-start}",
   ".hub-row{grid-template-columns:36px 24px 1fr auto;gap:12px;padding:20px 4px;min-height:72px}",
+  ".hub-row:hover{padding-left:4px;background:none}",
   ".hub-row svg{display:block}",
   ".hub-row h2{font-size:20px}",
   ".hub-row p{font-size:12.5px;max-width:none}",
@@ -137,8 +155,35 @@ var HUB_CSS = [
 function ModuleRow(props) {
   var mod = props.module;
   var n = String(props.index + 1).padStart(2, "0");
+  var pressS = useState(false);
+  var pressed = pressS[0], setPressed = pressS[1];
+  var startRef = useRef(null);
+
+  function onPointerDown(e) {
+    if (!props.isMobile) return;
+    startRef.current = { x: e.clientX, y: e.clientY, timer: setTimeout(function() { setPressed(true); }, 70) };
+    function onMove(pe) {
+      if (!startRef.current) return;
+      if (Math.abs(pe.clientX - startRef.current.x) + Math.abs(pe.clientY - startRef.current.y) > 6) onEnd();
+    }
+    function onEnd() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onEnd);
+      window.removeEventListener("pointercancel", onEnd);
+      if (startRef.current && startRef.current.timer) clearTimeout(startRef.current.timer);
+      startRef.current = null;
+      setPressed(false);
+    }
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerup", onEnd);
+    window.addEventListener("pointercancel", onEnd);
+  }
+
   return (
-    <button type="button" className="hub-row ui-tap ui-fade-in" style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }} onMouseMove={trackSpotlight} onClick={function() { if (mod.path) props.onClick(mod); }}>
+    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "")} style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
+      onMouseMove={props.isMobile ? undefined : trackSpotlight}
+      onPointerDown={onPointerDown}
+      onClick={function() { if (mod.path) props.onClick(mod); }}>
       <span className="hub-idx">{n}</span>
       <span className="hub-ic-wrap" aria-hidden="true">
         <span className="hub-dot" />
@@ -220,7 +265,7 @@ export default function Hub() {
 
         <nav className="hub-list" aria-label="Módulos">
           {MODULES.map(function(mod, i) {
-            return <ModuleRow key={mod.id} module={mod} index={i} onClick={function() { navigate(mod.path); }} />;
+            return <ModuleRow key={mod.id} module={mod} index={i} isMobile={isMobile} onClick={function() { navigate(mod.path); }} />;
           })}
         </nav>
 

@@ -77,6 +77,9 @@ var TASKS_CSS = [
   ".tk-title{margin:0;line-height:1.45;color:#EDEDEF;overflow-wrap:anywhere;transition:color var(--dur) var(--ease)}",
   ".tk-card.is-done .tk-title{text-decoration:line-through;color:#6E6E76}",
   ".tk-notes{margin:7px 0 0;line-height:1.55;color:#A0A0A8;overflow-wrap:anywhere}",
+  ".tk-notes.is-min{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-clamp:2}",
+  ".tk-notes-tog{margin:6px 0 0;padding:0;border:none;background:none;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;cursor:pointer;min-height:0}",
+  ".tk-notes-tog:hover{color:var(--mc)}",
   ".tk-subs{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}",
   ".tk-sub{display:flex;align-items:center;gap:9px;font-size:12.5px}",
   ".tk-sub>button{display:flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;padding:0;border:1.5px solid rgba(255,255,255,.28);border-radius:50%;background:transparent;color:transparent;font-size:10px;line-height:1;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
@@ -113,9 +116,9 @@ var TASKS_CSS = [
   "@media(max-width:719px){",
   ".tk-head{padding:12px;padding-top:max(12px,env(safe-area-inset-top))}",
   ".tk-head-inner{flex-direction:column;align-items:stretch}",
-  ".tk-check{width:44px;height:44px;margin-top:0;border-width:2px;font-size:20px}",
-  ".tk-sub{gap:12px;min-height:44px}",
-  ".tk-sub>button{width:32px;height:32px;font-size:16px;border-width:2px}",
+  ".tk-check{width:20px;height:20px;margin-top:2px;border-width:1.5px;font-size:11px;flex-shrink:0}",
+  ".tk-sub{gap:8px;min-height:0}",
+  ".tk-sub>button{width:16px;height:16px;font-size:9px;border-width:1.5px}",
   ".tk-act{opacity:1;flex-direction:row;align-items:center}",
   ".tk-act>button{min-width:44px;min-height:44px;font-size:18px;padding:8px}",
   ".tk-card{padding:14px 12px}",
@@ -139,11 +142,20 @@ function todayKey() {
   var t = new Date();
   return t.getFullYear() + "-" + pad(t.getMonth() + 1) + "-" + pad(t.getDate());
 }
+function notesAreLong(notes) {
+  if (!notes) return false;
+  return notes.length > 72 || notes.split("\n").length > 2;
+}
+
 function TaskCard(props) {
   var t = props.task, p = PRIORITIES.find(function(x) { return x.id === t.priority; }) || PRIORITIES[0];
   var overdue = t.due && t.due < todayKey() && props.col !== "done";
   var mob = props.isMobile;
   var done = props.col === "done";
+  var notesOpenS = useState(false);
+  var notesOpen = notesOpenS[0], setNotesOpen = notesOpenS[1];
+  var notes = t.notes || "";
+  var longNotes = notesAreLong(notes);
   return (
     <article
       className={"tk-card" + (done ? " is-done" : "") + (overdue ? " is-late" : "")}
@@ -155,7 +167,18 @@ function TaskCard(props) {
           title={done ? "Reabrir" : "Concluir"}>{done ? "✕" : ""}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p className="tk-title" style={{ fontSize: fs(mob, 13.5, 16) }}>{t.title}</p>
-          {t.notes && <p className="tk-notes" style={{ fontSize: fs(mob, 12, 14) }}>{t.notes}</p>}
+          {notes ? (
+            <div>
+              <p className={"tk-notes" + (!notesOpen && longNotes ? " is-min" : "")} style={{ fontSize: fs(mob, 12, 14) }}>{notes}</p>
+              {longNotes ? (
+                <button type="button" className="tk-notes-tog" onClick={function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setNotesOpen(!notesOpen);
+                }}>{notesOpen ? "Mostrar menos" : "Mostrar mais"}</button>
+              ) : null}
+            </div>
+          ) : null}
           {(t.subtasks || []).length > 0 && (
             <ul className="tk-subs">
               {t.subtasks.map(function(st) {

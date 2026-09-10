@@ -6,6 +6,9 @@ var KEY = "sinapse-calendar-v3";
 var OLD_KEY = "sinapse-calendar-v2";
 
 function normalize(row) {
+  var dur = row.duration == null ? 60 : Number(row.duration);
+  if (!isFinite(dur)) dur = 60;
+  var openEnd = !!(row.openEnd || row.open_end || (!row.allDay && !row.all_day && dur === 0));
   return {
     id: row.id || uid("e"),
     title: row.title || "",
@@ -13,7 +16,8 @@ function normalize(row) {
     color: row.color || "#E6E6E9",
     allDay: !!(row.allDay || row.all_day),
     time: row.time || null,
-    duration: row.duration || 60,
+    duration: openEnd ? 0 : (dur || 60),
+    openEnd: openEnd,
     task_id: row.task_id || null,
   };
 }
@@ -27,7 +31,7 @@ function toDb(dayKey, ev) {
     color: ev.color || "#E6E6E9",
     all_day: !!ev.allDay,
     time: ev.allDay ? null : ev.time,
-    duration: ev.allDay ? null : ev.duration || 60,
+    duration: ev.allDay ? null : (ev.openEnd ? 0 : (ev.duration || 60)),
     task_id: ev.task_id || null,
   };
 }

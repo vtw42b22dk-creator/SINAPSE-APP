@@ -11,7 +11,7 @@ export var MICRO_CSS = [
   ".ui-tap:active:not(:disabled){transform:scale(.96)}",
   ".ui-line-btn{position:relative;background:rgba(255,255,255,.03);border:none;border:1px solid rgba(255,255,255,.1);color:#A0A0A8;padding:8px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.35px;overflow:hidden;border-radius:var(--radius-pill);transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
   ".ui-line-btn::after{content:'';position:absolute;left:0;right:0;bottom:0;height:0;background:var(--mc,#EDEDEF);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease);opacity:0}",
-  ".ui-line-btn:hover{color:var(--mc,#EDEDEF);border-color:color-mix(in srgb,var(--mc,#EDEDEF) 45%,transparent);background:color-mix(in srgb,var(--mc,#EDEDEF) 8%,transparent)}",
+  "@media(hover:hover) and (pointer:fine){.ui-line-btn:hover{color:var(--mc,#EDEDEF);border-color:color-mix(in srgb,var(--mc,#EDEDEF) 45%,transparent);background:color-mix(in srgb,var(--mc,#EDEDEF) 8%,transparent)}.ui-spot:hover::after{opacity:1}}",
   ".ui-line-btn:active{transform:translateY(1px);opacity:.7}",
   ".ui-in{width:100%;box-sizing:border-box;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);color:#EDEDEF;padding:10px 12px;outline:none;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}",
   ".ui-in:focus{border-color:color-mix(in srgb,var(--mc,#EDEDEF) 55%,#fff 45%);background:rgba(255,255,255,.04);padding-left:12px}",
@@ -22,7 +22,7 @@ export var MICRO_CSS = [
   ".ui-slide-right{animation:uiSlideRight var(--dur-slow) var(--ease) both}",
   ".ui-spot{position:relative;overflow:hidden}",
   ".ui-spot::after{content:'';position:absolute;inset:0;background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 14%,transparent),transparent 70%);opacity:0;transition:opacity .35s var(--ease);pointer-events:none}",
-  ".ui-spot:hover::after{opacity:1}",
+  "",
 ].join("");
 
 /** Segue o ponteiro dentro do elemento — alimenta o brilho de .ui-spot via --mx/--my. */
