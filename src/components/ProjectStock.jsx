@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as projectModuleStore from "../lib/projectModuleStore";
 import { ModuleShell, PrimaryBtn } from "./ProjectModules";
 import { useCloudSync } from "../lib/useCloudSync";
-import { isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var MC = "#8FA8C4";
 
@@ -183,14 +183,19 @@ export function ProjectStock(props) {
     intervalMs: 2500,
     shouldSkip: function() { return isCloudPullPaused("project_stock") || !!sheetRef.current; },
     onPull: function() {
+      if (isCloudPullPaused("project_stock") || sheetRef.current) return Promise.resolve();
       return projectModuleStore.loadStock(projectId).then(applyData);
     },
   });
 
   function persist(next) {
     var payload = Object.assign({}, next, { seeded: true, updated: Date.now() });
+    pauseCloudPull(8000, "project_stock");
     applyData(payload);
-    return projectModuleStore.saveStock(projectId, payload);
+    return projectModuleStore.saveStock(projectId, payload).then(function(saved) {
+      if (saved) applyData(saved);
+      return saved;
+    });
   }
 
   function flash(text, kind) {
@@ -200,8 +205,11 @@ export function ProjectStock(props) {
   function addCompra() {
     var src = dataRef.current || data;
     var val = parseMoney(compra);
-    if (!src || !nome.trim() || isNaN(val) || val < 0) { flash("Preço de compra inválido.", "err"); return; }
-    var next = Object.assign({}, src, { items: src.items.slice(), next_id: src.next_id });
+    if (!src || !Array.isArray(src.items) || !nome.trim() || isNaN(val) || val < 0) {
+      flash("Preço de compra inválido.", "err");
+      return;
+    }
+    var next = Object.assign({}, src, { items: src.items.slice(), next_id: src.next_id, deleted_ids: (src.deleted_ids || []).slice() });
     var id = next.next_id;
     next.next_id = id + 1;
     next.items.push({
@@ -281,6 +289,7 @@ export function ProjectStock(props) {
     var src = dataRef.current || data;
     persist(Object.assign({}, src, {
       items: src.items.filter(function(i) { return i.id !== item.id; }),
+      deleted_ids: (src.deleted_ids || []).concat([item.id]),
     }));
     flash("Removido.");
   }

@@ -111,7 +111,9 @@ export default function ProjectWorkspace() {
   useCloudSync({
     tables: ["synapse_projects", "project_investments", "project_notes", "project_kpis", "project_inventory", "project_stock"],
     intervalMs: 2500,
-    shouldSkip: function() { return !loaded || isCloudPullPaused("synapse_projects"); },
+    shouldSkip: function() {
+      return !loaded || isCloudPullPaused("synapse_projects") || isCloudPullPaused("project_stock");
+    },
     onPull: function() {
       return Promise.all([
         synapseStore.loadProjects().then(setProjects),

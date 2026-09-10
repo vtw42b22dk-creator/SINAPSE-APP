@@ -333,9 +333,23 @@ function emptyStock() {
     meta_ativa: false,
     meta_data_inicio: todayKey(),
     items: [],
+    deleted_ids: [],
     seeded: false,
     updated: Date.now(),
   };
+}
+
+function normDeletedIds(src) {
+  var seen = {};
+  var out = [];
+  (src && src.deleted_ids ? src.deleted_ids : []).forEach(function(id) {
+    var n = Number(id);
+    if (!n || seen[n]) return;
+    seen[n] = true;
+    out.push(n);
+  });
+  if (out.length > 800) out = out.slice(-800);
+  return out;
 }
 
 function normStockItem(row) {
@@ -368,8 +382,13 @@ export function importStockPayload(raw) {
 function normStock(raw) {
   var src = raw && typeof raw === "object" ? raw : emptyStock();
   var items = (src.items || []).map(normStockItem);
+  var deletedIds = normDeletedIds(src);
+  var deleted = {};
+  deletedIds.forEach(function(id) { deleted[id] = true; });
+  items = items.filter(function(it) { return it && it.id && !deleted[it.id]; });
   var nextId = Number(src.next_id != null ? src.next_id : src.nextId) || 1;
   items.forEach(function(it) { if (it.id >= nextId) nextId = it.id + 1; });
+  deletedIds.forEach(function(id) { if (id >= nextId) nextId = id + 1; });
   var metaLucro = Number(src.meta_lucro != null ? src.meta_lucro : src.metaLucro) || 0;
   var metaAtiva = src.meta_ativa != null ? !!src.meta_ativa : src.metaAtiva != null ? !!src.metaAtiva : metaLucro > 0;
   return {
@@ -378,6 +397,7 @@ function normStock(raw) {
     meta_ativa: metaAtiva,
     meta_data_inicio: src.meta_data_inicio || src.metaDataInicio || todayKey(),
     items: items,
+    deleted_ids: deletedIds,
     seeded: !!src.seeded,
     updated: Number(src.updated) || (src.updated_at ? new Date(src.updated_at).getTime() : Date.now()),
   };
@@ -445,11 +465,18 @@ function mergeStockBlobs(blobs) {
   blobs = (blobs || []).filter(function(b) { return b && Array.isArray(b.items); });
   if (!blobs.length) return emptyStock();
   var primary = pickPrimaryStock(blobs);
+  var deleted = {};
+  blobs.forEach(function(blob) {
+    (blob.deleted_ids || []).forEach(function(id) { deleted[id] = true; });
+  });
   var map = {};
-  (primary.items || []).forEach(function(it) { map[it.id] = it; });
+  (primary.items || []).forEach(function(it) {
+    if (it && it.id && !deleted[it.id]) map[it.id] = it;
+  });
   blobs.forEach(function(blob) {
     var fromSeed = isStockSeed(blob) && !isStockSeed(primary);
     (blob.items || []).forEach(function(it) {
+      if (!it || !it.id || deleted[it.id]) return;
       var ex = map[it.id];
       if (!ex) {
         if (it.status === "Vendido" || !fromSeed) map[it.id] = it;
@@ -469,6 +496,7 @@ function mergeStockBlobs(blobs) {
     meta_ativa: newestMeta.meta_ativa,
     meta_data_inicio: newestMeta.meta_data_inicio,
     items: items,
+    deleted_ids: Object.keys(deleted).map(function(id) { return Number(id); }),
     seeded: true,
     updated: Math.max.apply(null, blobs.map(function(b) { return b.updated || 0; })),
   });
@@ -486,7 +514,6 @@ export async function loadStock(projectId) {
   var key = localKey(projectId, "stock");
   var local = normStock(await readLocal(key, emptyStock()));
   var remoteBlobs = [];
-  var remoteIds = [];
   var fetchOk = false;
   var user = await getUser();
   if (supabase && user) {
@@ -496,20 +523,15 @@ export async function loadStock(projectId) {
       fetchOk = true;
       (res.data || []).forEach(function(row) {
         var parsed = parseRemoteStockRow(row);
-        if (parsed) {
-          remoteBlobs.push(parsed);
-          if (row.id) remoteIds.push(row.id);
-        }
+        if (parsed) remoteBlobs.push(parsed);
       });
     } catch (e) {
       console.warn("[Projetos] stock leitura", cloudErrorMessage(e));
     }
   }
 
-  if (isCloudPullPaused("project_stock") && (local.items || []).length) {
-    await writeLocal(key, local);
-    return local;
-  }
+  local = normStock(await readLocal(key, emptyStock()));
+  if (isCloudPullPaused("project_stock")) return local;
 
   var merged = local;
   if (remoteBlobs.length) {
@@ -523,7 +545,16 @@ export async function loadStock(projectId) {
     }
   }
 
+  var latest = normStock(await readLocal(key, emptyStock()));
+  if (isCloudPullPaused("project_stock") || (latest.updated || 0) > (local.updated || 0)) {
+    return latest;
+  }
+
   await writeLocal(key, merged);
+
+  if (isCloudPullPaused("project_stock")) {
+    return normStock(await readLocal(key, emptyStock()));
+  }
 
   if (fetchOk && remoteBlobs.length && stockFingerprint(merged) !== stockFingerprint(pickPrimaryStock(remoteBlobs))) {
     saveStock(projectId, merged).catch(function() {});
@@ -536,18 +567,19 @@ export async function loadStock(projectId) {
 
 export async function saveStock(projectId, data) {
   var key = localKey(projectId, "stock");
+  pauseCloudPull(8000, "project_stock");
   var payload = normStock(Object.assign({}, data, { updated: Date.now(), seeded: true }));
   payload._rowId = data && data._rowId;
   await writeLocal(key, payload);
-  pauseCloudPull(6000, "project_stock");
 
   var session = await ensureWriteSession();
   if (!supabase || !session.canWriteCloud || !session.user) return payload;
 
   try {
     var existing = await supabase.from(TABLES.stock).select("id,updated_at").eq("user_id", session.user.id).eq("project_id", projectId);
+    if (existing.error) throw existing.error;
     var ids = ((existing.data || []).map(function(r) { return r.id; })).filter(Boolean);
-    var rowId = payload._rowId || ids[0] || (projectId + "-stock");
+    var rowId = ids[0] || payload._rowId || (projectId + "-stock");
     var upsert = await supabase.from(TABLES.stock).upsert({
       id: rowId,
       user_id: session.user.id,
@@ -556,6 +588,7 @@ export async function saveStock(projectId, data) {
       updated_at: new Date(payload.updated).toISOString(),
     }, { onConflict: "id" });
     if (upsert.error) throw upsert.error;
+    payload._rowId = rowId;
     var extras = ids.filter(function(id) { return id !== rowId; });
     if (extras.length) {
       await supabase.from(TABLES.stock).delete().eq("user_id", session.user.id).in("id", extras);
