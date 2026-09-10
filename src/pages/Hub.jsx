@@ -58,7 +58,7 @@ var MODULES = [
   { id: "journal", name: "Diário", desc: "Blocos de escrita para tudo o que vem à cabeça", Icon: JournalIcon, path: "/journal", color: MODULE_COLORS.journal },
   { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects", color: MODULE_COLORS.projects },
   { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist", color: MODULE_COLORS.wishlist },
-  { id: "finance", name: "Financeiro", desc: "Gastos, recursos e orçamento mensal", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },
+  { id: "finance", name: "Financeiro", desc: "Saldo vivo, sequências e relatório do mês", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },
 ];
 
 var HUB_CSS = [

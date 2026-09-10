@@ -4,6 +4,7 @@ import * as tasksStore from "./tasksStore";
 import * as wishlistStore from "./wishlistStore";
 import { emitSync } from "./syncEvents";
 import { pauseCloudPull } from "./cloudSyncGuard";
+import { sequenceId, sequenceLabel } from "./financeSequences";
 
 var recent = {};
 
@@ -78,10 +79,12 @@ export function parseQuickSearch(search) {
   var amount = amountRaw ? parseAmount(amountRaw) : parsed.amount;
   var category = firstParam(params, ["category", "categoria", "cat"]);
   var day = firstParam(params, ["day", "data", "date"]) || financeStore.todayKey();
+  var sequence = sequenceId(firstParam(params, ["seq", "sequence", "livro", "conta"]));
   var notes = firstParam(params, ["notes", "nota"]);
   if (!kind && (title || isFinite(amount))) kind = "expense";
   return {
     kind: kind,
+    sequence: sequence,
     title: title.trim(),
     amount: amount,
     category: category.trim(),
@@ -105,7 +108,7 @@ function catsFor(category, fallback) {
 }
 
 function sigOf(input) {
-  return [input.kind, input.title, input.amount, input.day, input.category].join("|");
+  return [input.kind, input.sequence, input.title, input.amount, input.day, input.category].join("|");
 }
 
 export async function applyQuickCapture(input) {
@@ -115,32 +118,34 @@ export async function applyQuickCapture(input) {
   var day = (input && input.day) || financeStore.todayKey();
   var notes = (input && input.notes) || "";
   var category = (input && input.category) || "";
+  var sequence = sequenceId(input && input.sequence);
   var meta = kindMeta(kind);
-  var sig = sigOf(input || {});
+  var sig = sigOf(Object.assign({}, input || {}, { sequence: sequence }));
   var row;
+  var seqName = sequenceLabel(sequence);
 
-  if (!kind) return { ok: false, error: "Escolhe o menu (gasto, recurso, tarefa…)." };
+  if (!kind) return { ok: false, error: "Escolhe: recurso ou gastos." };
   if (kind === "expense" || kind === "income") {
-    if (!isFinite(amount) || amount < 0) return { ok: false, error: "Indica o valor. Ex.: 4,50 café" };
+    if (!isFinite(amount) || amount < 0) return { ok: false, error: "Indica o valor." };
     if (!title) title = kind === "income" ? "Recurso" : "Gasto";
   } else if (!title) {
     return { ok: false, error: "Escreve o que queres adicionar." };
   }
 
   if (recent[sig] && Date.now() - recent[sig] < 12000) {
-    return { ok: true, duplicate: true, kind: kind, title: title, amount: amount, dest: meta.dest, label: meta.label };
+    return { ok: true, duplicate: true, kind: kind, title: title, amount: amount, sequence: sequence, dest: meta.dest, label: meta.label, sequenceLabel: seqName };
   }
 
   if (kind === "expense") {
     pauseCloudPull(8000, "expenses");
     var expenses = await financeStore.pullExpenses();
-    row = financeStore.newExpense(title, amount, catsFor(category, "Outro"), day);
+    row = financeStore.newExpense(title, amount, catsFor(category, "Outro"), day, sequence);
     if (notes) row.notes = notes;
     await financeStore.saveExpenses([row].concat(expenses || []));
   } else if (kind === "income") {
     pauseCloudPull(8000, "incomes");
     var incomes = await incomeStore.pullIncomes();
-    row = incomeStore.newIncome(title, amount, catsFor(category, "Outro"), day);
+    row = incomeStore.newIncome(title, amount, catsFor(category, "Outro"), day, sequence);
     if (notes) row.notes = notes;
     await incomeStore.saveIncomes([row].concat(incomes || []));
   } else if (kind === "task") {
@@ -163,11 +168,22 @@ export async function applyQuickCapture(input) {
 
   recent[sig] = Date.now();
   emitSync(meta.sync);
-  return { ok: true, kind: kind, title: title, amount: amount, dest: meta.dest, label: meta.label };
+  return { ok: true, kind: kind, title: title, amount: amount, sequence: sequence, dest: meta.dest, label: meta.label, sequenceLabel: seqName };
 }
 
 export function shortcutUrl(kind, withQueryPlaceholder) {
   var base = quickBaseUrl() + "?kind=" + encodeURIComponent(kind || "expense");
   if (withQueryPlaceholder) return base + "&q=";
   return base;
+}
+
+export function financeCaptureUrl(kind, seq, title, amount) {
+  var u = quickBaseUrl()
+    + "?kind=" + encodeURIComponent(kind || "expense")
+    + "&seq=" + encodeURIComponent(seq || "geral");
+  if (title) u += "&title=" + encodeURIComponent(title);
+  if (amount != null && String(amount) !== "" && isFinite(Number(amount))) {
+    u += "&amount=" + encodeURIComponent(amount);
+  }
+  return u;
 }

@@ -7,6 +7,7 @@ import {
   writeLocal,
 } from "./cloudStore";
 import { safePullMerge } from "./syncEngine";
+import { sequenceId } from "./financeSequences";
 
 var EXPENSE_TABLE = "expenses";
 var EXPENSE_KEY = "expenses-v1";
@@ -52,6 +53,7 @@ function normalize(row) {
     category: cats[0] || "Outro",
     day: row.day || row.day_key || todayKey(),
     notes: row.notes || "",
+    sequence: sequenceId(row.sequence || row.book || row.ledger),
     created: row.created || row.created_at || Date.now(),
   };
 }
@@ -66,6 +68,7 @@ function toDb(row) {
     categories: cats,
     day_key: row.day,
     notes: row.notes || "",
+    sequence: sequenceId(row.sequence),
   };
 }
 
@@ -163,7 +166,16 @@ export async function loadExpenses() {
 
 export async function saveExpenses(rows) {
   if (!rows || !rows.length) return { ok: true, cloud: true, rows: [], skippedEmpty: true };
-  return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, (rows || []).map(toDb), { pruneOrphans: false });
+  var mapped = (rows || []).map(toDb);
+  var res = await replaceRows(EXPENSE_TABLE, EXPENSE_KEY, mapped, { pruneOrphans: false });
+  if (res && res.error && String(res.error).indexOf("sequence") >= 0) {
+    return replaceRows(EXPENSE_TABLE, EXPENSE_KEY, mapped.map(function(r) {
+      var copy = Object.assign({}, r);
+      delete copy.sequence;
+      return copy;
+    }), { pruneOrphans: false });
+  }
+  return res;
 }
 
 export async function deleteExpense(id) {
@@ -171,7 +183,7 @@ export async function deleteExpense(id) {
   return deleteRemoteIds(EXPENSE_TABLE, [id], EXPENSE_KEY);
 }
 
-export function newExpense(title, amount, categories, day) {
+export function newExpense(title, amount, categories, day, sequence) {
   var cats = (categories || ["Outro"]).slice(0, 2);
   return normalize({
     id: uid("ex"),
@@ -179,6 +191,7 @@ export function newExpense(title, amount, categories, day) {
     amount: amount || 0,
     categories: cats,
     day: day || todayKey(),
+    sequence: sequence,
     created: Date.now(),
   });
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { alpha } from "../lib/theme";
+import { bySequence, sequenceId } from "../lib/financeSequences";
 
 var SAVE_DEBOUNCE_MS = 1800;
 
@@ -47,14 +48,8 @@ var FL_CSS = [
   ".fl-pick{min-height:44px;font-size:13px}}",
 ].join("");
 
-function monthKeyFromDate(d) {
-  return d.getFullYear() + "-" + (d.getMonth() + 1 < 10 ? "0" : "") + (d.getMonth() + 1);
-}
-
-function defaultDayForMonth(store, monthKey) {
-  var current = monthKeyFromDate(new Date());
-  if (monthKey === current) return store.todayKey();
-  return monthKey + "-01";
+function todayForStore(store) {
+  return store && store.todayKey ? store.todayKey() : "";
 }
 
 export default function FinanceLedger(props) {
@@ -62,6 +57,7 @@ export default function FinanceLedger(props) {
   var isMobile = props.isMobile;
   var label = props.label || "Registo";
   var kind = props.kind === "income" ? "income" : "expense";
+  var sequence = sequenceId(props.sequence);
   var categoriesS = useState([]);
   var categories = categoriesS[0], setCategories = categoriesS[1];
   var rowsS = useState([]);
@@ -71,16 +67,15 @@ export default function FinanceLedger(props) {
   var sessionWarnS = useState("");
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
   var isHydratedRef = useRef(false);
-  var internalMonthS = useState(monthKeyFromDate(new Date()));
-  var month = props.month != null ? props.month : internalMonthS[0];
-  var setMonth = props.onMonthChange || internalMonthS[1];
   var onDataChange = props.onDataChange || function() {};
-  var draftS = useState({ title: "", amount: "", categories: [], day: defaultDayForMonth(store, month), notes: "" });
+  var draftS = useState({ title: "", amount: "", categories: [], day: todayForStore(store), notes: "" });
   var draft = draftS[0], setDraft = draftS[1];
   var manageCatS = useState(false);
   var manageCat = manageCatS[0], setManageCat = manageCatS[1];
   var catDraftS = useState({ id: null, name: "" });
   var catDraft = catDraftS[0], setCatDraft = catDraftS[1];
+  var moreS = useState(false);
+  var showMore = moreS[0], setShowMore = moreS[1];
   var saveCatTimer = useRef(null);
   var saveRowsTimer = useRef(null);
   var skipSaveRef = useRef(false);
@@ -174,10 +169,9 @@ export default function FinanceLedger(props) {
   useEffect(function() { categoriesRef.current = categories; }, [categories]);
   useEffect(function() { rowsRef.current = rows; }, [rows]);
 
-  // Ao mudar de mês, a data do novo registo passa a apontar para esse mês.
   useEffect(function() {
-    setDraft(function(d) { return Object.assign({}, d, { day: defaultDayForMonth(store, month) }); });
-  }, [month, store]);
+    setDraft(function(d) { return Object.assign({}, d, { day: d.day || todayForStore(store) }); });
+  }, [store]);
 
   function reportSave(res) {
     if (!res) return;
@@ -230,21 +224,25 @@ export default function FinanceLedger(props) {
     return categories.map(function(c) { return c.name; });
   }, [categories]);
 
-  var monthItems = useMemo(function() {
-    return rows.filter(function(e) { return e.day && e.day.indexOf(month) === 0; });
-  }, [rows, month]);
+  var visibleItems = useMemo(function() {
+    return rows.filter(function(e) { return bySequence(e, sequence); });
+  }, [rows, sequence]);
 
-  var total = useMemo(function() { return store.monthTotal(rows, month); }, [rows, month, store]);
+  var total = useMemo(function() {
+    return visibleItems.reduce(function(sum, e) { return sum + (Number(e.amount) || 0); }, 0);
+  }, [visibleItems]);
 
   var byCategory = useMemo(function() {
     var map = {};
-    monthItems.forEach(function(e) {
+    visibleItems.forEach(function(e) {
       (e.categories || [e.category || "Outro"]).forEach(function(c) {
         map[c] = (map[c] || 0) + Number(e.amount || 0) / (e.categories && e.categories.length > 1 ? e.categories.length : 1);
       });
     });
     return Object.keys(map).map(function(k) { return { name: k, total: map[k] }; }).sort(function(a, b) { return b.total - a.total; });
-  }, [monthItems]);
+  }, [visibleItems]);
+
+  var listedItems = showMore ? visibleItems : visibleItems.slice(0, 40);
 
   function toggleCategory(name) {
     setDraft(function(d) {
@@ -262,7 +260,7 @@ export default function FinanceLedger(props) {
     if (!draft.title.trim() || !draft.amount) return;
     var cats = (draft.categories || []).slice(0, 2);
     if (!cats.length && categoryNames[0]) cats = [categoryNames[0]];
-    var row = store.newRow(draft.title.trim(), Number(draft.amount), cats, draft.day);
+    var row = store.newRow(draft.title.trim(), Number(draft.amount), cats, draft.day || todayForStore(store), sequence);
     clearTimeout(saveRowsTimer.current);
     skipSaveRef.current = true;
     var next = rowsRef.current.concat([row]);
@@ -272,7 +270,7 @@ export default function FinanceLedger(props) {
       setTimeout(function() { skipSaveRef.current = false; }, 80);
       onDataChange();
     });
-    setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: defaultDayForMonth(store, month), notes: "" });
+    setDraft({ title: "", amount: "", categories: cats.slice(0, 1), day: todayForStore(store), notes: "" });
   }
 
   async function removeRow(id) {
@@ -287,12 +285,6 @@ export default function FinanceLedger(props) {
     await saveRowsNow(next);
     setTimeout(function() { skipSaveRef.current = false; }, 200);
     onDataChange();
-  }
-
-  function shiftMonth(delta) {
-    var p = month.split("-");
-    var d = new Date(+p[0], +p[1] - 1 + delta, 1);
-    setMonth(monthKeyFromDate(d));
   }
 
   function saveCategory() {
@@ -368,9 +360,6 @@ export default function FinanceLedger(props) {
       ) : null}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
         <button className="fl-btn" onClick={function() { setManageCat(!manageCat); }} style={pickStyle(manageCat, false, props.accent)}>Categorias</button>
-        <button className="fl-nav" onClick={function() { shiftMonth(-1); }}>‹</button>
-        <span className="fl-mono" style={{ fontSize: 12, color: "#EDEDEF", minWidth: 90, textAlign: "center" }}>{month}</span>
-        <button className="fl-nav" onClick={function() { shiftMonth(1); }}>›</button>
       </div>
 
       {manageCat && (
@@ -397,7 +386,7 @@ export default function FinanceLedger(props) {
 
       <div data-stagger style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 20 }}>
         <div className="fl-card" style={{ padding: isMobile ? "16px 18px" : "18px 20px" }}>
-          <p className="fl-lbl">TOTAL DO MÊS</p>
+          <p className="fl-lbl">NESTA SEQUÊNCIA</p>
           <p className="fl-mono" style={{ margin: "10px 0 0", fontSize: 30, fontWeight: 600, lineHeight: 1.15, letterSpacing: "-0.01em", color: amountColor(total, kind) }}>{total.toFixed(2)} €</p>
         </div>
         <div className="fl-card" style={{ padding: isMobile ? "16px 18px" : "18px 20px" }}>
@@ -433,9 +422,9 @@ export default function FinanceLedger(props) {
       </div>
 
       <div className="fl-list" data-stagger>
-        {monthItems.length === 0 ? (
-          <p className="fl-empty">Sem registos neste mês.</p>
-        ) : monthItems.map(function(e) {
+        {visibleItems.length === 0 ? (
+          <p className="fl-empty">Ainda nada nesta sequência.</p>
+        ) : listedItems.map(function(e) {
           var cats = (e.categories || [e.category]).join(" · ");
           return (
             <article key={e.id} className="fl-row">
@@ -455,6 +444,11 @@ export default function FinanceLedger(props) {
             </article>
           );
         })}
+        {visibleItems.length > 40 && !showMore ? (
+          <button type="button" className="fl-btn" onClick={function() { setShowMore(true); }} style={{ marginTop: 12 }}>
+            Ver os {visibleItems.length} movimentos
+          </button>
+        ) : null}
       </div>
     </div>
   );

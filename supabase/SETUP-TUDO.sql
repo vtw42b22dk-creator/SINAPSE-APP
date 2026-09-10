@@ -71,6 +71,7 @@ create table if not exists public.finance_categories (
 );
 
 alter table public.expenses add column if not exists categories jsonb default '[]'::jsonb;
+alter table public.expenses add column if not exists sequence text default 'geral';
 
 create table if not exists public.income_categories (
   id text primary key,
@@ -90,9 +91,12 @@ create table if not exists public.incomes (
   categories jsonb default '[]'::jsonb,
   day_key text not null,
   notes text default '',
+  sequence text default 'geral',
   updated_at timestamptz default now(),
   created_at timestamptz default now()
 );
+
+alter table public.incomes add column if not exists sequence text default 'geral';
 
 alter table public.finance_categories enable row level security;
 alter table public.income_categories enable row level security;
