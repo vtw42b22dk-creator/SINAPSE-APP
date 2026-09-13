@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { alpha } from "../lib/theme";
 import { bySequence, sequenceId } from "../lib/financeSequences";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 
 var SAVE_DEBOUNCE_MS = 1800;
 
@@ -96,6 +97,10 @@ export default function FinanceLedger(props) {
   }
 
   var syncFromCloud = useCallback(function() {
+    var tables = store.cloudTables || [];
+    for (var i = 0; i < tables.length; i++) {
+      if (isCloudPullPaused(tables[i])) return Promise.resolve();
+    }
     if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     return Promise.all([pullCategories(), pullRows()]).then(function(res) {

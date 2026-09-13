@@ -6,6 +6,8 @@ import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
+import { onSync } from "../lib/syncEvents";
+import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 import { moduleColor, moduleGlow, PALETTE, alpha } from "../lib/theme";
 import { GLASS_CSS } from "../lib/glassUi";
@@ -80,6 +82,10 @@ var JR_CSS = [
   ".gn-catmenu button{text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#EDEDEF;padding:11px 12px;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer}",
   ".gn-catmenu button.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 40%,transparent)}",
   ".gn-cats-empty{margin:0;padding:14px 10px;font-size:12px;color:#6E6E76;line-height:1.5;font-family:'JetBrains Mono',monospace}",
+  ".gn-catform{display:flex;gap:8px;align-items:center;margin:0 0 12px}",
+  ".gn-catform .gn-input{flex:1;min-width:0}",
+  ".gn-catform-ok{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb,var(--mc) 14%,transparent);border:1px solid color-mix(in srgb,var(--mc) 38%,transparent);color:var(--mc);cursor:pointer;font-size:16px}",
+  ".gn-rename-in{width:100%;min-width:0;background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--mc) 45%,transparent);color:#EDEDEF;font:inherit;letter-spacing:inherit;text-transform:uppercase;outline:none;padding:4px 0}",
 
   ".gn-input{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#EDEDEF;padding:11px 15px;outline:none;box-sizing:border-box;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".gn-input:focus{border-color:color-mix(in srgb,var(--mc) 55%,transparent);background:rgba(255,255,255,.05)}",
@@ -289,6 +295,10 @@ export default function Journal() {
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
   var catPickS = useState(null);
   var catPick = catPickS[0], setCatPick = catPickS[1];
+  var catFormS = useState(null);
+  var catForm = catFormS[0], setCatForm = catFormS[1];
+  var catFormRef = useRef(null);
+  var skipCatBlurRef = useRef(false);
   var dragNoteRef = useRef(null);
   var dragOverS = useState(null);
   var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
@@ -304,6 +314,7 @@ export default function Journal() {
   var skipSaveRef = useRef(false);
   var lastSaveAt = useRef(0);
   var lastDeleteAt = useRef(0);
+  var noteLayoutDirtyRef = useRef(false);
 
   function getEditingSnapshot() {
     var id = editingBlockRef.current;
@@ -313,11 +324,14 @@ export default function Journal() {
 
   function applyNoteLayout(layout) {
     if (!layout) return;
-    setNoteBlocks({
+    if (noteLayoutDirtyRef.current) return;
+    var next = {
       blocks: layout.blocks || [],
       assign: layout.assign || {},
       collapsed: layout.collapsed || {},
-    });
+    };
+    noteBlocksRef.current = next;
+    setNoteBlocks(next);
   }
 
   function applyJournalData(spacesList, blocksList) {
@@ -352,6 +366,10 @@ export default function Journal() {
 
   var syncFromCloud = useCallback(function() {
     if (editingBlockRef.current) return Promise.resolve();
+    if (noteLayoutDirtyRef.current) return Promise.resolve();
+    if (isCloudPullPaused("journal_note_layout") || isCloudPullPaused("journal_spaces") || isCloudPullPaused("journal_blocks")) {
+      return Promise.resolve();
+    }
     if (Date.now() - lastDeleteAt.current < 12000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 4000) return Promise.resolve();
     skipSaveRef.current = true;
@@ -372,6 +390,8 @@ export default function Journal() {
       if (!isHydratedRef.current) return true;
       if (shouldSkipCloudSync()) return true;
       if (editingBlockRef.current) return true;
+      if (noteLayoutDirtyRef.current) return true;
+      if (isCloudPullPaused("journal_note_layout") || isCloudPullPaused("journal_spaces") || isCloudPullPaused("journal_blocks")) return true;
       if (Date.now() - lastDeleteAt.current < 12000) return true;
       if (Date.now() - lastSaveAt.current < 4000) return true;
       return false;
@@ -498,6 +518,40 @@ export default function Journal() {
   useEffect(function() { blocksRef.current = blocks; }, [blocks]);
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
   useEffect(function() { noteBlocksRef.current = noteBlocks; }, [noteBlocks]);
+  useEffect(function() { catFormRef.current = catForm; }, [catForm]);
+
+  useEffect(function() {
+    if (!isHydrated) return;
+    return onSync(function(detail) {
+      var table = detail && detail.table;
+      if (table && table !== "*" && table !== "journal_spaces" && table !== "journal_blocks" && table !== "journal_note_layout") return;
+      syncFromCloud();
+    });
+  }, [isHydrated, syncFromCloud]);
+
+  function commitNoteLayout(updater) {
+    var prev = noteBlocksRef.current || { blocks: [], assign: {}, collapsed: {} };
+    var next = typeof updater === "function" ? updater(prev) : updater;
+    next = {
+      blocks: (next && next.blocks) || [],
+      assign: (next && next.assign) || {},
+      collapsed: (next && next.collapsed) || {},
+      updated: Date.now(),
+    };
+    noteBlocksRef.current = next;
+    noteLayoutDirtyRef.current = true;
+    lastSaveAt.current = Date.now();
+    pauseCloudPull(8000, "journal_note_layout");
+    pauseCloudPull(8000, "journal_spaces");
+    pauseCloudPull(8000, "journal_blocks");
+    setNoteBlocks(next);
+    clearTimeout(saveNoteLayoutTimer.current);
+    journalStore.saveNoteLayout(next).then(function(res) {
+      reportSave(res);
+    }).finally(function() {
+      noteLayoutDirtyRef.current = false;
+    });
+  }
 
   useEffect(function() {
     if (!isHydrated || skipSaveRef.current) return;
@@ -575,6 +629,9 @@ export default function Journal() {
     if (!newTitle.trim()) return;
     var s = { id: journalStore.newBlock("x").id.replace("jb", "js"), title: newTitle.trim(), color: COLORS[spaces.length % COLORS.length] };
     var next = spaces.concat([s]);
+    spacesRef.current = next;
+    lastSaveAt.current = Date.now();
+    pauseCloudPull(8000, "journal_spaces");
     setSpaces(next);
     setActive(s.id);
     setNewTitle("");
@@ -635,41 +692,64 @@ export default function Journal() {
   }
 
   function addNoteBlock() {
-    var name = window.prompt("Nome da categoria:");
-    if (name === null) return;
-    name = name.trim();
-    if (!name) return;
-    setNoteBlocks(function(prev) {
-      return Object.assign({}, prev, { blocks: prev.blocks.concat([{ id: newNoteBlockId(), name: name }]) });
-    });
+    if (catForm && catForm.mode === "new") {
+      cancelCatForm();
+      return;
+    }
+    setCatForm({ mode: "new", id: null, name: "" });
   }
 
   function renameNoteBlock(id) {
     var blk = noteBlocks.blocks.find(function(x) { return x.id === id; });
     if (!blk) return;
-    var name = window.prompt("Nome da categoria:", blk.name);
-    if (name === null) return;
-    name = name.trim();
-    setNoteBlocks(function(prev) {
-      return Object.assign({}, prev, {
-        blocks: prev.blocks.map(function(x) { return x.id === id ? Object.assign({}, x, { name: name || x.name }) : x; }),
+    setCatForm({ mode: "rename", id: id, name: blk.name || "" });
+  }
+
+  function cancelCatForm() {
+    skipCatBlurRef.current = true;
+    catFormRef.current = null;
+    setCatForm(null);
+  }
+
+  function submitCatForm() {
+    var form = catFormRef.current || catForm;
+    if (!form) return;
+    var name = (form.name || "").trim();
+    if (!name) return;
+    if (form.mode === "rename" && form.id) {
+      var renameId = form.id;
+      commitNoteLayout(function(prev) {
+        return Object.assign({}, prev, {
+          blocks: (prev.blocks || []).map(function(x) {
+            return x.id === renameId ? Object.assign({}, x, { name: name }) : x;
+          }),
+        });
       });
-    });
+    } else {
+      commitNoteLayout(function(prev) {
+        return Object.assign({}, prev, {
+          blocks: (prev.blocks || []).concat([{ id: newNoteBlockId(), name: name }]),
+        });
+      });
+    }
+    skipCatBlurRef.current = true;
+    catFormRef.current = null;
+    setCatForm(null);
   }
 
   function deleteNoteBlock(id) {
     if (!window.confirm("Eliminar esta categoria? As notas dentro dela voltam para \"Sem categoria\".")) return;
-    setNoteBlocks(function(prev) {
+    commitNoteLayout(function(prev) {
       var assign = Object.assign({}, prev.assign);
       Object.keys(assign).forEach(function(sid) { if (assign[sid] === id) delete assign[sid]; });
       var collapsed = Object.assign({}, prev.collapsed);
       delete collapsed[id];
-      return { blocks: prev.blocks.filter(function(x) { return x.id !== id; }), assign: assign, collapsed: collapsed };
+      return { blocks: (prev.blocks || []).filter(function(x) { return x.id !== id; }), assign: assign, collapsed: collapsed };
     });
   }
 
   function assignNoteToBlock(spaceId, blockId) {
-    setNoteBlocks(function(prev) {
+    commitNoteLayout(function(prev) {
       var assign = Object.assign({}, prev.assign);
       if (blockId) assign[spaceId] = blockId; else delete assign[spaceId];
       return Object.assign({}, prev, { assign: assign });
@@ -808,6 +888,23 @@ export default function Journal() {
             <p className="jr-lbl">Notas</p>
             <button type="button" className="gn-addblk" onClick={addNoteBlock} title="Nova categoria"><IconFolder /> + Categoria</button>
           </div>
+          {catForm && catForm.mode === "new" ? (
+            <div className="gn-catform">
+              <input
+                className="gn-input"
+                autoFocus
+                value={catForm.name}
+                onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
+                onKeyDown={function(e) {
+                  if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
+                  if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
+                }}
+                placeholder="Nome da categoria"
+                style={{ fontSize: isMobile ? 16 : 13 }}
+              />
+              <button type="button" className="gn-catform-ok" onClick={submitCatForm} title="Criar">+</button>
+            </div>
+          ) : null}
           <div data-scrollable style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: isMobile ? "none" : "62vh", overflowY: isMobile ? "visible" : "auto", paddingRight: isMobile ? 0 : 2 }}>
             {!spaces.length ? (
               <p className="gn-cats-empty">Ainda não há notas neste dispositivo. Se já as criaste no computador, espera um momento — estão a sincronizar. Caso contrário, cria a primeira em baixo.</p>
@@ -828,11 +925,31 @@ export default function Journal() {
                 <div key={blk.id} {...dropZoneProps(blk.id)} className={"gn-group glass-flat" + (hot ? " is-hot" : "")}>
                   <div className="gn-group-head">
                     <button type="button" className="gn-chevron" onClick={function() { toggleNoteBlockCollapse(blk.id); }}><IconChevron open={!collapsed} /></button>
-                    <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Renomear categoria">
-                      <IconFolder />
-                      <span>{blk.name}</span>
-                      <span className="gn-count">{items.length}</span>
-                    </button>
+                    {catForm && catForm.mode === "rename" && catForm.id === blk.id ? (
+                      <input
+                        className="gn-rename-in"
+                        autoFocus
+                        value={catForm.name}
+                        onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
+                        onBlur={function() {
+                          if (skipCatBlurRef.current) {
+                            skipCatBlurRef.current = false;
+                            return;
+                          }
+                          submitCatForm();
+                        }}
+                        onKeyDown={function(e) {
+                          if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
+                          if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
+                        }}
+                      />
+                    ) : (
+                      <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Clica para renomear">
+                        <IconFolder />
+                        <span>{blk.name}</span>
+                        <span className="gn-count">{items.length}</span>
+                      </button>
+                    )}
                     <button type="button" className="gn-x" onClick={function() { deleteNoteBlock(blk.id); }} title="Eliminar categoria" style={{ width: isMobile ? 36 : 24, height: isMobile ? 36 : 24, fontSize: isMobile ? 18 : 14 }}>×</button>
                   </div>
                   {!collapsed ? (

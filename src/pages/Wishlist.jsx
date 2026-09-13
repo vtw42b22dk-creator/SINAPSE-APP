@@ -5,6 +5,7 @@ import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
 import { pageBg, pageText } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme";
 
@@ -140,6 +141,7 @@ export default function Wishlist() {
   }
 
   var syncFromCloud = useCallback(function() {
+    if (isCloudPullPaused("wishlist_items") || isCloudPullPaused("wishlist_groups")) return Promise.resolve();
     if (Date.now() - lastDeleteAt.current < 20000) return Promise.resolve();
     if (Date.now() - lastSaveAt.current < 8000) return Promise.resolve();
     skipSaveRef.current = true;
@@ -157,6 +159,7 @@ export default function Wishlist() {
     shouldSkip: function() {
       if (!loaded) return true;
       if (shouldSkipCloudSync()) return true;
+      if (isCloudPullPaused("wishlist_items") || isCloudPullPaused("wishlist_groups")) return true;
       if (Date.now() - lastDeleteAt.current < 20000) return true;
       if (Date.now() - lastSaveAt.current < 8000) return true;
       return false;

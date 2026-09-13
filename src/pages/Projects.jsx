@@ -97,7 +97,7 @@ var PROJ_CSS = [
   ".pj-ring{position:relative;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
   ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0E0E10;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
   ".pj-roi{padding:4px 10px;border-radius:999px;font-size:10.5px;font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.3px}",
-  ".pj-act{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:0;transition:opacity var(--dur) var(--ease);z-index:2}",
+  ".pj-act{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:1;transition:opacity var(--dur) var(--ease);z-index:8;pointer-events:auto}",
   ".pj-act button{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.45);color:#A0A0A8;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-act button:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}",
   ".pj-act button.del:hover{background:rgba(192,140,140,0.18);color:#C08C8C;border-color:rgba(192,140,140,0.4)}",
@@ -182,6 +182,14 @@ function ProgressRing(props) {
   );
 }
 
+function stopCardOpen(e) {
+  if (!e) return;
+  e.stopPropagation();
+  if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+    e.nativeEvent.stopImmediatePropagation();
+  }
+}
+
 function RoiPill(props) {
   var roi = props.roi;
   var pos = roi >= 0;
@@ -203,14 +211,14 @@ function ProjectCard(props) {
     <article className="pj-card" style={{ "--pc": meta.color, "--pcb": meta.color + "55", animationDelay: (props.index * 0.04) + "s" }} onClick={props.onOpen}>
       <div className="pj-card-bar" />
       {props.pinned && <span className="pj-pin" title="Fixado">★</span>}
-      <div className="pj-act">
-        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin} style={props.pinned ? { color: "#C4A57C", borderColor: "rgba(196,165,124,0.4)" } : null}>★</button>
-        <button type="button" className="del" title="Apagar" onClick={props.onDelete}>×</button>
+      <div className="pj-act" onClick={stopCardOpen} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen}>
+        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen} style={props.pinned ? { color: "#C4A57C", borderColor: "rgba(196,165,124,0.4)" } : null}>★</button>
+        <button type="button" className="del" title="Apagar" onClick={props.onDelete} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen}>×</button>
       </div>
       <div className="pj-card-in">
         <div className="pj-card-row">
           <div className="pj-card-ic" style={{ background: meta.color + "14", color: meta.color }}>{meta.icon}</div>
-          <div style={{ minWidth: 0, flex: 1, paddingRight: 44 }}>
+            <div style={{ minWidth: 0, flex: 1, paddingRight: 76 }}>
             <InlineName tag="h2" className="pj-card-name" value={p.name} onSave={props.onRename} onSingleClick={props.onOpen} />
             <span className="pj-card-tag" style={{ color: meta.color, background: meta.color + "14", border: "1px solid " + meta.color + "33" }}>{meta.tag}</span>
           </div>
@@ -284,10 +292,10 @@ function ProjectRow(props) {
         </div>
       )}
       {st.hasInvestments && <RoiPill roi={st.roi} />}
-      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin}
+      <div style={{ display: "flex", gap: 6, flexShrink: 0, position: "relative", zIndex: 8 }} onClick={stopCardOpen} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen}>
+        <button type="button" title={props.pinned ? "Desafixar" : "Fixar"} onClick={props.onPin} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen}
           style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "#0E0E10", color: props.pinned ? "#C4A57C" : "#6E6E76", cursor: "pointer", fontSize: 12 }}>★</button>
-        <button type="button" title="Apagar" onClick={props.onDelete}
+        <button type="button" title="Apagar" onClick={props.onDelete} onPointerDown={stopCardOpen} onMouseDown={stopCardOpen}
           style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "#0E0E10", color: "#6E6E76", cursor: "pointer", fontSize: 13 }}>×</button>
       </div>
     </div>
@@ -463,9 +471,14 @@ export default function Projects() {
   }
 
   function removeProject(e, p) {
-    e.stopPropagation();
+    stopCardOpen(e);
     if (!window.confirm("Apagar o projeto \"" + p.name + "\"?")) return;
-    synapseStore.deleteProject(p.id, projects).then(function(next) { setProjects(next); });
+    var next = projects.filter(function(x) { return x.id !== p.id; });
+    setProjects(next);
+    pauseCloudPull(8000, "synapse_projects");
+    synapseStore.deleteProject(p.id, projects).then(function(saved) {
+      setProjects(saved);
+    });
   }
 
   function openProject(p) { navigate("/projects/" + p.id); }

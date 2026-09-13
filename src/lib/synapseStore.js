@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars, no-empty */
-import { readLocal, selectRows, upsertRows, uid, getUser } from "./cloudStore";
+import { readLocal, selectRows, upsertRows, uid, getUser, deleteRemoteIds } from "./cloudStore";
 import { hydrateSynapseNodes, stripFileForSave } from "./attachmentsStore";
 import { deleteProjectModules } from "./projectModuleStore";
 import { supabase } from "./supabase";
@@ -162,12 +162,12 @@ export async function deleteProject(projectId, projects) {
   try { localStorage.removeItem(DATA + ":" + projectId); } catch (e) {}
   await deleteProjectModules(projectId);
   var next = (projects || []).filter(function(p) { return p.id !== projectId; });
-  await saveProjects(next);
+  await deleteRemoteIds("synapse_projects", [projectId], PROJECTS);
+  if (next.length) await saveProjects(next);
   var user = await getUser();
   if (supabase && user) {
     try { await supabase.from("synapse_nodes").delete().eq("user_id", user.id).eq("project_id", projectId); } catch (e) {}
     try { await supabase.from("synapse_connections").delete().eq("user_id", user.id).eq("project_id", projectId); } catch (e) {}
-    try { await supabase.from("synapse_projects").delete().eq("user_id", user.id).eq("id", projectId); } catch (e) {}
   }
   return next;
 }

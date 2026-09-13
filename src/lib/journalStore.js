@@ -11,6 +11,7 @@ import {
 } from "./cloudStore";
 import { safePullMerge } from "./syncEngine";
 import { hydrateJournalBlocks, stripAttachmentRef } from "./attachmentsStore";
+import { isCloudPullPaused } from "./cloudSyncGuard";
 import { supabase } from "./supabase";
 
 var SPACES = "journal-spaces-v1";
@@ -60,7 +61,7 @@ function layoutScore(layout) {
   return n;
 }
 
-function mergeLayouts(a, b) {
+export function mergeLayouts(a, b) {
   var left = a || emptyNoteLayout();
   var right = b || emptyNoteLayout();
   var sa = layoutScore(left);
@@ -438,6 +439,9 @@ export async function loadNoteLayoutLocal() {
 
 export async function pullNoteLayout() {
   try {
+    if (isCloudPullPaused("journal_note_layout")) {
+      return loadNoteLayoutLocal();
+    }
     var localRows = await readLocal(NOTE_LAYOUT_KEY, []);
     var localRow = localRows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
     var local = normalizeNoteLayoutRow(localRow);
@@ -522,6 +526,9 @@ export async function syncJournal(editingBlock) {
   var spaces = await pullSpaces();
   var blocks = await pullBlocks(editingBlock);
   var layout = await pullNoteLayout();
+  if (isCloudPullPaused("journal_note_layout") || isCloudPullPaused("journal_spaces") || isCloudPullPaused("journal_blocks")) {
+    return { spaces: spaces, blocks: blocks, layout: layout };
+  }
   await saveSpaces(spaces, layout);
   await saveBlocks(blocks, layout);
   if (layoutScore(layout) > 0) await saveNoteLayout(layout);

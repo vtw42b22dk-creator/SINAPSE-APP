@@ -53,6 +53,7 @@ var expenseAdapter = {
   newCategory: financeStore.newCategory,
   monthTotal: financeStore.monthTotal,
   todayKey: financeStore.todayKey,
+  cloudTables: ["finance_categories", "expenses"],
 };
 
 var incomeAdapter = {
@@ -68,6 +69,7 @@ var incomeAdapter = {
   newCategory: incomeStore.newCategory,
   monthTotal: incomeStore.monthTotal,
   todayKey: financeStore.todayKey,
+  cloudTables: ["income_categories", "incomes"],
 };
 
 export default function Finance() {
@@ -154,7 +156,7 @@ export default function Finance() {
           }}>
             {data.loading ? "…" : eur(saldo)}
           </p>
-          <p style={{ margin: "10px 0 0", fontSize: 13, color: "#6E6E76", maxWidth: 46ch }}>
+          <p style={{ margin: "10px 0 0", fontSize: 13, color: "#6E6E76", maxWidth: "46ch" }}>
             Nunca recomeça. Tudo o que entra e sai, para sempre — organizado em sequências.
           </p>
           {!data.loading && (
