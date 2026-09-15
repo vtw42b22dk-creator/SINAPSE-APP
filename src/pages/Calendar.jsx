@@ -168,9 +168,13 @@ var CHRO_CSS = [
   ".ch-color{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:transform var(--dur-fast) var(--ease),border-color var(--dur) var(--ease),filter var(--dur) var(--ease)}",
   ".ch-color:hover{transform:scale(1.14)}",
   ".ch-color.is-on{border-color:#EDEDEF;transform:scale(1.1);filter:drop-shadow(0 0 8px currentColor)}",
-  ".ch-rep{display:flex;gap:4px}",
-  ".ch-rep-btn{flex:1;padding:8px 0;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".ch-rep-btn.is-on,.ch-rep-btn.is-base{color:var(--rc);border-bottom-color:var(--rc)}",
+  ".ch-rep{display:flex;gap:6px;position:relative;z-index:2}",
+  ".ch-rep-btn{flex:1;min-height:38px;padding:8px 4px;border:1px solid rgba(255,255,255,.14)!important;border-radius:var(--radius-sm)!important;background:rgba(255,255,255,.04)!important;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;touch-action:manipulation;position:relative;z-index:2;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".ch-rep-btn:hover:not(.is-base){color:#A0A0A8;border-color:rgba(255,255,255,.24)!important;background:rgba(255,255,255,.07)!important}",
+  ".ch-rep-btn.is-on{color:var(--rc)!important;border-color:color-mix(in srgb,var(--rc) 55%,transparent)!important;background:color-mix(in srgb,var(--rc) 18%,transparent)!important}",
+  ".ch-rep-btn.is-base{color:var(--rc)!important;border-color:color-mix(in srgb,var(--rc) 70%,transparent)!important;background:color-mix(in srgb,var(--rc) 24%,transparent)!important;cursor:default!important;opacity:1!important}",
+  ".ch-dup{padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.18);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
+  ".ch-dup:hover{color:var(--mc);border-bottom-color:var(--mc)}",
   ".ch-mins{display:flex;flex-wrap:wrap;gap:6px}",
   ".ch-min{padding:8px 10px;border:none;border-bottom:1px solid rgba(255,255,255,.1);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer}",
   ".ch-min.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
@@ -216,6 +220,13 @@ function weekKeys(anchorKey) {
     keys.push(dateKey(x.getFullYear(), x.getMonth(), x.getDate()));
   }
   return keys;
+}
+function weekdayIndex(key) {
+  var p = parseKey(key);
+  return (new Date(p.y, p.m, p.d).getDay() + 6) % 7;
+}
+function emptyRepeatDays() {
+  return [false, false, false, false, false, false, false];
 }
 function monthDayKeys(view) {
   var first = new Date(view.y, view.m, 1);
@@ -929,7 +940,9 @@ function EventSheet(props) {
   if (!props.open) return null;
   var p = props;
   var ev = p.draft;
-  var baseDow = (new Date(parseKey(p.dayKey).y, parseKey(p.dayKey).m, parseKey(p.dayKey).d).getDay() + 6) % 7;
+  var baseDow = weekdayIndex(p.dayKey);
+  var repeatDays = p.repeatDays || emptyRepeatDays();
+  var accent = ev.color || ACCENT;
 
   return (
     <div className={"ch-sheet-bg" + (p.isMobile ? "" : " ch-sheet-bg--desk")} onClick={p.onClose}>
@@ -1014,22 +1027,30 @@ function EventSheet(props) {
           </div>
         </div>
         <div className="ch-field">
-          <label className="ch-lbl">Repetir na semana</label>
-          <div className="ch-rep">
+          <label className="ch-lbl">Copiar para outros dias da semana</label>
+          <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6E6E76", lineHeight: 1.45 }}>
+            O dia base fica marcado. Toca nos outros dias para duplicar o evento na mesma semana.
+          </p>
+          <div className="ch-rep" style={{ "--rc": accent }}>
             {WEEKDAYS.map(function(w, i) {
               var isBase = i === baseDow;
-              var on = p.repeatDays[i];
+              var on = repeatDays[i];
               return (
-                <button key={w} type="button" disabled={isBase}
+                <button key={w} type="button" aria-pressed={isBase || on}
                   className={"ch-rep-btn ui-tap" + (isBase ? " is-base" : on ? " is-on" : "")}
-                  style={{ "--rc": ev.color || ACCENT }}
-                  onClick={function() { p.toggleRepeat(i); }}>{w.slice(0, 1)}</button>
+                  title={isBase ? "Dia base" : "Copiar para " + w}
+                  onPointerDown={function(e) { e.stopPropagation(); }}
+                  onClick={function(e) {
+                    e.stopPropagation();
+                    if (!isBase) p.toggleRepeat(i);
+                  }}>{w.slice(0, 1)}</button>
               );
             })}
           </div>
         </div>
         <div className="ch-sheet-actions">
           <button type="button" className="ch-save ui-tap" onClick={p.onSave}>{p.isEdit ? "Guardar" : "Criar"}</button>
+          {p.isEdit ? <button type="button" className="ch-dup ui-tap" onClick={p.onDuplicate}>Duplicar neste dia</button> : null}
           {p.isEdit ? <button type="button" className="ch-del ui-tap" onClick={p.onDelete}>Apagar</button> : null}
           <button type="button" className="ch-cancel ui-tap" onClick={p.onClose}>Cancelar</button>
         </div>
@@ -1062,8 +1083,6 @@ export default function Calendar() {
   var scrollNow = scrollNowS[0], bumpScrollNow = scrollNowS[1];
   var sheetS = useState(null);
   var sheet = sheetS[0], setSheet = sheetS[1];
-  var repS = useState([false, false, false, false, false, false, false]);
-  var repeatDays = repS[0], setRepeatDays = repS[1];
   var stageRef = useRef(null);
   var skipSaveRef = useRef(false);
   var didHydrateRef = useRef(false);
@@ -1214,11 +1233,11 @@ export default function Calendar() {
     var t = slotMin != null ? minToTime(slotMin) : "09:00";
     var end = endMin != null ? minToTime(endMin) : addMinutes(t, 60);
     if (timeToMin(end) <= timeToMin(t)) end = addMinutes(t, 60);
-    setRepeatDays([false, false, false, false, false, false, false]);
     if (dayKey) setSelected(dayKey);
     setSheet({
       isEdit: false,
       dayKey: key,
+      repeatDays: emptyRepeatDays(),
       draft: { id: uid(), title: "", notes: "", color: ACCENT, allDay: false, openEnd: false, time: t, endTime: end, duration: Math.max(SNAP, durationFromTimes(t, end)) },
     });
   }
@@ -1227,10 +1246,10 @@ export default function Calendar() {
     setSelected(dayKey);
     var p = parseKey(dayKey);
     setView({ y: p.y, m: p.m });
-    setRepeatDays([false, false, false, false, false, false, false]);
     setSheet({
       isEdit: true,
       dayKey: dayKey,
+      repeatDays: emptyRepeatDays(),
       draft: {
         id: ev.id, title: ev.title || "", notes: ev.notes || "", color: ev.color || ACCENT,
         allDay: !!ev.allDay, openEnd: isOpenEnd(ev), time: ev.time || "09:00",
@@ -1256,9 +1275,11 @@ export default function Calendar() {
       duration: sheet.draft.allDay ? null : (sheet.draft.openEnd ? minDur : durationFromTimes(sheet.draft.time, sheet.draft.endTime)),
       updated: Date.now(),
     };
+    var rep = sheet.repeatDays || emptyRepeatDays();
+    var anchorWeek = weekKeys(sheet.dayKey);
     var targets = [sheet.dayKey];
-    weekDays.forEach(function(k, i) {
-      if (repeatDays[i] && k !== sheet.dayKey) targets.push(k);
+    anchorWeek.forEach(function(k, i) {
+      if (rep[i] && k !== sheet.dayKey) targets.push(k);
     });
     setEvents(function(prev) {
       var next = Object.assign({}, prev);
@@ -1275,6 +1296,18 @@ export default function Calendar() {
       return next;
     });
     setSelected(sheet.dayKey);
+    closeSheet();
+  }
+
+  function duplicateFromSheet() {
+    if (!sheet || !sheet.isEdit) return;
+    var dup = Object.assign({}, sheet.draft, { id: uid(), updated: Date.now() });
+    var key = sheet.dayKey;
+    setEvents(function(prev) {
+      var next = Object.assign({}, prev);
+      next[key] = sortEvents((next[key] || []).concat([dup]));
+      return next;
+    });
     closeSheet();
   }
 
@@ -1431,12 +1464,24 @@ export default function Calendar() {
           dayKey={sheet.dayKey}
           draft={sheet.draft}
           setDraft={function(d) { setSheet(Object.assign({}, sheet, { draft: d })); }}
-          repeatDays={repeatDays}
+          repeatDays={sheet.repeatDays}
           toggleRepeat={function(i) {
-            setRepeatDays(function(prev) { var n = prev.slice(); n[i] = !n[i]; return n; });
+            if (!sheet || i === weekdayIndex(sheet.dayKey)) return;
+            setSheet(function(prev) {
+              if (!prev) return prev;
+              var n = (prev.repeatDays || emptyRepeatDays()).slice();
+              n[i] = !n[i];
+              return Object.assign({}, prev, { repeatDays: n });
+            });
           }}
-          onDayChange={function(k) { setSheet(Object.assign({}, sheet, { dayKey: k })); setSelected(k); var p = parseKey(k); setView({ y: p.y, m: p.m }); }}
+          onDayChange={function(k) {
+            setSheet(Object.assign({}, sheet, { dayKey: k, repeatDays: emptyRepeatDays() }));
+            setSelected(k);
+            var p = parseKey(k);
+            setView({ y: p.y, m: p.m });
+          }}
           onSave={saveSheet}
+          onDuplicate={duplicateFromSheet}
           onDelete={deleteFromSheet}
           onClose={closeSheet}
         />
