@@ -78,11 +78,27 @@ function toDb(dayKey, ev) {
   };
 }
 
+function pad2(n) {
+  return n < 10 ? "0" + n : "" + n;
+}
+
+/** YYYY-MM-DD — evita chaves sem zero à esquerda que não batem com o calendário. */
+function normalizeDayKey(key) {
+  if (!key || typeof key !== "string") return key;
+  var p = key.trim().split("-");
+  if (p.length !== 3) return key;
+  var y = +p[0];
+  var m = +p[1];
+  var d = +p[2];
+  if (!y || !m || !d) return key;
+  return y + "-" + pad2(m) + "-" + pad2(d);
+}
+
 function rowsToDays(rows) {
   var out = {};
   (rows || []).forEach(function(row) {
     var n = normalize(row);
-    var key = n.day_key || row.day_key || row.dayKey;
+    var key = normalizeDayKey(n.day_key || row.day_key || row.dayKey);
     if (!key) return;
     delete n.day_key;
     if (!out[key]) out[key] = [];
@@ -94,7 +110,8 @@ function rowsToDays(rows) {
 function daysToRows(events) {
   var rows = [];
   Object.keys(events || {}).forEach(function(k) {
-    (events[k] || []).forEach(function(ev) { rows.push(toDb(k, ev)); });
+    var key = normalizeDayKey(k) || k;
+    (events[k] || []).forEach(function(ev) { rows.push(toDb(key, ev)); });
   });
   return rows;
 }

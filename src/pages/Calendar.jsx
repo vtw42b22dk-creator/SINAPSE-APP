@@ -41,6 +41,12 @@ var CHRO_CSS = [
   ".ch-month-title{font-size:clamp(34px,8vw,58px);text-transform:capitalize}",
   ".ch-day-meta{margin:10px 0 0;font-size:13px;color:#8A8A92;text-transform:capitalize;letter-spacing:.15px}",
   ".ch-day-meta em{font-style:normal;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;margin-right:8px}",
+  ".ch-hero-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}",
+  ".ch-nav{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}",
+  ".ch-nav-btn{width:34px;height:34px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#A0A0A8;border-radius:50%;cursor:pointer;font-size:17px;line-height:1;padding:0;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".ch-nav-btn:hover{color:#EDEDEF;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}",
+  ".ch-nav-today{padding:6px 12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#A0A0A8;border-radius:999px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase}",
+  ".ch-nav-today:hover{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 45%,transparent)}",
   ".ch-modes{display:flex;gap:3px;padding:3px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:999px}",
   ".ch-mode{padding:8px 14px;border:none;background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px;cursor:pointer;border-radius:999px;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".ch-mode:hover{color:#A0A0A8}",
@@ -1059,13 +1065,21 @@ function EventSheet(props) {
   );
 }
 
+function freshTodayParts() {
+  var t = new Date();
+  return { y: t.getFullYear(), m: t.getMonth(), d: t.getDate(), key: dateKey(t.getFullYear(), t.getMonth(), t.getDate()) };
+}
+
 export default function Calendar() {
   var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
   var isMobile = vwS[0] < 720;
-  var today = useMemo(function() { return new Date(); }, []);
-  var todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  var todayS = useState(freshTodayParts);
+  var todayKey = todayS[0].key;
 
-  var viewS = useState({ y: today.getFullYear(), m: today.getMonth() });
+  var viewS = useState(function() {
+    var t = freshTodayParts();
+    return { y: t.y, m: t.m };
+  });
   var view = viewS[0], setView = viewS[1];
   var selS = useState(todayKey);
   var selected = selS[0], setSelected = selS[1];
@@ -1118,6 +1132,21 @@ export default function Calendar() {
   });
 
   useEffect(function() {
+    function tickToday() { todayS[1](freshTodayParts()); }
+    tickToday();
+    var id = setInterval(tickToday, 60000);
+    return function() { clearInterval(id); };
+  }, []);
+
+  useEffect(function() {
+    var p = parseKey(selected);
+    setView(function(v) {
+      if (v.y === p.y && v.m === p.m) return v;
+      return { y: p.y, m: p.m };
+    });
+  }, [selected]);
+
+  useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
     window.addEventListener("resize", onResize);
     return function() { window.removeEventListener("resize", onResize); };
@@ -1158,9 +1187,11 @@ export default function Calendar() {
   }
 
   function goToday() {
+    var t = freshTodayParts();
+    todayS[1](t);
     setNavDir(0);
-    setSelected(todayKey);
-    setView({ y: today.getFullYear(), m: today.getMonth() });
+    setSelected(t.key);
+    setView({ y: t.y, m: t.m });
   }
 
   function jumpNow() {
@@ -1397,14 +1428,28 @@ export default function Calendar() {
         <div className="ch-hero">
           {mode === "week" ? (
             <>
-              <h1 className="ch-week-hero"><span>Semana</span>{weekRangeLabel}</h1>
+              <div className="ch-hero-nav">
+                <div className="ch-nav" aria-label="Navegar semana">
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftWeek(-1); }} aria-label="Semana anterior">‹</button>
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftWeek(1); }} aria-label="Semana seguinte">›</button>
+                  <button type="button" className="ch-nav-today ui-tap" onClick={goToday}>Hoje</button>
+                </div>
+                <h1 className="ch-week-hero" style={{ margin: 0 }}><span>Semana</span>{weekRangeLabel}</h1>
+              </div>
               <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
             </>
           ) : mode === "month" ? (
             <>
-              <button type="button" className="ch-month-title" onClick={goToday}>
-                {new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long" })}
-              </button>
+              <div className="ch-hero-nav">
+                <div className="ch-nav" aria-label="Navegar mês">
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftMonth(-1); }} aria-label="Mês anterior">‹</button>
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftMonth(1); }} aria-label="Mês seguinte">›</button>
+                  <button type="button" className="ch-nav-today ui-tap" onClick={goToday}>Hoje</button>
+                </div>
+                <button type="button" className="ch-month-title" onClick={goToday}>
+                  {new Date(view.y, view.m, 1).toLocaleDateString("pt-PT", { month: "long" })}
+                </button>
+              </div>
               <p className="ch-day-meta">
                 {view.y}
                 {selected === todayKey ? "  ·  hoje" : "  ·  " + dayDate.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric" })}
@@ -1412,7 +1457,14 @@ export default function Calendar() {
             </>
           ) : (
             <>
-              <button type="button" className="ch-day-num" onClick={goToday}>{selParsed.d}</button>
+              <div className="ch-hero-nav">
+                <div className="ch-nav" aria-label="Navegar dia">
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftDay(-1); }} aria-label="Dia anterior">‹</button>
+                  <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftDay(1); }} aria-label="Dia seguinte">›</button>
+                  <button type="button" className="ch-nav-today ui-tap" onClick={goToday}>Hoje</button>
+                </div>
+                <button type="button" className="ch-day-num" onClick={goToday}>{selParsed.d}</button>
+              </div>
               <p className="ch-day-meta">
                 {selected === todayKey ? <em>hoje</em> : null}
                 {dayDate.toLocaleDateString("pt-PT", { weekday: "long", month: "long" })}
@@ -1427,7 +1479,7 @@ export default function Calendar() {
       ) : null}
 
       <div className="ch-body">
-        <div ref={stageRef} className={stageClass} key={mode + selected}>
+        <div ref={stageRef} className={stageClass} key={mode}>
           {mode === "month" ? (
             isMobile ? (
               <div className="ch-month-org">

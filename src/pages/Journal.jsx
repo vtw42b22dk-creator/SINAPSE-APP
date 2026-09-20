@@ -108,7 +108,12 @@ var JR_CSS = [
   ".gn-block{position:relative;padding:20px 22px 20px 25px;transition:border-color var(--dur) var(--ease)}",
   ".gn-block::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--nc);opacity:.6}",
   ".gn-block:hover{border-color:rgba(255,255,255,.15)}",
-  ".gn-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}",
+  ".gn-block-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;cursor:default;user-select:none}",
+  ".gn-block.is-collapsed{padding-bottom:14px}",
+  ".gn-block.is-collapsed .gn-block-head{margin-bottom:0;cursor:pointer}",
+  ".gn-block.is-collapsed > *:not(.gn-block-head){display:none!important}",
+  ".gn-block-fold{margin-left:auto;font-size:10px;color:#6E6E76;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;opacity:0;transition:opacity var(--dur) var(--ease)}",
+  ".gn-block.is-collapsed .gn-block-fold,.gn-block-head:hover .gn-block-fold{opacity:1}",
   ".gn-type{display:inline-flex;align-items:center;gap:6px;color:#8A8A90;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase}",
   ".gn-type svg{width:13px;height:13px;opacity:.8}",
   ".gn-block .gn-x{width:26px;height:26px;font-size:15px;opacity:0;transition:opacity var(--dur) var(--ease),color var(--dur) var(--ease),background var(--dur) var(--ease)}",
@@ -315,6 +320,20 @@ export default function Journal() {
   var lastSaveAt = useRef(0);
   var lastDeleteAt = useRef(0);
   var noteLayoutDirtyRef = useRef(false);
+  var canvasCollapsedS = useState({});
+  var canvasCollapsed = canvasCollapsedS[0], setCanvasCollapsed = canvasCollapsedS[1];
+
+  useEffect(function() {
+    setCanvasCollapsed({});
+  }, [active]);
+
+  function toggleCanvasBlockCollapse(id) {
+    setCanvasCollapsed(function(prev) {
+      var next = Object.assign({}, prev);
+      next[id] = !next[id];
+      return next;
+    });
+  }
 
   function getEditingSnapshot() {
     var id = editingBlockRef.current;
@@ -995,6 +1014,8 @@ export default function Journal() {
                     key={b.id}
                     block={b}
                     color={color}
+                    collapsed={!!canvasCollapsed[b.id]}
+                    onToggleCollapse={function() { toggleCanvasBlockCollapse(b.id); }}
                     onChange={updateBlock}
                     onDelete={removeBlock}
                     onEditStart={function(id) { editingBlockRef.current = id; }}
@@ -1083,9 +1104,17 @@ function JournalBlock(props) {
   }
 
   return (
-    <div className="gn-block glass" style={{ "--nc": props.color }}>
-      <div className="gn-block-head">
+    <div className={"gn-block glass" + (props.collapsed ? " is-collapsed" : "")} style={{ "--nc": props.color }}>
+      <div
+        className="gn-block-head"
+        title="Duplo clique para minimizar"
+        onDoubleClick={function(e) {
+          if (e.target.closest(".gn-x")) return;
+          if (props.onToggleCollapse) props.onToggleCollapse();
+        }}
+      >
         <span className="gn-type"><meta.Icon /> {meta.label}</span>
+        <span className="gn-block-fold">{props.collapsed ? "Expandir" : "Minimizar"}</span>
         <button type="button" className="gn-x" onClick={function() { props.onDelete(b.id); }} style={{ width: 26, height: 26, fontSize: 15 }}>×</button>
       </div>
       {uploadMsg ? <p className="gn-uploadmsg">{uploadMsg}</p> : null}
