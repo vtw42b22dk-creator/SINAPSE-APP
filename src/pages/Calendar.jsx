@@ -136,6 +136,16 @@ var CHRO_CSS = [
   ".ch-dayfocus{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
   ".ch-dayfocus .ch-wk-strip-row{position:relative;top:auto;flex-shrink:0}",
   ".ch-dayfocus .ch-stream-wrap{flex:1}",
+  ".ch-halves-wrap{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".ch-halves{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr);overflow:auto}",
+  ".ch-half{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;border-left:1px solid rgba(255,255,255,.08)}",
+  ".ch-half:first-child{border-left:none}",
+  ".ch-half-h{flex-shrink:0;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:10px 16px 8px}",
+  ".ch-half-h b{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1.4px;color:#EDEDEF}",
+  ".ch-half-h span{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6E6E76}",
+  ".ch-half .ch-stream-wrap{flex:1;min-height:0;padding-bottom:28px}",
+  ".ch-ev--cont{opacity:.72}",
+  "@media(max-width:899px){.ch-halves{grid-template-columns:1fr;grid-template-rows:none}.ch-half{min-height:68vh;border-left:none;border-top:1px solid rgba(255,255,255,.08)}.ch-half:first-child{border-top:none}}",
   ".ch-root.is-pad .ch-wk-hour,.ch-root.is-pad .ch-wk-col,.ch-root.is-pad .ch-track{touch-action:none;-webkit-user-select:none;user-select:none}",
   ".ch-root.is-pad .ch-wk-gutter,.ch-root.is-pad .ch-wk-strip-row{touch-action:pan-y}",
   ".ch-wk-col.is-paint{cursor:ns-resize;user-select:none;touch-action:none}",
@@ -524,18 +534,37 @@ function DayStream(props) {
   }, []);
 
   var dayKey = props.dayKey;
+  var hourH = props.hourH || HOUR_H;
+  var fromHour = props.fromHour == null ? 0 : props.fromHour;
+  var toHour = props.toHour == null ? HOURS : props.toHour;
+  var fromMin = fromHour * 60;
+  var toMin = toHour * 60;
+  var split = props.fromHour != null || props.toHour != null;
   var allDay = useMemo(function() {
+    if (props.hideAllDay) return [];
     return sortEvents((props.events[dayKey] || []).filter(function(ev) { return ev.allDay; }));
-  }, [dayKey, props.events]);
+  }, [dayKey, props.events, props.hideAllDay]);
   var laid = useMemo(function() {
-    return layoutDayEvents(props.events[dayKey] || []);
-  }, [dayKey, props.events]);
+    return layoutDayEvents(props.events[dayKey] || []).map(function(seg) {
+      var end = seg.start + seg.dur;
+      if (end <= fromMin || seg.start >= toMin) return null;
+      var viewStart = Math.max(seg.start, fromMin);
+      var viewEnd = Math.min(end, toMin);
+      return Object.assign({}, seg, {
+        viewStart: viewStart,
+        viewDur: Math.max(1, viewEnd - viewStart),
+        anchor: seg.start >= fromMin && seg.start < toMin,
+      });
+    }).filter(Boolean);
+  }, [dayKey, props.events, fromMin, toMin]);
 
   var nowTop = useMemo(function() {
     if (dayKey !== props.todayKey) return null;
     var t = new Date();
-    return (t.getHours() * 60 + t.getMinutes()) / 60 * HOUR_H;
-  }, [dayKey, props.todayKey, tickS[0]]);
+    var mins = t.getHours() * 60 + t.getMinutes();
+    if (mins < fromMin || mins >= toMin) return null;
+    return ((mins - fromMin) / 60) * hourH;
+  }, [dayKey, props.todayKey, tickS[0], fromMin, toMin, hourH]);
 
   useEffect(function() {
     var el = trackRef.current;
@@ -550,19 +579,31 @@ function DayStream(props) {
 
   useEffect(function() {
     var el = scrollRef.current;
+    if (!el) return;
+    if (split) {
+      var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      if (dayKey === props.todayKey && nowMin >= fromMin && nowMin < toMin) {
+        el.scrollTop = Math.max(0, ((nowMin - fromMin) / 60) * hourH - el.clientHeight * 0.28);
+        return;
+      }
+      var prefer = fromHour < 12 ? Math.max(fromHour, 7) : fromHour;
+      el.scrollTop = Math.max(0, (prefer - fromHour) * hourH);
+      return;
+    }
     if (dayKey === props.todayKey) {
       scrollToNow(el, dayKey, props.todayKey, !!props.scrollNow);
       return;
     }
-    if (el && props.anchorHour != null) el.scrollTop = props.anchorHour * HOUR_H;
-  }, [dayKey, props.todayKey, props.scrollNow, props.anchorHour]);
+    if (props.anchorHour != null) el.scrollTop = props.anchorHour * hourH;
+  }, [dayKey, props.todayKey, props.scrollNow, props.anchorHour, split, fromHour, fromMin, toMin, hourH]);
 
   function posFromY(clientY) {
     var el = trackRef.current;
     if (!el) return null;
     var r = el.getBoundingClientRect();
     var y = Math.max(0, Math.min(r.height, clientY - r.top));
-    return snapMin(Math.floor(y / HOUR_H) * 60 + Math.round(((y % HOUR_H) / HOUR_H) * 60));
+    var mins = fromMin + Math.floor(y / hourH) * 60 + Math.round(((y % hourH) / hourH) * 60);
+    return snapMin(Math.max(fromMin, Math.min(toMin, mins)));
   }
 
   function openRange(origin, current, moved) {
@@ -641,6 +682,7 @@ function DayStream(props) {
       if (!moved) { props.onEventClick(ev, dayKey); return; }
       var mins = posFromY(pe.clientY);
       if (mins != null && props.onMove) {
+        mins = Math.max(fromMin, Math.min(toMin - d.dur, mins));
         mins = Math.max(0, Math.min(1440 - d.dur, mins));
         props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.dur);
       }
@@ -667,7 +709,7 @@ function DayStream(props) {
     setDraftRange({ start: startMin, dur: startDur, live: true });
     function onMove(pe) {
       if (!dragRef.current || dragRef.current.kind !== "resize") return;
-      var delta = snapMin(((pe.clientY - dragRef.current.startY) / HOUR_H) * 60);
+      var delta = snapMin(((pe.clientY - dragRef.current.startY) / hourH) * 60);
       var dur = Math.max(SNAP, Math.min(1440 - startMin, startDur + delta));
       dragRef.current.dur = dur;
       setDraftRange({ start: startMin, dur: dur, live: true });
@@ -704,10 +746,11 @@ function DayStream(props) {
           })}
         </div>
       ) : null}
-      <div ref={trackRef} className={"ch-track" + (draftRange ? " is-paint" : "")} onPointerDown={onTrackPointerDown}>
-        {Array.from({ length: HOURS }, function(_, h) {
+      <div ref={trackRef} className={"ch-track" + (draftRange ? " is-paint" : "")} style={{ minHeight: (toHour - fromHour) * hourH }} onPointerDown={onTrackPointerDown}>
+        {Array.from({ length: toHour - fromHour }, function(_, i) {
+          var h = fromHour + i;
           return (
-            <div key={h} className="ch-hour" style={{ top: h * HOUR_H }}>
+            <div key={h} className="ch-hour" style={{ top: i * hourH, height: hourH }}>
               <span className="ch-hour-lbl">{pad(h)}:00</span>
             </div>
           );
@@ -721,32 +764,89 @@ function DayStream(props) {
         {laid.map(function(seg) {
           var ev = seg.ev;
           var c = ev.color || ACCENT;
-          var top = (seg.start / 60) * HOUR_H;
-          var h = Math.max(28, (seg.dur / 60) * HOUR_H - 2);
+          var top = ((seg.viewStart - fromMin) / 60) * hourH;
+          var h = Math.max(28, (seg.viewDur / 60) * hourH - 2);
           var isEdit = props.editId === ev.id;
           var open = isOpenEnd(ev);
-          var box = evBlockStyle(seg, HOUR_H, 2);
+          var box = evBlockStyle(seg, hourH, 2);
           return (
-            <div key={ev.id} className={"ch-ev" + (isEdit ? " is-edit" : "") + (open ? " ch-ev--open" : "")} style={{
+            <div key={ev.id} className={"ch-ev" + (isEdit ? " is-edit" : "") + (open ? " ch-ev--open" : "") + (seg.anchor ? "" : " ch-ev--cont")} style={{
               "--ec": c, top: top, height: h, left: box.left, width: box.width,
-            }} onPointerDown={function(e) { onEvPointerDown(e, ev); }}>
+            }} onPointerDown={function(e) {
+              if (!seg.anchor) { e.stopPropagation(); props.onEventClick(ev, dayKey); return; }
+              onEvPointerDown(e, ev);
+            }}>
               <span className="ch-ev-bar" />
               <div className="ch-ev-body">
                 <p className="ch-ev-time">{eventTimeLabel(ev, seg.dur)}</p>
                 <p className="ch-ev-title">{ev.title || "Sem título"}</p>
               </div>
-              {!open ? <span className="ch-resize" onPointerDown={function(e) { onResizePointerDown(e, ev); }} /> : null}
+              {seg.anchor && !open ? <span className="ch-resize" onPointerDown={function(e) { onResizePointerDown(e, ev); }} /> : null}
             </div>
           );
         })}
         {draftRange ? (
           <div className="ch-draft" style={{
-            top: (draftRange.start / 60) * HOUR_H,
-            height: Math.max(24, (draftRange.dur / 60) * HOUR_H - 2),
+            top: ((draftRange.start - fromMin) / 60) * hourH,
+            height: Math.max(24, (draftRange.dur / 60) * hourH - 2),
           }}>
             <p className="ch-draft-lbl">{minToTime(draftRange.start)} – {minToTime(draftRange.start + draftRange.dur)}</p>
           </div>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function DayHalves(props) {
+  var allDay = sortEvents((props.events[props.dayKey] || []).filter(function(ev) { return ev.allDay; }));
+  function countFrom(hour) {
+    return (props.events[props.dayKey] || []).filter(function(ev) {
+      if (ev.allDay || !ev.time) return false;
+      var start = timeToMin(ev.time);
+      return start >= hour * 60 && start < (hour < 12 ? 12 : 24) * 60;
+    }).length;
+  }
+  var shared = {
+    dayKey: props.dayKey,
+    todayKey: props.todayKey,
+    events: props.events,
+    editId: props.editId,
+    scrollNow: props.scrollNow,
+    directPaint: props.directPaint,
+    readOnly: props.readOnly,
+    hideAllDay: true,
+    onEventClick: props.onEventClick,
+    onSlotClick: props.onSlotClick,
+    onSlotRange: props.onSlotRange,
+    onMove: props.onMove,
+  };
+  return (
+    <div className="ch-halves-wrap">
+      {allDay.length > 0 ? (
+        <div className="ch-allday" style={{ margin: "0 16px" }}>
+          <p className="ch-allday-lbl">Dia todo</p>
+          {allDay.map(function(ev) {
+            var c = ev.color || ACCENT;
+            return (
+              <button key={ev.id} type="button" className="ch-allday-row ui-tap" style={{ "--ec": c }}
+                onClick={function() { props.onEventClick(ev, props.dayKey); }}>
+                <span className="ch-allday-bar" />
+                <span className="ch-allday-title">{ev.title || "Sem título"}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="ch-halves">
+        <section className="ch-half">
+          <header className="ch-half-h"><b>MANHÃ</b><span>até 12:00 · {countFrom(0)}</span></header>
+          <DayStream {...shared} fromHour={0} toHour={12} />
+        </section>
+        <section className="ch-half">
+          <header className="ch-half-h"><b>TARDE</b><span>desde 12:00 · {countFrom(12)}</span></header>
+          <DayStream {...shared} fromHour={12} toHour={24} />
+        </section>
       </div>
     </div>
   );
@@ -1689,7 +1789,7 @@ export default function Calendar() {
                 </div>
                 <h1 className="ch-week-hero" style={{ margin: 0 }}><span>Semana</span>{weekRangeLabel}</h1>
               </div>
-              <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })} · duplo clique num dia para o organizar</p>
+              <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })} · duplo clique num dia abre manhã e tarde</p>
             </>
           ) : mode === "month" ? (
             <>
@@ -1747,8 +1847,8 @@ export default function Calendar() {
           ) : mode === "week" && !isMobile && focusDay ? (
             <div className="ch-dayfocus">
               <WeekStrip plain weekDays={weekDays} selected={focusDay} todayKey={todayKey} events={events} onSelectDay={selectDay} onFocusDay={openDayFocus} />
-              <DayStream dayKey={focusDay} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
-                scrollNow={scrollNow} anchorHour={8} directPaint={isPad} readOnly={false}
+              <DayHalves dayKey={focusDay} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+                scrollNow={scrollNow} directPaint={isPad} readOnly={false}
                 onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
             </div>
           ) : mode === "week" && !isMobile ? (
