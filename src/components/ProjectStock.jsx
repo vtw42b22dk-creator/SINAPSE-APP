@@ -28,7 +28,11 @@ var STOCK_CSS = [
   ".ps-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}",
   ".ps-chart h3{margin:0 0 4px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px}",
   ".ps-chart svg{width:100%;height:auto;display:block}",
-  ".ps-tabs{display:flex;gap:8px;margin:0 0 6px}",
+  ".ps-tabs{display:flex;gap:8px;margin:0 0 6px;flex-wrap:wrap}",
+  ".ps-tabs .pm-seg{flex-wrap:wrap}",
+  ".ps-hint{margin:0 0 12px;font-size:12px;line-height:1.5;color:#A0A0A8}",
+  ".ps-check{display:flex;align-items:center;gap:8px;font-size:13px;color:#A0A0A8;cursor:pointer}",
+  ".ps-check input{accent-color:#C4A57C}",
   ".ps-h{margin:0 0 2px;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
   ".ps-list{display:flex;flex-direction:column;margin:0}",
   ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
@@ -37,6 +41,7 @@ var STOCK_CSS = [
   ".ps-acts{display:flex;flex-direction:row;gap:14px;align-items:center;flex-wrap:wrap}",
   ".ps-link{border:none;background:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
   ".ps-link.sell{color:#8FB39B}",
+  ".ps-link.arrive{color:#C4A57C}",
   ".ps-link.del{color:#C08C8C}",
   ".ps-stat-sub{display:block;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#A0A0A8}",
   ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
@@ -72,6 +77,14 @@ function todayKey() {
   var m = t.getMonth() + 1;
   var d = t.getDate();
   return t.getFullYear() + "-" + (m < 10 ? "0" + m : m) + "-" + (d < 10 ? "0" + d : d);
+}
+
+function nowMs() {
+  return Date.now();
+}
+
+function apontamentoId() {
+  return "ap_" + nowMs().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 function fmtShort(n) {
@@ -165,6 +178,12 @@ export function ProjectStock(props) {
   var showMore = showMoreS[0], setShowMore = showMoreS[1];
   var tabS = useState("stock");
   var tab = tabS[0], setTab = tabS[1];
+  var aChegarS = useState(true);
+  var aChegar = aChegarS[0], setAChegar = aChegarS[1];
+  var invTitleS = useState("");
+  var invTitle = invTitleS[0], setInvTitle = invTitleS[1];
+  var invAmountS = useState("");
+  var invAmount = invAmountS[0], setInvAmount = invAmountS[1];
   var sheetRef = useRef(null);
   sheetRef.current = sheet;
 
@@ -214,7 +233,7 @@ export function ProjectStock(props) {
     next.next_id = id + 1;
     next.items.push({
       id: id, nome: nome.trim(), compra: val, venda: 0, custo_adicional: 0,
-      status: "Disponível", data_venda: null, data_compra: todayKey(),
+      status: "Disponível", data_venda: null, data_compra: todayKey(), chegou: false, chegou_em: 0,
     });
     persist(next);
     setNome(""); setCompra("");
@@ -234,7 +253,18 @@ export function ProjectStock(props) {
     setEditCompra(String(item.compra));
     setEditExtra(String(item.custo_adicional || 0));
     setVenda(item.venda ? String(item.venda) : "");
+    setAChegar(!item.chegou);
     setMsg(null);
+  }
+
+  function markArrived(item) {
+    var src = dataRef.current || data;
+    persist(Object.assign({}, src, {
+      items: src.items.map(function(i) {
+        if (i.id !== item.id) return i;
+        return Object.assign({}, i, { chegou: true, chegou_em: Date.now() });
+      }),
+    }));
   }
 
   function confirmSell() {
@@ -270,6 +300,7 @@ export function ProjectStock(props) {
       items: src.items.map(function(i) {
         if (i.id !== idVal) return i;
         var sold = vendaVal != null && vendaVal > 0;
+        var chegou = !aChegar;
         return Object.assign({}, i, {
           nome: editNome.trim(),
           compra: c,
@@ -277,11 +308,41 @@ export function ProjectStock(props) {
           venda: sold ? vendaVal : 0,
           status: sold ? "Vendido" : "Disponível",
           data_venda: sold ? (i.data_venda || todayKey()) : null,
+          chegou: chegou,
+          chegou_em: chegou === !!i.chegou ? (i.chegou_em || 0) : Date.now(),
         });
       }),
     }));
     setSheet(null);
     flash("Artigo atualizado.");
+  }
+
+  function addApontamento() {
+    var val = parseMoney(invAmount);
+    if (!invTitle.trim() || isNaN(val)) {
+      flash("Indica a descrição e o valor.", "err");
+      return;
+    }
+    var src = dataRef.current || data;
+    var row = {
+      id: apontamentoId(),
+      titulo: invTitle.trim(),
+      valor: val,
+      dia: todayKey(),
+      created: nowMs(),
+    };
+    persist(Object.assign({}, src, { apontamentos: [row].concat(src.apontamentos || []) }));
+    setInvTitle("");
+    setInvAmount("");
+    flash("Apontamento guardado.");
+  }
+
+  function removeApontamento(id) {
+    if (!window.confirm("Apagar este apontamento?")) return;
+    var src = dataRef.current || data;
+    persist(Object.assign({}, src, {
+      apontamentos: (src.apontamentos || []).filter(function(a) { return a.id !== id; }),
+    }));
   }
 
   function removeItem(item) {
@@ -349,6 +410,7 @@ export function ProjectStock(props) {
       withProfit ? moneyPt(lucro) : "",
       item.data_compra || "",
       item.data_venda || "",
+      item.chegou ? "Sim" : "Não",
     ];
   }
 
@@ -367,7 +429,7 @@ export function ProjectStock(props) {
     var weeklyNow = projectModuleStore.stockWeeklySeries(src);
     var stockItems = src.items.filter(function(i) { return i.status === "Disponível"; });
     var soldItems = src.items.filter(function(i) { return i.status === "Vendido"; });
-    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda"];
+    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda", "Chegou"];
 
     var html = [
       "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\">",
@@ -422,6 +484,8 @@ export function ProjectStock(props) {
     return projectModuleStore.sortStockBySaleDate(data.items.filter(function(i) { return i.status === "Vendido"; }));
   }, [data]);
   var sheetItem = sheet && data ? data.items.find(function(i) { return i.id === sheet.id; }) : null;
+  var apontamentos = (data && data.apontamentos) || [];
+  var apontado = apontamentos.reduce(function(sum, row) { return sum + (Number(row.valor) || 0); }, 0);
 
   if (!data || !stats) {
     return (
@@ -528,6 +592,8 @@ export function ProjectStock(props) {
             style={tab === "stock" ? { background: "#E6E6E9" } : null}>Stock · {disponiveis.length}</button>
           <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { setTab("vendas"); }}
             style={tab === "vendas" ? { background: "#E6E6E9" } : null}>Vendidos · {vendidos.length}</button>
+          <button type="button" className={tab === "invest" ? "on" : ""} onClick={function() { setTab("invest"); }}
+            style={tab === "invest" ? { background: "#E6E6E9" } : null}>Investimentos · {apontamentos.length}</button>
         </div>
       </div>
 
@@ -545,6 +611,9 @@ export function ProjectStock(props) {
                   </div>
                   <div className="ps-acts">
                     <button type="button" className="ps-link sell" onClick={function() { openSell(item); }}>Vender</button>
+                    {!item.chegou ? (
+                      <button type="button" className="ps-link arrive" onClick={function() { markArrived(item); }}>a chegar...</button>
+                    ) : null}
                     <button type="button" className="ps-link" onClick={function() { openEdit(item); }}>Editar</button>
                     <button type="button" className="ps-link del" onClick={function() { removeItem(item); }}>Remover</button>
                   </div>
@@ -553,6 +622,45 @@ export function ProjectStock(props) {
             })}
           </div>
         )
+      )}
+
+      {tab === "invest" && (
+        <div>
+          <p className="ps-hint">Aponta o que investiste neste projeto. Estes valores ficam só aqui e não entram no lucro, na faturação, na margem nem na meta.</p>
+          <div className="ps-add" style={{ marginBottom: 12 }}>
+            <div>
+              <label className="pm-label">Descrição</label>
+              <input className="pm-input" value={invTitle} onChange={function(e) { setInvTitle(e.target.value); }} placeholder="Envios, anúncios, stock inicial..."
+                onKeyDown={function(e) { if (e.key === "Enter") addApontamento(); }} />
+            </div>
+            <div>
+              <label className="pm-label">Valor</label>
+              <input className="pm-input" value={invAmount} onChange={function(e) { setInvAmount(e.target.value); }} inputMode="decimal" placeholder="0€"
+                style={{ fontFamily: "'JetBrains Mono',monospace" }} onKeyDown={function(e) { if (e.key === "Enter") addApontamento(); }} />
+            </div>
+            <PrimaryBtn onClick={addApontamento}>Apontar</PrimaryBtn>
+          </div>
+          {apontamentos.length === 0 ? (
+            <p className="ps-empty">Ainda sem investimentos apontados.</p>
+          ) : (
+            <div className="ps-list">
+              <p className="ps-hint" style={{ marginBottom: 4 }}>Total apontado {fmtShort(apontado)}</p>
+              {apontamentos.map(function(row) {
+                return (
+                  <article key={row.id} className="ps-card">
+                    <div>
+                      <h4>{row.titulo}</h4>
+                      <p className="meta">{fmtDay(row.dia)} · {fmtShort(row.valor)}</p>
+                    </div>
+                    <div className="ps-acts">
+                      <button type="button" className="ps-link del" onClick={function() { removeApontamento(row.id); }}>Remover</button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
 
       {tab === "vendas" && (
@@ -643,6 +751,10 @@ export function ProjectStock(props) {
                     <input className="pm-input" value={venda} onChange={function(e) { setVenda(e.target.value); }} inputMode="decimal"
                       style={{ fontFamily: "'JetBrains Mono',monospace" }} />
                   </div>
+                  <label className="ps-check">
+                    <input type="checkbox" checked={aChegar} onChange={function(e) { setAChegar(e.target.checked); }} />
+                    Ainda a chegar
+                  </label>
                 </div>
                 <div className="acts">
                   <PrimaryBtn onClick={confirmEdit}>Guardar</PrimaryBtn>

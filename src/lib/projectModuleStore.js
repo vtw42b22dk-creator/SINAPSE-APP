@@ -333,6 +333,7 @@ function emptyStock() {
     meta_ativa: false,
     meta_data_inicio: todayKey(),
     items: [],
+    apontamentos: [],
     deleted_ids: [],
     seeded: false,
     updated: Date.now(),
@@ -366,7 +367,35 @@ function normStockItem(row) {
     status: status,
     data_venda: status === "Vendido" ? dataVenda : null,
     data_compra: dataCompra,
+    chegou: row.chegou === true,
+    chegou_em: Number(row.chegou_em) || 0,
   };
+}
+
+function normApontamento(row) {
+  if (!row || typeof row !== "object") return null;
+  var titulo = String(row.titulo || row.title || "").trim();
+  if (!titulo) return null;
+  return {
+    id: String(row.id || uid("ap")),
+    titulo: titulo,
+    valor: Number(row.valor != null ? row.valor : row.amount) || 0,
+    dia: row.dia || row.day || todayKey(),
+    created: Number(row.created) || Date.now(),
+  };
+}
+
+function normApontamentos(src) {
+  var seen = {};
+  var out = [];
+  (src || []).forEach(function(row) {
+    var n = normApontamento(row);
+    if (!n || seen[n.id]) return;
+    seen[n.id] = true;
+    out.push(n);
+  });
+  out.sort(function(a, b) { return (b.created || 0) - (a.created || 0); });
+  return out;
 }
 
 export function importStockPayload(raw) {
@@ -397,6 +426,7 @@ function normStock(raw) {
     meta_ativa: metaAtiva,
     meta_data_inicio: src.meta_data_inicio || src.metaDataInicio || todayKey(),
     items: items,
+    apontamentos: normApontamentos(src.apontamentos),
     deleted_ids: deletedIds,
     seeded: !!src.seeded,
     updated: Number(src.updated) || (src.updated_at ? new Date(src.updated_at).getTime() : Date.now()),
@@ -404,9 +434,13 @@ function normStock(raw) {
 }
 
 function stockFingerprint(data) {
-  return (data && data.items ? data.items : []).map(function(i) {
-    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0);
+  var items = (data && data.items ? data.items : []).map(function(i) {
+    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0);
   }).sort().join("|");
+  var notes = (data && data.apontamentos ? data.apontamentos : []).map(function(a) {
+    return a.id + ":" + a.titulo + ":" + (Number(a.valor) || 0);
+  }).sort().join("|");
+  return items + "#" + notes;
 }
 
 function parseRemoteStockRow(row) {
@@ -447,18 +481,29 @@ function pickPrimaryStock(blobs) {
   })[0];
 }
 
+function withArrival(chosen, a, b) {
+  var ae = Number(a.chegou_em) || 0;
+  var be = Number(b.chegou_em) || 0;
+  if (ae || be) {
+    var win = ae >= be ? a : b;
+    return Object.assign({}, chosen, { chegou: !!win.chegou, chegou_em: win.chegou_em || 0 });
+  }
+  if (a.chegou || b.chegou) return Object.assign({}, chosen, { chegou: true, chegou_em: 0 });
+  return chosen;
+}
+
 function pickStockItem(a, b) {
   var aSold = a.status === "Vendido";
   var bSold = b.status === "Vendido";
-  if (bSold && !aSold) return b;
-  if (aSold && !bSold) return a;
-  if ((Number(b.venda) || 0) !== (Number(a.venda) || 0)) {
-    return (Number(b.venda) || 0) > (Number(a.venda) || 0) ? b : a;
+  var chosen = b;
+  if (bSold && !aSold) chosen = b;
+  else if (aSold && !bSold) chosen = a;
+  else if ((Number(b.venda) || 0) !== (Number(a.venda) || 0)) {
+    chosen = (Number(b.venda) || 0) > (Number(a.venda) || 0) ? b : a;
+  } else if ((b.data_venda || "") !== (a.data_venda || "")) {
+    chosen = (b.data_venda || "") > (a.data_venda || "") ? b : a;
   }
-  if ((b.data_venda || "") !== (a.data_venda || "")) {
-    return (b.data_venda || "") > (a.data_venda || "") ? b : a;
-  }
-  return b;
+  return withArrival(chosen, a, b);
 }
 
 function mergeStockBlobs(blobs) {
@@ -496,6 +541,7 @@ function mergeStockBlobs(blobs) {
     meta_ativa: newestMeta.meta_ativa,
     meta_data_inicio: newestMeta.meta_data_inicio,
     items: items,
+    apontamentos: newestMeta.apontamentos || [],
     deleted_ids: Object.keys(deleted).map(function(id) { return Number(id); }),
     seeded: true,
     updated: Math.max.apply(null, blobs.map(function(b) { return b.updated || 0; })),

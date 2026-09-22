@@ -143,6 +143,11 @@ export default function ProjectWorkspace() {
     return synapseStore.MODULE_META.filter(function(m) { return project.modules && project.modules[m.id]; });
   }, [project]);
 
+  var inactiveModules = useMemo(function() {
+    if (!project) return [];
+    return synapseStore.MODULE_META.filter(function(m) { return !(project.modules && project.modules[m.id]); });
+  }, [project]);
+
   var resolvedModule = moduleId;
   if (project && moduleId && (!project.modules || !project.modules[moduleId])) {
     resolvedModule = firstActiveModule(project.modules || synapseStore.DEFAULT_MODULES);
@@ -164,14 +169,17 @@ export default function ProjectWorkspace() {
     return <Navigate to={"/projects/" + projectId + "/" + (resolvedModule || firstActiveModule(project.modules))} replace />;
   }
 
-  function enableStockModule() {
-    var nextMods = Object.assign({}, project.modules, { stock: true });
+  function enableModule(id) {
+    if (!id || (project.modules && project.modules[id])) return;
+    var nextMods = Object.assign({}, project.modules);
+    nextMods[id] = true;
     var nextProjects = projects.map(function(p) {
       return p.id === project.id ? Object.assign({}, p, { modules: nextMods, updated: Date.now() }) : p;
     });
     setProjects(nextProjects);
+    pauseCloudPull(6000, "synapse_projects");
     synapseStore.saveProjects(nextProjects);
-    navigate("/projects/" + projectId + "/stock");
+    navigate("/projects/" + projectId + "/" + id);
     if (isMobile) setSidebarOpen(false);
   }
 
@@ -280,11 +288,18 @@ export default function ProjectWorkspace() {
               </button>
             );
           })}
-          {!(project.modules && project.modules.stock) && (
-            <button type="button" className="pw-link" onClick={function() { enableStockModule(); }} title="Ativar Loja">
-              <span className="pw-lic" style={{ color: "#6E6E76" }}>◎</span>
-              <span className="pw-lbl">Ativar Loja</span>
-            </button>
+          {inactiveModules.length > 0 && (
+            <>
+              <p className="pw-sec" style={{ marginTop: 18 }}>ADICIONAR</p>
+              {inactiveModules.map(function(m) {
+                return (
+                  <button type="button" key={m.id} className="pw-link" onClick={function() { enableModule(m.id); }} title={"Adicionar " + m.label}>
+                    <span className="pw-lic" style={{ color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "+"}</span>
+                    <span className="pw-lbl">+ {m.label}</span>
+                  </button>
+                );
+              })}
+            </>
           )}
           <InlineName
             tag="p"
