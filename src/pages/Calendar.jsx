@@ -132,6 +132,12 @@ var CHRO_CSS = [
   ".ch-wk-col.is-today{background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,transparent 40%)}",
   ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease);touch-action:pan-y}",
   ".ch-wk-col{touch-action:pan-y}",
+  ".ch-wk-strip-row--plain{grid-template-columns:repeat(7,minmax(0,1fr))}",
+  ".ch-dayfocus{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
+  ".ch-dayfocus .ch-wk-strip-row{position:relative;top:auto;flex-shrink:0}",
+  ".ch-dayfocus .ch-stream-wrap{flex:1}",
+  ".ch-root.is-pad .ch-wk-hour,.ch-root.is-pad .ch-wk-col,.ch-root.is-pad .ch-track{touch-action:none;-webkit-user-select:none;user-select:none}",
+  ".ch-root.is-pad .ch-wk-gutter,.ch-root.is-pad .ch-wk-strip-row{touch-action:pan-y}",
   ".ch-wk-col.is-paint{cursor:ns-resize;user-select:none;touch-action:none}",
   ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:var(--mc);z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite;filter:drop-shadow(0 0 6px var(--mc))}",
   ".ch-wk-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--mc)}",
@@ -412,26 +418,39 @@ function releasePointer(el, pointerId) {
   try { if (el.hasPointerCapture && el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId); } catch (e) {}
 }
 
+function detectPad(width) {
+  try {
+    if (!width || width < 720) return false;
+    var touchPoints = navigator.maxTouchPoints || 0;
+    if (touchPoints < 1) return false;
+    var ua = navigator.userAgent || "";
+    if (/iPad/.test(ua) || (/Macintosh/.test(ua) && touchPoints > 1)) return true;
+    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  } catch (e) {
+    return false;
+  }
+}
+
 /**
- * Rato: arrastar logo cria o intervalo.
- * Toque (iPad/telemóvel): scroll livre; toque curto cria 1h; manter ~280ms
- * e arrastar define a duração — o Safari deixa de cancelar o gesto.
+ * Rato e iPad: pressionar e arrastar cria o intervalo logo.
+ * Telemóvel: scroll livre; toque curto cria 1h; manter ~280ms e arrastar define a duração.
  */
 function startSlotPaint(e, opts) {
   var origin = opts.origin;
   if (origin == null) return;
   var touch = pointerIsTouch(e);
+  var direct = !touch || !!opts.directPaint;
   var pointerId = e.pointerId;
   var captureEl = opts.captureEl;
   var holdTimer = 0;
-  var painting = !touch;
+  var painting = direct;
   var aborted = false;
   var startY = e.clientY;
   var startX = e.clientX;
   var moved = false;
   var stopListen = null;
 
-  if (!touch) {
+  if (direct) {
     e.preventDefault();
     capturePointer(captureEl, pointerId);
     if (opts.onDraft) opts.onDraft(origin, 60);
@@ -519,8 +538,24 @@ function DayStream(props) {
   }, [dayKey, props.todayKey, tickS[0]]);
 
   useEffect(function() {
-    scrollToNow(scrollRef.current, dayKey, props.todayKey, !!props.scrollNow);
-  }, [dayKey, props.todayKey, props.scrollNow]);
+    var el = trackRef.current;
+    if (!el || !props.directPaint) return;
+    function onTouchStart(ev) {
+      if (ev.target && ev.target.closest && ev.target.closest(".ch-ev, .ch-allday-row")) return;
+      if (ev.cancelable) ev.preventDefault();
+    }
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    return function() { el.removeEventListener("touchstart", onTouchStart); };
+  }, [props.directPaint]);
+
+  useEffect(function() {
+    var el = scrollRef.current;
+    if (dayKey === props.todayKey) {
+      scrollToNow(el, dayKey, props.todayKey, !!props.scrollNow);
+      return;
+    }
+    if (el && props.anchorHour != null) el.scrollTop = props.anchorHour * HOUR_H;
+  }, [dayKey, props.todayKey, props.scrollNow, props.anchorHour]);
 
   function posFromY(clientY) {
     var el = trackRef.current;
@@ -547,6 +582,7 @@ function DayStream(props) {
     if (origin == null) return;
     startSlotPaint(e, {
       origin: origin,
+      directPaint: props.directPaint,
       captureEl: trackRef.current,
       readMins: function(pe) { return posFromY(pe.clientY); },
       onDraft: function(start, dur) { setDraftRange({ start: start, dur: dur }); },
@@ -731,12 +767,30 @@ function formatWeekRange(weekDays) {
 }
 
 function WeekStrip(props) {
+  var tapRef = useRef({ key: "", at: 0 });
   var maxLoad = useMemo(function() {
     return Math.max(60, Math.max.apply(null, props.weekDays.map(function(k) { return dayLoadMinutes(k, props.events); })));
   }, [props.weekDays, props.events]);
+
+  function openFocused(k) {
+    tapRef.current = { key: "", at: 0 };
+    if (props.onFocusDay) props.onFocusDay(k);
+  }
+
+  function onCellClick(k) {
+    var now = Date.now();
+    var last = tapRef.current;
+    if (props.onFocusDay && last.key === k && now - last.at < 420) {
+      openFocused(k);
+      return;
+    }
+    tapRef.current = { key: k, at: now };
+    props.onSelectDay(k);
+  }
+
   return (
-    <div className="ch-wk-strip-row" role="tablist" aria-label="Dias da semana">
-      <div className="ch-wk-strip-gap" aria-hidden="true" />
+    <div className={"ch-wk-strip-row" + (props.plain ? " ch-wk-strip-row--plain" : "")} role="tablist" aria-label="Dias da semana">
+      {props.plain ? null : <div className="ch-wk-strip-gap" aria-hidden="true" />}
       {props.weekDays.map(function(k, i) {
         var p = parseKey(k);
         var load = dayLoadMinutes(k, props.events);
@@ -745,7 +799,9 @@ function WeekStrip(props) {
         return (
           <button key={k} type="button" role="tab" aria-selected={isOn}
             className={"ch-wk-strip-cell ui-tap" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
-            onClick={function() { props.onSelectDay(k); }}>
+            title="Duplo clique para organizar este dia"
+            onClick={function() { onCellClick(k); }}
+            onDoubleClick={function(e) { e.preventDefault(); openFocused(k); }}>
             <span className="ch-wk-strip-dow">{WEEKDAYS[i]}</span>
             <span className="ch-wk-strip-num">{p.d}</span>
             <span className="ch-wk-load"><i style={{ width: Math.round(load / maxLoad * 100) + "%", opacity: load ? 1 : 0.12 }} /></span>
@@ -767,6 +823,17 @@ function WeekPlanner(props) {
     var id = setInterval(function() { tickS[1](Date.now()); }, 1000);
     return function() { clearInterval(id); };
   }, []);
+
+  useEffect(function() {
+    var el = gridRef.current;
+    if (!el || !props.directPaint) return;
+    function onTouchStart(ev) {
+      if (ev.target && ev.target.closest && ev.target.closest(".ch-wk-ev")) return;
+      if (ev.cancelable) ev.preventDefault();
+    }
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    return function() { el.removeEventListener("touchstart", onTouchStart); };
+  }, [props.directPaint]);
 
   var weekDays = props.weekDays;
 
@@ -821,6 +888,7 @@ function WeekPlanner(props) {
     if (!p) return;
     startSlotPaint(e, {
       origin: p.minutes,
+      directPaint: props.directPaint,
       captureEl: gridRef.current,
       readMins: function(pe) {
         var np = posFromPointer(pe.clientX, pe.clientY, 15);
@@ -919,7 +987,7 @@ function WeekPlanner(props) {
     <div className="ch-wk">
       <div ref={scrollRef} className={"ch-wk-scroll" + (props.isMobile ? " ch-wk-scroll-h" : "")}>
         <div className={"ch-wk-board" + (props.isMobile ? " ch-wk-board--mob" : "")}>
-          <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} />
+          <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} onFocusDay={props.onFocusDay} />
           {hasAllDay ? (
             <div className="ch-wk-allday">
               <span className="ch-wk-allday-lbl">dia</span>
@@ -1250,6 +1318,9 @@ export default function Calendar() {
     return (typeof window !== "undefined" && window.innerWidth < 720) ? "month" : "week";
   });
   var mode = modeS[0], setMode = modeS[1];
+  var focusS = useState(null);
+  var focusDay = focusS[0], setFocusDay = focusS[1];
+  var isPad = detectPad(vwS[0]);
   var navDirS = useState(0);
   var navDir = navDirS[0], setNavDir = navDirS[1];
   var scrollNowS = useState(0);
@@ -1313,6 +1384,7 @@ export default function Calendar() {
 
   useEffect(function() {
     if (isMobile && mode === "week") setMode("month");
+    if (isMobile) setFocusDay(null);
   }, [isMobile]);
 
   useEffect(function() {
@@ -1341,8 +1413,10 @@ export default function Calendar() {
     setNavDir(delta > 0 ? 1 : -1);
     var p = parseKey(selected);
     var d = new Date(p.y, p.m, p.d + delta);
-    setSelected(dateKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    var key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    setSelected(key);
     setView({ y: d.getFullYear(), m: d.getMonth() });
+    setFocusDay(function(cur) { return cur ? key : null; });
   }
 
   function goToday() {
@@ -1351,13 +1425,17 @@ export default function Calendar() {
     setNavDir(0);
     setSelected(t.key);
     setView({ y: t.y, m: t.m });
+    setFocusDay(function(cur) { return cur ? t.key : null; });
   }
 
   function jumpNow() {
     bumpScrollNow(function(n) { return n + 1; });
     if (mode === "week") {
       if (weekDays.indexOf(todayKey) < 0) goToday();
-      else if (selected !== todayKey) setSelected(todayKey);
+      else {
+        if (selected !== todayKey) setSelected(todayKey);
+        setFocusDay(function(cur) { return cur ? todayKey : null; });
+      }
       return;
     }
     if (selected !== todayKey) goToday();
@@ -1378,15 +1456,15 @@ export default function Calendar() {
   }
 
   var onSwipePrev = useCallback(function() {
-    if (mode === "week") shiftWeek(-1);
+    if (mode === "week" && !focusDay) shiftWeek(-1);
     else if (mode === "month") shiftMonth(-1);
     else shiftDay(-1);
-  }, [mode, selected, view, selParsed.d]);
+  }, [mode, selected, view, selParsed.d, focusDay]);
   var onSwipeNext = useCallback(function() {
-    if (mode === "week") shiftWeek(1);
+    if (mode === "week" && !focusDay) shiftWeek(1);
     else if (mode === "month") shiftMonth(1);
     else shiftDay(1);
-  }, [mode, selected, view, selParsed.d]);
+  }, [mode, selected, view, selParsed.d, focusDay]);
 
   useEffect(function() {
     var el = stageRef.current;
@@ -1415,7 +1493,23 @@ export default function Calendar() {
       var p = parseKey(k);
       setView({ y: p.y, m: p.m });
     }
+    setFocusDay(function(cur) { return cur ? k : null; });
     if (mode === "month" && !isMobile) setMode("line");
+  }
+
+  function openDayFocus(k) {
+    var p = parseKey(k);
+    setSelected(k);
+    setView({ y: p.y, m: p.m });
+    setFocusDay(k);
+    setMode("week");
+    setNavDir(0);
+  }
+
+  function closeDayFocus() {
+    setFocusDay(null);
+    setMode("week");
+    setNavDir(0);
   }
 
   function openCreate(slotMin, endMin, dayKey) {
@@ -1557,7 +1651,7 @@ export default function Calendar() {
   var stageClass = "ch-stage" + (navDir > 0 ? " ch-stage--left" : navDir < 0 ? " ch-stage--right" : "");
 
   return (
-    <div className="ch-root" data-scrollable style={{ "--mc": ACCENT }}>
+    <div className={"ch-root" + (isPad ? " is-pad" : "")} data-scrollable style={{ "--mc": ACCENT }}>
       <style>{HUB_BACK_CSS + CHRO_CSS}</style>
       <div className="ch-glow ch-glow--a" style={{ background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <div className="ch-glow ch-glow--b" style={{ background: moduleGlow(ACCENT, "12") }} aria-hidden="true" />
@@ -1575,7 +1669,7 @@ export default function Calendar() {
                 return (
                   <button key={m.id} type="button" role="tab" aria-selected={mode === m.id}
                     className={"ch-mode ui-tap ch-mode--" + m.id + (mode === m.id ? " is-on" : "")}
-                    onClick={function() { setMode(m.id); setNavDir(0); }}>{m.label}</button>
+                    onClick={function() { setFocusDay(null); setMode(m.id); setNavDir(0); }}>{m.label}</button>
                 );
               })}
             </div>
@@ -1585,7 +1679,7 @@ export default function Calendar() {
           </div>
         </div>
         <div className="ch-hero">
-          {mode === "week" ? (
+          {mode === "week" && !focusDay ? (
             <>
               <div className="ch-hero-nav">
                 <div className="ch-nav" aria-label="Navegar semana">
@@ -1595,7 +1689,7 @@ export default function Calendar() {
                 </div>
                 <h1 className="ch-week-hero" style={{ margin: 0 }}><span>Semana</span>{weekRangeLabel}</h1>
               </div>
-              <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</p>
+              <p className="ch-day-meta">{dayDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })} · duplo clique num dia para o organizar</p>
             </>
           ) : mode === "month" ? (
             <>
@@ -1621,6 +1715,7 @@ export default function Calendar() {
                   <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftDay(-1); }} aria-label="Dia anterior">‹</button>
                   <button type="button" className="ch-nav-btn ui-tap" onClick={function() { shiftDay(1); }} aria-label="Dia seguinte">›</button>
                   <button type="button" className="ch-nav-today ui-tap" onClick={goToday}>Hoje</button>
+                  {focusDay ? <button type="button" className="ch-nav-today ui-tap" onClick={closeDayFocus}>Semana</button> : null}
                 </div>
                 <button type="button" className="ch-day-num" onClick={goToday}>{selParsed.d}</button>
               </div>
@@ -1649,15 +1744,22 @@ export default function Calendar() {
             ) : (
               <MonthBoard view={view} selected={selected} todayKey={todayKey} events={events} onSelectDay={selectDay} />
             )
+          ) : mode === "week" && !isMobile && focusDay ? (
+            <div className="ch-dayfocus">
+              <WeekStrip plain weekDays={weekDays} selected={focusDay} todayKey={todayKey} events={events} onSelectDay={selectDay} onFocusDay={openDayFocus} />
+              <DayStream dayKey={focusDay} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+                scrollNow={scrollNow} anchorHour={8} directPaint={isPad} readOnly={false}
+                onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
+            </div>
           ) : mode === "week" && !isMobile ? (
             <WeekPlanner weekDays={weekDays} selected={selected} todayKey={todayKey} events={events}
-              isMobile={isMobile} scrollNow={scrollNow} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
-              readOnly={false} onSelectDay={selectDay} onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
+              isMobile={isMobile} directPaint={isPad} scrollNow={scrollNow} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
+              readOnly={false} onSelectDay={selectDay} onFocusDay={openDayFocus} onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
           ) : isMobile ? (
             <MobileAgenda dayKey={selected} events={events} onEventClick={openEdit} onAdd={function() { openCreate(); }} />
           ) : (
             <DayStream dayKey={selected} todayKey={todayKey} events={events} editId={sheet && sheet.isEdit ? sheet.draft.id : null}
-              scrollNow={scrollNow} readOnly={false}
+              scrollNow={scrollNow} directPaint={isPad} readOnly={false}
               onEventClick={openEdit} onSlotClick={onSlotClick} onSlotRange={onSlotRange} onMove={moveEvent} />
           )}
         </div>

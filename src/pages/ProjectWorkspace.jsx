@@ -56,14 +56,20 @@ var SIDEBAR_CSS = [
   ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:0 2px 2px 0;background:var(--lc);opacity:.7}",
   ".pw-lic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
+  ".pw-add{margin-top:10px}",
+  ".pw-add-btn{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:10px;border:1px dashed rgba(255,255,255,0.16);background:transparent;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;text-align:left}",
+  ".pw-add-btn.on{border-style:solid;border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
+  ".pw-add-list{margin-top:6px}",
+  ".pw-side--mini .pw-add-btn{justify-content:center;padding:11px 0;width:46px;margin:0 auto}",
+  ".pw-side--mini .pw-add-lbl,.pw-side--mini .pw-add-list{display:none}",
   ".pw-foot{margin-top:auto;padding:16px 8px 4px;font-size:11px;color:#6E6E76;line-height:1.55;border-top:1px solid rgba(255,255,255,0.06);cursor:text;white-space:pre-line}",
   ".pw-foot.is-editing{overflow:visible}",
   ".pw-foot.is-editing textarea{display:block;width:100%;min-height:3.2em;color:inherit;font:inherit}",
   ".pw-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;z-index:1;pointer-events:auto}",
   ".pw-main-in{flex:1;min-width:0;min-height:0;overflow:hidden;pointer-events:auto}",
   ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40;animation:appearIn var(--dur) var(--ease)}",
-  "@media(hover:hover){.pw-hbtn:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}.pw-link:hover{color:#EDEDEF;background:#1A1A1D}}",
-  "@media(max-width:719px){.pw{height:100dvh;max-height:100dvh}.pw-head{height:58px;padding:0 14px;z-index:60}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-shell{position:relative;z-index:1;min-height:0}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5);pointer-events:auto;visibility:visible;transform:none}.pw-side.pw-side--closed,.pw-side--closed{width:0!important;min-width:0;padding:0;border:none;box-shadow:none;overflow:hidden;pointer-events:none!important;visibility:hidden;transform:translate3d(-110%,0,0)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot{display:block}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}.pw-bk{top:58px;z-index:45}.pw-main-in{overflow-y:auto;-webkit-overflow-scrolling:touch}}",
+  "@media(hover:hover){.pw-hbtn:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}.pw-link:hover,.pw-add-btn:hover{color:#EDEDEF;background:#1A1A1D}}",
+  "@media(max-width:719px){.pw{height:100dvh;max-height:100dvh}.pw-head{height:58px;padding:0 14px;z-index:60}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-shell{position:relative;z-index:1;min-height:0}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5);pointer-events:auto;visibility:visible;transform:none}.pw-side.pw-side--closed,.pw-side--closed{width:0!important;min-width:0;padding:0;border:none;box-shadow:none;overflow:hidden;pointer-events:none!important;visibility:hidden;transform:translate3d(-110%,0,0)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot,.pw-side--mini .pw-add-lbl,.pw-side--mini .pw-add-list{display:block}.pw-side--mini .pw-add-btn{width:100%;justify-content:flex-start;padding:13px 14px;min-height:48px}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}.pw-bk{top:58px;z-index:45}.pw-main-in{overflow-y:auto;-webkit-overflow-scrolling:touch}}",
 ].join("");
 
 function firstActiveModule(modules) {
@@ -89,6 +95,8 @@ export default function ProjectWorkspace() {
   var navCollapsed = navCollapsedS[0], setNavCollapsed = navCollapsedS[1];
   var vwS = useState(window.innerWidth);
   var isMobile = vwS[0] < 720;
+  var addOpenS = useState(false);
+  var addOpen = addOpenS[0], setAddOpen = addOpenS[1];
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
@@ -177,10 +185,20 @@ export default function ProjectWorkspace() {
       return p.id === project.id ? Object.assign({}, p, { modules: nextMods, updated: Date.now() }) : p;
     });
     setProjects(nextProjects);
+    setAddOpen(false);
     pauseCloudPull(6000, "synapse_projects");
     synapseStore.saveProjects(nextProjects);
     navigate("/projects/" + projectId + "/" + id);
     if (isMobile) setSidebarOpen(false);
+  }
+
+  function toggleAdd() {
+    if (!isMobile && navCollapsed) {
+      setNavCollapsed(false);
+      setAddOpen(true);
+      return;
+    }
+    setAddOpen(function(open) { return !open; });
   }
 
   function renameProject(name) {
@@ -289,17 +307,24 @@ export default function ProjectWorkspace() {
             );
           })}
           {inactiveModules.length > 0 && (
-            <>
-              <p className="pw-sec" style={{ marginTop: 18 }}>ADICIONAR</p>
-              {inactiveModules.map(function(m) {
-                return (
-                  <button type="button" key={m.id} className="pw-link" onClick={function() { enableModule(m.id); }} title={"Adicionar " + m.label}>
-                    <span className="pw-lic" style={{ color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "+"}</span>
-                    <span className="pw-lbl">+ {m.label}</span>
-                  </button>
-                );
-              })}
-            </>
+            <div className="pw-add">
+              <button type="button" className={"pw-add-btn" + (addOpen ? " on" : "")} onClick={toggleAdd} title="Adicionar módulo">
+                <span className="pw-lic" style={{ color: "#6E6E76" }}>+</span>
+                <span className="pw-add-lbl">Adicionar</span>
+              </button>
+              {addOpen && (
+                <div className="pw-add-list">
+                  {inactiveModules.map(function(m) {
+                    return (
+                      <button type="button" key={m.id} className="pw-link" onClick={function() { enableModule(m.id); }} title={"Adicionar " + m.label}>
+                        <span className="pw-lic" style={{ color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
+                        <span className="pw-lbl">{m.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
           <InlineName
             tag="p"
