@@ -194,7 +194,6 @@ var JR_CSS = [
 ].join("");
 
 var SAVE_DEBOUNCE_MS = 1800;
-var NOTE_LAYOUT_DEBOUNCE_MS = 900;
 
 function newNoteBlockId() {
   return "nb" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -309,7 +308,6 @@ export default function Journal() {
   var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
   var saveSpacesTimer = useRef(null);
   var saveBlocksTimer = useRef(null);
-  var saveNoteLayoutTimer = useRef(null);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
   var noteBlocksRef = useRef({ blocks: [], assign: {}, collapsed: {} });
@@ -348,6 +346,8 @@ export default function Journal() {
       blocks: layout.blocks || [],
       assign: layout.assign || {},
       collapsed: layout.collapsed || {},
+      updated: layout.updated || 0,
+      schema: layout.schema || 0,
     };
     noteBlocksRef.current = next;
     setNoteBlocks(next);
@@ -555,6 +555,7 @@ export default function Journal() {
       blocks: (next && next.blocks) || [],
       assign: (next && next.assign) || {},
       collapsed: (next && next.collapsed) || {},
+      schema: (next && next.schema) || 2,
       updated: Date.now(),
     };
     noteBlocksRef.current = next;
@@ -564,22 +565,12 @@ export default function Journal() {
     pauseCloudPull(8000, "journal_spaces");
     pauseCloudPull(8000, "journal_blocks");
     setNoteBlocks(next);
-    clearTimeout(saveNoteLayoutTimer.current);
     journalStore.saveNoteLayout(next).then(function(res) {
       reportSave(res);
     }).finally(function() {
       noteLayoutDirtyRef.current = false;
     });
   }
-
-  useEffect(function() {
-    if (!isHydrated || skipSaveRef.current) return;
-    clearTimeout(saveNoteLayoutTimer.current);
-    saveNoteLayoutTimer.current = setTimeout(function() {
-      journalStore.saveNoteLayout(Object.assign({}, noteBlocks, { updated: Date.now() })).then(reportSave);
-    }, NOTE_LAYOUT_DEBOUNCE_MS);
-    return function() { clearTimeout(saveNoteLayoutTimer.current); };
-  }, [noteBlocks, isHydrated]);
 
   useEffect(function() {
     if (!isHydrated || skipSaveRef.current) return;
@@ -776,7 +767,7 @@ export default function Journal() {
   }
 
   function toggleNoteBlockCollapse(id) {
-    setNoteBlocks(function(prev) {
+    commitNoteLayout(function(prev) {
       var collapsed = Object.assign({}, prev.collapsed);
       collapsed[id] = !collapsed[id];
       return Object.assign({}, prev, { collapsed: collapsed });

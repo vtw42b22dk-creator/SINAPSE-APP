@@ -105,11 +105,16 @@ export function recoverFromRing(scopedDataKey) {
 export function guardMergeResult(localBefore, merged, deletedIds) {
   var before = localBefore || [];
   var after = merged || [];
-  if (!before.length) return after;
-  if (!after.length) return before.slice();
-
   var deleted = {};
   (deletedIds || []).forEach(function(id) { if (id) deleted[id] = true; });
+  if (!before.length) return after;
+
+  if (!after.length) {
+    return before.filter(function(row) {
+      return row && row.id && !deleted[row.id];
+    });
+  }
+
   var allowedDrop = 0;
   before.forEach(function(row) {
     if (row && row.id && deleted[row.id]) allowedDrop++;

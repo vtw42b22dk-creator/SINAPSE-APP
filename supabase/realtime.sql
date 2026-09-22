@@ -5,6 +5,7 @@ do $rl$ begin alter publication supabase_realtime add table public.tasks; except
 do $rl$ begin alter publication supabase_realtime add table public.journal_spaces; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.journal_blocks; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.journal_note_layout; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.sync_deletes; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.wishlist_groups; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.wishlist_items; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.finance_categories; exception when others then null; end $rl$;

@@ -2,7 +2,6 @@ import {
   deleteRemoteIds,
   getUser,
   readLocal,
-  fetchRemoteRows,
   replaceRows,
   selectRowsMerged,
   uid,
@@ -21,8 +20,10 @@ var NOTE_LAYOUT_TABLE = "journal_note_layout";
 var LAYOUT_ROW_ID = "layout";
 var LEGACY_NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
 
+var LAYOUT_SCHEMA = 2;
+
 function emptyNoteLayout() {
-  return { blocks: [], assign: {}, collapsed: {}, updated: 0 };
+  return { blocks: [], assign: {}, collapsed: {}, updated: 0, schema: 0 };
 }
 
 function normalizeNoteLayoutRow(row) {
@@ -36,7 +37,8 @@ function normalizeNoteLayoutRow(row) {
     blocks: Array.isArray(p.blocks) ? p.blocks : [],
     assign: p.assign && typeof p.assign === "object" ? p.assign : {},
     collapsed: p.collapsed && typeof p.collapsed === "object" ? p.collapsed : {},
-    updated: row.updated || (row.updated_at ? new Date(row.updated_at).getTime() : 0),
+    updated: row.updated || (row.updated_at ? new Date(row.updated_at).getTime() : (p.updated || 0)),
+    schema: p.schema || 0,
   };
 }
 
@@ -48,6 +50,8 @@ function noteLayoutToDb(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      schema: l.schema || LAYOUT_SCHEMA,
+      updated: l.updated || Date.now(),
     },
     updated: l.updated || Date.now(),
   };
@@ -61,41 +65,53 @@ function layoutScore(layout) {
   return n;
 }
 
+function cloneLayout(layout) {
+  var l = layout || emptyNoteLayout();
+  return {
+    id: LAYOUT_ROW_ID,
+    blocks: (l.blocks || []).slice(),
+    assign: Object.assign({}, l.assign || {}),
+    collapsed: Object.assign({}, l.collapsed || {}),
+    updated: l.updated || 0,
+    schema: l.schema || 0,
+  };
+}
+
+function stampLayoutSchema(layout, migrated) {
+  var out = cloneLayout(layout);
+  out.schema = LAYOUT_SCHEMA;
+  if (migrated) {
+    out._migrated = true;
+    out.updated = Date.now();
+  }
+  return out;
+}
+
+/**
+ * Layout é um documento único. União de `assign` fazia notas voltarem
+ * para canais já removidos. Agora: last-write-wins. Na 1.ª migração
+ * (schema < 2) escolhe-se a cópia mais organizada (mais canais/notas).
+ */
 export function mergeLayouts(a, b) {
   var left = a || emptyNoteLayout();
   var right = b || emptyNoteLayout();
   var sa = layoutScore(left);
   var sb = layoutScore(right);
   if (sa === 0 && sb === 0) {
-    return ((left.updated || 0) >= (right.updated || 0)) ? left : right;
+    return stampLayoutSchema(((left.updated || 0) >= (right.updated || 0)) ? left : right, false);
   }
-  if (sa === 0) return right;
-  if (sb === 0) return left;
-  var aFirst = (left.updated || 0) <= (right.updated || 0);
-  var first = aFirst ? left : right;
-  var second = aFirst ? right : left;
-  var blocksById = {};
-  var order = [];
-  function addBlocks(list) {
-    (list || []).forEach(function(blk) {
-      if (!blk || !blk.id) return;
-      if (!blocksById[blk.id]) {
-        order.push(blk.id);
-        blocksById[blk.id] = blk;
-      } else {
-        blocksById[blk.id] = Object.assign({}, blocksById[blk.id], blk);
-      }
-    });
+  if (sa === 0) return stampLayoutSchema(right, (right.schema || 0) < LAYOUT_SCHEMA);
+  if (sb === 0) return stampLayoutSchema(left, (left.schema || 0) < LAYOUT_SCHEMA);
+
+  var lv = left.schema || 0;
+  var rv = right.schema || 0;
+  if (lv < LAYOUT_SCHEMA && rv < LAYOUT_SCHEMA) {
+    var picked = sa > sb ? left : (sb > sa ? right : ((left.updated || 0) >= (right.updated || 0) ? left : right));
+    return stampLayoutSchema(picked, true);
   }
-  addBlocks(first.blocks);
-  addBlocks(second.blocks);
-  return {
-    id: LAYOUT_ROW_ID,
-    blocks: order.map(function(id) { return blocksById[id]; }),
-    assign: Object.assign({}, first.assign || {}, second.assign || {}),
-    collapsed: Object.assign({}, first.collapsed || {}, second.collapsed || {}),
-    updated: Math.max(left.updated || 0, right.updated || 0),
-  };
+  if (lv >= LAYOUT_SCHEMA && rv < LAYOUT_SCHEMA) return cloneLayout(left);
+  if (rv >= LAYOUT_SCHEMA && lv < LAYOUT_SCHEMA) return cloneLayout(right);
+  return cloneLayout((left.updated || 0) >= (right.updated || 0) ? left : right);
 }
 
 async function migrateLegacyNoteLayout() {
@@ -145,6 +161,8 @@ function spaceFromLayout(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      schema: l.schema || LAYOUT_SCHEMA,
+      updated: l.updated || Date.now(),
     }),
     color: "#000000",
     updated: l.updated || Date.now(),
@@ -186,6 +204,8 @@ function layoutToBlock(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      schema: l.schema || LAYOUT_SCHEMA,
+      updated: l.updated || Date.now(),
     }),
     meta: {},
     order_index: 0,
@@ -256,21 +276,57 @@ export function mergeBlocksByContent(local, remote) {
   return Object.values(map);
 }
 
-/** Pull: junta com remoto; se remoto vazio, mantém local (nunca wipe). */
-export function mergeBlocksForPull(local, remote, editingBlock, deletedIds) {
+/** Pull: junta com remoto; eliminações remotas não voltam a ser enviadas. */
+export function mergeBlocksForPull(local, remote, editingBlock, deletedIds, ctx) {
+  ctx = ctx || {};
   var loc = local || [];
   var rem = remote || [];
   var deleted = {};
   (deletedIds || []).forEach(function(id) { if (id) deleted[id] = true; });
+  var seen = {};
+  (ctx.seenIds || []).forEach(function(id) { if (id) seen[id] = true; });
+  var hadSeen = (ctx.seenIds || []).length > 0;
+  var dropped = Array.isArray(ctx.droppedIds) ? ctx.droppedIds : [];
+  ctx.droppedIds = dropped;
+  var now = ctx.now || Date.now();
+
+  if (ctx.authoritative === false) {
+    return loc.map(function(l) { return normalizeBlock(l); });
+  }
+
   rem = rem.filter(function(r) {
     var n = normalizeBlock(r);
     return n.id && !deleted[n.id];
   });
-  if (!rem.length) {
-    if (!loc.length) return [];
-    return loc.map(function(l) { return normalizeBlock(l); });
+
+  function drop(id) {
+    if (id) dropped.push(id);
   }
-  var editingId = editingBlock && editingBlock.id;
+
+  function keepUnseen(nl) {
+    if (!nl.id || deleted[nl.id]) return false;
+    if (seen[nl.id]) return false;
+    if (hadSeen) return true;
+    var age = now - (nl.updated || 0);
+    return age >= 0 && age <= 30 * 60 * 1000;
+  }
+
+  if (!rem.length) {
+    if (hadSeen) {
+      return loc.map(function(l) { return normalizeBlock(l); }).filter(function(n) {
+        if (!n.id || deleted[n.id] || seen[n.id]) {
+          if (n.id) drop(n.id);
+          return false;
+        }
+        return true;
+      });
+    }
+    if (!loc.length) return [];
+    return loc.map(function(l) { return normalizeBlock(l); }).filter(function(n) {
+      return n.id && !deleted[n.id];
+    });
+  }
+
   var map = {};
   rem.forEach(function(r) {
     var n = normalizeBlock(r);
@@ -279,9 +335,14 @@ export function mergeBlocksForPull(local, remote, editingBlock, deletedIds) {
   loc.forEach(function(l) {
     var nl = normalizeBlock(l);
     if (!nl.id) return;
+    if (deleted[nl.id]) {
+      drop(nl.id);
+      return;
+    }
     var r = map[nl.id];
     if (r) map[nl.id] = pickRicherBlock(nl, r);
-    else if (!deleted[nl.id]) map[nl.id] = nl;
+    else if (keepUnseen(nl)) map[nl.id] = nl;
+    else drop(nl.id);
   });
   return Object.values(map);
 }
@@ -362,12 +423,6 @@ export async function loadBlocksLocal() {
 export async function pullSpaces() {
   try {
     var merged = await safePullMerge(SPACES, "journal_spaces", normalizeSpace);
-    var layout = extractLayoutFromSpaces(merged);
-    if (layout && layoutScore(layout) > 0) {
-      var localLayout = await loadNoteLayoutLocal();
-      var picked = mergeLayouts(localLayout, layout);
-      await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
-    }
     return stripCatsSpaces(merged || []);
   } catch (e) {
     return loadSpacesLocal();
@@ -376,8 +431,8 @@ export async function pullSpaces() {
 
 export async function pullBlocks(editingBlock) {
   try {
-    var merged = await safePullMerge(BLOCKS, "journal_blocks", normalizeBlock, function(local, remote, deletedIds) {
-      return overlayEditingBlock(mergeBlocksForPull(local, remote, editingBlock, deletedIds), editingBlock);
+    var merged = await safePullMerge(BLOCKS, "journal_blocks", normalizeBlock, function(local, remote, deletedIds, ctx) {
+      return overlayEditingBlock(mergeBlocksForPull(local, remote, editingBlock, deletedIds, ctx), editingBlock);
     });
     return blocksToUi(stripLayoutBlocks(merged));
   } catch (e) {
@@ -437,31 +492,49 @@ export async function loadNoteLayoutLocal() {
   return normalizeNoteLayoutRow(row);
 }
 
+function layoutBodyEqual(a, b) {
+  return JSON.stringify({
+    blocks: (a && a.blocks) || [],
+    assign: (a && a.assign) || {},
+    collapsed: (a && a.collapsed) || {},
+  }) === JSON.stringify({
+    blocks: (b && b.blocks) || [],
+    assign: (b && b.assign) || {},
+    collapsed: (b && b.collapsed) || {},
+  });
+}
+
+function stripLayoutFlags(layout) {
+  var out = cloneLayout(layout);
+  delete out._migrated;
+  delete out._dirty;
+  return out;
+}
+
 export async function pullNoteLayout() {
   try {
     if (isCloudPullPaused("journal_note_layout")) {
       return loadNoteLayoutLocal();
     }
-    var localRows = await readLocal(NOTE_LAYOUT_KEY, []);
-    var localRow = localRows.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
-    var local = normalizeNoteLayoutRow(localRow);
-    var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
-    var fromSpaces = extractLayoutFromSpaces(await readLocal(SPACES, []));
-    var tableRow = null;
+    var local = await loadNoteLayoutLocal();
+    var remote = emptyNoteLayout();
     try {
       var merged = await safePullMerge(NOTE_LAYOUT_KEY, NOTE_LAYOUT_TABLE, normalizeNoteLayoutRow);
-      tableRow = merged.find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+      var tableRow = (merged || []).find(function(r) { return r && r.id === LAYOUT_ROW_ID; });
+      if (tableRow) remote = normalizeNoteLayoutRow(tableRow);
     } catch (e) {}
-    var remote = tableRow ? normalizeNoteLayoutRow(tableRow) : emptyNoteLayout();
-    var remoteSpacesLayout = null;
-    try {
-      remoteSpacesLayout = extractLayoutFromSpaces(await fetchRemoteRows("journal_spaces", normalizeSpace));
-    } catch (e) {}
-    var picked = mergeLayouts(
-      mergeLayouts(mergeLayouts(mergeLayouts(local, remote), fromBlocks || emptyNoteLayout()), fromSpaces || emptyNoteLayout()),
-      remoteSpacesLayout || emptyNoteLayout()
-    );
+
+    var picked = mergeLayouts(local, remote);
+    if (layoutScore(picked) === 0) {
+      var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
+      var fromSpaces = extractLayoutFromSpaces(await readLocal(SPACES, []));
+      picked = mergeLayouts(mergeLayouts(picked, fromBlocks || emptyNoteLayout()), fromSpaces || emptyNoteLayout());
+    }
+
     await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
+    if (picked._migrated && layoutScore(picked) > 0) {
+      await saveNoteLayout(picked);
+    }
     return picked;
   } catch (e) {
     return loadNoteLayoutLocal();
@@ -469,7 +542,14 @@ export async function pullNoteLayout() {
 }
 
 export async function saveNoteLayout(layout) {
-  var row = noteLayoutToDb(Object.assign({}, layout || emptyNoteLayout(), { updated: Date.now() }));
+  var incoming = stripLayoutFlags(layout || emptyNoteLayout());
+  incoming.schema = incoming.schema || LAYOUT_SCHEMA;
+  var prev = await loadNoteLayoutLocal();
+  if (layoutBodyEqual(prev, incoming) && (prev.schema || 0) >= LAYOUT_SCHEMA && !(layout && layout._migrated)) {
+    return { ok: true, cloud: true, skipped: true };
+  }
+  if (!incoming.updated) incoming.updated = Date.now();
+  var row = noteLayoutToDb(incoming);
   await writeLocal(NOTE_LAYOUT_KEY, [row]);
   var spaceRes = { ok: true };
   try {
@@ -498,10 +578,10 @@ export async function saveNoteLayout(layout) {
     if (content.length || all.length) {
       await writeLocal(BLOCKS, content.concat([layoutBlock]));
     }
-    var user = await getUser();
-    if (supabase && user) {
+    var blockUser = await getUser();
+    if (supabase && blockUser) {
       var payload = Object.assign({}, layoutBlock, {
-        user_id: user.id,
+        user_id: blockUser.id,
         updated_at: new Date(layoutBlock.updated || Date.now()).toISOString(),
       });
       delete payload.updated;
@@ -531,7 +611,7 @@ export async function syncJournal(editingBlock) {
   }
   await saveSpaces(spaces, layout);
   await saveBlocks(blocks, layout);
-  if (layoutScore(layout) > 0) await saveNoteLayout(layout);
+  if (layout && layout._migrated && layoutScore(layout) > 0) await saveNoteLayout(layout);
   return { spaces: spaces, blocks: blocks, layout: layout };
 }
 

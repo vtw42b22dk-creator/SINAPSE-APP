@@ -9,8 +9,9 @@ import {
   collectAllStorageArraysForBaseKey,
   mergeRowArrays,
   isValidRowArray,
+  guardMergeResult,
 } from "./dataGuard";
-import { isCloudPullPaused, pauseCloudPull } from "./cloudSyncGuard";
+import { pauseCloudPull } from "./cloudSyncGuard";
 import {
   ensureWriteSession,
   saveEmergencyDraft,
@@ -75,9 +76,14 @@ export async function readLocal(key, fallback) {
     var sk = await scopedKey(key);
     var raw = localStorage.getItem(sk);
     if (!raw) raw = localStorage.getItem(key);
-    if (!raw) return Array.isArray(fallback) ? fallback.slice() : fallback;
+    if (!raw) {
+      return await readWithRecovery(key, sk, async function() {
+        return Array.isArray(fallback) ? fallback.slice() : fallback;
+      });
+    }
     var parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return parsed;
+    if (!parsed.length) return parsed;
     return await readWithRecovery(key, sk, async function() { return parsed; });
   } catch (e) {
     return Array.isArray(fallback) ? fallback.slice() : fallback;
@@ -104,6 +110,22 @@ export async function writeLocal(key, value) {
       if (Array.isArray(prev) && prev.length) return;
       localStorage.setItem(sk, JSON.stringify(Array.isArray(prev) ? [] : value));
       return;
+    }
+    localStorage.setItem(sk, JSON.stringify(value));
+  } catch (e) {}
+}
+
+/** Permite gravar [] — só para eliminações intencionais / merge autoritativo vazio. */
+export async function writeLocalAllowEmpty(key, value) {
+  try {
+    var sk = await scopedKey(key);
+    var prev = null;
+    try {
+      var raw = localStorage.getItem(sk);
+      if (raw) prev = JSON.parse(raw);
+    } catch (e) {}
+    if (Array.isArray(prev) && prev.length) {
+      await backupBeforeWrite(sk, prev);
     }
     localStorage.setItem(sk, JSON.stringify(value));
   } catch (e) {}
@@ -211,33 +233,82 @@ export async function clearLocalDeleted(localKey) {
   await writeLocal(tombstoneKey(localKey), []);
 }
 
+var RECENT_LOCAL_MS = 30 * 60 * 1000;
+
+function shouldKeepUnseenLocal(row, ctx, seen) {
+  if (!row || !row.id) return false;
+  if (seen[row.id]) return false;
+  var hadSeen = (ctx.seenIds || []).length > 0;
+  if (hadSeen) return true;
+  var age = (ctx.now || Date.now()) - ts(row);
+  return age >= 0 && age <= RECENT_LOCAL_MS;
+}
+
 /**
- * Ao trazer da nuvem: remoto define existência, mas NUNCA apaga tudo local
- * se a nuvem vier vazia; ids em tombstones não voltam.
+ * Merge autoritativo: a nuvem define o que existe.
+ * Itens que já tinham sido vistos na nuvem e agora desapareceram são
+ * eliminações remotas — não voltam a ser enviados por este dispositivo.
+ * Itens nunca vistos na nuvem (criados offline) mantêm-se e são enviados.
+ * Sem checkpoint (1.ª sync deste protocolo): só se mantêm criações recentes.
  */
-export function mergePullFromRemote(local, remote, deletedIds, table) {
+export function mergePullFromRemote(local, remote, deletedIds, table, ctx) {
+  ctx = ctx || {};
   var loc = local || [];
   var rem = remote || [];
   var deleted = deletedSet(deletedIds);
+  var seen = deletedSet(ctx.seenIds || []);
+  var hadSeen = (ctx.seenIds || []).length > 0;
+  var dropped = Array.isArray(ctx.droppedIds) ? ctx.droppedIds : [];
+  ctx.droppedIds = dropped;
+
+  if (ctx.authoritative === false) {
+    return loc.slice();
+  }
+
+  function drop(id) {
+    if (id) dropped.push(id);
+  }
+
   if (!rem.length) {
-    if (loc.length && Object.keys(deleted).length) {
-      return loc.filter(function(l) { return l && l.id && !deleted[l.id]; });
+    if (hadSeen) {
+      return loc.filter(function(l) {
+        if (!l || !l.id) return false;
+        if (deleted[l.id] || seen[l.id]) {
+          drop(l.id);
+          return false;
+        }
+        return true;
+      });
+    }
+    if (Object.keys(deleted).length) {
+      return loc.filter(function(l) {
+        if (!l || !l.id || deleted[l.id]) {
+          if (l && l.id) drop(l.id);
+          return false;
+        }
+        return true;
+      });
     }
     return loc.length ? loc.slice() : [];
   }
+
   var map = {};
   rem.forEach(function(r) {
     if (r && r.id && !deleted[r.id]) map[r.id] = r;
   });
   loc.forEach(function(l) {
-    if (!l || !l.id || deleted[l.id]) return;
+    if (!l || !l.id) return;
+    if (deleted[l.id]) {
+      drop(l.id);
+      return;
+    }
     var r = map[l.id];
     if (r) {
-      var paused = false;
-      try { paused = isCloudPullPaused(table); } catch (e) {}
-      if (paused && ts(l) > ts(r)) map[l.id] = l;
-    } else {
+      if (ts(l) > ts(r)) map[l.id] = l;
+    } else if (shouldKeepUnseenLocal(l, ctx, seen)) {
       map[l.id] = l;
+    } else {
+      drop(l.id);
     }
   });
   return Object.values(map);
@@ -246,6 +317,41 @@ export function mergePullFromRemote(local, remote, deletedIds, table) {
 export async function mergePullFromRemoteAsync(local, remote, localKey) {
   var deletedIds = await getLocalDeletedIds(localKey);
   return mergePullFromRemote(local, remote, deletedIds);
+}
+
+export async function applyMergedPull(localKey, table, local, remote, opts) {
+  opts = opts || {};
+  var authoritative = opts.authoritative !== false;
+  var deletedIds = (await getLocalDeletedIds(localKey)) || [];
+  if (authoritative) {
+    try {
+      deletedIds = deletedIds.concat(await fetchCloudDeletes(table));
+    } catch (e) {}
+  }
+  var ctx = {
+    seenIds: await getSeenRemoteIds(table),
+    authoritative: authoritative,
+    now: Date.now(),
+    droppedIds: [],
+  };
+  var merged;
+  if (opts.customMerge) {
+    merged = opts.customMerge(local, remote, deletedIds, ctx);
+  } else {
+    merged = mergePullFromRemote(local, remote, deletedIds, table, ctx);
+  }
+  var guardDeleted = deletedIds.concat(ctx.droppedIds || []);
+  merged = guardMergeResult(local, merged, guardDeleted);
+  if (ctx.droppedIds && ctx.droppedIds.length) {
+    await markLocalDeleted(localKey, ctx.droppedIds);
+    if (authoritative) await recordCloudDeletes(table, ctx.droppedIds);
+  }
+  if (authoritative) {
+    await setSeenRemoteIds(table, (remote || []).map(function(r) { return r && r.id; }).filter(Boolean));
+  }
+  if (!merged.length) await writeLocalAllowEmpty(localKey, merged);
+  else await writeLocal(localKey, merged);
+  return merged;
 }
 
 /** Não sobrescrever localStorage com [] se já havia dados. */
@@ -297,28 +403,42 @@ function cleanPayload(row, userId) {
   return out;
 }
 
-export async function fetchRemoteRows(table, normalizeFn) {
+export async function fetchRemoteState(table, normalizeFn) {
   var user = await getUser();
-  if (!supabase || !user) return [];
-  var res = await supabase.from(table).select("*").eq("user_id", user.id);
-  if (res.error) throw res.error;
-  return (res.data || []).map(function(r) {
-    return normalizeFn ? normalizeFn(r) : r;
-  });
+  if (!supabase || !user) {
+    return { ok: false, authoritative: false, rows: [] };
+  }
+  try {
+    var res = await supabase.from(table).select("*").eq("user_id", user.id);
+    if (res.error) throw res.error;
+    return {
+      ok: true,
+      authoritative: true,
+      rows: (res.data || []).map(function(r) {
+        return normalizeFn ? normalizeFn(r) : r;
+      }),
+    };
+  } catch (e) {
+    return { ok: false, authoritative: false, rows: [], error: e };
+  }
+}
+
+export async function fetchRemoteRows(table, normalizeFn) {
+  var state = await fetchRemoteState(table, normalizeFn);
+  if (!state.authoritative) {
+    if (state.error) throw state.error;
+    return [];
+  }
+  return state.rows;
 }
 
 export async function selectRowsMerged(table, localKey, fallback, normalizeFn) {
   var local = await readLocal(localKey, fallback);
   if (!Array.isArray(local)) local = fallback ? fallback.slice() : [];
-  var user = await getUser();
-  if (!supabase || !user) return local;
+  var state = await fetchRemoteState(table, normalizeFn);
+  if (!state.authoritative) return local;
   try {
-    var remote = await fetchRemoteRows(table, normalizeFn);
-    if (!remote.length) return local.length ? local : (fallback ? fallback.slice() : []);
-    var deletedIds = await getLocalDeletedIds(localKey);
-    var merged = mergePullFromRemote(local, remote, deletedIds, table);
-    await writeLocal(localKey, merged);
-    return merged;
+    return await applyMergedPull(localKey, table, local, state.rows, { authoritative: true });
   } catch (e) {
     console.warn("[Sinapse] leitura:", table, cloudErrorMessage(e));
     return local;
@@ -438,6 +558,12 @@ export async function deleteRemoteIds(table, ids, localKey) {
     await removeLocalIds(localKey, ids);
     await markLocalDeleted(localKey, ids);
   }
+  await recordCloudDeletes(table, ids);
+  var seen = await getSeenRemoteIds(table);
+  if (seen.length) {
+    var drop = deletedSet(ids);
+    await setSeenRemoteIds(table, seen.filter(function(id) { return !drop[id]; }));
+  }
   if (!supabase) {
     await queuePendingDeletes(table, ids);
     return { ok: true, cloud: false };
@@ -484,6 +610,68 @@ async function writeRawScoped(key, value) {
   try {
     var sk = await scopedKey(key);
     localStorage.setItem(sk, JSON.stringify(value));
+  } catch (e) {}
+}
+
+var SEEN_KEY = "sinapse-seen-remote-v1";
+var DELETES_TABLE = "sync_deletes";
+
+async function seenMap() {
+  var m = await readRawScoped(SEEN_KEY, {});
+  if (!m || typeof m !== "object" || Array.isArray(m)) return {};
+  return m;
+}
+
+export async function getSeenRemoteIds(table) {
+  var m = await seenMap();
+  return Array.isArray(m[table]) ? m[table] : [];
+}
+
+export async function setSeenRemoteIds(table, ids) {
+  if (!table) return;
+  var m = await seenMap();
+  var list = [];
+  var seen = {};
+  (ids || []).forEach(function(id) {
+    if (id && !seen[id]) {
+      seen[id] = true;
+      list.push(id);
+    }
+  });
+  m[table] = list;
+  await writeRawScoped(SEEN_KEY, m);
+}
+
+export async function fetchCloudDeletes(table) {
+  var user = await getUser();
+  if (!supabase || !user) return [];
+  try {
+    var q = supabase.from(DELETES_TABLE).select("row_id").eq("user_id", user.id);
+    if (table) q = q.eq("table_name", table);
+    var res = await q;
+    if (res.error) throw res.error;
+    return (res.data || []).map(function(r) { return r.row_id; }).filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function recordCloudDeletes(table, ids) {
+  if (!table || !ids || !ids.length) return;
+  var session = await ensureWriteSession();
+  if (!session.canWriteCloud || !session.user) return;
+  try {
+    var rows = ids.filter(Boolean).map(function(id) {
+      return {
+        id: session.user.id + ":" + table + ":" + id,
+        user_id: session.user.id,
+        table_name: table,
+        row_id: id,
+        deleted_at: new Date().toISOString(),
+      };
+    });
+    var res = await supabase.from(DELETES_TABLE).upsert(rows, { onConflict: "id" });
+    if (res.error) throw res.error;
   } catch (e) {}
 }
 

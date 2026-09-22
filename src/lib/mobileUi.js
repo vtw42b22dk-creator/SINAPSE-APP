@@ -29,3 +29,12 @@ export var MOBILE_GLOBAL_CSS = [
 export function fs(isMobile, desktop, mobile) {
   return isMobile ? mobile : desktop;
 }
+
+/** iPad / telemóvel / qualquer ecrã com toque (mesmo com trackpad ligado). */
+export function hasTouchPrimary() {
+  try {
+    if (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0) return true;
+    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches) return true;
+  } catch (e) {}
+  return false;
+}

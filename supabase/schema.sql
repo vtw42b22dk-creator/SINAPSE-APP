@@ -128,6 +128,22 @@ create policy "own journal blocks" on public.journal_blocks for all using (auth.
 create policy "own journal note layout" on public.journal_note_layout for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own attachments" on public.attachments for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+create table if not exists public.sync_deletes (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  table_name text not null,
+  row_id text not null,
+  deleted_at timestamptz default now()
+);
+
+create unique index if not exists sync_deletes_user_table_row
+  on public.sync_deletes (user_id, table_name, row_id);
+
+alter table public.sync_deletes enable row level security;
+drop policy if exists "own sync deletes" on public.sync_deletes;
+create policy "own sync deletes" on public.sync_deletes
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 create table if not exists public.project_investments (
   id text primary key,
   user_id uuid not null references auth.users(id) on delete cascade,

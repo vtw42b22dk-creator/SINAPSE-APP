@@ -7,6 +7,7 @@ import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { useCloudSync } from "../lib/useCloudSync";
 import { isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { hasTouchPrimary } from "../lib/mobileUi";
 
 var ACCENT = moduleColor("calendar");
 var WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -79,13 +80,15 @@ var CHRO_CSS = [
   ".ch-track{position:relative;margin-left:48px;min-height:" + (HOURS * HOUR_H) + "px}",
   ".ch-hour{position:absolute;left:-48px;right:0;height:" + HOUR_H + "px;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease);pointer-events:none}",
   ".ch-hour-lbl{position:absolute;left:-48px;top:-7px;width:40px;text-align:right;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;pointer-events:none}",
-  ".ch-track.is-paint{cursor:ns-resize;user-select:none}",
+  ".ch-track{touch-action:pan-y}",
+  ".ch-track.is-paint{cursor:ns-resize;user-select:none;touch-action:none}",
   ".ch-draft{position:absolute;left:0;right:0;z-index:12;pointer-events:none;border-radius:5px;overflow:hidden;border:1px dashed color-mix(in srgb,var(--mc) 55%,transparent);background:color-mix(in srgb,var(--mc) 16%,transparent)}",
   ".ch-draft-lbl{margin:0;padding:6px 10px;font-size:11px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--mc)}",
   ".ch-now{position:absolute;left:-52px;right:0;height:2px;background:var(--mc);z-index:20;pointer-events:none;animation:chNow 2.4s ease infinite;filter:drop-shadow(0 0 6px var(--mc))}",
   ".ch-now-dot{position:absolute;left:0;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--mc)}",
   ".ch-now-time{position:absolute;left:-48px;top:-8px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mc);font-weight:500}",
-  ".ch-ev{position:absolute;left:0;right:auto;z-index:10;display:flex;align-items:stretch;min-height:28px;cursor:grab;touch-action:none;border-radius:5px;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;transition:filter .2s}",
+  ".ch-ev{position:absolute;left:0;right:auto;z-index:10;display:flex;align-items:stretch;min-height:28px;cursor:grab;touch-action:pan-y;border-radius:5px;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;transition:filter .2s}",
+  ".ch-ev.is-drag{touch-action:none;cursor:grabbing}",
   ".ch-ev:hover{filter:brightness(1.1);z-index:15}",
   ".ch-ev.is-edit{outline:1px solid var(--mc);outline-offset:2px;z-index:25}",
   ".ch-ev--open{min-height:32px}",
@@ -127,11 +130,13 @@ var CHRO_CSS = [
   ".ch-wk-col:first-child{border-left:none}",
   ".ch-wk-col.is-on{background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%)}",
   ".ch-wk-col.is-today{background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,transparent 40%)}",
-  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease)}",
-  ".ch-wk-col.is-paint{cursor:ns-resize;user-select:none}",
+  ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;transition:background var(--dur) var(--ease);touch-action:pan-y}",
+  ".ch-wk-col{touch-action:pan-y}",
+  ".ch-wk-col.is-paint{cursor:ns-resize;user-select:none;touch-action:none}",
   ".ch-wk-now{position:absolute;left:0;right:0;height:2px;background:var(--mc);z-index:18;pointer-events:none;animation:chNow 2.4s ease infinite;filter:drop-shadow(0 0 6px var(--mc))}",
   ".ch-wk-now-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--mc)}",
-  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:24px;cursor:grab;touch-action:none;overflow:hidden;border-radius:5px;font-family:'IBM Plex Sans',sans-serif;transition:filter .18s,z-index 0s}",
+  ".ch-wk-ev{position:absolute;z-index:10;display:flex;min-height:24px;cursor:grab;touch-action:pan-y;overflow:hidden;border-radius:5px;font-family:'IBM Plex Sans',sans-serif;transition:filter .18s,z-index 0s}",
+  ".ch-wk-ev.is-drag{touch-action:none;cursor:grabbing}",
   ".ch-wk-ev:hover{filter:brightness(1.1);z-index:16}",
   ".ch-wk-ev.is-edit{z-index:24;outline:1px solid var(--mc);outline-offset:1px}",
   ".ch-wk-ev-bar{width:3px;flex-shrink:0;background:var(--ec);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--ec) 55%,transparent))}",
@@ -205,7 +210,14 @@ var CHRO_CSS = [
   ".ch-fab:hover{transform:scale(1.1) rotate(90deg);filter:drop-shadow(0 0 10px color-mix(in srgb,var(--mc) 55%,transparent))}",
   ".ch-fab:active{transform:scale(.92) rotate(90deg)}",
   "@media(max-width:719px){.ch-head{padding:12px 16px 12px;padding-top:max(12px,env(safe-area-inset-top));gap:14px}.ch-day-num{font-size:56px}.ch-month-title{font-size:40px}.ch-mode{flex:1;text-align:center;padding:9px 10px;font-size:11px}.ch-modes{flex:1;max-width:220px}.ch-rail{padding:6px 12px 12px}.ch-month-cell{aspect-ratio:auto;min-height:48px;border-radius:14px}.ch-month-n{font-size:14px}.ch-ag-title{font-size:15.5px}}",
-  "@media(min-width:720px){.ch-fab{display:none}}",
+  "@media(pointer:coarse){",
+  ".ch-nav-btn{width:44px;height:44px;font-size:20px}",
+  ".ch-new{min-height:44px;font-size:13px;padding:10px 6px}",
+  ".ch-mode{min-height:42px;padding:10px 16px;font-size:12px}",
+  ".ch-resize,.ch-wk-resize{height:22px}",
+  ".ch-ev,.ch-wk-ev{min-height:36px}",
+  ".ch-fab{display:flex;align-items:center;justify-content:center}",
+  "}",
 ].join("");
 
 function uid() { return "e" + Date.now() + Math.random().toString(36).slice(2, 7); }
@@ -370,6 +382,115 @@ function evBlockStyle(seg, hourH, gapPx) {
   };
 }
 
+var PAINT_HOLD_MS = 280;
+var PAINT_SLOP = 14;
+
+function pointerIsTouch(e) {
+  return e.pointerType === "touch" || e.pointerType === "pen";
+}
+
+function listenWindowPointers(onMove, onUp, onCancel) {
+  var moveOpts = { capture: true, passive: false };
+  var upOpts = { capture: true };
+  window.addEventListener("pointermove", onMove, moveOpts);
+  window.addEventListener("pointerup", onUp, upOpts);
+  window.addEventListener("pointercancel", onCancel, upOpts);
+  return function() {
+    window.removeEventListener("pointermove", onMove, moveOpts);
+    window.removeEventListener("pointerup", onUp, upOpts);
+    window.removeEventListener("pointercancel", onCancel, upOpts);
+  };
+}
+
+function capturePointer(el, pointerId) {
+  if (!el || pointerId == null || !el.setPointerCapture) return;
+  try { el.setPointerCapture(pointerId); } catch (e) {}
+}
+
+function releasePointer(el, pointerId) {
+  if (!el || pointerId == null || !el.releasePointerCapture) return;
+  try { if (el.hasPointerCapture && el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId); } catch (e) {}
+}
+
+/**
+ * Rato: arrastar logo cria o intervalo.
+ * Toque (iPad/telemóvel): scroll livre; toque curto cria 1h; manter ~280ms
+ * e arrastar define a duração — o Safari deixa de cancelar o gesto.
+ */
+function startSlotPaint(e, opts) {
+  var origin = opts.origin;
+  if (origin == null) return;
+  var touch = pointerIsTouch(e);
+  var pointerId = e.pointerId;
+  var captureEl = opts.captureEl;
+  var holdTimer = 0;
+  var painting = !touch;
+  var aborted = false;
+  var startY = e.clientY;
+  var startX = e.clientX;
+  var moved = false;
+  var stopListen = null;
+
+  if (!touch) {
+    e.preventDefault();
+    capturePointer(captureEl, pointerId);
+    if (opts.onDraft) opts.onDraft(origin, 60);
+  } else {
+    holdTimer = setTimeout(function() {
+      holdTimer = 0;
+      if (aborted) return;
+      painting = true;
+      capturePointer(captureEl, pointerId);
+      if (opts.onDraft) opts.onDraft(origin, 60);
+    }, PAINT_HOLD_MS);
+  }
+
+  function minsFrom(pe) {
+    return opts.readMins(pe);
+  }
+
+  function onMove(pe) {
+    if (aborted) return;
+    var dx = pe.clientX - startX;
+    var dy = pe.clientY - startY;
+    if (!painting) {
+      if (Math.abs(dx) > PAINT_SLOP || Math.abs(dy) > PAINT_SLOP) {
+        aborted = true;
+        clearTimeout(holdTimer);
+        if (stopListen) stopListen();
+        if (opts.onAbort) opts.onAbort();
+      }
+      return;
+    }
+    pe.preventDefault();
+    if (Math.abs(dy) > 6) moved = true;
+    var current = minsFrom(pe);
+    if (current == null) return;
+    var a = Math.min(origin, current);
+    var b = Math.max(origin, current);
+    var dur = Math.max(SNAP, b - a);
+    if (!moved || dur < SNAP) dur = 60;
+    if (opts.onDraft) opts.onDraft(a, dur);
+  }
+
+  function end(pe, fromCancel) {
+    if (stopListen) stopListen();
+    clearTimeout(holdTimer);
+    releasePointer(captureEl, pointerId);
+    if (opts.onClear) opts.onClear();
+    if (aborted) return;
+    if (fromCancel && !painting) return;
+    var current = origin;
+    if (moved && pe) {
+      var read = minsFrom(pe);
+      if (read != null) current = read;
+    }
+    if (opts.onCommit) opts.onCommit(origin, current, moved);
+  }
+
+  stopListen = listenWindowPointers(onMove, function(pe) { end(pe, false); }, function(pe) { end(pe, true); });
+}
+
 /* ── Timeline do dia ── */
 function DayStream(props) {
   var scrollRef = useRef(null);
@@ -424,34 +545,14 @@ function DayStream(props) {
     if (e.target && e.target.closest && e.target.closest(".ch-ev")) return;
     var origin = posFromY(e.clientY);
     if (origin == null) return;
-    e.preventDefault();
-    dragRef.current = { kind: "create", origin: origin, startY: e.clientY, moved: false };
-    setDraftRange({ start: origin, dur: 60 });
-    function onMove(pe) {
-      if (!dragRef.current || dragRef.current.kind !== "create") return;
-      var mins = posFromY(pe.clientY);
-      if (mins == null) return;
-      if (Math.abs(pe.clientY - dragRef.current.startY) > 6) dragRef.current.moved = true;
-      var a = Math.min(dragRef.current.origin, mins);
-      var b = Math.max(dragRef.current.origin, mins);
-      var dur = Math.max(SNAP, b - a);
-      if (!dragRef.current.moved || dur < SNAP) dur = 60;
-      setDraftRange({ start: a, dur: dur });
-    }
-    function onUp(pe) {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      var d = dragRef.current;
-      dragRef.current = null;
-      setDraftRange(null);
-      if (!d || d.kind !== "create") return;
-      if (pe && pe.type === "pointercancel") return;
-      openRange(d.origin, d.moved ? posFromY(pe.clientY) : d.origin, d.moved);
-    }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
+    startSlotPaint(e, {
+      origin: origin,
+      captureEl: trackRef.current,
+      readMins: function(pe) { return posFromY(pe.clientY); },
+      onDraft: function(start, dur) { setDraftRange({ start: start, dur: dur }); },
+      onClear: function() { setDraftRange(null); },
+      onCommit: function(from, to, moved) { openRange(from, to, moved); },
+    });
   }
 
   function onEvPointerDown(e, ev) {
@@ -459,28 +560,65 @@ function DayStream(props) {
     e.stopPropagation();
     var startMin = timeToMin(ev.time);
     var dur = evDuration(ev);
-    dragRef.current = { kind: "move", id: ev.id, startMin: startMin, dur: dur, startY: e.clientY, moved: false, openEnd: isOpenEnd(ev) };
+    var touch = pointerIsTouch(e);
+    var startY = e.clientY;
+    var startX = e.clientX;
+    var holdTimer = 0;
+    var dragging = !touch;
+    var aborted = false;
+    var moved = false;
+    var stopListen = null;
+    if (!touch) e.preventDefault();
+    dragRef.current = { kind: "move", id: ev.id, startMin: startMin, dur: dur, openEnd: isOpenEnd(ev) };
+    if (touch) {
+      holdTimer = setTimeout(function() {
+        holdTimer = 0;
+        if (aborted) return;
+        dragging = true;
+        capturePointer(trackRef.current, e.pointerId);
+      }, PAINT_HOLD_MS);
+    } else {
+      capturePointer(trackRef.current, e.pointerId);
+    }
     function onMove(pe) {
-      if (!dragRef.current || dragRef.current.kind !== "move") return;
-      if (Math.abs(pe.clientY - dragRef.current.startY) > 8) dragRef.current.moved = true;
+      if (aborted || !dragRef.current) return;
+      var dx = pe.clientX - startX;
+      var dy = pe.clientY - startY;
+      if (!dragging) {
+        if (Math.abs(dx) > PAINT_SLOP || Math.abs(dy) > PAINT_SLOP) {
+          aborted = true;
+          clearTimeout(holdTimer);
+          if (stopListen) stopListen();
+          dragRef.current = null;
+        }
+        return;
+      }
+      if (Math.abs(dy) > 8) moved = true;
     }
     function onUp(pe) {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      if (!dragRef.current || dragRef.current.kind !== "move") return;
+      if (stopListen) stopListen();
+      clearTimeout(holdTimer);
+      releasePointer(trackRef.current, e.pointerId);
+      if (aborted || !dragRef.current || dragRef.current.kind !== "move") return;
       var d = dragRef.current;
       dragRef.current = null;
-      if (!d.moved) { props.onEventClick(ev, dayKey); return; }
+      if (!moved) { props.onEventClick(ev, dayKey); return; }
       var mins = posFromY(pe.clientY);
       if (mins != null && props.onMove) {
         mins = Math.max(0, Math.min(1440 - d.dur, mins));
         props.onMove(ev.id, dayKey, dayKey, minToTime(mins), d.dur);
       }
     }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
+    stopListen = listenWindowPointers(onMove, onUp, function(pe) {
+      if (!dragging) {
+        aborted = true;
+        clearTimeout(holdTimer);
+        if (stopListen) stopListen();
+        dragRef.current = null;
+        return;
+      }
+      onUp(pe);
+    });
   }
 
   function onResizePointerDown(e, ev) {
@@ -681,70 +819,82 @@ function WeekPlanner(props) {
     if (e.button != null && e.button !== 0) return;
     var p = posFromPointer(e.clientX, e.clientY, 15);
     if (!p) return;
-    e.preventDefault();
-    dragRef.current = { kind: "create", dayIdx: dayIdx, origin: p.minutes, startY: e.clientY, moved: false };
-    setPreview({ kind: "create", dayIdx: dayIdx, minutes: p.minutes, dur: 60, color: ACCENT, title: "Novo" });
-    function onMove(pe) {
-      var d = dragRef.current;
-      if (!d || d.kind !== "create") return;
-      var np = posFromPointer(pe.clientX, pe.clientY, 15);
-      if (!np) return;
-      if (Math.abs(pe.clientY - d.startY) > 6) d.moved = true;
-      var a = Math.min(d.origin, np.minutes);
-      var b = Math.max(d.origin, np.minutes);
-      var dur = Math.max(SNAP, b - a);
-      if (!d.moved || dur < SNAP) dur = 60;
-      d.dur = dur;
-      d.start = a;
-      setPreview({ kind: "create", dayIdx: dayIdx, minutes: a, dur: dur, color: ACCENT, title: minToTime(a) + " – " + minToTime(a + dur) });
-    }
-    function onUp(pe) {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      var d = dragRef.current;
-      dragRef.current = null;
-      setPreview(null);
-      if (!d || d.kind !== "create") return;
-      if (pe && pe.type === "pointercancel") return;
-      var np = posFromPointer(pe.clientX, pe.clientY, 15);
-      var current = d.moved && np ? np.minutes : d.origin;
-      var a = Math.min(d.origin, current);
-      var b = Math.max(d.origin, current);
-      var dur = d.moved ? Math.max(SNAP, b - a) : 60;
-      var key = weekDays[dayIdx];
-      if (props.onSlotRange) props.onSlotRange(key, a, a + dur);
-      else props.onSlotClick(key, a);
-    }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
+    startSlotPaint(e, {
+      origin: p.minutes,
+      captureEl: gridRef.current,
+      readMins: function(pe) {
+        var np = posFromPointer(pe.clientX, pe.clientY, 15);
+        return np ? np.minutes : null;
+      },
+      onDraft: function(start, dur) {
+        setPreview({ kind: "create", dayIdx: dayIdx, minutes: start, dur: dur, color: ACCENT, title: minToTime(start) + " – " + minToTime(start + dur) });
+      },
+      onClear: function() { setPreview(null); },
+      onCommit: function(from, to, moved) {
+        var a = Math.min(from, to == null ? from : to);
+        var b = Math.max(from, to == null ? from : to);
+        var dur = moved ? Math.max(SNAP, b - a) : 60;
+        var key = weekDays[dayIdx];
+        if (props.onSlotRange) props.onSlotRange(key, a, a + dur);
+        else props.onSlotClick(key, a);
+      },
+    });
   }
 
   function onEvPointerDown(e, ev, dayKey, dayIdx) {
     if (props.readOnly) return;
     e.stopPropagation();
-    if (e.pointerType === "mouse") e.preventDefault();
+    var touch = pointerIsTouch(e);
     var dur = evDuration(ev);
     var startMin = timeToMin(ev.time);
-    dragRef.current = { kind: "move", id: ev.id, fromKey: dayKey, dayIdx: dayIdx, dur: dur, startX: e.clientX, startY: e.clientY, moved: false, color: ev.color || ACCENT, title: ev.title, openEnd: isOpenEnd(ev) };
-    setPreview({ id: ev.id, dayIdx: dayIdx, minutes: startMin, dur: dur, color: ev.color || ACCENT, title: ev.title });
+    var startX = e.clientX;
+    var startY = e.clientY;
+    var holdTimer = 0;
+    var dragging = !touch;
+    var aborted = false;
+    var moved = false;
+    var stopListen = null;
+    if (!touch) e.preventDefault();
+    dragRef.current = { kind: "move", id: ev.id, fromKey: dayKey, dayIdx: dayIdx, dur: dur, color: ev.color || ACCENT, title: ev.title };
+    if (touch) {
+      holdTimer = setTimeout(function() {
+        holdTimer = 0;
+        if (aborted) return;
+        dragging = true;
+        capturePointer(gridRef.current, e.pointerId);
+        setPreview({ id: ev.id, dayIdx: dayIdx, minutes: startMin, dur: dur, color: ev.color || ACCENT, title: ev.title });
+      }, PAINT_HOLD_MS);
+    } else {
+      capturePointer(gridRef.current, e.pointerId);
+      setPreview({ id: ev.id, dayIdx: dayIdx, minutes: startMin, dur: dur, color: ev.color || ACCENT, title: ev.title });
+    }
 
     function onMove(pe) {
-      if (!dragRef.current) return;
-      if (Math.abs(pe.clientX - dragRef.current.startX) + Math.abs(pe.clientY - dragRef.current.startY) > 6) dragRef.current.moved = true;
+      if (aborted || !dragRef.current) return;
+      var dx = pe.clientX - startX;
+      var dy = pe.clientY - startY;
+      if (!dragging) {
+        if (Math.abs(dx) > PAINT_SLOP || Math.abs(dy) > PAINT_SLOP) {
+          aborted = true;
+          clearTimeout(holdTimer);
+          if (stopListen) stopListen();
+          dragRef.current = null;
+        }
+        return;
+      }
+      if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
       var np = posFromPointer(pe.clientX, pe.clientY, dragRef.current.dur);
       if (np) setPreview({ id: dragRef.current.id, dayIdx: np.dayIdx, minutes: np.minutes, dur: dragRef.current.dur, color: dragRef.current.color, title: dragRef.current.title });
     }
     function onUp(pe) {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      if (!dragRef.current) return;
+      if (stopListen) stopListen();
+      clearTimeout(holdTimer);
+      releasePointer(gridRef.current, e.pointerId);
+      if (aborted || !dragRef.current) return;
       var d = dragRef.current;
       dragRef.current = null;
       setPreview(null);
-      if (!d.moved) { props.onEventClick(ev, dayKey); return; }
+      if (!moved) { props.onEventClick(ev, dayKey); return; }
       var np = posFromPointer(pe.clientX, pe.clientY, d.dur);
       if (np && props.onMove) {
         var mins = Math.max(0, Math.min(1440 - d.dur, np.minutes));
@@ -752,9 +902,17 @@ function WeekPlanner(props) {
         props.onSelectDay(np.key);
       }
     }
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
+    stopListen = listenWindowPointers(onMove, onUp, function(pe) {
+      if (!dragging) {
+        aborted = true;
+        clearTimeout(holdTimer);
+        if (stopListen) stopListen();
+        dragRef.current = null;
+        setPreview(null);
+        return;
+      }
+      onUp(pe);
+    });
   }
 
   return (
@@ -795,7 +953,7 @@ function WeekPlanner(props) {
               var isOn = k === props.selected;
               var isToday = k === props.todayKey;
               return (
-                <div key={k} className={"ch-wk-col" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "")}
+                <div key={k} className={"ch-wk-col" + (isOn ? " is-on" : "") + (isToday ? " is-today" : "") + (preview && preview.kind === "create" && preview.dayIdx === dayIdx ? " is-paint" : "")}
                   onPointerDown={function(e) {
                     if (e.target !== e.currentTarget && !e.target.classList.contains("ch-wk-hour")) return;
                     onColPointerDown(e, dayIdx);
@@ -1073,6 +1231,7 @@ function freshTodayParts() {
 export default function Calendar() {
   var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
   var isMobile = vwS[0] < 720;
+  var isTouch = hasTouchPrimary();
   var todayS = useState(freshTodayParts);
   var todayKey = todayS[0].key;
 
@@ -1504,14 +1663,14 @@ export default function Calendar() {
         </div>
       </div>
 
-      {isMobile ? (
+      {isMobile || isTouch ? (
         <button type="button" className="ch-fab ui-tap" onClick={function() { openCreate(); }} aria-label="Novo evento">+</button>
       ) : null}
 
       {sheet ? (
         <EventSheet
           open={true}
-          isMobile={isMobile}
+          isMobile={isMobile || isTouch}
           isEdit={sheet.isEdit}
           dayKey={sheet.dayKey}
           draft={sheet.draft}

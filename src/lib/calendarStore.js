@@ -1,13 +1,11 @@
 /* eslint-disable no-unused-vars */
 import {
   deleteRemoteIds,
-  fetchRemoteRows,
-  mergePullFromRemote,
-  getLocalDeletedIds,
+  fetchRemoteState,
+  applyMergedPull,
   readLocal,
   replaceRows,
   uid,
-  writeLocal,
 } from "./cloudStore";
 import { pauseCloudPull } from "./cloudSyncGuard";
 
@@ -126,16 +124,16 @@ export async function loadEvents() {
   }
   local = (local || []).map(normalize);
 
-  var remote = [];
+  var state;
   try {
-    remote = await fetchRemoteRows(TABLE, normalize);
+    state = await fetchRemoteState(TABLE, normalize);
+    if (!state.authoritative) return rowsToDays(local);
   } catch (e) {
     return rowsToDays(local);
   }
+  var remote = state.rows || [];
 
-  var deletedIds = await getLocalDeletedIds(KEY);
-  var merged = mergePullFromRemote(local, remote, deletedIds, TABLE);
-  await writeLocal(KEY, merged.map(function(ev) { return toDb(ev.day_key, ev); }));
+  var merged = await applyMergedPull(KEY, TABLE, local, remote, { authoritative: true });
 
   var remoteIds = {};
   remote.forEach(function(r) { if (r && r.id) remoteIds[r.id] = true; });

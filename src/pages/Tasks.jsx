@@ -3,7 +3,7 @@ import { useAuth } from "../lib/AuthContext";
 import * as taskStore from "../lib/tasksStore";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
-import { fs } from "../lib/mobileUi";
+import { fs, hasTouchPrimary } from "../lib/mobileUi";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { supabase } from "../lib/supabase";
@@ -115,6 +115,17 @@ var TASKS_CSS = [
   ".tk-tab:active{transform:scale(.995)}",
   ".tk-tab-icon{font-size:20px;line-height:1;color:#A0A0A8;flex-shrink:0;width:32px}",
   ".tk-tab-count{font-size:15px;font-family:'JetBrains Mono',monospace;color:#EDEDEF;min-width:34px;text-align:right}",
+  ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer;display:flex;align-items:center;justify-content:center}",
+  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
+  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:#0C0C0E;border-top:1px solid color-mix(in srgb,var(--mc) 40%,transparent);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
+  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
+  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'IBM Plex Sans',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
+  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
+  ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
+  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;cursor:pointer}",
+  ".tk-sheet-cancel{width:100%;min-height:46px;margin-top:8px;border:none;background:transparent;color:#6E6E76;font-size:14px;cursor:pointer}",
+  "@media(min-width:720px){.tk-sheet{width:min(480px,100%);margin:0 auto;border-radius:22px 22px 0 0}}",
   "@media(max-width:719px){",
   ".tk-head{padding:12px;padding-top:max(12px,env(safe-area-inset-top))}",
   ".tk-head-inner{flex-direction:column;align-items:stretch}",
@@ -125,16 +136,6 @@ var TASKS_CSS = [
   ".tk-act>button{min-width:44px;min-height:44px;font-size:18px;padding:8px}",
   ".tk-card{padding:14px 12px}",
   ".tk-empty{padding:16px 0}",
-  ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer}",
-  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
-  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:#0C0C0E;border-top:1px solid color-mix(in srgb,var(--mc) 40%,transparent);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
-  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
-  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'IBM Plex Sans',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
-  ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
-  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
-  ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
-  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;cursor:pointer}",
-  ".tk-sheet-cancel{width:100%;min-height:46px;margin-top:8px;border:none;background:transparent;color:#6E6E76;font-size:14px;cursor:pointer}",
   "}",
 ].join("");
 
@@ -173,9 +174,9 @@ function TaskCard(props) {
   return (
     <article
       className={"tk-card" + (done ? " is-done" : "") + (overdue ? " is-late" : "")}
-      draggable={!props.readOnly && !props.isMobile}
-      onDragStart={function(e) { if (props.readOnly || props.isMobile) return; e.dataTransfer.setData("text/task-id", t.id); }}
-      style={{ cursor: props.readOnly || props.isMobile ? "default" : "grab" }}>
+      draggable={!props.readOnly && !props.lockDrag}
+      onDragStart={function(e) { if (props.readOnly || props.lockDrag) return; e.dataTransfer.setData("text/task-id", t.id); }}
+      style={{ cursor: props.readOnly || props.lockDrag ? "default" : "grab" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
         <button type="button" className={"tk-check" + (done ? " on" : "")} onClick={function() { props.onToggle(t.id); }}
           title={done ? "Reabrir" : "Concluir"}>{done ? "✕" : ""}</button>
@@ -217,6 +218,14 @@ function TaskCard(props) {
               return <span key={tag} className="tk-tag">{tag}</span>;
             })}
           </div>
+          {props.onMove && props.lockDrag ? (
+            <select className="tk-move" value={props.col} aria-label="Mover tarefa"
+              onChange={function(e) { props.onMove(t.id, e.target.value); }}>
+              {COLUMNS.map(function(c) {
+                return <option key={c.id} value={c.id}>{c.label}</option>;
+              })}
+            </select>
+          ) : null}
         </div>
         {!props.readOnly && (
           <div className="tk-act">
@@ -234,6 +243,8 @@ export default function Tasks() {
   var vwS = useState(window.innerWidth);
   var viewportW = vwS[0], setViewportW = vwS[1];
   var isMobile = viewportW < 720;
+  var isTouch = hasTouchPrimary();
+  var touchCreate = isMobile || isTouch;
   var tS = useState([]);
   var tasks = tS[0], setTasks = tS[1];
   var loadedS = useState(false);
@@ -630,7 +641,7 @@ export default function Tasks() {
         </div>
         ) : null}
 
-        {showForm && !isMobile ? (
+        {showForm && !touchCreate ? (
           <div className="tk-form">
             <p className="tk-lbl" style={{ margin: "0 0 14px" }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
             <div className={"tk-form-grid" + (isMobile ? " tk-form-grid--mob" : "")}>
@@ -730,7 +741,7 @@ export default function Tasks() {
                     </p>
                   ) : list.map(function(t) {
                     return (
-                      <TaskCard key={t.id} task={t} col={col.id} isMobile={isMobile} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onMove={moveTask} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
+                      <TaskCard key={t.id} task={t} col={col.id} isMobile={isMobile} lockDrag={touchCreate} onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onMove={moveTask} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
                     );
                   })}
                 </div>
@@ -743,7 +754,7 @@ export default function Tasks() {
         )}
       </div>
 
-      {isMobile && showForm ? (
+      {touchCreate && showForm ? (
         <div className="tk-sheet-bg" onClick={resetDraft}>
           <div className="tk-sheet" onClick={function(e) { e.stopPropagation(); }}>
             <div className="tk-sheet-handle" />
@@ -788,7 +799,7 @@ export default function Tasks() {
         </div>
       ) : null}
 
-      {isMobile ? (
+      {touchCreate ? (
         <button type="button" className="tk-fab" aria-label="Nova tarefa" onClick={function() {
           setEditId(null);
           setSubDraft("");

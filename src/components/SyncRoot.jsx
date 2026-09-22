@@ -14,6 +14,7 @@ var SYNC_TABLES = [
   "project_inventory",
   "journal_spaces",
   "journal_blocks",
+  "journal_note_layout",
   "wishlist_items",
   "wishlist_groups",
   "expenses",
