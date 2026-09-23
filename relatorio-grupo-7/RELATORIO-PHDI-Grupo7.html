@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relatório Grupo 7 — PHDI | Economia C</title>
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #4a5568;
+      --line: #c5cdd8;
+      --accent: #0d5c63;
+      --soft: #e8f2f3;
+      --paper: #faf9f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Serif 4", "Libre Baskerville", Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-size: 12.5pt;
+    }
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 18mm 18mm 22mm;
+      background: #fff;
+      box-shadow: 0 0 0 1px var(--line);
+    }
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; max-width: none; padding: 12mm; }
+      .no-print { display: none !important; }
+      a { color: inherit; text-decoration: none; }
+      h2, h3 { break-after: avoid; }
+      table, .cover { break-inside: avoid; }
+    }
+    .toolbar {
+      position: sticky; top: 0; z-index: 5;
+      display: flex; gap: 0.75rem; justify-content: center; align-items: center; flex-wrap: wrap;
+      padding: 0.75rem; background: var(--accent); color: #fff;
+      font-family: system-ui, sans-serif; font-size: 0.9rem;
+    }
+    .toolbar button {
+      background: #fff; color: var(--accent); border: 0;
+      padding: 0.65rem 1.1rem; border-radius: 4px; cursor: pointer; font-weight: 600;
+      min-height: 44px;
+    }
+    @media (max-width: 720px) {
+      body { font-size: 11.5pt; }
+      .page { padding: 1rem 0.85rem 2rem; box-shadow: none; }
+      .cover { padding: 1.25rem; min-height: auto; }
+      .cover h1 { font-size: 1.35rem; }
+      table.data { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      p, li { text-align: left; hyphens: none; }
+    }
+    .cover {
+      min-height: 85vh;
+      display: flex; flex-direction: column; justify-content: space-between;
+      border: 2px solid var(--accent);
+      padding: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .cover .eyebrow {
+      font-family: system-ui, sans-serif;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      font-size: 0.75rem; color: var(--accent); font-weight: 700;
+    }
+    .cover h1 {
+      font-size: 1.85rem; line-height: 1.25; margin: 1rem 0 0.5rem;
+      color: var(--accent);
+    }
+    .cover .theme {
+      font-size: 1.15rem; margin: 1.5rem 0;
+      padding: 1rem 1.1rem; background: var(--soft); border-left: 4px solid var(--accent);
+    }
+    .cover table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .cover td { border-bottom: 1px solid var(--line); padding: 0.45rem 0.3rem; }
+    h2 {
+      font-size: 1.35rem; color: var(--accent);
+      border-bottom: 2px solid var(--accent); padding-bottom: 0.3rem;
+      margin-top: 2.2rem;
+    }
+    h3 { font-size: 1.1rem; color: var(--ink); margin-top: 1.6rem; }
+    h4 { font-size: 1rem; margin-top: 1.2rem; color: var(--accent); }
+    p, li { text-align: justify; hyphens: auto; }
+    .toc ol { line-height: 1.8; }
+    .toc a { color: var(--accent); }
+    table.data {
+      width: 100%; border-collapse: collapse; font-size: 0.88rem;
+      margin: 1rem 0 1.4rem; font-family: system-ui, sans-serif;
+    }
+    table.data th, table.data td {
+      border: 1px solid var(--line); padding: 0.4rem 0.45rem; vertical-align: top;
+    }
+    table.data th { background: var(--soft); text-align: left; color: var(--accent); }
+    table.data td.num, table.data th.num { text-align: right; }
+    blockquote {
+      margin: 1rem 0; padding: 0.8rem 1rem;
+      background: var(--soft); border-left: 4px solid var(--accent);
+      font-style: italic; color: var(--muted);
+    }
+    .formula {
+      font-family: "Cambria Math", Georgia, serif;
+      background: #f3f5f7; padding: 0.7rem 1rem; margin: 0.8rem 0;
+      text-align: center; border-radius: 4px;
+    }
+    .note {
+      font-size: 0.9rem; color: var(--muted);
+      font-family: system-ui, sans-serif;
+    }
+    .footer-doc {
+      margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
+      font-size: 0.85rem; color: var(--muted); text-align: center;
+      font-family: system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <span>Relatório Grupo 7 — PHDI</span>
+    <button type="button" onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+
+  <div class="page">
+    <!-- CAPA -->
+    <section class="cover" id="capa">
+      <div>
+        <div class="eyebrow">Economia C · 1.º Semestre · Ano letivo 2025/2026</div>
+        <h1>Projeto de compreensão de Economia C</h1>
+        <p><strong>Tópico generativo:</strong> Como podemos avaliar o desenvolvimento humano na era global?</p>
+        <div class="theme">
+          <strong>Tema do Grupo 7</strong><br />
+          Índice de Desenvolvimento Humano Ajustado às Pressões sobre o Planeta<br />
+          <em>(Planetary pressures-adjusted Human Development Index — PHDI)</em>
+        </div>
+      </div>
+      <div>
+        <p><strong>Grupo 7</strong> (5 elementos)</p>
+        <table>
+          <tr><td>Nome</td><td>Número</td></tr>
+          <tr><td>_______________________________</td><td>________</td></tr>
+          <tr><td>_______________________________</td><td>________</td></tr>
+          <tr><td>_______________________________</td><td>________</td></tr>
+          <tr><td>_______________________________</td><td>________</td></tr>
+          <tr><td>_______________________________</td><td>________</td></tr>
+        </table>
+        <p style="margin-top:1.5rem" class="note">Data: setembro de 2025 · Fontes principais: UNDP Human Development Report 2025</p>
+      </div>
+    </section>
+
+    <!-- ÍNDICE -->
+    <section class="toc" id="indice">
+      <h2>Índice</h2>
+      <ol>
+        <li><a href="#introducao">Introdução</a></li>
+        <li><a href="#desenvolvimento">Desenvolvimento</a>
+          <ol>
+            <li><a href="#crescimento">Crescimento económico vs. desenvolvimento</a></li>
+            <li><a href="#o-que-e">O que é o PHDI</a></li>
+            <li><a href="#calculo">Como se calcula o PHDI</a></li>
+            <li><a href="#limitacoes">Limitações do indicador</a></li>
+            <li><a href="#dados">Análise de dados de 2023 e tendências</a></li>
+            <li><a href="#paises">Estudo de países</a></li>
+          </ol>
+        </li>
+        <li><a href="#conclusao">Conclusão</a></li>
+        <li><a href="#bibliografia">Bibliografia</a></li>
+      </ol>
+    </section>
+
+    <!-- INTRODUÇÃO -->
+    <section id="introducao">
+      <h2>1. Introdução</h2>
+      <p>
+        Na era global, avaliar o desenvolvimento humano exige ir além do rendimento e até além do próprio
+        Índice de Desenvolvimento Humano (IDH). O crescimento económico pode aumentar o PIB <em>per capita</em>,
+        mas não garante, por si só, melhorias sustentáveis na qualidade de vida — sobretudo se for obtido
+        à custa de pressões excessivas sobre o planeta.
+      </p>
+      <p>
+        O Programa das Nações Unidas para o Desenvolvimento (PNUD / UNDP) publica anualmente o
+        <em>Relatório do Desenvolvimento Humano</em>. No Relatório de 2025, com dados referentes a 2023,
+        apresenta o <strong>Índice de Desenvolvimento Humano Ajustado às Pressões sobre o Planeta (PHDI)</strong>,
+        um indicador experimental que “desconta” o IDH quando as emissões de CO₂ e a pegada material
+        <em>per capita</em> são elevadas.
+      </p>
+      <p>Este relatório, elaborado pelo <strong>Grupo 7</strong>, tem como objetivos:</p>
+      <ul>
+        <li>explicar em que consiste o indicador, como se calcula e quais as suas limitações;</li>
+        <li>analisar os dados de 2023 e as principais tendências;</li>
+        <li>estudar a situação de <strong>seis países</strong> (Portugal, Noruega, Luxemburgo, Costa Rica, Catar e Peru);</li>
+        <li>relacionar o PHDI com a distinção entre crescimento económico e desenvolvimento.</li>
+      </ul>
+    </section>
+
+    <section id="desenvolvimento">
+      <h2>2. Desenvolvimento</h2>
+
+      <h3 id="crescimento">2.1. Crescimento económico vs. desenvolvimento</h3>
+      <table class="data">
+        <thead>
+          <tr><th>Conceito</th><th>Significado</th><th>Exemplo de indicador</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Crescimento económico</strong></td>
+            <td>Aumento sustentado da capacidade produtiva / do produto</td>
+            <td>Taxa de variação do PIB real</td>
+          </tr>
+          <tr>
+            <td><strong>Desenvolvimento</strong></td>
+            <td>Melhoria ampla das condições de vida (saúde, educação, rendimento, equidade, sustentabilidade)</td>
+            <td>IDH, IDHAD, IPM, IDHG, IDG, <strong>PHDI</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        O crescimento é um <strong>meio</strong>; o desenvolvimento é o <strong>fim</strong>.
+        Pode haver crescimento sem desenvolvimento quando o PIB sobe sem melhorar saúde/educação,
+        quando aumentam as desigualdades, ou quando o modelo económico degrada o ambiente e compromete
+        as gerações futuras. O PHDI responde a esta última dimensão: mede o desenvolvimento humano
+        <strong>quando se têm em conta as pressões planetárias</strong> (desigualdade intergeracional).
+      </p>
+
+      <h3 id="o-que-e">2.2. O que é o PHDI</h3>
+      <p>
+        O <strong>PHDI</strong> é um índice composto experimental do PNUD que ajusta o IDH às pressões
+        sobre o planeta na era do Antropoceno.
+      </p>
+      <blockquote>
+        O PHDI “desconta” o IDH pelas pressões planetárias para refletir uma preocupação com a desigualdade
+        <strong>intergeracional</strong>, de forma análoga ao IDHAD, motivado pela desigualdade
+        <strong>intrageracional</strong>.
+      </blockquote>
+      <p>
+        Em cenário ideal (sem pressões), <strong>PHDI = IDH</strong>. À medida que as pressões aumentam,
+        o PHDI fica abaixo do IDH. Além das dimensões clássicas do IDH, o PHDI usa:
+      </p>
+      <ol>
+        <li><strong>Emissões de CO₂ <em>per capita</em> (produção)</strong> — ODS 9.4;</li>
+        <li><strong>Pegada material <em>per capita</em></strong> — ODS 8.4 e 12.2.</li>
+      </ol>
+
+      <h3 id="calculo">2.3. Como se calcula o PHDI</h3>
+      <p><strong>Passo 1 — Índices de pressão</strong> (mínimo = 0):</p>
+      <div class="formula">Índice<sub>j</sub> = (máximo<sub>j</sub> − valor observado<sub>j</sub>) / (máximo<sub>j</sub> − mínimo<sub>j</sub>)</div>
+      <table class="data">
+        <thead>
+          <tr><th>Indicador</th><th>Máximo histórico</th><th>Observação</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CO₂ <em>per capita</em> (t)</td><td class="num"><strong>76,61</strong></td><td>Catar, 1997</td></tr>
+          <tr><td>Pegada material <em>per capita</em> (t)</td><td class="num"><strong>90,27</strong></td><td>Catar, 2014</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Passo 2 — Fator de ajustamento:</strong></p>
+      <div class="formula">A = (Índice de CO₂ + Índice de pegada material) / 2 &nbsp;&nbsp;|&nbsp;&nbsp; P = 1 − A</div>
+      <p><strong>Passo 3 — PHDI:</strong></p>
+      <div class="formula">PHDI = IDH × A = IDH × (1 − P)</div>
+      <div class="formula">Diferença (%) = [(IDH − PHDI) / IDH] × 100 = P × 100</div>
+
+      <h4>Exemplo oficial — China (2023)</h4>
+      <table class="data">
+        <thead><tr><th>Indicador</th><th class="num">Valor</th></tr></thead>
+        <tbody>
+          <tr><td>IDH</td><td class="num">0,797</td></tr>
+          <tr><td>CO₂ <em>per capita</em></td><td class="num">8,3 t</td></tr>
+          <tr><td>Pegada material <em>per capita</em></td><td class="num">24,9 t</td></tr>
+          <tr><td>Índice de CO₂</td><td class="num">0,892</td></tr>
+          <tr><td>Índice de pegada material</td><td class="num">0,724</td></tr>
+          <tr><td>Fator A</td><td class="num">0,808</td></tr>
+          <tr><td><strong>PHDI</strong></td><td class="num"><strong>0,644</strong></td></tr>
+          <tr><td>Diferença</td><td class="num"><strong>19,2%</strong></td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="limitacoes">2.4. Limitações do indicador</h3>
+      <ol>
+        <li><strong>Carácter experimental</strong> — ainda sem o estatuto consolidado do IDH.</li>
+        <li><strong>Apenas duas pressões ambientais</strong> — omite biodiversidade, água, uso do solo, etc.</li>
+        <li><strong>CO₂ baseado na produção</strong> — não reflete plenamente o consumo (importações).</li>
+        <li><strong>Substituição perfeita</strong> — a média aritmética assume compensação entre CO₂ e materiais.</li>
+        <li><strong>Sensibilidade aos máximos</strong> — influenciam o ranking.</li>
+        <li><strong>Cobertura incompleta</strong> — nem todos os países têm PHDI calculável.</li>
+        <li><strong>Não captura totalmente a responsabilidade histórica</strong> de emissões acumuladas.</li>
+        <li><strong>Média nacional</strong> — esconde desigualdades internas de impacto ambiental.</li>
+      </ol>
+
+      <h3 id="dados">2.5. Análise de dados de 2023 e tendências</h3>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Grupo</th>
+            <th class="num">IDH</th>
+            <th class="num">PHDI</th>
+            <th class="num">Perda</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>DH muito elevado</td><td class="num">0,914</td><td class="num">0,741</td><td class="num"><strong>18,9%</strong></td></tr>
+          <tr><td>DH elevado</td><td class="num">0,777</td><td class="num">0,677</td><td class="num"><strong>12,9%</strong></td></tr>
+          <tr><td>DH médio</td><td class="num">0,656</td><td class="num">0,631</td><td class="num">3,8%</td></tr>
+          <tr><td>DH baixo</td><td class="num">0,515</td><td class="num">0,505</td><td class="num">1,9%</td></tr>
+          <tr><td>OCDE</td><td class="num">0,916</td><td class="num">0,752</td><td class="num"><strong>17,9%</strong></td></tr>
+          <tr><td><strong>Mundo</strong></td><td class="num"><strong>0,756</strong></td><td class="num"><strong>0,680</strong></td><td class="num"><strong>10,1%</strong></td></tr>
+        </tbody>
+      </table>
+      <p><strong>Tendências principais:</strong></p>
+      <ol>
+        <li>Quanto mais elevado o desenvolvimento médio, maior a “penalização” ambiental no PHDI.</li>
+        <li>IDH elevado não implica automaticamente PHDI elevado (ex.: Luxemburgo, Catar vs. Portugal, Costa Rica).</li>
+        <li>Sobem no ranking países com menor pressão <em>per capita</em> (Peru +43, Costa Rica +37, Portugal +27); descem economias ricas de elevada pegada (Luxemburgo −122, Catar −117, EUA −57, Noruega −49).</li>
+        <li>O desafio global é <strong>desacoplar</strong> bem-estar de pressões planetárias.</li>
+      </ol>
+
+      <h3 id="paises">2.6. Estudo de países</h3>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>País</th>
+            <th class="num">Rank IDH</th>
+            <th class="num">IDH</th>
+            <th class="num">PHDI</th>
+            <th class="num">Dif. %</th>
+            <th class="num">Dif. rank</th>
+            <th class="num">CO₂/hab</th>
+            <th class="num">Materiais/hab</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Portugal</td><td class="num">40</td><td class="num">0,890</td><td class="num"><strong>0,797</strong></td><td class="num">10,4</td><td class="num"><strong>+27</strong></td><td class="num">3,6</td><td class="num">14,5</td></tr>
+          <tr><td>Noruega</td><td class="num">2</td><td class="num">0,970</td><td class="num">0,723</td><td class="num">25,5</td><td class="num"><strong>−49</strong></td><td class="num">7,1</td><td class="num">37,5</td></tr>
+          <tr><td>Luxemburgo</td><td class="num">25</td><td class="num">0,922</td><td class="num">0,479</td><td class="num"><strong>48,0</strong></td><td class="num"><strong>−122</strong></td><td class="num">10,7</td><td class="num"><strong>74,2</strong></td></tr>
+          <tr><td>Costa Rica</td><td class="num">62</td><td class="num">0,833</td><td class="num">0,774</td><td class="num">7,1</td><td class="num"><strong>+37</strong></td><td class="num"><strong>1,6</strong></td><td class="num">11,0</td></tr>
+          <tr><td>Catar</td><td class="num">43</td><td class="num">0,886</td><td class="num"><strong>0,276</strong></td><td class="num"><strong>68,8</strong></td><td class="num"><strong>−117</strong></td><td class="num"><strong>42,6</strong></td><td class="num"><strong>74,1</strong></td></tr>
+          <tr><td>Peru</td><td class="num">79</td><td class="num">0,794</td><td class="num">0,757</td><td class="num">4,7</td><td class="num"><strong>+43</strong></td><td class="num">1,6</td><td class="num">6,6</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Fonte: UNDP, Human Development Report 2025, Tabela 7 (dados de 2023). Unidades: toneladas <em>per capita</em>.</p>
+
+      <h4>2.6.1. Portugal</h4>
+      <p>
+        IDH <strong>0,890</strong> e PHDI <strong>0,797</strong> (−10,4%). Portugal sobe <strong>27 posições</strong>
+        porque as emissões (3,6 t) e a pegada material (14,5 t) são moderadas face a muitos pares da OCDE.
+        Mostra que é possível ter desenvolvimento humano elevado com pressões relativamente mais baixas,
+        embora continue a haver margem para economia circular e transição energética.
+      </p>
+
+      <h4>2.6.2. Noruega</h4>
+      <p>
+        No topo do IDH (<strong>0,970</strong>), mas PHDI <strong>0,723</strong> (−25,5%) e −49 posições.
+        A pegada material elevada (37,5 t/hab) explica grande parte do desconto. Caso clássico de
+        elevado nível de vida com forte consumo material: o IDH isolado pode sobreavaliar o desenvolvimento sustentável.
+      </p>
+
+      <h4>2.6.3. Luxemburgo</h4>
+      <p>
+        IDH 0,922 → PHDI apenas <strong>0,479</strong> (−48%), com a maior queda de ranking (−122).
+        Pegada material de 74,2 t/hab. Exemplo extremo europeu de alto rendimento / alto IDH com
+        desenvolvimento ambientalmente frágil — crescimento e IDH elevados sem desenvolvimento sustentável.
+      </p>
+
+      <h4>2.6.4. Costa Rica</h4>
+      <p>
+        IDH 0,833 e PHDI <strong>0,774</strong> (−7,1%), subindo 37 posições. CO₂ <em>per capita</em> muito baixo (1,6 t).
+        Ilustra um perfil de desenvolvimento relativamente mais sustentável, associado a renováveis e conservação.
+      </p>
+
+      <h4>2.6.5. Catar</h4>
+      <p>
+        IDH 0,886, mas PHDI <strong>0,276</strong> (−68,8%) e −117 posições. CO₂ 42,6 t/hab e pegada material 74,1 t/hab.
+        O contraste mais claro do relatório: rendimento e IDH elevados não equivalem a desenvolvimento humano sustentável.
+      </p>
+
+      <h4>2.6.6. Peru</h4>
+      <p>
+        IDH 0,794 e PHDI <strong>0,757</strong> (−4,7%), com uma das maiores subidas de ranking (+43).
+        Baixas pressões <em>per capita</em> (CO₂ 1,6 t; materiais 6,6 t). O desafio é elevar o IDH sem repetir
+        a trajetória de elevada pegada dos países ricos.
+      </p>
+    </section>
+
+    <section id="conclusao">
+      <h2>3. Conclusão</h2>
+      <p>
+        O PHDI responde ao tópico generativo: na era global, avaliar o desenvolvimento humano implica perguntar
+        não só <em>«quanto progredimos?»</em>, mas também <em>«a que custo planetário?»</em>.
+      </p>
+      <ol>
+        <li><strong>Crescimento ≠ desenvolvimento.</strong> IDH elevado pode coexistir com pressões insustentáveis (Luxemburgo, Catar).</li>
+        <li><strong>O PHDI completa o IDH</strong>, tornando visível a desigualdade intergeracional.</li>
+        <li><strong>Em 2023</strong>, a perda média no PHDI aumenta com o nível de desenvolvimento (18,9% no grupo de IDH muito elevado vs. 1,9% no de IDH baixo).</li>
+        <li><strong>Há alternativas:</strong> Portugal, Costa Rica e Peru aproximam melhor desenvolvimento e menor pressão.</li>
+        <li><strong>O indicador tem limites</strong> e deve ler-se em conjunto com outros índices.</li>
+      </ol>
+      <p>
+        Em suma, o desenvolvimento humano só é plenamente avaliável quando se articulam eficiência económica,
+        equidade social e sustentabilidade ambiental. O PHDI é uma bússola útil para essa avaliação.
+      </p>
+    </section>
+
+    <section id="bibliografia">
+      <h2>4. Bibliografia</h2>
+      <ul>
+        <li>PNUD / UNDP (2025). <em>Human Development Report 2025: A matter of choice — People and possibilities in the age of AI</em>. Nova Iorque: UNDP. https://hdr.undp.org/</li>
+        <li>PNUD / UNDP (2025). <em>Technical notes</em> (Nota Técnica 6 — PHDI). https://hdr.undp.org/sites/default/files/2025_HDR/HDR25_Technical_Notes.pdf</li>
+        <li>PNUD / UNDP (2025). <em>Statistical Annex — Table 7: Planetary pressures–adjusted Human Development Index</em>. https://hdr.undp.org/sites/default/files/2025_HDR/HDR25_Statistical_Annex_PHDI_Table.pdf</li>
+        <li>PNUD / UNDP. Página oficial do PHDI. https://hdr.undp.org/planetary-pressures-adjusted-human-development-index</li>
+        <li>United Nations / UNdata. <em>Planetary Pressures-adjusted HDI</em> (2025). https://data.un.org/</li>
+        <li>Apresentações das aulas de Economia C (1.º semestre).</li>
+        <li>Vídeo <em>«Crescimento e Desenvolvimento»</em> (recurso do plano do projeto).</li>
+      </ul>
+    </section>
+
+    <p class="footer-doc">Documento elaborado pelo Grupo 7 · Projeto de compreensão de Economia C — 1.º Semestre</p>
+  </div>
+</body>
+</html>
