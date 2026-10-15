@@ -487,7 +487,10 @@ function tableHtml(table) {
     .map((row, index) => {
       const mark = table.marks?.[index];
       const cls = mark === "warn" ? "warn" : mark === "ok" ? "ok" : "";
-      return `<tr class="${cls}">${row.map((cell) => `<td>${esc(cell)}</td>`).join("")}</tr>`;
+      const cells = row
+        .map((cell, cellIndex) => `<td data-h="${esc(table.headers[cellIndex] || "")}">${esc(cell)}</td>`)
+        .join("");
+      return `<tr class="${cls}">${cells}</tr>`;
     })
     .join("");
   return `<div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
@@ -582,6 +585,18 @@ function render() {
     window.scrollTo(0, 0);
     shown = current;
   }
+  revealActive();
+}
+
+function revealActive() {
+  document.querySelectorAll(".rail-nav a.is-on, .sections button.is-on, .topics button.is-on").forEach((el) => {
+    const scroller = el.closest(".rail-nav, .sections, .topics");
+    if (!scroller || scroller.scrollWidth <= scroller.clientWidth + 8) return;
+    const scrollerRect = scroller.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
+    const delta = rect.left - scrollerRect.left - (scrollerRect.width - rect.width) / 2;
+    scroller.scrollBy({ left: delta, behavior: "auto" });
+  });
 }
 
 document.body.addEventListener("click", (event) => {
