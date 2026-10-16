@@ -55,7 +55,12 @@ var SIDEBAR_CSS = [
   ".pw-link.on{color:#EDEDEF;background:#1A1A1D;border-color:rgba(255,255,255,0.14)}",
   ".pw-link.on::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:2px;border-radius:0 2px 2px 0;background:var(--lc);opacity:.7}",
   ".pw-lic{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".pw-go{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:0;border:none;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}",
+  ".pw-side--mini .pw-go{justify-content:center;flex:none}",
   ".pw-lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}",
+  ".pw-rm{margin-left:auto;width:22px;height:22px;border:none;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#6E6E76;font-size:15px;line-height:1;flex-shrink:0;padding:0;cursor:pointer;font-family:inherit}",
+  ".pw-rm:hover{background:rgba(192,140,140,0.16);color:#C08C8C}",
+  ".pw-side--mini .pw-rm{display:none}",
   ".pw-add{margin-top:10px}",
   ".pw-add-btn{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:10px;border:1px dashed rgba(255,255,255,0.16);background:transparent;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;text-align:left}",
   ".pw-add-btn.on{border-style:solid;border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
@@ -69,8 +74,27 @@ var SIDEBAR_CSS = [
   ".pw-main-in{flex:1;min-width:0;min-height:0;overflow:hidden;pointer-events:auto}",
   ".pw-bk{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:40;animation:appearIn var(--dur) var(--ease)}",
   "@media(hover:hover){.pw-hbtn:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}.pw-link:hover,.pw-add-btn:hover{color:#EDEDEF;background:#1A1A1D}}",
-  "@media(max-width:719px){.pw{height:100dvh;max-height:100dvh}.pw-head{height:58px;padding:0 14px;z-index:60}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-shell{position:relative;z-index:1;min-height:0}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5);pointer-events:auto;visibility:visible;transform:none}.pw-side.pw-side--closed,.pw-side--closed{width:0!important;min-width:0;padding:0;border:none;box-shadow:none;overflow:hidden;pointer-events:none!important;visibility:hidden;transform:translate3d(-110%,0,0)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot,.pw-side--mini .pw-add-lbl,.pw-side--mini .pw-add-list{display:block}.pw-side--mini .pw-add-btn{width:100%;justify-content:flex-start;padding:13px 14px;min-height:48px}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-head-title{font-size:15px!important}.pw-bk{top:58px;z-index:45}.pw-main-in{overflow-y:auto;-webkit-overflow-scrolling:touch}}",
+  "@media(max-width:719px){.pw{height:100dvh;max-height:100dvh}.pw-head{height:58px;padding:0 14px;z-index:60}.pw-hbtn{height:44px;min-width:44px;padding:0 14px;font-size:15px}.pw-shell{position:relative;z-index:1;min-height:0}.pw-side{position:fixed;top:58px;left:0;bottom:0;z-index:50;width:min(86vw,280px);box-shadow:16px 0 60px rgba(0,0,0,0.5);pointer-events:auto;visibility:visible;transform:none}.pw-side.pw-side--closed,.pw-side--closed{width:0!important;min-width:0;padding:0;border:none;box-shadow:none;overflow:hidden;pointer-events:none!important;visibility:hidden;transform:translate3d(-110%,0,0)}.pw-side--mini{width:min(86vw,280px);padding:16px 12px;align-items:stretch}.pw-side--mini .pw-lbl,.pw-side--mini .pw-sec,.pw-side--mini .pw-pcard-meta,.pw-side--mini .pw-foot,.pw-side--mini .pw-add-lbl,.pw-side--mini .pw-add-list{display:block}.pw-side--mini .pw-rm{display:inline-flex}.pw-side--mini .pw-add-btn{width:100%;justify-content:flex-start;padding:13px 14px;min-height:48px}.pw-side--mini .pw-pcard{padding:14px 12px;border:1px solid rgba(255,255,255,0.07);background:#141416;justify-content:flex-start}.pw-link{padding:13px 14px;min-height:48px}.pw-side--mini .pw-link{justify-content:flex-start;padding:13px 14px;width:100%;margin:0 0 4px;font-size:14px!important}.pw-lbl{font-size:13px!important}.pw-rm{width:32px;height:32px;font-size:18px}.pw-head-title{font-size:15px!important}.pw-bk{top:58px;z-index:45}.pw-main-in{overflow-y:auto;-webkit-overflow-scrolling:touch}}",
 ].join("");
+
+var LAST_MODULE_KEY = "sinapse-project-module-v1";
+
+function readLastModules() {
+  try { return JSON.parse(localStorage.getItem(LAST_MODULE_KEY) || "{}"); } catch (e) { return {}; }
+}
+
+function lastModuleFor(projectId) {
+  var map = readLastModules();
+  return map[projectId] || "";
+}
+
+function rememberModule(projectId, moduleId) {
+  if (!projectId || !moduleId) return;
+  var map = readLastModules();
+  if (map[projectId] === moduleId) return;
+  map[projectId] = moduleId;
+  try { localStorage.setItem(LAST_MODULE_KEY, JSON.stringify(map)); } catch (e) {}
+}
 
 function firstActiveModule(modules) {
   var order = ["documents", "investments", "notes", "analytics", "inventory", "stock"];
@@ -78,6 +102,13 @@ function firstActiveModule(modules) {
     if (modules[order[i]]) return order[i];
   }
   return "documents";
+}
+
+function preferredModule(project) {
+  var mods = (project && project.modules) || synapseStore.DEFAULT_MODULES;
+  var last = lastModuleFor(project && project.id);
+  if (last && mods[last]) return last;
+  return firstActiveModule(mods);
 }
 
 export default function ProjectWorkspace() {
@@ -157,9 +188,15 @@ export default function ProjectWorkspace() {
   }, [project]);
 
   var resolvedModule = moduleId;
-  if (project && moduleId && (!project.modules || !project.modules[moduleId])) {
-    resolvedModule = firstActiveModule(project.modules || synapseStore.DEFAULT_MODULES);
+  if (project && (!moduleId || !project.modules || !project.modules[moduleId])) {
+    resolvedModule = preferredModule(project);
   }
+
+  useEffect(function() {
+    if (!project || !moduleId) return;
+    if (!project.modules || !project.modules[moduleId]) return;
+    rememberModule(project.id, moduleId);
+  }, [project, moduleId]);
 
   if (!loaded) {
     return (
@@ -175,6 +212,30 @@ export default function ProjectWorkspace() {
 
   if (!moduleId || resolvedModule !== moduleId) {
     return <Navigate to={"/projects/" + projectId + "/" + (resolvedModule || firstActiveModule(project.modules))} replace />;
+  }
+
+  function disableModule(e, id) {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (!project.modules || !project.modules[id]) return;
+    var enabled = Object.keys(project.modules).filter(function(k) { return project.modules[k]; });
+    if (enabled.length <= 1) return;
+    var meta = synapseStore.MODULE_META.find(function(m) { return m.id === id; });
+    var label = meta ? meta.label : "este módulo";
+    if (!window.confirm("Remover " + label + " do menu? Os dados ficam guardados e podes voltar a adicionar.")) return;
+    var nextMods = Object.assign({}, project.modules);
+    nextMods[id] = false;
+    var nextProjects = projects.map(function(p) {
+      return p.id === project.id ? Object.assign({}, p, { modules: nextMods, updated: Date.now() }) : p;
+    });
+    setProjects(nextProjects);
+    pauseCloudPull(6000, "synapse_projects");
+    synapseStore.saveProjects(nextProjects);
+    if (moduleId === id) {
+      navigate("/projects/" + projectId + "/" + firstActiveModule(nextMods));
+    }
   }
 
   function enableModule(id) {
@@ -300,10 +361,16 @@ export default function ProjectWorkspace() {
             var active = moduleId === m.id;
             var lc = MODULE_COLORS[m.id] || ACCENT;
             return (
-              <button type="button" key={m.id} className={"pw-link" + (active ? " on" : "")} onClick={function() { goModule(m.id); }} title={m.label} style={{ "--lc": lc }}>
-                <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
-                <span className="pw-lbl">{m.label}</span>
-              </button>
+              <div key={m.id} className={"pw-link" + (active ? " on" : "")} style={{ "--lc": lc }}>
+                <button type="button" className="pw-go" onClick={function() { goModule(m.id); }} title={m.label}>
+                  <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
+                  <span className="pw-lbl">{m.label}</span>
+                </button>
+                {activeModules.length > 1 ? (
+                  <button type="button" className="pw-rm" title={"Remover " + m.label} aria-label={"Remover " + m.label}
+                    onClick={function(e) { disableModule(e, m.id); }}>×</button>
+                ) : null}
+              </div>
             );
           })}
           {inactiveModules.length > 0 && (

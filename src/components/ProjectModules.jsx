@@ -102,6 +102,20 @@ function localId(prefix) {
   return (prefix || "n") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+function lastNoteKey(projectId) {
+  return "sinapse-project-note-v1:" + projectId;
+}
+
+function readLastNote(projectId) {
+  try { return localStorage.getItem(lastNoteKey(projectId)) || ""; } catch (e) { return ""; }
+}
+
+function writeLastNote(projectId, id) {
+  try {
+    if (id) localStorage.setItem(lastNoteKey(projectId), id);
+  } catch (e) {}
+}
+
 export function fmtEuro(n) {
   return (n || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
 }
@@ -334,6 +348,8 @@ export function ProjectNotes(props) {
         setNotes(list);
         setActiveId(function(prev) {
           if (prev && list.some(function(n) { return n.id === prev; })) return prev;
+          var saved = readLastNote(projectId);
+          if (saved && list.some(function(n) { return n.id === saved; })) return saved;
           return list.length ? list[0].id : null;
         });
         setSaved(true);
@@ -352,6 +368,10 @@ export function ProjectNotes(props) {
       window.removeEventListener("online", load);
     };
   }, [projectId]);
+
+  useEffect(function() {
+    if (activeId) writeLastNote(projectId, activeId);
+  }, [projectId, activeId]);
 
   function persist(next) {
     dirtyRef.current = true;

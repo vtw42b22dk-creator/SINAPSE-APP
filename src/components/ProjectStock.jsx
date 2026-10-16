@@ -9,7 +9,9 @@ var MC = "#8FA8C4";
 var STOCK_CSS = [
   ".pm-wrap{padding:14px 16px 40px!important}",
   ".pm-head{margin-bottom:10px!important;align-items:center!important}",
-  ".ps-actions{display:flex;gap:8px;flex-wrap:wrap}",
+  ".ps-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
+  ".ps-hide{border:1px solid rgba(255,255,255,0.14);background:#1A1A1D;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:10px 14px;border-radius:12px;cursor:pointer}",
+  ".ps-hide.on{color:#EDEDEF;border-color:rgba(255,255,255,0.32);background:#141416}",
   ".ps-top{margin-bottom:8px}",
   ".ps-add{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}",
   ".ps-week{margin:0 0 10px}",
@@ -85,6 +87,26 @@ function nowMs() {
 
 function apontamentoId() {
   return "ap_" + nowMs().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function stockUiKey(projectId) {
+  return "sinapse-stock-ui-v1:" + projectId;
+}
+
+function readStockUi(projectId) {
+  try {
+    var raw = JSON.parse(localStorage.getItem(stockUiKey(projectId)) || "null");
+    if (!raw || typeof raw !== "object") return { hidden: false, tab: "stock" };
+    var tab = raw.tab === "vendas" || raw.tab === "invest" || raw.tab === "stock" ? raw.tab : "stock";
+    return { hidden: !!raw.hidden, tab: tab };
+  } catch (e) {
+    return { hidden: false, tab: "stock" };
+  }
+}
+
+function writeStockUi(projectId, patch) {
+  var next = Object.assign({}, readStockUi(projectId), patch);
+  try { localStorage.setItem(stockUiKey(projectId), JSON.stringify({ hidden: !!next.hidden, tab: next.tab || "stock" })); } catch (e) {}
 }
 
 function fmtShort(n) {
@@ -176,8 +198,11 @@ export function ProjectStock(props) {
   var fileRef = useRef(null);
   var showMoreS = useState(false);
   var showMore = showMoreS[0], setShowMore = showMoreS[1];
-  var tabS = useState("stock");
+  var ui0 = readStockUi(projectId);
+  var tabS = useState(ui0.hidden && ui0.tab === "invest" ? "stock" : ui0.tab);
   var tab = tabS[0], setTab = tabS[1];
+  var hiddenS = useState(ui0.hidden);
+  var hidden = hiddenS[0], setHidden = hiddenS[1];
   var aChegarS = useState(true);
   var aChegar = aChegarS[0], setAChegar = aChegarS[1];
   var invTitleS = useState("");
@@ -194,8 +219,25 @@ export function ProjectStock(props) {
   }
 
   useEffect(function() {
+    var ui = readStockUi(projectId);
+    setHidden(ui.hidden);
+    setTab(ui.hidden && ui.tab === "invest" ? "stock" : ui.tab);
     projectModuleStore.loadStock(projectId).then(applyData);
   }, [projectId]);
+
+  function selectTab(id) {
+    setTab(id);
+    writeStockUi(projectId, { tab: id });
+  }
+
+  function toggleHidden() {
+    var next = !hidden;
+    var nextTab = tab;
+    if (next && tab === "invest") nextTab = "stock";
+    setHidden(next);
+    setTab(nextTab);
+    writeStockUi(projectId, { hidden: next, tab: nextTab });
+  }
 
   useCloudSync({
     tables: ["project_stock"],
@@ -496,10 +538,14 @@ export function ProjectStock(props) {
   }
 
   return (
-    <ModuleShell mc={MC} icon="◎" title="Loja" subtitle={stats.disponiveis + " em stock · " + stats.vendidos + " vendidas"}
+    <ModuleShell mc={MC} icon="◎" title="Loja" subtitle={hidden ? ("Oculto · " + disponiveis.length + " compras · " + vendidos.length + " vendas") : (stats.disponiveis + " em stock · " + stats.vendidos + " vendidas")}
       action={(
         <div className="ps-actions">
-          <PrimaryBtn onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>+ Meta</PrimaryBtn>
+          <button type="button" className={"ps-hide" + (hidden ? " on" : "")} onClick={toggleHidden}
+            title={hidden ? "Mostrar lucro, gráficos e meta" : "Esconder resultados e mostrar só o que compraste e vendeste"}>
+            {hidden ? "Oculto" : "Ocultar"}
+          </button>
+          {hidden ? null : <PrimaryBtn onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>+ Meta</PrimaryBtn>}
           <button type="button" className="ps-ghost" onClick={exportExcel}>Excel</button>
         </div>
       )}>
@@ -523,7 +569,7 @@ export function ProjectStock(props) {
 
       {msg && <p className={msg.kind === "err" ? "ps-err" : "ps-ok"}>{msg.text}</p>}
 
-      {week ? (
+      {!hidden && week ? (
         <div className="ps-week">
           <h3 className="ps-week-h">Esta semana<span>{fmtDay(week.start)} – {fmtDay(week.end)}</span></h3>
           <div className="ps-stats">
@@ -545,6 +591,8 @@ export function ProjectStock(props) {
         </div>
       ) : null}
 
+      {hidden ? null : (
+        <>
       <h3 className="ps-week-h">Total</h3>
       <div className="ps-stats">
         <div className="ps-stat"><p>Lucro</p><b style={{ color: stats.lucroTotal >= 0 ? "#8FB39B" : "#C08C8C" }}>{fmtShort(stats.lucroTotal)}</b></div>
@@ -556,8 +604,10 @@ export function ProjectStock(props) {
           <span className="ps-stat-sub">média {fmtShort(stats.mediaLucro)}</span>
         </div>
       </div>
+        </>
+      )}
 
-      {stats.metaAtiva ? (
+      {!hidden && stats.metaAtiva ? (
         <div className="ps-meta">
           <div className="ps-meta-row">
             <div>
@@ -575,6 +625,7 @@ export function ProjectStock(props) {
         </div>
       ) : null}
 
+      {hidden ? null : (
       <div className="ps-charts">
         <div className="ps-chart">
           <h3>Lucro / semana</h3>
@@ -585,15 +636,18 @@ export function ProjectStock(props) {
           <ChartFrame title="Compras semanais" kind="bar" color="#8FB39B" labels={weekly.labels} values={weekly.compras} />
         </div>
       </div>
+      )}
 
       <div className="ps-tabs">
         <div className="pm-seg">
-          <button type="button" className={tab === "stock" ? "on" : ""} onClick={function() { setTab("stock"); }}
-            style={tab === "stock" ? { background: "#E6E6E9" } : null}>Stock · {disponiveis.length}</button>
-          <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { setTab("vendas"); }}
+          <button type="button" className={tab === "stock" ? "on" : ""} onClick={function() { selectTab("stock"); }}
+            style={tab === "stock" ? { background: "#E6E6E9" } : null}>{hidden ? "Compras" : "Stock"} · {disponiveis.length}</button>
+          <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { selectTab("vendas"); }}
             style={tab === "vendas" ? { background: "#E6E6E9" } : null}>Vendidos · {vendidos.length}</button>
-          <button type="button" className={tab === "invest" ? "on" : ""} onClick={function() { setTab("invest"); }}
+          {hidden ? null : (
+          <button type="button" className={tab === "invest" ? "on" : ""} onClick={function() { selectTab("invest"); }}
             style={tab === "invest" ? { background: "#E6E6E9" } : null}>Investimentos · {apontamentos.length}</button>
+          )}
         </div>
       </div>
 
@@ -675,10 +729,10 @@ export function ProjectStock(props) {
                   <div>
                     <h4>{item.nome}</h4>
                     <p className="meta">
-                      #{item.id} · {fmtShort(item.compra)} → {fmtShort(item.venda)}
+                      #{item.id} · compra {fmtShort(item.compra)} · venda {fmtShort(item.venda)}
                       {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
-                      {" · "}
-                      <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>
+                      {hidden ? "" : " · "}
+                      {hidden ? null : <span style={{ color: lucro >= 0 ? "#8FB39B" : "#C08C8C", fontWeight: 600 }}>{(lucro >= 0 ? "+" : "") + fmtShort(lucro)}</span>}
                       {item.data_venda ? " · " + fmtDay(item.data_venda) : ""}
                     </p>
                   </div>

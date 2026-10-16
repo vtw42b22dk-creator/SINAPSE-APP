@@ -270,6 +270,22 @@ function IconChevron(props) {
   );
 }
 
+var LAST_JOURNAL_KEY = "sinapse-journal-last-v1";
+
+function loadJournalLast() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(LAST_JOURNAL_KEY) || "null");
+    if (!raw || typeof raw !== "object") return { id: "", open: false };
+    return { id: raw.id || "", open: !!raw.open };
+  } catch (e) {
+    return { id: "", open: false };
+  }
+}
+
+function saveJournalLast(id, open) {
+  try { localStorage.setItem(LAST_JOURNAL_KEY, JSON.stringify({ id: id || "", open: !!open })); } catch (e) {}
+}
+
 function blockTypeMeta(type) {
   if (type === "title") return { label: "Título", Icon: IconTitle };
   if (type === "image") return { label: "Imagem", Icon: IconImage };
@@ -295,7 +311,7 @@ export default function Journal() {
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
   var noteBlocksS = useState(function() { return { blocks: [], assign: {}, collapsed: {} }; });
   var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
-  var mobileNoteOpenS = useState(false);
+  var mobileNoteOpenS = useState(function() { return loadJournalLast().open; });
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
   var catPickS = useState(null);
   var catPick = catPickS[0], setCatPick = catPickS[1];
@@ -324,6 +340,11 @@ export default function Journal() {
   useEffect(function() {
     setCanvasCollapsed({});
   }, [active]);
+
+  useEffect(function() {
+    if (!isHydrated || !active) return;
+    saveJournalLast(active, mobileNoteOpen);
+  }, [isHydrated, active, mobileNoteOpen]);
 
   function toggleCanvasBlockCollapse(id) {
     setCanvasCollapsed(function(prev) {
@@ -358,6 +379,8 @@ export default function Journal() {
     setBlocks(blocksList);
     setActive(function(prev) {
       if (prev && spacesList.some(function(s) { return s.id === prev; })) return prev;
+      var saved = loadJournalLast();
+      if (saved.id && spacesList.some(function(s) { return s.id === saved.id; })) return saved.id;
       return spacesList[0] ? spacesList[0].id : null;
     });
   }
