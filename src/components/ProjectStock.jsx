@@ -37,6 +37,9 @@ var STOCK_CSS = [
   ".ps-check input{accent-color:#C4A57C}",
   ".ps-h{margin:0 0 2px;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
   ".ps-list{display:flex;flex-direction:column;margin:0}",
+  ".ps-list.marks{padding-left:22px}",
+  ".ps-line{position:relative}",
+  ".ps-clock{position:absolute;left:-20px;top:9px;width:14px;height:14px;color:#C4A57C;pointer-events:none}",
   ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
   ".ps-card h4.suspenso{color:#E07070}",
@@ -44,6 +47,7 @@ var STOCK_CSS = [
   ".ps-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:8px;cursor:pointer}",
   ".ps-menu button:hover{background:rgba(255,255,255,0.06)}",
   ".ps-menu button.on{color:#E07070}",
+  ".ps-menu button.limit.on{color:#C4A57C}",
   ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
   ".ps-acts{display:flex;flex-direction:row;gap:14px;align-items:center;flex-wrap:wrap}",
   ".ps-link{border:none;background:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
@@ -92,6 +96,15 @@ function nowMs() {
 
 function apontamentoId() {
   return "ap_" + nowMs().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function ClockMark() {
+  return (
+    <svg className="ps-clock" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M8 4.6V8.2L10.4 9.6" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 function stockUiKey(projectId) {
@@ -282,7 +295,7 @@ export function ProjectStock(props) {
     next.next_id = id + 1;
     next.items.push({
       id: id, nome: nome.trim(), compra: val, venda: 0, custo_adicional: 0,
-      status: "Disponível", data_venda: null, data_compra: todayKey(), chegou: false, chegou_em: 0, suspenso: false, suspenso_em: 0,
+      status: "Disponível", data_venda: null, data_compra: todayKey(), chegou: false, chegou_em: 0, suspenso: false, suspenso_em: 0, limite: false, limite_em: 0,
     });
     persist(next);
     setNome(""); setCompra("");
@@ -313,6 +326,18 @@ export function ProjectStock(props) {
       items: src.items.map(function(i) {
         if (i.id !== item.id) return i;
         return Object.assign({}, i, { suspenso: on, suspenso_em: Date.now() });
+      }),
+    }));
+    setCtx(null);
+  }
+
+  function toggleLimite(item) {
+    var src = dataRef.current || data;
+    var on = !item.limite;
+    persist(Object.assign({}, src, {
+      items: src.items.map(function(i) {
+        if (i.id !== item.id) return i;
+        return Object.assign({}, i, { limite: on, limite_em: Date.now() });
       }),
     }));
     setCtx(null);
@@ -473,6 +498,7 @@ export function ProjectStock(props) {
       item.data_venda || "",
       item.chegou ? "Sim" : "Não",
       item.suspenso ? "Sim" : "Não",
+      item.limite ? "Sim" : "Não",
     ];
   }
 
@@ -491,7 +517,7 @@ export function ProjectStock(props) {
     var weeklyNow = projectModuleStore.stockWeeklySeries(src);
     var stockItems = src.items.filter(function(i) { return i.status === "Disponível"; });
     var soldItems = src.items.filter(function(i) { return i.status === "Vendido"; });
-    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda", "Chegou", "Suspenso"];
+    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda", "Chegou", "Suspenso", "Limite"];
 
     var html = [
       "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\">",
@@ -679,13 +705,15 @@ export function ProjectStock(props) {
         disponiveis.length === 0 ? (
           <p className="ps-empty">Nada em stock. Adiciona uma compra acima.</p>
         ) : (
-          <div className="ps-list">
+          <div className="ps-list marks">
             {disponiveis.map(function(item) {
               return (
-                <article key={item.id} className="ps-card" onContextMenu={function(e) {
+                <div key={item.id} className="ps-line">
+                {item.limite ? <ClockMark /> : null}
+                <article className="ps-card" onContextMenu={function(e) {
                   e.preventDefault();
                   var x = Math.max(8, Math.min(e.clientX, window.innerWidth - 210));
-                  var y = Math.max(8, Math.min(e.clientY, window.innerHeight - 64));
+                  var y = Math.max(8, Math.min(e.clientY, window.innerHeight - 108));
                   setCtx({ id: item.id, x: x, y: y });
                 }}>
                   <div>
@@ -701,6 +729,7 @@ export function ProjectStock(props) {
                     <button type="button" className="ps-link del" onClick={function() { removeItem(item); }}>Remover</button>
                   </div>
                 </article>
+                </div>
               );
             })}
           </div>
@@ -792,6 +821,9 @@ export function ProjectStock(props) {
           <div className="ps-menu" style={{ left: ctx.x, top: ctx.y }} onClick={function(e) { e.stopPropagation(); }}>
             <button type="button" className={ctxItem.suspenso ? "on" : ""} onClick={function() { toggleSuspenso(ctxItem); }}>
               {ctxItem.suspenso ? "Retirar suspensão" : "Pedido suspenso"}
+            </button>
+            <button type="button" className={ctxItem.limite ? "limit on" : ""} onClick={function() { toggleLimite(ctxItem); }}>
+              {ctxItem.limite ? "Retirar limite" : "Limite atingido"}
             </button>
           </div>
         </div>

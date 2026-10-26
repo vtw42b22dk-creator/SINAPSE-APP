@@ -371,6 +371,8 @@ function normStockItem(row) {
     chegou_em: Number(row.chegou_em) || 0,
     suspenso: row.suspenso === true,
     suspenso_em: Number(row.suspenso_em) || 0,
+    limite: row.limite === true,
+    limite_em: Number(row.limite_em) || 0,
   };
 }
 
@@ -437,7 +439,7 @@ function normStock(raw) {
 
 function stockFingerprint(data) {
   var items = (data && data.items ? data.items : []).map(function(i) {
-    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0) + ":" + (i.suspenso ? 1 : 0);
+    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0) + ":" + (i.suspenso ? 1 : 0) + ":" + (i.limite ? 1 : 0);
   }).sort().join("|");
   var notes = (data && data.apontamentos ? data.apontamentos : []).map(function(a) {
     return a.id + ":" + a.titulo + ":" + (Number(a.valor) || 0);
@@ -497,9 +499,11 @@ function newerFlag(a, b, onKey, atKey) {
 function withArrival(chosen, a, b) {
   var arrival = newerFlag(a, b, "chegou", "chegou_em");
   var hold = newerFlag(a, b, "suspenso", "suspenso_em");
+  var limit = newerFlag(a, b, "limite", "limite_em");
   var next = chosen;
   if (arrival) next = Object.assign({}, next, { chegou: arrival.on, chegou_em: arrival.at });
   if (hold) next = Object.assign({}, next, { suspenso: hold.on, suspenso_em: hold.at });
+  if (limit) next = Object.assign({}, next, { limite: limit.on, limite_em: limit.at });
   return next;
 }
 
