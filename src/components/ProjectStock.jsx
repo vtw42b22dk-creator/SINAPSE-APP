@@ -39,6 +39,11 @@ var STOCK_CSS = [
   ".ps-list{display:flex;flex-direction:column;margin:0}",
   ".ps-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
+  ".ps-card h4.suspenso{color:#E07070}",
+  ".ps-menu{position:fixed;z-index:90;min-width:188px;background:#141416;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,0.5)}",
+  ".ps-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:8px;cursor:pointer}",
+  ".ps-menu button:hover{background:rgba(255,255,255,0.06)}",
+  ".ps-menu button.on{color:#E07070}",
   ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
   ".ps-acts{display:flex;flex-direction:row;gap:14px;align-items:center;flex-wrap:wrap}",
   ".ps-link{border:none;background:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
@@ -209,6 +214,8 @@ export function ProjectStock(props) {
   var invTitle = invTitleS[0], setInvTitle = invTitleS[1];
   var invAmountS = useState("");
   var invAmount = invAmountS[0], setInvAmount = invAmountS[1];
+  var ctxS = useState(null);
+  var ctx = ctxS[0], setCtx = ctxS[1];
   var sheetRef = useRef(null);
   sheetRef.current = sheet;
 
@@ -275,7 +282,7 @@ export function ProjectStock(props) {
     next.next_id = id + 1;
     next.items.push({
       id: id, nome: nome.trim(), compra: val, venda: 0, custo_adicional: 0,
-      status: "Disponível", data_venda: null, data_compra: todayKey(), chegou: false, chegou_em: 0,
+      status: "Disponível", data_venda: null, data_compra: todayKey(), chegou: false, chegou_em: 0, suspenso: false, suspenso_em: 0,
     });
     persist(next);
     setNome(""); setCompra("");
@@ -297,6 +304,18 @@ export function ProjectStock(props) {
     setVenda(item.venda ? String(item.venda) : "");
     setAChegar(!item.chegou);
     setMsg(null);
+  }
+
+  function toggleSuspenso(item) {
+    var src = dataRef.current || data;
+    var on = !item.suspenso;
+    persist(Object.assign({}, src, {
+      items: src.items.map(function(i) {
+        if (i.id !== item.id) return i;
+        return Object.assign({}, i, { suspenso: on, suspenso_em: Date.now() });
+      }),
+    }));
+    setCtx(null);
   }
 
   function markArrived(item) {
@@ -453,6 +472,7 @@ export function ProjectStock(props) {
       item.data_compra || "",
       item.data_venda || "",
       item.chegou ? "Sim" : "Não",
+      item.suspenso ? "Sim" : "Não",
     ];
   }
 
@@ -471,7 +491,7 @@ export function ProjectStock(props) {
     var weeklyNow = projectModuleStore.stockWeeklySeries(src);
     var stockItems = src.items.filter(function(i) { return i.status === "Disponível"; });
     var soldItems = src.items.filter(function(i) { return i.status === "Vendido"; });
-    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda", "Chegou"];
+    var header = ["ID", "Nome", "Estado", "Compra", "Venda", "Custos extra", "Lucro", "Data compra", "Data venda", "Chegou", "Suspenso"];
 
     var html = [
       "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\">",
@@ -521,6 +541,10 @@ export function ProjectStock(props) {
     if (!data) return [];
     return projectModuleStore.sortStockByPurchaseDate(data.items.filter(function(i) { return i.status === "Disponível"; }));
   }, [data]);
+  var emStock = useMemo(function() {
+    return disponiveis.filter(function(i) { return !i.suspenso; });
+  }, [disponiveis]);
+  var ctxItem = ctx && data ? data.items.find(function(i) { return i.id === ctx.id; }) : null;
   var vendidos = useMemo(function() {
     if (!data) return [];
     return projectModuleStore.sortStockBySaleDate(data.items.filter(function(i) { return i.status === "Vendido"; }));
@@ -641,7 +665,7 @@ export function ProjectStock(props) {
       <div className="ps-tabs">
         <div className="pm-seg">
           <button type="button" className={tab === "stock" ? "on" : ""} onClick={function() { selectTab("stock"); }}
-            style={tab === "stock" ? { background: "#E6E6E9" } : null}>{hidden ? "Compras" : "Stock"} · {disponiveis.length}</button>
+            style={tab === "stock" ? { background: "#E6E6E9" } : null}>{hidden ? "Compras" : "Stock"} · {hidden ? disponiveis.length : emStock.length}</button>
           <button type="button" className={tab === "vendas" ? "on" : ""} onClick={function() { selectTab("vendas"); }}
             style={tab === "vendas" ? { background: "#E6E6E9" } : null}>Vendidos · {vendidos.length}</button>
           {hidden ? null : (
@@ -658,10 +682,15 @@ export function ProjectStock(props) {
           <div className="ps-list">
             {disponiveis.map(function(item) {
               return (
-                <article key={item.id} className="ps-card">
+                <article key={item.id} className="ps-card" onContextMenu={function(e) {
+                  e.preventDefault();
+                  var x = Math.max(8, Math.min(e.clientX, window.innerWidth - 210));
+                  var y = Math.max(8, Math.min(e.clientY, window.innerHeight - 64));
+                  setCtx({ id: item.id, x: x, y: y });
+                }}>
                   <div>
-                    <h4>{item.nome}</h4>
-                    <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}</p>
+                    <h4 className={item.suspenso ? "suspenso" : ""}>{item.nome}</h4>
+                    <p className="meta">#{item.id} · compra {fmtShort(item.compra)}{item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""} · {fmtDay(item.data_compra)}{item.suspenso ? " · suspenso" : ""}</p>
                   </div>
                   <div className="ps-acts">
                     <button type="button" className="ps-link sell" onClick={function() { openSell(item); }}>Vender</button>
@@ -757,6 +786,16 @@ export function ProjectStock(props) {
           <PrimaryBtn onClick={function() { if (fileRef.current) fileRef.current.click(); }}>Importar stock_data.json</PrimaryBtn>
         </div>
       )}
+
+      {ctx && ctxItem ? (
+        <div className="ps-menu-bk" style={{ position: "fixed", inset: 0, zIndex: 89 }} onClick={function() { setCtx(null); }} onContextMenu={function(e) { e.preventDefault(); setCtx(null); }}>
+          <div className="ps-menu" style={{ left: ctx.x, top: ctx.y }} onClick={function(e) { e.stopPropagation(); }}>
+            <button type="button" className={ctxItem.suspenso ? "on" : ""} onClick={function() { toggleSuspenso(ctxItem); }}>
+              {ctxItem.suspenso ? "Retirar suspensão" : "Pedido suspenso"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {sheet && (
         <div className="ps-sheet-bk" onClick={function(e) { if (e.target === e.currentTarget) setSheet(null); }}>

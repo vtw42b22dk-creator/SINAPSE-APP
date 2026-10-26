@@ -369,6 +369,8 @@ function normStockItem(row) {
     data_compra: dataCompra,
     chegou: row.chegou === true,
     chegou_em: Number(row.chegou_em) || 0,
+    suspenso: row.suspenso === true,
+    suspenso_em: Number(row.suspenso_em) || 0,
   };
 }
 
@@ -435,7 +437,7 @@ function normStock(raw) {
 
 function stockFingerprint(data) {
   var items = (data && data.items ? data.items : []).map(function(i) {
-    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0);
+    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0) + ":" + (i.suspenso ? 1 : 0);
   }).sort().join("|");
   var notes = (data && data.apontamentos ? data.apontamentos : []).map(function(a) {
     return a.id + ":" + a.titulo + ":" + (Number(a.valor) || 0);
@@ -481,15 +483,24 @@ function pickPrimaryStock(blobs) {
   })[0];
 }
 
-function withArrival(chosen, a, b) {
-  var ae = Number(a.chegou_em) || 0;
-  var be = Number(b.chegou_em) || 0;
+function newerFlag(a, b, onKey, atKey) {
+  var ae = Number(a[atKey]) || 0;
+  var be = Number(b[atKey]) || 0;
   if (ae || be) {
     var win = ae >= be ? a : b;
-    return Object.assign({}, chosen, { chegou: !!win.chegou, chegou_em: win.chegou_em || 0 });
+    return { on: !!win[onKey], at: win[atKey] || 0 };
   }
-  if (a.chegou || b.chegou) return Object.assign({}, chosen, { chegou: true, chegou_em: 0 });
-  return chosen;
+  if (a[onKey] || b[onKey]) return { on: true, at: 0 };
+  return null;
+}
+
+function withArrival(chosen, a, b) {
+  var arrival = newerFlag(a, b, "chegou", "chegou_em");
+  var hold = newerFlag(a, b, "suspenso", "suspenso_em");
+  var next = chosen;
+  if (arrival) next = Object.assign({}, next, { chegou: arrival.on, chegou_em: arrival.at });
+  if (hold) next = Object.assign({}, next, { suspenso: hold.on, suspenso_em: hold.at });
+  return next;
 }
 
 function pickStockItem(a, b) {
@@ -652,7 +663,7 @@ export function stockItemProfit(item) {
 export function stockStats(data) {
   var items = (data && data.items) || [];
   var vendidos = items.filter(function(i) { return i.status === "Vendido"; });
-  var disponiveis = items.filter(function(i) { return i.status === "Disponível"; });
+  var disponiveis = items.filter(function(i) { return i.status === "Disponível" && !i.suspenso; });
   var totalFaturado = vendidos.reduce(function(s, i) { return s + (Number(i.venda) || 0); }, 0);
   var custoCompraVendidos = vendidos.reduce(function(s, i) { return s + (Number(i.compra) || 0); }, 0);
   var extrasVendidos = vendidos.reduce(function(s, i) { return s + (Number(i.custo_adicional) || 0); }, 0);
