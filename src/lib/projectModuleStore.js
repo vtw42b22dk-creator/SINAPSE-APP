@@ -741,6 +741,13 @@ function compareDayDesc(a, b) {
 
 export function sortStockByPurchaseDate(items) {
   return (items || []).slice().sort(function(a, b) {
+    var aLimit = a && a.limite ? 1 : 0;
+    var bLimit = b && b.limite ? 1 : 0;
+    if (aLimit !== bLimit) return bLimit - aLimit;
+    if (aLimit && bLimit) {
+      var byMark = (Number(b.limite_em) || 0) - (Number(a.limite_em) || 0);
+      if (byMark) return byMark;
+    }
     var byDay = compareDayDesc(stockItemPurchaseDay(a), stockItemPurchaseDay(b));
     if (byDay) return byDay;
     return (Number(b.id) || 0) - (Number(a.id) || 0);
