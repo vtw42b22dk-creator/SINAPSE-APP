@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars, no-empty */
-import { readLocal, writeLocal, uid, getUser, cloudErrorMessage } from "./cloudStore";
+import { readLocal, writeLocal, scopedKey, uid, getUser, cloudErrorMessage } from "./cloudStore";
 import { supabase } from "./supabase";
-import { STOCK_HISTORY_SEED } from "./stockHistorySeed";
 import { pauseCloudPull, isCloudPullPaused } from "./cloudSyncGuard";
 import { ensureWriteSession } from "./safeCloudWrite";
 
@@ -16,6 +15,17 @@ var TABLES = {
 
 function localKey(projectId, module) {
   return PREFIX + ":" + module + ":" + projectId;
+}
+
+async function readScopedStock(key) {
+  try {
+    var sk = await scopedKey(key);
+    var raw = localStorage.getItem(sk);
+    if (!raw) return Object.assign(emptyStock(), { updated: 0 });
+    return JSON.parse(raw);
+  } catch (e) {
+    return Object.assign(emptyStock(), { updated: 0 });
+  }
 }
 
 function rowUpdated(row) {
@@ -464,12 +474,33 @@ function soldCount(data) {
   return (data.items || []).filter(function(i) { return i.status === "Vendido"; }).length;
 }
 
+var HISTORY_CATALOG_FP = "aa7f2507";
+var HISTORY_CATALOG_COUNT = 29;
+
+function catalogFingerprint(data) {
+  var list = (data && data.items) || [];
+  var parts = list.map(function(i) {
+    return [i.id, i.nome, i.compra, i.venda, i.custo_adicional, i.status, i.data_compra || "", i.data_venda || ""].join("\u001f");
+  });
+  parts.sort();
+  var str = parts.join("\u001e");
+  var h = 2166136261;
+  for (var n = 0; n < str.length; n++) {
+    h ^= str.charCodeAt(n);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
 function isStockSeed(data) {
-  var seedItems = STOCK_HISTORY_SEED.items || [];
-  if (!data || !data.items || data.items.length !== seedItems.length) return false;
-  var seedIds = {};
-  seedItems.forEach(function(it) { seedIds[it.id] = true; });
-  return data.items.every(function(it) { return seedIds[it.id]; });
+  if (!data || !data.items || data.items.length !== HISTORY_CATALOG_COUNT) return false;
+  if ((data.apontamentos || []).length) return false;
+  var i;
+  for (i = 0; i < data.items.length; i++) {
+    var it = data.items[i];
+    if (!it || it.suspenso || it.limite || it.chegou) return false;
+  }
+  return catalogFingerprint(data) === HISTORY_CATALOG_FP;
 }
 
 function pickPrimaryStock(blobs) {
@@ -534,12 +565,12 @@ function mergeStockBlobs(blobs) {
     if (it && it.id && !deleted[it.id]) map[it.id] = it;
   });
   blobs.forEach(function(blob) {
-    var fromSeed = isStockSeed(blob) && !isStockSeed(primary);
+    if (isStockSeed(blob) && !isStockSeed(primary)) return;
     (blob.items || []).forEach(function(it) {
       if (!it || !it.id || deleted[it.id]) return;
       var ex = map[it.id];
       if (!ex) {
-        if (it.status === "Vendido" || !fromSeed) map[it.id] = it;
+        map[it.id] = it;
         return;
       }
       map[it.id] = pickStockItem(ex, it);
@@ -573,7 +604,7 @@ function stockBody(payload) {
 
 export async function loadStock(projectId) {
   var key = localKey(projectId, "stock");
-  var local = normStock(await readLocal(key, emptyStock()));
+  var local = normStock(await readScopedStock(key));
   var remoteBlobs = [];
   var fetchOk = false;
   var user = await getUser();
@@ -591,22 +622,23 @@ export async function loadStock(projectId) {
     }
   }
 
-  local = normStock(await readLocal(key, emptyStock()));
+  local = normStock(await readScopedStock(key));
   if (isCloudPullPaused("project_stock")) return local;
+
+  if (fetchOk && !remoteBlobs.length && isStockSeed(local)) {
+    local = emptyStock();
+    await writeLocal(key, local);
+  }
 
   var merged = local;
   if (remoteBlobs.length) {
-    merged = mergeStockBlobs([local].concat(remoteBlobs));
-  } else if (fetchOk && !local.items.length && !local.seeded) {
-    var seeded = importStockPayload(Object.assign({}, STOCK_HISTORY_SEED, { seeded: true, meta_ativa: true }));
-    if (seeded && seeded.items.length) {
-      merged = seeded;
-      await writeLocal(key, merged);
-      return merged;
-    }
+    var blobs = [local].concat(remoteBlobs);
+    var hasOwnStock = blobs.some(function(b) { return b && (b.items || []).length && !isStockSeed(b); });
+    if (hasOwnStock) blobs = blobs.filter(function(b) { return !isStockSeed(b); });
+    merged = blobs.length ? mergeStockBlobs(blobs) : emptyStock();
   }
 
-  var latest = normStock(await readLocal(key, emptyStock()));
+  var latest = normStock(await readScopedStock(key));
   if (isCloudPullPaused("project_stock") || (latest.updated || 0) > (local.updated || 0)) {
     return latest;
   }
@@ -614,7 +646,7 @@ export async function loadStock(projectId) {
   await writeLocal(key, merged);
 
   if (isCloudPullPaused("project_stock")) {
-    return normStock(await readLocal(key, emptyStock()));
+    return normStock(await readScopedStock(key));
   }
 
   if (fetchOk && remoteBlobs.length && stockFingerprint(merged) !== stockFingerprint(pickPrimaryStock(remoteBlobs))) {
