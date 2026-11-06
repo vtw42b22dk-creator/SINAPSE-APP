@@ -363,6 +363,14 @@ function normDeletedIds(src) {
   return out;
 }
 
+function expectedSale(row) {
+  if (!row) return null;
+  var raw = row.venda_esperada != null ? row.venda_esperada : row.vendaEsperada;
+  if (raw == null || raw === "") return null;
+  var n = Number(raw);
+  return n > 0 ? n : null;
+}
+
 function normStockItem(row) {
   var status = row.status === "Vendido" || Number(row.venda) > 0 ? "Vendido" : "Disponível";
   var dataCompra = row.data_compra || row.dataCompra || todayKey();
@@ -373,6 +381,7 @@ function normStockItem(row) {
     nome: row.nome || row.name || "",
     compra: Number(row.compra != null ? row.compra : row.buy) || 0,
     venda: Number(row.venda != null ? row.venda : row.sell) || 0,
+    venda_esperada: expectedSale(row),
     custo_adicional: Number(row.custo_adicional != null ? row.custo_adicional : row.custoAdicional) || 0,
     status: status,
     data_venda: status === "Vendido" ? dataVenda : null,
@@ -449,7 +458,7 @@ function normStock(raw) {
 
 function stockFingerprint(data) {
   var items = (data && data.items ? data.items : []).map(function(i) {
-    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0) + ":" + (i.suspenso ? 1 : 0) + ":" + (i.limite ? 1 : 0);
+    return i.id + ":" + i.status + ":" + (Number(i.venda) || 0) + ":" + (i.chegou ? 1 : 0) + ":" + (i.suspenso ? 1 : 0) + ":" + (i.limite ? 1 : 0) + ":" + (Number(i.venda_esperada) || 0);
   }).sort().join("|");
   var notes = (data && data.apontamentos ? data.apontamentos : []).map(function(a) {
     return a.id + ":" + a.titulo + ":" + (Number(a.valor) || 0);
@@ -538,6 +547,15 @@ function withArrival(chosen, a, b) {
   return next;
 }
 
+function withExpectedSale(chosen, a, b) {
+  var val = expectedSale(chosen);
+  if (val == null) val = expectedSale(b);
+  if (val == null) val = expectedSale(a);
+  if (val == null) return chosen;
+  if (chosen.venda_esperada === val) return chosen;
+  return Object.assign({}, chosen, { venda_esperada: val });
+}
+
 function pickStockItem(a, b) {
   var aSold = a.status === "Vendido";
   var bSold = b.status === "Vendido";
@@ -549,7 +567,7 @@ function pickStockItem(a, b) {
   } else if ((b.data_venda || "") !== (a.data_venda || "")) {
     chosen = (b.data_venda || "") > (a.data_venda || "") ? b : a;
   }
-  return withArrival(chosen, a, b);
+  return withExpectedSale(withArrival(chosen, a, b), a, b);
 }
 
 function mergeStockBlobs(blobs) {
@@ -694,6 +712,12 @@ export async function saveStock(projectId, data) {
 
 export function stockItemProfit(item) {
   return (Number(item.venda) || 0) - (Number(item.compra) || 0) - (Number(item.custo_adicional) || 0);
+}
+
+export function stockExpectedProfit(item, vendaEsperada) {
+  var esp = vendaEsperada != null ? Number(vendaEsperada) : Number(item && item.venda_esperada);
+  if (!(esp > 0)) return null;
+  return esp - (Number(item && item.compra) || 0) - (Number(item && item.custo_adicional) || 0);
 }
 
 export function stockStats(data) {

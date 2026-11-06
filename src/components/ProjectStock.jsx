@@ -55,6 +55,16 @@ var STOCK_CSS = [
   ".ps-link.arrive{color:#C4A57C}",
   ".ps-link.del{color:#C08C8C}",
   ".ps-stat-sub{display:block;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#A0A0A8}",
+  ".ps-expect{display:inline-flex;align-items:center;margin-top:6px;border:1px solid rgba(196,165,124,0.45);background:transparent;color:#C4A57C;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.2px;padding:3px 8px;border-radius:999px;cursor:pointer;line-height:1.2}",
+  ".ps-expect:hover{background:rgba(196,165,124,0.12)}",
+  ".ps-sheet.expect{width:min(480px,100%);max-height:min(88vh,760px);display:flex;flex-direction:column;overflow:hidden}",
+  ".ps-expect-list{overflow:auto;flex:1 1 auto;min-height:0;margin:0 0 8px}",
+  ".ps-expect-row{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
+  ".ps-expect-row h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
+  ".ps-expect-row .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35}",
+  ".ps-expect-row .pm-input{min-height:36px;padding:8px 10px}",
+  ".ps-expect-sum{margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;color:#A0A0A8}",
+  ".ps-expect-sum b{font-weight:600}",
   ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
   ".ps-ok{margin:0 0 8px;font-size:12px;color:#8FB39B;font-family:'JetBrains Mono',monospace}",
   ".ps-empty{padding:10px 0;font-size:12px;color:#6E6E76}",
@@ -72,6 +82,7 @@ var STOCK_CSS = [
   ".ps-charts{grid-template-columns:1fr;gap:8px}",
   ".ps-card{grid-template-columns:1fr;padding:8px 0 10px}",
   ".ps-link{min-height:32px;font-size:12px}",
+  ".ps-expect{min-height:28px;font-size:11px}",
   ".ps-sheet-bk{padding:0}.ps-sheet{border-radius:18px 18px 0 0;padding:18px 16px 22px}",
   "}",
   "@media(min-width:720px){.ps-sheet-bk{align-items:center}.ps-sheet{border-radius:16px}}",
@@ -229,6 +240,8 @@ export function ProjectStock(props) {
   var invAmount = invAmountS[0], setInvAmount = invAmountS[1];
   var ctxS = useState(null);
   var ctx = ctxS[0], setCtx = ctxS[1];
+  var expectS = useState({});
+  var expectMap = expectS[0], setExpectMap = expectS[1];
   var sheetRef = useRef(null);
   sheetRef.current = sheet;
 
@@ -570,6 +583,16 @@ export function ProjectStock(props) {
   var emStock = useMemo(function() {
     return disponiveis.filter(function(i) { return !i.suspenso; });
   }, [disponiveis]);
+  var retornoEsperado = null;
+  var retornoTotal = 0;
+  var retornoAny = false;
+  emStock.forEach(function(item) {
+    var line = projectModuleStore.stockExpectedProfit(item);
+    if (line == null) return;
+    retornoAny = true;
+    retornoTotal += line;
+  });
+  if (retornoAny) retornoEsperado = retornoTotal;
   var ctxItem = ctx && data ? data.items.find(function(i) { return i.id === ctx.id; }) : null;
   var vendidos = useMemo(function() {
     if (!data) return [];
@@ -585,6 +608,60 @@ export function ProjectStock(props) {
         <style>{STOCK_CSS}</style>
       </ModuleShell>
     );
+  }
+
+  var draftRetorno = null;
+  if (sheet && sheet.type === "expect") {
+    var draftTotal = 0;
+    var draftAny = false;
+    emStock.forEach(function(item) {
+      var raw = expectMap[item.id];
+      if (raw == null || String(raw).trim() === "") return;
+      var val = parseMoney(raw);
+      if (isNaN(val) || val <= 0) return;
+      var line = projectModuleStore.stockExpectedProfit(item, val);
+      if (line == null) return;
+      draftAny = true;
+      draftTotal += line;
+    });
+    if (draftAny) draftRetorno = draftTotal;
+  }
+
+  function openExpect() {
+    var map = {};
+    emStock.forEach(function(item) {
+      map[item.id] = item.venda_esperada > 0 ? String(item.venda_esperada) : "";
+    });
+    setExpectMap(map);
+    setSheet({ type: "expect" });
+    setMsg(null);
+  }
+
+  function setExpect(id, value) {
+    setExpectMap(function(prev) {
+      var next = Object.assign({}, prev);
+      next[id] = value;
+      return next;
+    });
+  }
+
+  function confirmExpect() {
+    var src = dataRef.current || data;
+    if (!src) return;
+    var invalid = false;
+    var nextItems = src.items.map(function(i) {
+      if (!Object.prototype.hasOwnProperty.call(expectMap, i.id) && !Object.prototype.hasOwnProperty.call(expectMap, String(i.id))) return i;
+      var raw = expectMap[i.id];
+      if (raw == null) raw = expectMap[String(i.id)];
+      if (String(raw == null ? "" : raw).trim() === "") return Object.assign({}, i, { venda_esperada: null });
+      var val = parseMoney(raw);
+      if (isNaN(val) || val <= 0) { invalid = true; return i; }
+      return Object.assign({}, i, { venda_esperada: val });
+    });
+    if (invalid) { flash("Expectativa inválida.", "err"); return; }
+    persist(Object.assign({}, src, { items: nextItems }));
+    setSheet(null);
+    flash("Expectativa guardada.");
   }
 
   return (
@@ -647,7 +724,16 @@ export function ProjectStock(props) {
       <div className="ps-stats">
         <div className="ps-stat"><p>Lucro</p><b style={{ color: stats.lucroTotal >= 0 ? "#8FB39B" : "#C08C8C" }}>{fmtShort(stats.lucroTotal)}</b></div>
         <div className="ps-stat"><p>Faturação</p><b>{fmtShort(stats.totalFaturado)}</b></div>
-        <div className="ps-stat"><p>Em stock</p><b style={{ color: "#C4A57C" }}>{fmtShort(stats.capitalAtivo)}</b></div>
+        <div className="ps-stat">
+          <p>Em stock</p>
+          <b style={{ color: "#C4A57C" }}>{fmtShort(stats.capitalAtivo)}</b>
+          {retornoEsperado != null ? (
+            <span className="ps-stat-sub" style={{ color: retornoEsperado >= 0 ? "#8FB39B" : "#C08C8C" }}>
+              {(retornoEsperado >= 0 ? "+" : "") + fmtShort(retornoEsperado)}
+            </span>
+          ) : null}
+          <button type="button" className="ps-expect" onClick={openExpect}>Expectativa</button>
+        </div>
         <div className="ps-stat">
           <p>Margem</p>
           <b>{stats.margemMedia.toFixed(0)}%</b>
@@ -831,7 +917,7 @@ export function ProjectStock(props) {
 
       {sheet && (
         <div className="ps-sheet-bk" onClick={function(e) { if (e.target === e.currentTarget) setSheet(null); }}>
-          <div className="ps-sheet">
+          <div className={"ps-sheet" + (sheet.type === "expect" ? " expect" : "")}>
             {sheet.type === "sell" && sheetItem && (
               <>
                 <h3>Vender · {sheetItem.nome}</h3>
@@ -883,6 +969,51 @@ export function ProjectStock(props) {
                 </div>
                 <div className="acts">
                   <PrimaryBtn onClick={confirmEdit}>Guardar</PrimaryBtn>
+                  <button type="button" className="ps-ghost" onClick={function() { setSheet(null); }}>Cancelar</button>
+                </div>
+              </>
+            )}
+            {sheet.type === "expect" && (
+              <>
+                <h3>Expectativa de venda</h3>
+                <p className="ps-hint">Preço a que esperas vender cada artigo em stock. O retorno é a soma do lucro esperado: venda − compra − extra.</p>
+                {emStock.length === 0 ? (
+                  <p className="ps-empty">Nada em stock.</p>
+                ) : (
+                  <div className="ps-expect-list">
+                    {emStock.map(function(item) {
+                      var raw = expectMap[item.id] != null ? expectMap[item.id] : "";
+                      var linha = null;
+                      if (String(raw).trim() !== "") {
+                        var val = parseMoney(raw);
+                        if (!isNaN(val) && val > 0) linha = projectModuleStore.stockExpectedProfit(item, val);
+                      }
+                      return (
+                        <div key={item.id} className="ps-expect-row">
+                          <div>
+                            <h4>{item.nome}</h4>
+                            <p className="meta">
+                              compra {fmtShort(item.compra)}
+                              {item.custo_adicional ? " · extra " + fmtShort(item.custo_adicional) : ""}
+                              {linha == null ? "" : " · "}
+                              {linha == null ? null : <span style={{ color: linha >= 0 ? "#8FB39B" : "#C08C8C" }}>{(linha >= 0 ? "+" : "") + fmtShort(linha)}</span>}
+                            </p>
+                          </div>
+                          <input className="pm-input" value={raw} onChange={function(e) { setExpect(item.id, e.target.value); }} inputMode="decimal" placeholder="0€"
+                            style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="ps-expect-sum">
+                  Retorno esperado{" "}
+                  <b style={{ color: draftRetorno == null ? "#6E6E76" : draftRetorno >= 0 ? "#8FB39B" : "#C08C8C" }}>
+                    {draftRetorno == null ? "—" : (draftRetorno >= 0 ? "+" : "") + fmtShort(draftRetorno)}
+                  </b>
+                </p>
+                <div className="acts">
+                  <PrimaryBtn onClick={confirmExpect}>Guardar</PrimaryBtn>
                   <button type="button" className="ps-ghost" onClick={function() { setSheet(null); }}>Cancelar</button>
                 </div>
               </>
