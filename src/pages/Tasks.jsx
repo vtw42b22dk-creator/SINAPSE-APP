@@ -46,6 +46,20 @@ var TASKS_CSS = [
   ".tk-focus-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-focus-btn.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-focus-btn:active{transform:scale(.96)}",
+  ".tk-zone-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-zone-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}",
+  ".tk-zone-btn:active{transform:scale(.96)}",
+  ".tk-zone-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin:0 0 22px;padding:16px 2px;border:none;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);background:transparent;color:#A0A0A8;cursor:pointer;text-align:left;font-family:inherit}",
+  ".tk-zone-entry strong{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:13px;letter-spacing:.3px;color:#EDEDEF}",
+  ".tk-zone-entry span{font-size:12px;color:#6E6E76}",
+  ".tk-zone-entry:hover strong{color:var(--mc)}",
+  ".tk-horizon{padding:11px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:left;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".tk-horizon.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
+  ".tk-horizon-hint{margin:8px 0 0;font-size:12px;line-height:1.5;color:#6E6E76}",
+  ".tk-long-lead{margin:0 0 18px;max-width:56ch;font-size:13.5px;line-height:1.55;color:#A0A0A8}",
+  ".tk-long-list{display:flex;flex-direction:column;gap:10px;max-width:720px}",
+  ".tk-release{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;padding:6px 2px;white-space:nowrap}",
+  ".tk-release:hover{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-new-btn{background:transparent;border:none;border-bottom:2px solid var(--mc);color:var(--mc);font-size:12px;padding:10px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:500;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-new-btn:hover{opacity:.85}",
   ".tk-new-btn:active{transform:scale(.96);opacity:.7}",
@@ -147,9 +161,9 @@ function todayKey() {
 }
 function TaskCard(props) {
   var t = props.task, p = PRIORITIES.find(function(x) { return x.id === t.priority; }) || PRIORITIES[0];
-  var overdue = t.due && t.due < todayKey() && props.col !== "done";
+  var done = props.col === "done" || props.col === "longdone";
+  var overdue = t.due && t.due < todayKey() && !done;
   var mob = props.isMobile;
-  var done = props.col === "done";
   var notesOpenS = useState(false);
   var notesOpen = notesOpenS[0], setNotesOpen = notesOpenS[1];
   var overflowS = useState(false);
@@ -229,6 +243,9 @@ function TaskCard(props) {
         </div>
         {!props.readOnly && (
           <div className="tk-act">
+            {props.onRelease ? (
+              <button type="button" className="tk-release" title="Voltar ao quadro" onClick={function() { props.onRelease(t.id); }}>Quadro</button>
+            ) : null}
             <button type="button" title="Editar" onClick={function() { props.onEdit(t); }}>✎</button>
             <button type="button" title="Apagar" onClick={function() { props.onDelete(t.id); }}>×</button>
           </div>
@@ -253,7 +270,7 @@ export default function Tasks() {
   var query = qS[0], setQuery = qS[1];
   var focusS = useState(false);
   var focusToday = focusS[0], setFocusToday = focusS[1];
-  var draftS = useState({ title: "", notes: "", priority: "med", due: "", tags: "", column: "inbox", subtasks: [] });
+  var draftS = useState({ title: "", notes: "", priority: "med", due: "", tags: "", column: "inbox", subtasks: [], horizon: false });
   var subDraftS = useState("");
   var subDraft = subDraftS[0], setSubDraft = subDraftS[1];
   var draft = draftS[0], setDraft = draftS[1];
@@ -263,6 +280,9 @@ export default function Tasks() {
   var showForm = showFormS[0], setShowForm = showFormS[1];
   var mobileTabS = useState(null);
   var mobileTab = mobileTabS[0], setMobileTab = mobileTabS[1];
+  var zoneS = useState("board");
+  var zone = zoneS[0], setZone = zoneS[1];
+  var showLong = zone === "long" || mobileTab === "long";
 
   var tasksRef = useRef([]);
   var isHydratedRef = useRef(false);
@@ -419,19 +439,33 @@ export default function Tasks() {
   }, [loaded, syncFromCloud, auth.user && auth.user.id]);
 
   var stats = useMemo(function() {
-    var done = tasks.filter(function(t) { return t.column === "done"; }).length;
-    var today = tasks.filter(function(t) { return t.column === "today"; }).length;
-    return { total: tasks.length, done: done, today: today, pct: tasks.length ? Math.round((done / tasks.length) * 100) : 0 };
+    var board = tasks.filter(function(t) { return !taskStore.isLongTerm(t); });
+    var done = board.filter(function(t) { return t.column === "done"; }).length;
+    var today = board.filter(function(t) { return t.column === "today"; }).length;
+    var longDone = tasks.filter(function(t) { return t.column === "longdone"; }).length;
+    var longTotal = tasks.filter(function(t) { return taskStore.isLongTerm(t); }).length;
+    return {
+      total: board.length,
+      done: done,
+      today: today,
+      pct: board.length ? Math.round((done / board.length) * 100) : 0,
+      longDone: longDone,
+      longTotal: longTotal,
+      longPct: longTotal ? Math.round((longDone / longTotal) * 100) : 0,
+    };
   }, [tasks]);
 
   var filtered = useMemo(function() {
     var q = query.trim().toLowerCase();
+    var inLong = zone === "long" || mobileTab === "long";
     return tasks.filter(function(t) {
-      if (focusToday && t.column !== "today" && t.column !== "doing") return false;
+      var long = taskStore.isLongTerm(t);
+      if (inLong !== long) return false;
+      if (!inLong && focusToday && t.column !== "today" && t.column !== "doing") return false;
       if (!q) return true;
       return (t.title && t.title.toLowerCase().indexOf(q) >= 0) || (t.notes && t.notes.toLowerCase().indexOf(q) >= 0);
     });
-  }, [tasks, query, focusToday]);
+  }, [tasks, query, focusToday, zone, mobileTab]);
 
   function tasksInCol(col) {
     return filtered.filter(function(t) { return t.column === col; }).sort(function(a, b) {
@@ -460,11 +494,56 @@ export default function Tasks() {
   }, [isMobile, activeMobileView, mobileTab]);
 
   var resetDraft = useCallback(function() {
-    setDraft({ title: "", notes: "", priority: "med", due: "", tags: "", column: "inbox", subtasks: [] });
+    setDraft({ title: "", notes: "", priority: "med", due: "", tags: "", column: "inbox", subtasks: [], horizon: false });
     setSubDraft("");
     setEditId(null);
     setShowForm(false);
   }, []);
+
+  function columnForSave(d) {
+    if (d.horizon) {
+      if (d.column === "done" || d.column === "longdone") return "longdone";
+      return "long";
+    }
+    if (d.column === "long") return "inbox";
+    if (d.column === "longdone") return "done";
+    return d.column || "inbox";
+  }
+
+  function setHorizon(on) {
+    var next = { horizon: !!on };
+    if (!on && taskStore.isLongTerm({ column: draft.column })) next.column = draft.column === "longdone" ? "done" : "inbox";
+    setDraft(Object.assign({}, draft, next));
+  }
+
+  function openLong() {
+    setZone("long");
+    setMobileTab("long");
+    resetDraft();
+  }
+
+  function closeLong() {
+    setZone("board");
+    setMobileTab(null);
+    resetDraft();
+  }
+
+  function openComposer() {
+    var horizon = zone === "long" || mobileTab === "long";
+    setEditId(null);
+    setSubDraft("");
+    setDraft({
+      title: "",
+      notes: "",
+      priority: "med",
+      due: "",
+      tags: "",
+      column: horizon ? "long" : (activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox"),
+      subtasks: [],
+      horizon: horizon,
+    });
+    setShowForm(true);
+  }
 
   function saveTask(fromDraft) {
     var d = fromDraft && typeof fromDraft.title === "string" ? fromDraft : draft;
@@ -478,7 +557,7 @@ export default function Tasks() {
       due: d.due || null,
       tags: tags,
       subtasks: d.subtasks || [],
-      column: d.column,
+      column: columnForSave(d),
       created: editId ? undefined : Date.now(),
       updated: Date.now(),
     };
@@ -508,6 +587,7 @@ export default function Tasks() {
       tags: (t.tags || []).join(", "),
       subtasks: (t.subtasks || []).slice(),
       column: t.column,
+      horizon: taskStore.isLongTerm(t),
     });
     setShowForm(true);
   }
@@ -548,9 +628,31 @@ export default function Tasks() {
     setTasks(function(prev) {
       return prev.map(function(t) {
         if (t.id !== id) return t;
+        if (t.column === "long") return taskStore.touchTask(t, { column: "longdone" });
+        if (t.column === "longdone") return taskStore.touchTask(t, { column: "long" });
         if (t.column === "done") return taskStore.touchTask(t, { column: "today" });
         return taskStore.touchTask(t, { column: "done" });
       });
+    });
+  }
+
+  function releaseToBoard(id) {
+    setTasks(function(prev) {
+      return prev.map(function(t) {
+        if (t.id !== id) return t;
+        var column = t.column === "longdone" ? "done" : "inbox";
+        return taskStore.touchTask(t, { column: column });
+      });
+    });
+  }
+
+  function longTasksSorted() {
+    var po = { high: 0, med: 1, low: 2 };
+    return filtered.slice().sort(function(a, b) {
+      var ad = a.column === "longdone" ? 1 : 0;
+      var bd = b.column === "longdone" ? 1 : 0;
+      if (ad !== bd) return ad - bd;
+      return (po[a.priority] || 1) - (po[b.priority] || 1);
     });
   }
 
@@ -598,26 +700,35 @@ export default function Tasks() {
       <header className={"tk-head" + (isMobile ? " tk-head--mob" : "")}>
         <div className={"tk-head-inner" + (isMobile ? " tk-head-inner--mob" : "")}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, width: isMobile ? "100%" : "auto" }}>
-            {isMobile && mobileTab ? (
+            {showLong ? (
+              <HubBack label="Tarefas" onClick={closeLong} />
+            ) : isMobile && mobileTab ? (
               <HubBack label="Listas" onClick={function() { setMobileTab(null); }} />
             ) : (
               <HubBack />
             )}
             <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, fontWeight: 500, letterSpacing: 0.5 }}>
-              {isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
+              {showLong ? "Longo prazo" : isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
             </h1>
           </div>
           {!(isMobile && !mobileTab) ? (
           <div className={"tk-search-row" + (isMobile ? " tk-search-row--full" : "")}>
             <input className="tk-in ui-in" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
               style={{ flex: 1, padding: "10px 4px", fontSize: isMobile ? 16 : 13 }} />
+            {!showLong ? (
             <button type="button" className={"tk-focus-btn ui-tap" + (focusToday ? " is-on" : "")} onClick={function() { setFocusToday(!focusToday); }}>
               Foco hoje
             </button>
+            ) : null}
           </div>
           ) : null}
+          {isMobile && mobileTab && !showLong ? (
+          <button type="button" className="tk-zone-btn ui-tap" onClick={openLong}>
+            Longo prazo{stats.longTotal ? " · " + stats.longTotal : ""}
+          </button>
+          ) : null}
           {!isMobile ? (
-          <button type="button" className="tk-new-btn ui-tap" onClick={function() { resetDraft(); setShowForm(true); }}>
+          <button type="button" className="tk-new-btn ui-tap" onClick={openComposer}>
             + Nova
           </button>
           ) : null}
@@ -633,12 +744,21 @@ export default function Tasks() {
         {!(isMobile && !mobileTab) ? (
         <div className="tk-progress-wrap">
           <div className="tk-progress">
-            <i style={{ width: stats.pct + "%" }} />
+            <i style={{ width: (showLong ? stats.longPct : stats.pct) + "%" }} />
           </div>
           <p className="tk-stats">
-            {stats.done}/{stats.total} concluídas · {stats.today} em foco hoje
+            {showLong
+              ? stats.longTotal + " a longo prazo · " + stats.longDone + " concluídas"
+              : stats.done + "/" + stats.total + " concluídas · " + stats.today + " em foco hoje"}
           </p>
         </div>
+        ) : null}
+
+        {!isMobile && !showLong ? (
+          <button type="button" className="tk-zone-entry ui-tap" onClick={openLong}>
+            <strong>Longo prazo</strong>
+            <span>{stats.longTotal ? stats.longTotal + " fora do quadro →" : "Abrir zona · não aparecem no quadro →"}</span>
+          </button>
         ) : null}
 
         {showForm && !touchCreate ? (
@@ -649,10 +769,17 @@ export default function Tasks() {
                 style={{ gridColumn: "1 / -1", padding: "12px 4px", fontSize: isMobile ? 16 : 14.5 }} />
               <textarea className="tk-in ui-in" value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
                 style={{ gridColumn: "1 / -1", padding: "11px 4px", fontSize: isMobile ? 16 : 13, resize: "vertical", lineHeight: 1.55 }} />
-              <select className="tk-in ui-in" value={draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value })); }}
+              <button type="button" className={"tk-horizon" + (draft.horizon ? " is-on" : "")} style={{ gridColumn: "1 / -1" }} onClick={function() { setHorizon(!draft.horizon); }}>
+                {draft.horizon ? "Longo prazo · activo" : "Marcar como longo prazo"}
+              </button>
+              {draft.horizon ? (
+                <p className="tk-horizon-hint" style={{ gridColumn: "1 / -1", margin: 0 }}>Fica só na zona de longo prazo, fora do quadro.</p>
+              ) : (
+              <select className="tk-in ui-in" value={draft.column === "long" || draft.column === "longdone" ? "inbox" : draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value, horizon: false })); }}
                 style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }}>
                 {COLUMNS.map(function(c) { return <option key={c.id} value={c.id}>{c.label}</option>; })}
               </select>
+              )}
               <select className="tk-in ui-in" value={draft.priority} onChange={function(e) { setDraft(Object.assign({}, draft, { priority: e.target.value })); }}
                 style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }}>
                 {PRIORITIES.map(function(p) { return <option key={p.id} value={p.id}>{p.label}</option>; })}
@@ -686,7 +813,7 @@ export default function Tasks() {
               <button type="button" className="tk-save ui-tap" onClick={function() { saveTask(); }}>Guardar</button>
               <button type="button" className="tk-cancel ui-tap" onClick={resetDraft}>Cancelar</button>
               {!editId && (
-                <button type="button" className="tk-quick-save ui-tap" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk })); }}>
+                <button type="button" className="tk-quick-save ui-tap" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk, horizon: false })); }}>
                   Guardar em «Hoje»
                 </button>
               )}
@@ -700,7 +827,7 @@ export default function Tasks() {
             {MOBILE_VIEWS.map(function(v) {
               var n = countMobileView(v.id);
               return (
-                <button key={v.id} type="button" className="tk-tab ui-tap" onClick={function() { setMobileTab(v.id); }}>
+                <button key={v.id} type="button" className="tk-tab ui-tap" onClick={function() { setZone("board"); setMobileTab(v.id); }}>
                   <span className="tk-tab-icon">{v.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 17, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500 }}>{v.label}</p>
@@ -710,6 +837,46 @@ export default function Tasks() {
                 </button>
               );
             })}
+            <button type="button" className="tk-tab ui-tap" onClick={openLong}>
+              <span className="tk-tab-icon">◷</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 17, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500 }}>Longo prazo</p>
+                <p style={{ margin: "5px 0 0", fontSize: 13, color: "#6E6E76", lineHeight: 1.4 }}>Fora do quadro — não aparecem nas listas</p>
+              </div>
+              <span className="tk-tab-count">{stats.longTotal}</span>
+            </button>
+          </div>
+        ) : showLong ? (
+          <div>
+            <p className="tk-long-lead">Estas tarefas ficam só aqui. Não entram no quadro de Inbox, Hoje, A fazer ou Concluído. Podes editá-las ou devolvê-las ao quadro.</p>
+            {stats.longDone > 0 ? (
+              <div style={{ marginBottom: 14 }}>
+                <button type="button" className="tk-clear ui-tap" onClick={function() {
+                  var list = tasksRef.current.filter(function(t) { return t.column === "longdone"; });
+                  if (!list.length) return;
+                  if (!window.confirm("Apagar as " + list.length + " tarefas de longo prazo já concluídas?")) return;
+                  var ids = list.map(function(t) { return t.id; });
+                  var prev = tasksRef.current;
+                  skipSaveRef.current = true;
+                  clearTimeout(saveTimerRef.current);
+                  commitTasks(prev.filter(function(t) { return ids.indexOf(t.id) < 0; }));
+                  if (editId && ids.indexOf(editId) >= 0) resetDraft();
+                  taskStore.deleteTasksByIds(prev, ids).finally(function() {
+                    lastDeleteAt.current = Date.now();
+                    setTimeout(function() { skipSaveRef.current = false; }, 200);
+                  });
+                }}>Apagar concluídas</button>
+              </div>
+            ) : null}
+            <div className="tk-long-list" data-stagger>
+              {longTasksSorted().length === 0 ? (
+                <p className="tk-empty">Ainda não há tarefas a longo prazo. Cria uma e marca «Longo prazo».</p>
+              ) : longTasksSorted().map(function(t) {
+                return (
+                  <TaskCard key={t.id} task={t} col={t.column} isMobile={isMobile} lockDrag onEdit={startEdit} onDelete={deleteTask} onToggle={toggleDone} onRelease={releaseToBoard} onToggleSubtask={function(sid) { toggleSubtask(t.id, sid); }} />
+                );
+              })}
+            </div>
           </div>
         ) : (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit,minmax(240px,1fr))", gap: isMobile ? 18 : 16, alignItems: "start" }}>
@@ -768,15 +935,20 @@ export default function Tasks() {
             />
             <p className="tk-lbl" style={{ margin: "16px 0 0" }}>Onde</p>
             <div className="tk-chips">
-              {COLUMNS.map(function(c) {
+              <button type="button" className={"tk-chip" + (draft.horizon ? " is-on" : "")}
+                onClick={function() { setHorizon(!draft.horizon); }}>
+                Longo prazo
+              </button>
+              {!draft.horizon ? COLUMNS.map(function(c) {
                 return (
                   <button key={c.id} type="button" className={"tk-chip" + (draft.column === c.id ? " is-on" : "")}
-                    onClick={function() { setDraft(Object.assign({}, draft, { column: c.id })); }}>
+                    onClick={function() { setDraft(Object.assign({}, draft, { column: c.id, horizon: false })); }}>
                     {c.icon} {c.label}
                   </button>
                 );
-              })}
+              }) : null}
             </div>
+            {draft.horizon ? <p className="tk-horizon-hint">Fica fora do quadro, só na zona de longo prazo.</p> : null}
             <p className="tk-lbl" style={{ margin: "4px 0 0" }}>Prioridade</p>
             <div className="tk-chips">
               {PRIORITIES.map(function(p) {
@@ -800,20 +972,7 @@ export default function Tasks() {
       ) : null}
 
       {touchCreate ? (
-        <button type="button" className="tk-fab" aria-label="Nova tarefa" onClick={function() {
-          setEditId(null);
-          setSubDraft("");
-          setDraft({
-            title: "",
-            notes: "",
-            priority: "med",
-            due: "",
-            tags: "",
-            column: activeMobileView && activeMobileView.id === "today" ? "today" : activeMobileView && activeMobileView.id === "done" ? "done" : "inbox",
-            subtasks: [],
-          });
-          setShowForm(true);
-        }}>+</button>
+        <button type="button" className="tk-fab" aria-label="Nova tarefa" onClick={openComposer}>+</button>
       ) : null}
     </div>
   );

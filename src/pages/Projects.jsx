@@ -379,7 +379,9 @@ export default function Projects() {
       var tasks = results[0], invRows = results[1], next = {};
       projects.forEach(function(p) {
         var inv = invRows.find(function(d) { return d.id === p.id; });
-        var projTasks = tasks.filter(function(t) { return t.synapse_project_id === p.id; });
+        var projTasks = tasks.filter(function(t) {
+          return t.synapse_project_id === p.id && !tasksStore.isLongTerm(t);
+        });
         var pending = projTasks.filter(function(t) { return t.column !== "done"; }).length;
         next[p.id] = {
           roi: inv ? inv.totals.roi : 0,

@@ -30,6 +30,11 @@ function parseSubtasks(row) {
   return [];
 }
 
+export function isLongTerm(task) {
+  var col = task && (task.column || task.status);
+  return col === "long" || col === "longdone";
+}
+
 function normalize(row) {
   var updated = rowUpdated(row);
   return {

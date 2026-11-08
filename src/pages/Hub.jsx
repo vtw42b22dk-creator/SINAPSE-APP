@@ -112,8 +112,18 @@ var HUB_CSS = [
   ".hub-row:hover h2,.hub-row:focus-visible h2{color:var(--mc)}",
   ".hub-row p{position:relative;z-index:1;margin:7px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.faint + ";max-width:44ch;transition:color var(--dur) var(--ease)}",
   ".hub-row:hover p{color:" + COLORS.muted + "}",
+  ".hub-actions{position:relative;z-index:2;display:flex;align-items:center;gap:8px}",
+  ".hub-hide{border:none;background:transparent;color:#8A8A90;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:8px 2px;min-height:44px;cursor:pointer;opacity:.8}",
+  ".hub-hide:hover{color:#C08C8C}",
   ".hub-go{position:relative;z-index:1;font-size:20px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-12px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:var(--mc)}",
+  ".hub-empty{margin:18px 0 0;font-size:13px;line-height:1.5;color:" + COLORS.muted + "}",
+  ".hub-hidden{margin-top:36px;padding-top:8px;animation:hubIn var(--dur-slow) var(--ease) both}",
+  ".hub-hidden-list{display:flex;flex-direction:column}",
+  ".hub-hidden-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".hub-hidden-name{font-family:'JetBrains Mono',monospace;font-size:16px;color:" + COLORS.text + "}",
+  ".hub-show{border:none;border-bottom:1px solid color-mix(in srgb,var(--mc) 55%,transparent);background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.4px;padding:10px 2px;min-height:44px;cursor:pointer}",
+  ".hub-show:hover{border-bottom-color:var(--mc)}",
   ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
   "@media(hover:none),(pointer:coarse){",
@@ -126,6 +136,7 @@ var HUB_CSS = [
   ".hub-row:hover h2{color:" + COLORS.text + "}",
   ".hub-row:hover p{color:" + COLORS.faint + "}",
   ".hub-row:hover .hub-go{opacity:.45;transform:none;color:" + COLORS.faint + "}",
+  ".hub-hide{opacity:1}",
   ".hub-row:active{transform:none;background:none;color:" + COLORS.muted + "}",
   ".hub-row.ui-tap:active:not(:disabled){transform:none}",
   ".hub-row.is-press{color:" + COLORS.text + ";background:rgba(255,255,255,.04)}",
@@ -154,6 +165,7 @@ var HUB_CSS = [
 ].join("");
 
 var ORDER_KEY = "sinapse-hub-order-v1";
+var HIDDEN_KEY = "sinapse-hub-hidden-v1";
 
 function loadHubOrder() {
   try {
@@ -176,6 +188,22 @@ function saveHubOrder(list) {
   try {
     localStorage.setItem(ORDER_KEY, JSON.stringify(list.map(function(m) { return m.id; })));
   } catch (e) {}
+}
+
+function loadHidden() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]");
+    if (!Array.isArray(raw)) return [];
+    var known = {};
+    MODULES.forEach(function(m) { known[m.id] = true; });
+    return raw.filter(function(id) { return known[id]; });
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHidden(ids) {
+  try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch (e) {}
 }
 
 function canDesktopReorder() {
@@ -216,13 +244,19 @@ function ModuleRow(props) {
   }
 
   return (
-    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
+    <div role="button" tabIndex={0} className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
       style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
       draggable={canDrag}
       onMouseMove={props.isMobile ? undefined : trackSpotlight}
       onPointerDown={onPointerDown}
+      onKeyDown={function(e) {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        if (mod.path) props.onClick(mod);
+      }}
       onDragStart={function(e) {
-        if (!canDrag) { e.preventDefault(); return; }
+        if (!canDrag || (e.target && e.target.closest && e.target.closest(".hub-hide"))) { e.preventDefault(); return; }
         dragRef.current = true;
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", mod.id);
@@ -244,7 +278,8 @@ function ModuleRow(props) {
         if (props.onDragEnd) props.onDragEnd();
         setTimeout(function() { dragRef.current = false; }, 120);
       }}
-      onClick={function() {
+      onClick={function(e) {
+        if (e.target && e.target.closest && e.target.closest(".hub-hide")) return;
         if (dragRef.current || props.dragging || (props.dragLockRef && props.dragLockRef.current)) return;
         if (mod.path) props.onClick(mod);
       }}>
@@ -257,8 +292,17 @@ function ModuleRow(props) {
         <h2>{mod.name}</h2>
         <p>{mod.path ? mod.desc : "Em breve"}</p>
       </span>
-      <span className="hub-go" aria-hidden="true">→</span>
-    </button>
+      <span className="hub-actions">
+        <button type="button" className="hub-hide" draggable={false} aria-label={"Ocultar " + mod.name}
+          onPointerDown={function(e) { e.stopPropagation(); }}
+          onClick={function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (props.onHide) props.onHide(mod);
+          }}>Ocultar</button>
+        <span className="hub-go" aria-hidden="true">→</span>
+      </span>
+    </div>
   );
 }
 
@@ -318,12 +362,37 @@ export default function Hub() {
   var canReorder = !isMobile && canDesktopReorder();
   var modsS = useState(loadHubOrder);
   var mods = modsS[0], setMods = modsS[1];
+  var hiddenS = useState(loadHidden);
+  var hidden = hiddenS[0], setHidden = hiddenS[1];
+  var hiddenSet = {};
+  hidden.forEach(function(id) { hiddenSet[id] = true; });
+  var visible = mods.filter(function(m) { return !hiddenSet[m.id]; });
+  var hiddenMods = mods.filter(function(m) { return hiddenSet[m.id]; });
   var dragIdS = useState(null);
   var dragId = dragIdS[0], setDragId = dragIdS[1];
   var overIdS = useState(null);
   var overId = overIdS[0], setOverId = overIdS[1];
   var dragLockRef = useRef(false);
   var dragIdRef = useRef(null);
+
+  function hideModule(mod) {
+    if (!mod || hiddenSet[mod.id]) return;
+    if (!window.confirm("Ocultar " + mod.name + " do índice? Os dados ficam guardados e podes voltar a mostrar em baixo.")) return;
+    setHidden(function(prev) {
+      if (prev.indexOf(mod.id) >= 0) return prev;
+      var next = prev.concat([mod.id]);
+      saveHidden(next);
+      return next;
+    });
+  }
+
+  function showModule(id) {
+    setHidden(function(prev) {
+      var next = prev.filter(function(x) { return x !== id; });
+      saveHidden(next);
+      return next;
+    });
+  }
 
   function moveModule(fromId, toId) {
     if (!fromId || !toId || fromId === toId) return;
@@ -361,11 +430,14 @@ export default function Hub() {
         <div className="hub-index-head">
           <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
           <p className="hub-sec">Índice</p>
-          <p className="hub-sec">0{mods.length}</p>
+          <p className="hub-sec">{String(visible.length).padStart(2, "0")}</p>
         </div>
 
         <nav className="hub-list" aria-label="Módulos">
-          {mods.map(function(mod, i) {
+          {visible.length === 0 ? (
+            <p className="hub-empty">Nenhum módulo no índice. Mostra os que ocultaste na lista em baixo.</p>
+          ) : null}
+          {visible.map(function(mod, i) {
             return (
               <ModuleRow
                 key={mod.id}
@@ -376,6 +448,7 @@ export default function Hub() {
                 dragging={dragId === mod.id}
                 over={overId === mod.id && dragId && dragId !== mod.id}
                 onClick={function() { navigate(mod.path); }}
+                onHide={hideModule}
                 dragLockRef={dragLockRef}
                 onDragStart={function(id) {
                   dragLockRef.current = true;
@@ -399,8 +472,24 @@ export default function Hub() {
           })}
         </nav>
 
+        {hiddenMods.length > 0 ? (
+          <section className="hub-hidden" aria-label="Módulos ocultos">
+            <p className="hub-sec" style={{ marginBottom: 8 }}>Ocultos · {String(hiddenMods.length).padStart(2, "0")}</p>
+            <div className="hub-hidden-list">
+              {hiddenMods.map(function(mod) {
+                return (
+                  <div key={mod.id} className="hub-hidden-row" style={{ "--mc": mod.color }}>
+                    <span className="hub-hidden-name">{mod.name}</span>
+                    <button type="button" className="hub-show" onClick={function() { showModule(mod.id); }}>Mostrar</button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
         <footer className="hub-foot">
-          <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {mods.length} módulos activos</p>
+          <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {visible.length} no índice{hiddenMods.length ? " · " + hiddenMods.length + " ocultos" : ""}</p>
           <button type="button" className="ui-line-btn ui-tap" style={{ marginTop: 14 }} onClick={function() { navigate("/quick"); }}>Atalhos iPhone</button>
         </footer>
       </div>
