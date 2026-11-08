@@ -112,18 +112,22 @@ var HUB_CSS = [
   ".hub-row:hover h2,.hub-row:focus-visible h2{color:var(--mc)}",
   ".hub-row p{position:relative;z-index:1;margin:7px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.faint + ";max-width:44ch;transition:color var(--dur) var(--ease)}",
   ".hub-row:hover p{color:" + COLORS.muted + "}",
-  ".hub-actions{position:relative;z-index:2;display:flex;align-items:center;gap:8px}",
-  ".hub-hide{border:none;background:transparent;color:#8A8A90;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;text-transform:uppercase;padding:8px 2px;min-height:44px;cursor:pointer;opacity:.8}",
-  ".hub-hide:hover{color:#C08C8C}",
   ".hub-go{position:relative;z-index:1;font-size:20px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-12px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:var(--mc)}",
-  ".hub-empty{margin:18px 0 0;font-size:13px;line-height:1.5;color:" + COLORS.muted + "}",
-  ".hub-hidden{margin-top:36px;padding-top:8px;animation:hubIn var(--dur-slow) var(--ease) both}",
-  ".hub-hidden-list{display:flex;flex-direction:column}",
-  ".hub-hidden-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".hub-hidden-name{font-family:'JetBrains Mono',monospace;font-size:16px;color:" + COLORS.text + "}",
-  ".hub-show{border:none;border-bottom:1px solid color-mix(in srgb,var(--mc) 55%,transparent);background:transparent;color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.4px;padding:10px 2px;min-height:44px;cursor:pointer}",
-  ".hub-show:hover{border-bottom-color:var(--mc)}",
+  ".hub-empty{margin:18px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.muted + "}",
+  ".hub-set{animation:hubIn var(--dur-slow) var(--ease) both}",
+  ".hub-set-lead{margin:0 0 28px;max-width:48ch;font-size:14px;line-height:1.55;color:" + COLORS.muted + "}",
+  ".hub-set-block{margin-top:36px}",
+  ".hub-tog{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 2px;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".hub-tog h3{margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:400;letter-spacing:-.02em;color:" + COLORS.text + "}",
+  ".hub-tog p{margin:4px 0 0;font-size:12.5px;line-height:1.45;color:" + COLORS.faint + "}",
+  ".hub-switch{min-height:44px;padding:8px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.16);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;cursor:pointer;white-space:nowrap}",
+  ".hub-switch.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
+  ".hub-set-link{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:18px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
+  ".hub-set-link h3{margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:400;color:" + COLORS.text + "}",
+  ".hub-set-link p{margin:4px 0 0;font-size:12.5px;color:" + COLORS.faint + "}",
+  ".hub-set-link .hub-go{opacity:1;transform:none}",
+  ".hub-set-link:hover h3{color:var(--mc)}",
   ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
   "@media(hover:none),(pointer:coarse){",
@@ -136,7 +140,6 @@ var HUB_CSS = [
   ".hub-row:hover h2{color:" + COLORS.text + "}",
   ".hub-row:hover p{color:" + COLORS.faint + "}",
   ".hub-row:hover .hub-go{opacity:.45;transform:none;color:" + COLORS.faint + "}",
-  ".hub-hide{opacity:1}",
   ".hub-row:active{transform:none;background:none;color:" + COLORS.muted + "}",
   ".hub-row.ui-tap:active:not(:disabled){transform:none}",
   ".hub-row.is-press{color:" + COLORS.text + ";background:rgba(255,255,255,.04)}",
@@ -149,6 +152,8 @@ var HUB_CSS = [
   ".hub-top{flex-direction:column;gap:14px;margin-bottom:36px}",
   ".hub-out{align-self:flex-start}",
   ".hub-row{grid-template-columns:36px 24px 1fr auto;gap:12px;padding:20px 4px;min-height:72px}",
+  ".hub-tog{grid-template-columns:24px minmax(0,1fr);gap:12px}",
+  ".hub-switch{grid-column:1 / -1;justify-self:start}",
   ".hub-row:hover{padding-left:4px;background:none}",
   ".hub-row svg{display:block}",
   ".hub-row h2{font-size:20px}",
@@ -244,19 +249,13 @@ function ModuleRow(props) {
   }
 
   return (
-    <div role="button" tabIndex={0} className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
+    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
       style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
       draggable={canDrag}
       onMouseMove={props.isMobile ? undefined : trackSpotlight}
       onPointerDown={onPointerDown}
-      onKeyDown={function(e) {
-        if (e.key !== "Enter" && e.key !== " ") return;
-        if (e.target !== e.currentTarget) return;
-        e.preventDefault();
-        if (mod.path) props.onClick(mod);
-      }}
       onDragStart={function(e) {
-        if (!canDrag || (e.target && e.target.closest && e.target.closest(".hub-hide"))) { e.preventDefault(); return; }
+        if (!canDrag) { e.preventDefault(); return; }
         dragRef.current = true;
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", mod.id);
@@ -278,8 +277,7 @@ function ModuleRow(props) {
         if (props.onDragEnd) props.onDragEnd();
         setTimeout(function() { dragRef.current = false; }, 120);
       }}
-      onClick={function(e) {
-        if (e.target && e.target.closest && e.target.closest(".hub-hide")) return;
+      onClick={function() {
         if (dragRef.current || props.dragging || (props.dragLockRef && props.dragLockRef.current)) return;
         if (mod.path) props.onClick(mod);
       }}>
@@ -292,17 +290,8 @@ function ModuleRow(props) {
         <h2>{mod.name}</h2>
         <p>{mod.path ? mod.desc : "Em breve"}</p>
       </span>
-      <span className="hub-actions">
-        <button type="button" className="hub-hide" draggable={false} aria-label={"Ocultar " + mod.name}
-          onPointerDown={function(e) { e.stopPropagation(); }}
-          onClick={function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            if (props.onHide) props.onHide(mod);
-          }}>Ocultar</button>
-        <span className="hub-go" aria-hidden="true">→</span>
-      </span>
-    </div>
+      <span className="hub-go" aria-hidden="true">→</span>
+    </button>
   );
 }
 
@@ -367,7 +356,8 @@ export default function Hub() {
   var hiddenSet = {};
   hidden.forEach(function(id) { hiddenSet[id] = true; });
   var visible = mods.filter(function(m) { return !hiddenSet[m.id]; });
-  var hiddenMods = mods.filter(function(m) { return hiddenSet[m.id]; });
+  var screenS = useState("hub");
+  var screen = screenS[0], setScreen = screenS[1];
   var dragIdS = useState(null);
   var dragId = dragIdS[0], setDragId = dragIdS[1];
   var overIdS = useState(null);
@@ -375,20 +365,11 @@ export default function Hub() {
   var dragLockRef = useRef(false);
   var dragIdRef = useRef(null);
 
-  function hideModule(mod) {
-    if (!mod || hiddenSet[mod.id]) return;
-    if (!window.confirm("Ocultar " + mod.name + " do índice? Os dados ficam guardados e podes voltar a mostrar em baixo.")) return;
+  function toggleModule(id) {
     setHidden(function(prev) {
-      if (prev.indexOf(mod.id) >= 0) return prev;
-      var next = prev.concat([mod.id]);
-      saveHidden(next);
-      return next;
-    });
-  }
-
-  function showModule(id) {
-    setHidden(function(prev) {
-      var next = prev.filter(function(x) { return x !== id; });
+      var next = prev.indexOf(id) >= 0
+        ? prev.filter(function(x) { return x !== id; })
+        : prev.concat([id]);
       saveHidden(next);
       return next;
     });
@@ -427,71 +408,95 @@ export default function Hub() {
           <button type="button" className="ui-line-btn hub-out ui-tap" onClick={function() { auth.signOut(); }}>Sair</button>
         </header>
 
-        <div className="hub-index-head">
-          <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
-          <p className="hub-sec">Índice</p>
-          <p className="hub-sec">{String(visible.length).padStart(2, "0")}</p>
-        </div>
-
-        <nav className="hub-list" aria-label="Módulos">
-          {visible.length === 0 ? (
-            <p className="hub-empty">Nenhum módulo no índice. Mostra os que ocultaste na lista em baixo.</p>
-          ) : null}
-          {visible.map(function(mod, i) {
-            return (
-              <ModuleRow
-                key={mod.id}
-                module={mod}
-                index={i}
-                isMobile={isMobile}
-                canReorder={canReorder}
-                dragging={dragId === mod.id}
-                over={overId === mod.id && dragId && dragId !== mod.id}
-                onClick={function() { navigate(mod.path); }}
-                onHide={hideModule}
-                dragLockRef={dragLockRef}
-                onDragStart={function(id) {
-                  dragLockRef.current = true;
-                  dragIdRef.current = id;
-                  setDragId(id);
-                }}
-                onDragOver={function(id) { setOverId(id); }}
-                onDrop={function(id) {
-                  moveModule(dragIdRef.current, id);
-                  setDragId(null);
-                  setOverId(null);
-                }}
-                onDragEnd={function() {
-                  dragIdRef.current = null;
-                  setDragId(null);
-                  setOverId(null);
-                  setTimeout(function() { dragLockRef.current = false; }, 150);
-                }}
-              />
-            );
-          })}
-        </nav>
-
-        {hiddenMods.length > 0 ? (
-          <section className="hub-hidden" aria-label="Módulos ocultos">
-            <p className="hub-sec" style={{ marginBottom: 8 }}>Ocultos · {String(hiddenMods.length).padStart(2, "0")}</p>
-            <div className="hub-hidden-list">
-              {hiddenMods.map(function(mod) {
+        {screen === "settings" ? (
+          <section className="hub-set" aria-label="Definições">
+            <div className="hub-index-head">
+              <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
+              <p className="hub-sec">Definições</p>
+              <button type="button" className="ui-line-btn ui-tap" onClick={function() { setScreen("hub"); }}>Índice</button>
+            </div>
+            <p className="hub-set-lead">O índice só mostra os módulos ligados. Ocultar não apaga dados — podes voltar a ligar quando quiseres.</p>
+            <p className="hub-sec" style={{ marginBottom: 8 }}>Módulos</p>
+            <div>
+              {mods.map(function(mod) {
+                var on = !hiddenSet[mod.id];
                 return (
-                  <div key={mod.id} className="hub-hidden-row" style={{ "--mc": mod.color }}>
-                    <span className="hub-hidden-name">{mod.name}</span>
-                    <button type="button" className="hub-show" onClick={function() { showModule(mod.id); }}>Mostrar</button>
+                  <div key={mod.id} className="hub-tog" style={{ "--mc": mod.color }}>
+                    <span className="hub-ic-wrap" aria-hidden="true"><mod.Icon /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <h3>{mod.name}</h3>
+                      <p>{mod.desc}</p>
+                    </span>
+                    <button type="button" className={"hub-switch ui-tap" + (on ? " is-on" : "")} aria-pressed={on} onClick={function() { toggleModule(mod.id); }}>
+                      {on ? "No índice" : "Oculto"}
+                    </button>
                   </div>
                 );
               })}
             </div>
+            <div className="hub-set-block">
+              <p className="hub-sec" style={{ marginBottom: 4 }}>Atalhos</p>
+              <button type="button" className="hub-set-link ui-tap" style={{ "--mc": MODULE_COLORS.finance }} onClick={function() { navigate("/quick"); }}>
+                <span>
+                  <h3>Atalhos iPhone</h3>
+                  <p>Captura rápida de recursos e gastos, e o modelo para a app Atalhos.</p>
+                </span>
+                <span className="hub-go" aria-hidden="true">→</span>
+              </button>
+            </div>
           </section>
-        ) : null}
+        ) : (
+          <div>
+            <div className="hub-index-head">
+              <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
+              <p className="hub-sec">Índice</p>
+              <p className="hub-sec">{String(visible.length).padStart(2, "0")}</p>
+            </div>
 
-        <footer className="hub-foot">
-          <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {visible.length} no índice{hiddenMods.length ? " · " + hiddenMods.length + " ocultos" : ""}</p>
-          <button type="button" className="ui-line-btn ui-tap" style={{ marginTop: 14 }} onClick={function() { navigate("/quick"); }}>Atalhos iPhone</button>
-        </footer>
+            <nav className="hub-list" aria-label="Módulos">
+              {visible.length === 0 ? (
+                <p className="hub-empty">Nenhum módulo no índice. Em Definições podes voltar a mostrar.</p>
+              ) : null}
+              {visible.map(function(mod, i) {
+                return (
+                  <ModuleRow
+                    key={mod.id}
+                    module={mod}
+                    index={i}
+                    isMobile={isMobile}
+                    canReorder={canReorder}
+                    dragging={dragId === mod.id}
+                    over={overId === mod.id && dragId && dragId !== mod.id}
+                    onClick={function() { navigate(mod.path); }}
+                    dragLockRef={dragLockRef}
+                    onDragStart={function(id) {
+                      dragLockRef.current = true;
+                      dragIdRef.current = id;
+                      setDragId(id);
+                    }}
+                    onDragOver={function(id) { setOverId(id); }}
+                    onDrop={function(id) {
+                      moveModule(dragIdRef.current, id);
+                      setDragId(null);
+                      setOverId(null);
+                    }}
+                    onDragEnd={function() {
+                      dragIdRef.current = null;
+                      setDragId(null);
+                      setOverId(null);
+                      setTimeout(function() { dragLockRef.current = false; }, 150);
+                    }}
+                  />
+                );
+              })}
+            </nav>
+
+            <footer className="hub-foot">
+              <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {visible.length} módulos</p>
+              <button type="button" className="ui-line-btn ui-tap" style={{ marginTop: 14 }} onClick={function() { setScreen("settings"); }}>Definições</button>
+            </footer>
+          </div>
+        )}
       </div>
     </div>
   );
