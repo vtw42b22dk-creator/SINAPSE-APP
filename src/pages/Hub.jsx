@@ -10,6 +10,7 @@ import * as journalStore from "../lib/journalStore";
 import * as wishlistStore from "../lib/wishlistStore";
 import * as financeStore from "../lib/financeStore";
 import * as incomeStore from "../lib/incomeStore";
+import * as projectModuleStore from "../lib/projectModuleStore";
 import { financeStats } from "../lib/financeSequences";
 import {
   loadHubOrder,
@@ -17,19 +18,6 @@ import {
   loadHidden,
   saveHidden,
 } from "../lib/navModules.jsx";
-
-var NOTES = [
-  "O que não está escrito ainda não existe.",
-  "Uma coisa de cada vez. O resto espera.",
-  "O foco não é força — é recusa.",
-  "Guarda o dia antes de o dia te guardar a ti.",
-  "Pequenos movimentos, todos os dias.",
-  "Se está na cabeça, põe-no nalgum sítio.",
-  "O silêncio também é trabalho.",
-  "Não precisas de mais horas. Precisas de menos ruído.",
-  "Começa pelo que pesa mais.",
-  "O amanhã trata-se melhor se o hoje ficar fechado.",
-];
 
 var HUB_CSS = [
   MICRO_CSS,
@@ -40,10 +28,12 @@ var HUB_CSS = [
   ".hub-scroll{height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;position:relative;background:transparent;color:" + COLORS.text + ";font-family:'Manrope',sans-serif}",
   ".hub-scroll::-webkit-scrollbar{width:5px}",
   ".hub-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}",
-  ".hub-inner{max-width:1080px;margin:0 auto;padding:48px 32px 96px;position:relative;z-index:1}",
-  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(100px);animation:hubDrift 22s ease-in-out infinite}",
-  ".hub-glow--a{width:min(480px,60vw);height:min(480px,60vw);top:-16%;right:-8%;opacity:.55}",
-  ".hub-glow--b{width:min(340px,46vw);height:min(340px,46vw);bottom:4%;left:-10%;opacity:.35;animation-delay:-8s}",
+  ".hub-inner{max-width:1080px;margin:0 auto;padding:48px 32px 96px;position:relative;overflow:visible}",
+  ".hub-glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);animation:hubDrift 22s ease-in-out infinite;z-index:0}",
+  ".hub-glow--a{width:min(420px,55vw);height:min(420px,55vw);top:-4%;right:-8%;opacity:.8}",
+  ".hub-glow--b{width:min(340px,46vw);height:min(340px,46vw);top:8%;left:-14%;opacity:.58;animation-delay:-8s}",
+  ".hub-glow--c{width:min(560px,80%);height:min(240px,32vw);top:22%;left:8%;opacity:.5;animation-delay:-14s}",
+  ".hub-top,.hub-grid,.hub-foot,.hub-set{position:relative;z-index:1}",
   ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin-bottom:48px}",
   ".hub-kicker{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;margin:0 0 14px;display:flex;align-items:center;gap:8px}",
   ".hub-live{width:6px;height:6px;border-radius:50%;background:var(--mc,#EDE8DF);flex-shrink:0;animation:hubPulse 2.2s ease-in-out infinite}",
@@ -55,10 +45,11 @@ var HUB_CSS = [
   ".hub-date{margin:12px 0 0;font-size:13px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
   ".hub-ring{margin-top:16px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.8px}",
   ".hub-ring svg{display:block}",
-  ".hub-note{max-width:42ch;margin:0 0 40px;font-size:18px;line-height:1.55;color:" + COLORS.muted + ";font-family:'Syne',sans-serif;font-weight:500;letter-spacing:-.02em;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
-  ".hub-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:120ms}",
-  ".hub-stat{padding:16px 16px 14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0}",
-  ".hub-stat:hover{border-color:color-mix(in srgb,var(--sc,#EDE8DF) 45%,transparent);background:rgba(255,255,255,.04)}",
+  ".hub-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
+  ".hub-stats.has-resale{grid-template-columns:repeat(5,minmax(0,1fr))}",
+  ".hub-stat{position:relative;padding:16px 16px 14px;border:1px solid color-mix(in srgb,var(--sc,#EDE8DF) 34%,rgba(255,255,255,.16));background:linear-gradient(165deg,color-mix(in srgb,var(--sc,#EDE8DF) 22%,rgba(255,255,255,.1)),color-mix(in srgb,var(--sc,#EDE8DF) 8%,rgba(18,18,20,.14)));text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);overflow:hidden}",
+  ".hub-stat::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 42%)}",
+  ".hub-stat:hover{border-color:color-mix(in srgb,var(--sc,#EDE8DF) 58%,transparent);background:linear-gradient(165deg,color-mix(in srgb,var(--sc,#EDE8DF) 28%,rgba(255,255,255,.12)),color-mix(in srgb,var(--sc,#EDE8DF) 10%,rgba(18,18,20,.1)))}",
   ".hub-stat b{display:block;font-family:'JetBrains Mono',monospace;font-size:clamp(22px,3vw,28px);font-weight:400;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1}",
   ".hub-stat i{display:block;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;text-transform:uppercase}",
   ".hub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:180ms}",
@@ -84,12 +75,11 @@ var HUB_CSS = [
   ".hub-foot{margin-top:48px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
-  "@media(max-width:900px){.hub-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
+  "@media(max-width:1100px){.hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
   "@media(max-width:719px){",
   ".hub-inner{padding:28px 16px max(88px,env(safe-area-inset-bottom))}",
   ".hub-hello{font-size:36px}",
-  ".hub-note{font-size:16px;margin-bottom:28px}",
-  ".hub-stats{gap:8px}",
+  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}",
   ".hub-tog{grid-template-columns:24px minmax(0,1fr);gap:12px}",
   ".hub-switch{grid-column:1 / -1;justify-self:start}",
   "}",
@@ -113,9 +103,31 @@ function getGreeting() {
   if (h < 20) return "Boa tarde";
   return "Boa noite";
 }
-function dayNote() {
-  var i = Math.floor(Date.now() / 86400000) % NOTES.length;
-  return NOTES[i];
+function resaleScore(p) {
+  var t = ((p && p.name) || "") + " " + ((p && p.description) || "");
+  t = t.toLowerCase();
+  if (/ressel|resell|ressell|resale|sapatilh|sneaker|t[eé]nis|flip|streetwear/.test(t)) return 2;
+  if (p && p.modules && p.modules.stock) return 1;
+  return 0;
+}
+function sneakerItems(data) {
+  var names = ((data && data.items) || []).map(function(i) { return i.nome || i.name || ""; }).join(" ").toLowerCase();
+  return /samba|jordan|nike|adidas|dunk|yeezy|sapatilh|air max|force|nb |new balance/.test(names);
+}
+function localStockBlobs() {
+  var out = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k || k.indexOf("project-module-v1:stock:") !== 0) continue;
+      try {
+        var data = JSON.parse(localStorage.getItem(k) || "{}");
+        var parts = k.split(":");
+        out.push({ id: parts[2], data: data });
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return out;
 }
 
 function Clock(props) {
@@ -182,10 +194,10 @@ async function loadSnapshot() {
   try { expenses = await financeStore.loadExpenses(); } catch (e) {}
   try { incomes = await incomeStore.loadIncomes(); } catch (e) {}
 
-  var openTasks = (tasks || []).filter(function(t) {
-    return t.column !== "done" && t.column !== "longdone";
+  var boardTasks = (tasks || []).filter(function(t) {
+    return t.column === "inbox" || t.column === "today";
   });
-  var dueToday = openTasks.filter(function(t) { return t.due === today; });
+  var dueToday = boardTasks.filter(function(t) { return t.due === today; });
   var wishOpen = (items || []).filter(function(i) { return !i.purchased; });
   var stats = financeStats(expenses, incomes);
   events.sort(function(a, b) {
@@ -193,14 +205,42 @@ async function loadSnapshot() {
     if (!a.allDay && b.allDay) return 1;
     return String(a.time || "").localeCompare(String(b.time || ""));
   });
+
+  var resaleId = null;
+  var resalePath = "/projects";
+  var lucro = null;
+  var ranked = (projects || []).map(function(p) {
+    return { p: p, s: resaleScore(p) };
+  }).filter(function(x) { return x.s > 0; }).sort(function(a, b) { return b.s - a.s; });
+  var blobs = localStockBlobs();
+  var stockData = null;
+  blobs.forEach(function(b) {
+    if (!stockData || sneakerItems(b.data)) stockData = b.data;
+  });
+  if (ranked.length) {
+    resaleId = ranked[0].p.id;
+    resalePath = "/projects/" + ranked[0].p.id + ((ranked[0].p.modules && ranked[0].p.modules.stock) ? "/stock" : "");
+    try {
+      var pulled = await projectModuleStore.loadStock(ranked[0].p.id);
+      if (pulled && pulled.items && pulled.items.length) stockData = pulled;
+    } catch (e) {}
+  } else if (blobs.length === 1 && (projects || []).length === 1) {
+    resaleId = projects[0].id;
+    resalePath = "/projects/" + projects[0].id;
+  }
+  if (stockData) lucro = projectModuleStore.stockStats(stockData).lucroTotal;
+
   return {
-    openTasks: openTasks.length,
+    openTasks: boardTasks.length,
     dueToday: dueToday.slice(0, 6),
     events: events.slice(0, 6),
     notes: (spaces || []).length,
     wishes: wishOpen.length,
     projects: (projects || []).length,
     saldo: stats.saldo,
+    lucro: lucro,
+    resalePath: resalePath,
+    resaleId: resaleId,
   };
 }
 
@@ -275,9 +315,10 @@ export default function Hub() {
   return (
     <div className="hub-root hub-scroll" data-scrollable>
       <style>{HUB_CSS}</style>
-      <div className="hub-glow hub-glow--a" style={{ background: moduleGlow(MODULE_COLORS.focus, "22") }} aria-hidden="true" />
-      <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.calendar, "18") }} aria-hidden="true" />
       <div className="hub-inner">
+        <div className="hub-glow hub-glow--a" style={{ background: moduleGlow(MODULE_COLORS.focus, "55") }} aria-hidden="true" />
+        <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.calendar, "48") }} aria-hidden="true" />
+        <div className="hub-glow hub-glow--c" style={{ background: moduleGlow(MODULE_COLORS.tasks, "40") }} aria-hidden="true" />
         <header className="hub-top">
           <div>
             <p className="hub-kicker"><span className="hub-live" aria-hidden="true" />{getGreeting()}</p>
@@ -358,13 +399,11 @@ export default function Hub() {
           </section>
         ) : (
           <div>
-            <p className="hub-note">{dayNote()}</p>
-
             {snap ? (
-              <div className="hub-stats">
+              <div className={"hub-stats" + (snap.lucro != null ? " has-resale" : "")}>
                 <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }} onMouseMove={trackSpotlight}>
                   <b>{snap.openTasks}</b>
-                  <i>tarefas abertas</i>
+                  <i>inbox e hoje</i>
                 </button>
                 <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
                   <b>{snap.events.length}</b>
@@ -374,6 +413,12 @@ export default function Hub() {
                   <b>{eur(snap.saldo)}</b>
                   <i>saldo vivo</i>
                 </button>
+                {snap.lucro != null ? (
+                  <button type="button" className="hub-stat" style={{ "--sc": snap.lucro >= 0 ? COLORS.positive : COLORS.negative }} onClick={function() { navigate(snap.resalePath || "/projects"); }}>
+                    <b>{eur(snap.lucro)}</b>
+                    <i>lucro resell</i>
+                  </button>
+                ) : null}
                 <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.journal }} onClick={function() { navigate("/journal"); }}>
                   <b>{snap.notes}</b>
                   <i>espaços no diário</i>

@@ -102,6 +102,7 @@ export default function AppShell(props) {
     <ShellContext.Provider value={ctx}>
       <div className={"shell" + (mini ? " is-mini" : "") + (navOpen ? " is-open" : "")}>
         <style>{SHELL_CSS}</style>
+        <div className="sh-aurora" aria-hidden="true" />
         {isMobile && !navOpen ? (
           <button type="button" className="sh-burger" onClick={function() { setNavOpen(true); }} aria-label="Abrir menu">
             <BurgerIcon />
@@ -181,11 +182,12 @@ export default function AppShell(props) {
 }
 
 var SHELL_CSS = [
-  ".shell{display:flex;height:100vh;height:100dvh;background:var(--page-bg,#0C0C0E);color:var(--page-text,#EDE8DF);overflow:hidden}",
-  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto}",
+  ".shell{display:flex;height:100vh;height:100dvh;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative}",
+  ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.28),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.22),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(255,255,255,.05),transparent 62%)}",
+  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto;z-index:1}",
   ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
-  ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:#09090B;border-right:1px solid rgba(255,255,255,.06);padding:18px 12px 14px;z-index:40}",
+  ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(10,10,12,.28);border-right:1px solid rgba(255,255,255,.1);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(36px) saturate(1.7);-webkit-backdrop-filter:blur(36px) saturate(1.7)}",
   ".sh-side.is-mini{width:76px;padding:18px 10px 14px;align-items:center}",
   ".sh-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 18px;color:inherit;text-decoration:none;min-width:0}",
   ".sh-side.is-mini .sh-brand{padding:6px 0 18px;justify-content:center}",
@@ -196,8 +198,8 @@ var SHELL_CSS = [
   ".sh-nav{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow-y:auto;padding:4px 0}",
   ".sh-link{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border:none;background:transparent;color:#8A857C;text-decoration:none;cursor:pointer;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:500;letter-spacing:-.01em;text-align:left;border-radius:8px;position:relative}",
   ".sh-link::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--nc,#EDE8DF);opacity:0}",
-  ".sh-link:hover{color:#EDE8DF;background:rgba(255,255,255,.035)}",
-  ".sh-link.is-on{color:#EDE8DF;background:rgba(255,255,255,.05)}",
+  ".sh-link:hover{color:#EDE8DF;background:rgba(255,255,255,.06)}",
+  ".sh-link.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--nc,#EDE8DF) 22%,rgba(255,255,255,.05));backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5)}",
   ".sh-link.is-on::before{opacity:1}",
   ".sh-link.is-on .sh-ic{color:var(--nc,#EDE8DF)}",
   ".sh-ic{display:flex;width:18px;height:18px;flex-shrink:0;align-items:center;justify-content:center}",
@@ -213,7 +215,7 @@ var SHELL_CSS = [
   ".sh-burger{display:none}",
   ".sh-scrim{display:none}",
   "@media(max-width:719px){",
-  ".sh-burger{display:flex;position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;z-index:80;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);background:#09090B;color:#EDE8DF;cursor:pointer}",
+  ".sh-burger{display:flex;position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;z-index:80;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);background:rgba(10,10,12,.45);color:#EDE8DF;cursor:pointer;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}",
   ".sh-scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:85}",
   ".sh-side{position:fixed;inset:0 auto 0 0;width:min(82vw,280px);transform:translateX(-105%);transition:transform 280ms cubic-bezier(.22,1,.36,1);z-index:90;padding-top:max(18px,env(safe-area-inset-top))}",
   ".sh-side.is-open{transform:none}",

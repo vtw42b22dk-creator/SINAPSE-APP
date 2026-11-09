@@ -16,7 +16,7 @@ export var GLASS_CSS = [
   "@keyframes driftA{0%,100%{transform:translate(0,0)}50%{transform:translate(2%,-3%)}}",
   "@keyframes driftB{0%,100%{transform:translate(0,0)}50%{transform:translate(-3%,2%)}}",
 
-  ".glass{position:relative;background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.014) 65%);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:var(--radius-xl)}",
+  ".glass{position:relative;background:linear-gradient(165deg,rgba(255,255,255,.1),rgba(255,255,255,.03) 65%);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-radius:var(--radius-xl)}",
   ".glass-flat{background:linear-gradient(165deg,rgba(255,255,255,.045),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.07);border-radius:var(--radius-lg)}",
   ".glass-capsule{background:rgba(12,12,15,.6);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:26px}",
 
