@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components, no-unused-vars, no-empty */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { HomeIcon, NAV_EVENT, navActive, visibleModules } from "../lib/navModules.jsx";
@@ -9,6 +9,27 @@ var COLLAPSE_KEY = "sinapse-shell-collapsed-v1";
 
 export function useShell() {
   return useContext(ShellContext);
+}
+
+function projectNavKey(nav) {
+  if (!nav) return "";
+  var mods = (nav.modules || []).map(function(m) { return m.id; }).join(".");
+  var extra = (nav.extras || []).map(function(m) { return m.id; }).join(".");
+  return [nav.projectId, nav.moduleId, nav.name, nav.addOpen ? "1" : "0", mods, extra].join("|");
+}
+
+export function useProjectNav(payload) {
+  var shell = useShell();
+  var setRef = useRef(shell && shell.setProjectNav);
+  setRef.current = shell && shell.setProjectNav;
+  useEffect(function() {
+    if (setRef.current) setRef.current(payload || null);
+  });
+  useEffect(function() {
+    return function() {
+      if (setRef.current) setRef.current(null);
+    };
+  }, []);
 }
 
 function Mark() {
@@ -55,6 +76,16 @@ export default function AppShell(props) {
   var collapsed = colS[0], setCollapsed = colS[1];
   var vwS = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
   var isMobile = vwS[0] < 720;
+  var projectNavRef = useRef(null);
+  var navTickS = useState(0);
+  var setNavTick = navTickS[1];
+
+  var setProjectNav = useCallback(function(payload) {
+    var nextKey = projectNavKey(payload);
+    var prevKey = projectNavKey(projectNavRef.current);
+    projectNavRef.current = payload || null;
+    if (nextKey !== prevKey) setNavTick(function(n) { return n + 1; });
+  }, []);
 
   useEffect(function() {
     function refresh() { setMods(visibleModules()); }
@@ -96,7 +127,9 @@ export default function AppShell(props) {
     closeNav: function() { setNavOpen(false); },
     navOpen: navOpen,
     isMobile: isMobile,
+    setProjectNav: setProjectNav,
   };
+  var projectNav = projectNavRef.current;
 
   return (
     <ShellContext.Provider value={ctx}>
@@ -137,17 +170,93 @@ export default function AppShell(props) {
 
             {mods.map(function(mod) {
               var on = navActive(mod.path, loc.pathname);
+              var openProject = mod.id === "projects" && projectNav;
               return (
-                <NavLink
-                  key={mod.id}
-                  to={mod.path}
-                  className={"sh-link" + (on ? " is-on" : "")}
-                  style={{ "--nc": mod.color }}
-                  title={mod.name}
-                >
-                  <span className="sh-ic"><mod.Icon /></span>
-                  {mini ? null : <span className="sh-lbl">{mod.name}</span>}
-                </NavLink>
+                <div key={mod.id} className={openProject ? "sh-block" : undefined}>
+                  <NavLink
+                    to={mod.path}
+                    className={"sh-link" + (openProject ? " is-parent" : on ? " is-on" : "")}
+                    style={{ "--nc": mod.color }}
+                    title={mod.name}
+                  >
+                    <span className="sh-ic"><mod.Icon /></span>
+                    {mini ? null : <span className="sh-lbl">{mod.name}</span>}
+                  </NavLink>
+                  {openProject ? (
+                    <div className="sh-sub">
+                      {mini ? null : (
+                        <p className="sh-sub-name" title={projectNav.name}>{projectNav.name}</p>
+                      )}
+                      {(projectNav.modules || []).map(function(m) {
+                        var active = projectNav.moduleId === m.id;
+                        return (
+                          <div key={m.id} className={"sh-sub-row" + (active ? " is-on" : "")}>
+                            <button
+                              type="button"
+                              className={"sh-sub-link" + (active ? " is-on" : "")}
+                              style={{ "--nc": m.color || mod.color }}
+                              title={m.label}
+                              onClick={function() {
+                                var nav = projectNavRef.current;
+                                if (nav && nav.goModule) nav.goModule(m.id);
+                              }}
+                            >
+                              <span className="sh-sub-ic" aria-hidden="true">{m.icon || "·"}</span>
+                              {mini ? null : <span className="sh-sub-lbl">{m.label}</span>}
+                            </button>
+                            {!mini && (projectNav.modules || []).length > 1 ? (
+                              <button
+                                type="button"
+                                className="sh-sub-rm"
+                                title={"Remover " + m.label}
+                                aria-label={"Remover " + m.label}
+                                onClick={function(e) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  var nav = projectNavRef.current;
+                                  if (nav && nav.disableModule) nav.disableModule(e, m.id);
+                                }}
+                              >×</button>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                      {!mini && (projectNav.extras || []).length > 0 ? (
+                        <div className="sh-sub-add">
+                          <button
+                            type="button"
+                            className={"sh-sub-link" + (projectNav.addOpen ? " is-on" : "")}
+                            title="Adicionar módulo"
+                            onClick={function() {
+                              var nav = projectNavRef.current;
+                              if (nav && nav.toggleAdd) nav.toggleAdd();
+                            }}
+                          >
+                            <span className="sh-sub-ic" aria-hidden="true">+</span>
+                            <span className="sh-sub-lbl">Adicionar</span>
+                          </button>
+                          {projectNav.addOpen ? (projectNav.extras || []).map(function(m) {
+                            return (
+                              <button
+                                key={m.id}
+                                type="button"
+                                className="sh-sub-link is-extra"
+                                title={"Adicionar " + m.label}
+                                onClick={function() {
+                                  var nav = projectNavRef.current;
+                                  if (nav && nav.enableModule) nav.enableModule(m.id);
+                                }}
+                              >
+                                <span className="sh-sub-ic" aria-hidden="true">{m.icon || "·"}</span>
+                                <span className="sh-sub-lbl">{m.label}</span>
+                              </button>
+                            );
+                          }) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
           </nav>
@@ -188,30 +297,56 @@ var SHELL_CSS = [
   ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
   ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(255,255,255,.035);border-right:1px solid rgba(255,255,255,.12);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2)}",
-  ".sh-side.is-mini{width:76px;padding:18px 10px 14px;align-items:center}",
+  ".sh-side.is-mini{width:72px;padding:18px 0 14px;align-items:center}",
   ".sh-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 18px;color:inherit;text-decoration:none;min-width:0}",
-  ".sh-side.is-mini .sh-brand{padding:6px 0 18px;justify-content:center}",
+  ".sh-side.is-mini .sh-brand{padding:6px 0 18px;justify-content:center;width:40px}",
   ".sh-mark{color:#EDE8DF;flex-shrink:0}",
   ".sh-brand-txt{display:flex;flex-direction:column;min-width:0;line-height:1.15}",
   ".sh-brand-txt strong{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.04em}",
   ".sh-brand-txt em{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.4px;color:#7A756C;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".sh-nav{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow-y:auto;padding:4px 0}",
+  ".sh-side.is-mini .sh-nav{align-items:center;width:100%;gap:4px}",
+  ".sh-block{display:flex;flex-direction:column;min-width:0}",
+  ".sh-side.is-mini .sh-block{align-items:center}",
   ".sh-link{display:flex;align-items:center;gap:12px;width:100%;padding:9px 10px;border:none;background:transparent;color:#8A857C;text-decoration:none;cursor:pointer;font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:500;letter-spacing:-.01em;text-align:left;border-radius:8px;position:relative}",
   ".sh-link::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--nc,#EDE8DF);opacity:0}",
   ".sh-link:hover{color:#EDE8DF;background:rgba(255,255,255,.06)}",
-  ".sh-link.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--nc,#EDE8DF) 22%,rgba(255,255,255,.05));backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5)}",
+  ".sh-link.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--nc,#EDE8DF) 18%,rgba(255,255,255,.04))}",
   ".sh-link.is-on::before{opacity:1}",
   ".sh-link.is-on .sh-ic{color:var(--nc,#EDE8DF)}",
+  ".sh-link.is-parent{color:#EDE8DF}",
+  ".sh-link.is-parent .sh-ic{color:var(--nc,#EDE8DF)}",
   ".sh-ic{display:flex;width:18px;height:18px;flex-shrink:0;align-items:center;justify-content:center}",
   ".sh-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-  ".sh-side.is-mini .sh-link{justify-content:center;padding:10px 0}",
+  ".sh-side.is-mini .sh-link{width:40px;height:40px;padding:0;justify-content:center;gap:0;border-radius:10px}",
+  ".sh-side.is-mini .sh-link::before{display:none}",
+  ".sh-side.is-mini .sh-link.is-on{background:color-mix(in srgb,var(--nc,#EDE8DF) 22%,rgba(255,255,255,.08))}",
+  ".sh-sub{display:flex;flex-direction:column;gap:1px;margin:4px 0 8px 18px;padding:2px 0 2px 8px;border-left:1px solid rgba(255,255,255,.1)}",
+  ".sh-sub-name{margin:0 0 4px;padding:0 8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.4px;color:#7A756C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".sh-sub-row{display:flex;align-items:center;gap:2px;min-width:0}",
+  ".sh-sub-link{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:7px 8px;border:none;background:transparent;color:#8A857C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12.5px;text-align:left;border-radius:8px}",
+  ".sh-sub-link:hover,.sh-sub-rm:hover{color:#EDE8DF;background:rgba(255,255,255,.06)}",
+  ".sh-sub-link.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--nc,#EDE8DF) 16%,rgba(255,255,255,.04))}",
+  ".sh-sub-link.is-on .sh-sub-ic{color:var(--nc,#EDE8DF)}",
+  ".sh-sub-ic{width:16px;flex-shrink:0;text-align:center;font-size:13px;line-height:1}",
+  ".sh-sub-lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+  ".sh-sub-rm{width:22px;height:22px;flex-shrink:0;border:none;border-radius:6px;background:transparent;color:#6A655E;cursor:pointer;font-size:15px;line-height:1}",
+  ".sh-sub-rm:hover{background:rgba(192,140,140,.16);color:#C08C8C}",
+  ".sh-sub-add{display:flex;flex-direction:column;gap:1px;margin-top:4px}",
+  ".sh-sub-link.is-extra{color:#6A655E;padding-left:12px}",
+  ".sh-side.is-mini .sh-sub{margin:6px 0 4px;padding:0;border:none;align-items:center;gap:4px}",
+  ".sh-side.is-mini .sh-sub-name,.sh-side.is-mini .sh-sub-lbl,.sh-side.is-mini .sh-sub-rm,.sh-side.is-mini .sh-sub-add{display:none}",
+  ".sh-side.is-mini .sh-sub-row{width:36px}",
+  ".sh-side.is-mini .sh-sub-link{width:36px;height:36px;padding:0;flex:none;justify-content:center;border-radius:9px}",
+  ".sh-side.is-mini .sh-sub-link.is-on{background:color-mix(in srgb,var(--nc,#EDE8DF) 22%,rgba(255,255,255,.08))}",
   ".sh-foot{display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}",
+  ".sh-side.is-mini .sh-foot{align-items:center;width:100%}",
   ".sh-btn{font-family:inherit}",
   ".sh-out{margin-top:4px;padding:8px 10px;border:none;background:transparent;color:#6A655E;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;text-align:left}",
   ".sh-out:hover{color:#EDE8DF}",
   ".sh-collapse{margin-top:6px;width:100%;height:28px;border:1px solid rgba(255,255,255,.08);background:transparent;color:#7A756C;cursor:pointer;font-size:16px;line-height:1}",
   ".sh-collapse:hover{color:#EDE8DF;border-color:rgba(255,255,255,.18)}",
-  ".sh-side.is-mini .sh-collapse{width:32px}",
+  ".sh-side.is-mini .sh-collapse{width:40px;height:28px}",
   ".sh-burger{display:none}",
   ".sh-scrim{display:none}",
   "@media(max-width:719px){",

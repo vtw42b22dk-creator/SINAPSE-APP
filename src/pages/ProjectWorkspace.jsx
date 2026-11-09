@@ -13,6 +13,7 @@ import { InlineName } from "../components/InlineName";
 import { useCloudSync } from "../lib/useCloudSync";
 import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { onSync } from "../lib/syncEvents";
+import { useProjectNav } from "../components/AppShell";
 
 var ACCENT = moduleColor("projects");
 
@@ -37,7 +38,7 @@ var MODULE_COLORS = {
 var SIDEBAR_CSS = [
   MODULE_GLOW_CSS,
   ".pw{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;isolation:isolate}",
-  ".pw-head{position:relative;flex-shrink:0;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;z-index:60;pointer-events:auto}",
+  ".pw-head{position:relative;flex-shrink:0;min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(10,10,12,.28);z-index:60;pointer-events:auto;backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8)}",
   ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 4px;border:none;border-bottom:1px solid currentColor;background:transparent;color:#A0A0A8;cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0}",
   ".pw-shell{flex:1;display:flex;min-height:0}",
   ".pw-side{width:clamp(212px,17vw,256px);flex-shrink:0;display:flex;flex-direction:column;padding:16px 12px;border-right:1px solid rgba(255,255,255,0.07);background:#0A0A0B;overflow-y:auto;transition:width var(--dur) var(--ease),padding var(--dur) var(--ease)}",
@@ -198,20 +199,9 @@ export default function ProjectWorkspace() {
     rememberModule(project.id, moduleId);
   }, [project, moduleId]);
 
-  if (!loaded) {
-    return (
-      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <PageLoader accent={ACCENT} label="Projeto" />
-      </div>
-    );
-  }
-
-  if (!project) {
-    return <Navigate to="/projects" replace />;
-  }
-
-  if (!moduleId || resolvedModule !== moduleId) {
-    return <Navigate to={"/projects/" + projectId + "/" + (resolvedModule || firstActiveModule(project.modules))} replace />;
+  function goModule(id) {
+    navigate("/projects/" + projectId + "/" + id);
+    if (isMobile) setSidebarOpen(false);
   }
 
   function disableModule(e, id) {
@@ -219,7 +209,7 @@ export default function ProjectWorkspace() {
       e.stopPropagation();
       e.preventDefault();
     }
-    if (!project.modules || !project.modules[id]) return;
+    if (!project || !project.modules || !project.modules[id]) return;
     var enabled = Object.keys(project.modules).filter(function(k) { return project.modules[k]; });
     if (enabled.length <= 1) return;
     var meta = synapseStore.MODULE_META.find(function(m) { return m.id === id; });
@@ -239,7 +229,7 @@ export default function ProjectWorkspace() {
   }
 
   function enableModule(id) {
-    if (!id || (project.modules && project.modules[id])) return;
+    if (!project || !id || (project.modules && project.modules[id])) return;
     var nextMods = Object.assign({}, project.modules);
     nextMods[id] = true;
     var nextProjects = projects.map(function(p) {
@@ -254,12 +244,41 @@ export default function ProjectWorkspace() {
   }
 
   function toggleAdd() {
-    if (!isMobile && navCollapsed) {
-      setNavCollapsed(false);
-      setAddOpen(true);
-      return;
-    }
     setAddOpen(function(open) { return !open; });
+  }
+
+  useProjectNav(project ? {
+    projectId: project.id,
+    name: project.name,
+    color: project.color || ACCENT,
+    moduleId: moduleId,
+    addOpen: addOpen,
+    modules: activeModules.map(function(m) {
+      return { id: m.id, label: m.label, icon: MODULE_ICONS[m.id] || "·", color: MODULE_COLORS[m.id] || ACCENT };
+    }),
+    extras: inactiveModules.map(function(m) {
+      return { id: m.id, label: m.label, icon: MODULE_ICONS[m.id] || "·", color: MODULE_COLORS[m.id] || ACCENT };
+    }),
+    goModule: goModule,
+    enableModule: enableModule,
+    disableModule: disableModule,
+    toggleAdd: toggleAdd,
+  } : null);
+
+  if (!loaded) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <PageLoader accent={ACCENT} label="Projeto" />
+      </div>
+    );
+  }
+
+  if (!project) {
+    return <Navigate to="/projects" replace />;
+  }
+
+  if (!moduleId || resolvedModule !== moduleId) {
+    return <Navigate to={"/projects/" + projectId + "/" + (resolvedModule || firstActiveModule(project.modules))} replace />;
   }
 
   function renameProject(name) {
@@ -282,28 +301,6 @@ export default function ProjectWorkspace() {
     synapseStore.saveProjects(nextProjects);
   }
 
-  function goModule(id) {
-    navigate("/projects/" + projectId + "/" + id);
-    if (isMobile) setSidebarOpen(false);
-  }
-
-  function toggleSidebar() {
-    if (isMobile) {
-      setSidebarOpen(!sidebarOpen);
-      return;
-    }
-    if (sidebarOpen && !navCollapsed) {
-      setNavCollapsed(true);
-      return;
-    }
-    if (sidebarOpen && navCollapsed) {
-      setNavCollapsed(false);
-      return;
-    }
-    setSidebarOpen(true);
-    setNavCollapsed(false);
-  }
-
   function renderModule() {
     if (moduleId === "documents") {
       return <Synapse projectId={projectId} embedded />;
@@ -318,9 +315,6 @@ export default function ProjectWorkspace() {
 
   var isFullBleed = moduleId === "documents";
   var pColor = project.color || ACCENT;
-  var sidebarClass = "pw-side";
-  if (!sidebarOpen) sidebarClass += " pw-side--closed";
-  else if (navCollapsed && !isMobile) sidebarClass += " pw-side--mini";
 
   return (
     <div className="pw" style={{ "--mc": pColor }}>
@@ -328,18 +322,27 @@ export default function ProjectWorkspace() {
       <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(pColor), pointerEvents: "none" }} aria-hidden="true" />
 
       <header className="pw-head">
-        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
           <button type="button" className="pw-hbtn" onClick={function() { navigate("/projects"); }} title="Projetos">←</button>
-          <button type="button" className="pw-hbtn" onClick={toggleSidebar} title="Menu de módulos">
-            {!isMobile && sidebarOpen && navCollapsed ? "▸" : !isMobile && sidebarOpen ? "◂" : "☰"}
-          </button>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1, marginLeft: 8 }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
+          <div style={{ display: "flex", flexDirection: "column", minWidth: 0, flex: 1, marginLeft: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: pColor, flexShrink: 0 }} />
+              <InlineName
+                tag="h1"
+                value={project.name}
+                onSave={renameProject}
+                style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor, flex: 1 }}
+              />
+            </div>
             <InlineName
-              tag="h1"
-              value={project.name}
-              onSave={renameProject}
-              style={{ margin: 0, fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, letterSpacing: ".2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: pColor, flex: 1 }}
+              tag="p"
+              multiline
+              allowEmpty
+              placeholder="Adicionar descrição"
+              title="Duplo clique para editar a descrição"
+              value={project.description || ""}
+              onSave={renameDescription}
+              style={{ margin: "4px 0 0 18px", fontSize: 11, color: "#6E6E76", lineHeight: 1.4, maxWidth: "52ch" }}
             />
           </div>
         </div>
@@ -347,63 +350,6 @@ export default function ProjectWorkspace() {
       </header>
 
       <div className="pw-shell">
-        {sidebarOpen && isMobile && <div className="pw-bk" onClick={function() { setSidebarOpen(false); }} />}
-        <aside className={sidebarClass} data-stagger aria-hidden={!sidebarOpen ? "true" : undefined}>
-          <div className="pw-pcard">
-            <div className="pw-pic" style={{ background: pColor + "14", color: pColor }}>✦</div>
-            <div style={{ minWidth: 0 }}>
-              <InlineName tag="p" className="pw-pname" value={project.name} onSave={renameProject} />
-              <p className="pw-pcard-meta">{activeModules.length} módulos</p>
-            </div>
-          </div>
-          <p className="pw-sec">MÓDULOS</p>
-          {activeModules.map(function(m) {
-            var active = moduleId === m.id;
-            var lc = MODULE_COLORS[m.id] || ACCENT;
-            return (
-              <div key={m.id} className={"pw-link" + (active ? " on" : "")} style={{ "--lc": lc }}>
-                <button type="button" className="pw-go" onClick={function() { goModule(m.id); }} title={m.label}>
-                  <span className="pw-lic" style={active ? { background: lc + "1a", color: lc } : { color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
-                  <span className="pw-lbl">{m.label}</span>
-                </button>
-                {activeModules.length > 1 ? (
-                  <button type="button" className="pw-rm" title={"Remover " + m.label} aria-label={"Remover " + m.label}
-                    onClick={function(e) { disableModule(e, m.id); }}>×</button>
-                ) : null}
-              </div>
-            );
-          })}
-          {inactiveModules.length > 0 && (
-            <div className="pw-add">
-              <button type="button" className={"pw-add-btn" + (addOpen ? " on" : "")} onClick={toggleAdd} title="Adicionar módulo">
-                <span className="pw-lic" style={{ color: "#6E6E76" }}>+</span>
-                <span className="pw-add-lbl">Adicionar</span>
-              </button>
-              {addOpen && (
-                <div className="pw-add-list">
-                  {inactiveModules.map(function(m) {
-                    return (
-                      <button type="button" key={m.id} className="pw-link" onClick={function() { enableModule(m.id); }} title={"Adicionar " + m.label}>
-                        <span className="pw-lic" style={{ color: "#6E6E76" }}>{MODULE_ICONS[m.id] || "·"}</span>
-                        <span className="pw-lbl">{m.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-          <InlineName
-            tag="p"
-            className="pw-foot"
-            multiline
-            allowEmpty
-            placeholder="Adicionar descrição"
-            title="Duplo clique para editar a descrição"
-            value={project.description || ""}
-            onSave={renameDescription}
-          />
-        </aside>
         <main className="pw-main">
           <div className="pw-main-in" style={isFullBleed ? { padding: 0, overflow: "hidden" } : null}>
             {renderModule()}
