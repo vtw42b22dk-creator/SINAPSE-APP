@@ -120,7 +120,7 @@ export default function Vinted() {
               disabled={ponte.busy || ponte.aCorrer}
               onClick={function() { ponte.pedir("atualizar"); }}
             >
-              {ponte.aCorrer ? "A actualizar…" : "Actualizar"}
+              {ponte.aCorrer ? (ponte.ligado ? "A ler a Vinted…" : "À espera do PC…") : "Actualizar"}
             </button>
           </div>
         </header>
@@ -253,7 +253,20 @@ function Mensagens(props) {
 
       {sub === "vendedor" ? (
         <Card titulo="Modo vendedor" lead={msgs.vivo ? "A correr agora" : "Parado"}>
-          <Switch nome="Envio automático" detalhe={(msgs.contador || 0) + " enviadas · " + ((msgs.fila || []).length) + " à espera"} ligado={msgs.auto} disabled={ponte.busy} onClick={function() { ponte.pedir("auto-envio", { ligado: !msgs.auto }); }} />
+          <Switch
+            nome="Modo vendedor"
+            detalhe={msgs.vendedor ? "A página de notificações monitoriza favoritos." : "Parado — não envia a quem põe favorito."}
+            ligado={Boolean(msgs.vendedor)}
+            disabled={ponte.busy}
+            onClick={function() { ponte.pedir("modo-vendedor", { ligado: !msgs.vendedor }); }}
+          />
+          <Switch
+            nome="Envio automático"
+            detalhe={(msgs.contador || 0) + " enviadas · " + ((msgs.fila || []).length) + " à espera"}
+            ligado={Boolean(msgs.auto)}
+            disabled={ponte.busy || !msgs.vendedor}
+            onClick={function() { ponte.pedir("auto-envio", { ligado: !msgs.auto }); }}
+          />
           <label className="vin-kicker" htmlFor="vin-msg" style={{ marginTop: 16, display: "block" }}>Mensagem automática</label>
           <textarea id="vin-msg" className="vin-field" rows={4} value={msg} onChange={function(e) { setMsg(e.target.value); }} placeholder="Vazia: vai a mensagem padrão." />
           <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
