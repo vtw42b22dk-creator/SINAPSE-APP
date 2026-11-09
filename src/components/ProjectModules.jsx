@@ -12,7 +12,7 @@ var MC = {
 
 var MODULE_CSS = [
   "@keyframes pmFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
-  ".pm-root{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".pm-root{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;color:#EDEDEF;font-family:'Manrope',sans-serif}",
   ".pm-wrap{max-width:940px;margin:0 auto;padding:26px 30px 64px;animation:pmFade .35s ease}",
   ".pm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}",
   ".pm-head-t{display:flex;align-items:center;gap:14px;min-width:0}",

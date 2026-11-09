@@ -37,7 +37,7 @@ var FX_CSS = [
   "@keyframes fxIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}",
 
   /* ---------- shell & ambient field ---------- */
-  ".fs-root{height:100vh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;position:relative}",
+  ".fs-root{height:100vh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'Manrope',sans-serif;position:relative}",
   ".fs-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}",
   ".fs-orb{position:absolute;border-radius:50%;filter:blur(90px)}",
   ".fs-orb--a{width:52vw;height:52vw;max-width:560px;max-height:560px;top:-18%;left:-14%;animation:haloBreatheSlow 9s var(--ease) infinite,driftA 24s ease-in-out infinite}",

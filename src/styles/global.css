@@ -809,6 +809,25 @@ textarea::placeholder {
 .fs-root,
 .tk-page,
 .wl-page,
+.nt-root,
+.mod-main {
+  font-family: "Manrope", system-ui, sans-serif !important;
+}
+
+#root h1,
+#root h2,
+#root h3,
+#root .mod-h1 {
+  font-family: "Syne", sans-serif !important;
+  letter-spacing: -0.04em;
+}
+
+.ch-root,
+.pj-page,
+.pw,
+.fs-root,
+.tk-page,
+.wl-page,
 .nt-root {
   background: color-mix(in srgb, var(--page-bg) 22%, transparent) !important;
 }

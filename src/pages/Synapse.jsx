@@ -216,7 +216,7 @@ function TBtn(props) {
   return (
     <button onClick={props.onClick} title={props.title}
       onMouseEnter={function(){setHov(true);}} onMouseLeave={function(){setHov(false);}}
-      style={{width:sz,height:sz,borderRadius:props.small?10:12,border:"1px solid "+(props.active||hov?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:props.active?"#1A1A1D":hov?"#1A1A1D":"#141416",color:props.active||hov?"#EDEDEF":"#6E6E76",fontSize:props.small?13:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s",flexShrink:0,fontFamily:"'IBM Plex Sans',sans-serif"}}>
+      style={{width:sz,height:sz,borderRadius:props.small?10:12,border:"1px solid "+(props.active||hov?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:props.active?"#1A1A1D":hov?"#1A1A1D":"#141416",color:props.active||hov?"#EDEDEF":"#6E6E76",fontSize:props.small?13:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s",flexShrink:0,fontFamily:"'Manrope',sans-serif"}}>
       {props.children}
     </button>
   );
@@ -256,7 +256,7 @@ function CtxMenu(props) {
               background:it.hl?"#1A1A1D":"transparent",
               border:it.hl?"1px solid rgba(255,255,255,0.07)":"1px solid transparent",
               borderRadius:12,color:it.danger?"#C08C8C":it.hl?"#EDEDEF":"#A0A0A8",
-              fontSize:props.mobile?15:13,fontFamily:"'IBM Plex Sans',sans-serif",fontWeight:it.hl?500:400,textAlign:"left",cursor:"pointer",transition:"all 0.15s"}}
+              fontSize:props.mobile?15:13,fontFamily:"'Manrope',sans-serif",fontWeight:it.hl?500:400,textAlign:"left",cursor:"pointer",transition:"all 0.15s"}}
             onMouseEnter={function(e){if(!it.hl)e.currentTarget.style.background="#1A1A1D";}}
             onMouseLeave={function(e){e.currentTarget.style.background=it.hl?"#1A1A1D":"transparent";}}>
             <span style={{fontSize:15,width:22,textAlign:"center"}}>{it.icon}</span>
@@ -288,7 +288,7 @@ function SearchBar(props) {
         <div style={{display:"flex",alignItems:"center",padding:"16px 20px",gap:12,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
           <span style={{fontSize:16,color:"#6E6E76"}}>&#128269;</span>
           <input ref={ref} value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Procurar sinapses..."
-            style={{flex:1,background:"none",border:"none",color:"#EDEDEF",fontSize:15,fontFamily:"'IBM Plex Sans',sans-serif",outline:"none"}}/>
+            style={{flex:1,background:"none",border:"none",color:"#EDEDEF",fontSize:15,fontFamily:"'Manrope',sans-serif",outline:"none"}}/>
           <button onClick={props.onClose} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,color:"#6E6E76",fontSize:10,padding:"4px 8px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>ESC</button>
         </div>
         {results.length > 0 && (
@@ -302,7 +302,7 @@ function SearchBar(props) {
                   <div style={{width:8,height:8,borderRadius:"50%",background:n.color,opacity:0.7,flexShrink:0}}/>
                   <div style={{minWidth:0,flex:1}}>
                     <p style={{fontSize:13,color:"#EDEDEF",fontFamily:"'JetBrains Mono',monospace",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.label||"Sem nome"}</p>
-                    {n.notes && n.notes.length > 0 && <p style={{fontSize:11,color:"#6E6E76",marginTop:2,fontFamily:"'IBM Plex Sans',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.notes.slice(0,60)}</p>}
+                    {n.notes && n.notes.length > 0 && <p style={{fontSize:11,color:"#6E6E76",marginTop:2,fontFamily:"'Manrope',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.notes.slice(0,60)}</p>}
                   </div>
                   <span style={{marginLeft:"auto",fontSize:10,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{n.isChild?"filho":"raiz"}</span>
                 </button>
@@ -312,7 +312,7 @@ function SearchBar(props) {
         )}
         {q.length > 0 && results.length === 0 && (
           <div style={{padding:"24px 20px",textAlign:"center"}}>
-            <p style={{fontSize:12,color:"#6E6E76",fontFamily:"'IBM Plex Sans',sans-serif",margin:0}}>Nenhuma sinapse encontrada</p>
+            <p style={{fontSize:12,color:"#6E6E76",fontFamily:"'Manrope',sans-serif",margin:0}}>Nenhuma sinapse encontrada</p>
           </div>
         )}
       </div>
@@ -496,7 +496,7 @@ function DocPanel(props) {
   var nodeTasks = tasks.filter(function(t){return t.synapse_node_id===node.id;});
 
   function actionButton(label, icon, onClick, strong) {
-    return <button onClick={onClick} style={{border:"1px solid "+(strong?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:strong?"#1A1A1D":"#141416",color:strong?"#EDEDEF":"#A0A0A8",borderRadius:12,padding:"10px 12px",fontSize:12,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}><span>{icon}</span>{label}</button>;
+    return <button onClick={onClick} style={{border:"1px solid "+(strong?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:strong?"#1A1A1D":"#141416",color:strong?"#EDEDEF":"#A0A0A8",borderRadius:12,padding:"10px 12px",fontSize:12,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}><span>{icon}</span>{label}</button>;
   }
   function tabBtn(key, icon, label, count) {
     var active = tab === key;
@@ -570,7 +570,7 @@ function DocPanel(props) {
             <button onClick={props.onClose} style={{width:38,height:38,borderRadius:13,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",color:"#A0A0A8",fontSize:16,cursor:"pointer",flexShrink:0}}>&#10005;</button>
           </div>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.2fr repeat(3,0.45fr)",gap:10,marginTop:18}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)"}}><span style={{color:"#6E6E76"}}>&#128269;</span><input value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Filtrar ficheiros e links..." style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#EDEDEF",fontSize:isMobile?16:13,fontFamily:"'IBM Plex Sans',sans-serif"}}/></div>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)"}}><span style={{color:"#6E6E76"}}>&#128269;</span><input value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Filtrar ficheiros e links..." style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#EDEDEF",fontSize:isMobile?16:13,fontFamily:"'Manrope',sans-serif"}}/></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>FICHEIROS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{files.length}</strong></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>LINKS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{links.length}</strong></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#C4A57C",fontFamily:"'JetBrains Mono',monospace"}}>FAVORITOS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{pinned.length}</strong></div>
@@ -599,7 +599,7 @@ function DocPanel(props) {
               </div>
               <div style={{borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
                 <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 10px"}}>NOTA RÁPIDA</p>
-                <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Ideias, contexto, próximos passos..." style={{width:"100%",minHeight:isMobile?280:(isTablet?300:230),background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,color:"#EDEDEF",fontSize:isMobile?16:14.5,lineHeight:1.85,padding:14,resize:"vertical",outline:"none",fontFamily:"'IBM Plex Sans',sans-serif",boxSizing:"border-box"}}/>
+                <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Ideias, contexto, próximos passos..." style={{width:"100%",minHeight:isMobile?280:(isTablet?300:230),background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,color:"#EDEDEF",fontSize:isMobile?16:14.5,lineHeight:1.85,padding:14,resize:"vertical",outline:"none",fontFamily:"'Manrope',sans-serif",boxSizing:"border-box"}}/>
               </div>
               <div style={{gridColumn:isMobile?"auto":"1 / -1",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
                 <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#C4A57C",letterSpacing:1.2,margin:"0 0 12px"}}>FAVORITOS</p>
@@ -679,7 +679,7 @@ function DocPanel(props) {
           )}
           {tab==="notes" && (
             <div>
-              <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Escreve livremente..." style={{width:"100%",minHeight:isMobile?520:(isTablet?560:440),background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:20,color:"#EDEDEF",fontSize:isMobile?16:15,fontFamily:"'IBM Plex Sans',sans-serif",lineHeight:1.9,padding:isMobile?16:20,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
+              <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Escreve livremente..." style={{width:"100%",minHeight:isMobile?520:(isTablet?560:440),background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:20,color:"#EDEDEF",fontSize:isMobile?16:15,fontFamily:"'Manrope',sans-serif",lineHeight:1.9,padding:isMobile?16:20,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
               <div style={{display:"flex",gap:8,alignItems:"center",marginTop:10,flexWrap:isMobile?"wrap":"nowrap"}}>
                 <p style={{fontSize:10,color:"#6E6E76",margin:0,fontFamily:"'JetBrains Mono',monospace",flex:1}}>{notes.length} caracteres · auto-guardado</p>
                 <select value={journalSpaceId} onChange={function(e){setJournalSpaceId(e.target.value);}} style={{minWidth:isMobile?"100%":170,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#EDEDEF",fontSize:12,padding:"9px 10px",outline:"none"}}>
@@ -1202,7 +1202,7 @@ export default function Synapse(props) {
     }
     if (embedded) return null;
     return (
-    <div data-scrollable style={{minHeight:"100vh",background:"#0A0A0B",color:"#EDEDEF",fontFamily:"'IBM Plex Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",padding:isMob?16:24,overflow:"auto"}}>
+    <div data-scrollable style={{minHeight:"100vh",background:"#0A0A0B",color:"#EDEDEF",fontFamily:"'Manrope',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",padding:isMob?16:24,overflow:"auto"}}>
       <div style={{width:"min(920px,94vw)"}}>
         <style>{HUB_BACK_CSS}</style>
         <div style={{ marginBottom: 22 }}><HubBack /></div>
@@ -1234,7 +1234,7 @@ export default function Synapse(props) {
   var canvasH = "100%";
 
   return (
-    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>
+    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'Manrope',sans-serif",touchAction:"none",userSelect:"none"}}>
       <style>{"*{margin:0;padding:0;box-sizing:border-box}@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}body{overflow:hidden}"}</style>
 
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}}/>
@@ -1244,7 +1244,7 @@ export default function Synapse(props) {
         <div style={{display:"flex",alignItems:"center",gap:isMob?10:14}}>
           <style>{HUB_BACK_CSS}</style>
           <HubBack />
-          <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'IBM Plex Sans',sans-serif",cursor:"pointer"}}>{isMob ? "Projetos" : "\u2190"}</button>
+          <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'Manrope',sans-serif",cursor:"pointer"}}>{isMob ? "Projetos" : "\u2190"}</button>
           <h1 style={{fontSize:isMob?12:15,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:"#EDEDEF",letterSpacing:1,maxWidth:isMob?110:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
         )}
@@ -1294,7 +1294,7 @@ export default function Synapse(props) {
             <span style={{fontSize:28,color:"#6E6E76"}}>{"\u2726"}</span>
           </div>
           <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:isMob?13:15,color:"#A0A0A8",marginBottom:10}}>{touchUI?"Toca no + para começar":"Clica direito para começar"}</p>
-          <p style={{fontFamily:"'IBM Plex Sans',sans-serif",fontSize:11.5,color:"#6E6E76",lineHeight:2,whiteSpace:"pre-line"}}>{touchUI?"Toca num nó → menu em baixo\n+ no canto → nova sinapse":"Botão direito → criar · Clique → ficheiros\nDuplo clique → colapsar · Scroll → zoom · Cmd+K → procurar"}</p>
+          <p style={{fontFamily:"'Manrope',sans-serif",fontSize:11.5,color:"#6E6E76",lineHeight:2,whiteSpace:"pre-line"}}>{touchUI?"Toca num nó → menu em baixo\n+ no canto → nova sinapse":"Botão direito → criar · Clique → ficheiros\nDuplo clique → colapsar · Scroll → zoom · Cmd+K → procurar"}</p>
         </div>
       )}
 

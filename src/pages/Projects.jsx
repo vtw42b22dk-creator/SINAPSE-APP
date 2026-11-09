@@ -43,7 +43,7 @@ function savePins(arr) {
 var PROJ_CSS = [
   MODULE_GLOW_CSS,
   "@keyframes pjFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;background:#0A0A0B;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif}",
+  ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;background:#0A0A0B;color:#EDEDEF;font-family:'Manrope',sans-serif}",
   ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;pointer-events:auto}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
   ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--mc);letter-spacing:1.6px}",

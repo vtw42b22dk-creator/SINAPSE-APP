@@ -13,7 +13,7 @@ import { GLASS_CSS } from "../lib/glassUi";
 
 var ACCENT = moduleColor("journal");
 var COLORS = PALETTE;
-var JOURNAL_FONT = "'JetBrains Mono', monospace";
+var JOURNAL_FONT = "'Manrope', sans-serif";
 var JOURNAL_LETTER_SPACING = "0.04em";
 var JOURNAL_LINE_HEIGHT = 1.75;
 var JOURNAL_TEXT = {
@@ -47,20 +47,27 @@ var JR_CSS = [
   ".nt-chip-x:hover{color:#C08C8C}",
   ".nt-chip-add{border-style:dashed}",
   ".nt-split{flex:1;min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr)}",
-  ".nt-list{min-height:0;overflow-y:auto;padding:10px 10px 24px;border-right:1px solid rgba(255,255,255,.07)}",
+  ".nt-list{min-height:0;overflow-y:auto;padding:10px 10px 24px;border-right:1px solid rgba(255,255,255,.07);user-select:none;-webkit-user-select:none}",
   ".nt-empty{margin:28px 12px;font-size:13px;line-height:1.55;color:#7A756C}",
   ".nt-row{display:flex;align-items:flex-start;gap:6px;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}",
   ".nt-row.is-on{background:color-mix(in srgb,var(--nc,#EDE8DF) 12%,rgba(255,255,255,.04))}",
   ".nt-row:hover{background:rgba(255,255,255,.04)}",
-  ".nt-note{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;padding:2px 0;border:none;background:transparent;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
+  ".nt-note{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;padding:2px 0;border:none;background:transparent;color:inherit;text-align:left;cursor:pointer;font-family:inherit;-webkit-touch-callout:none}",
   ".nt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}",
   ".nt-note-body{min-width:0;flex:1}",
   ".nt-note-t{display:block;font-size:14px;font-weight:600;letter-spacing:-.02em;color:#EDE8DF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
   ".nt-note-s{margin-top:3px;font-size:12px;line-height:1.4;color:#7A756C;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
   ".nt-drag{cursor:grab;color:#5A5A62;font-size:12px;line-height:1;user-select:none;flex-shrink:0;margin-top:5px}",
-  ".nt-note-x{width:26px;height:26px;flex-shrink:0;border:none;background:transparent;color:#6A655E;cursor:pointer;opacity:0;font-size:16px}",
-  ".nt-row:hover .nt-note-x,.nt-note-x:focus{opacity:1}",
-  ".nt-note-x:hover{color:#C08C8C}",
+  ".nt-note-x{display:none}",
+  ".nt-menu-bg{position:fixed;inset:0;z-index:90}",
+  ".nt-menu{position:fixed;z-index:91;min-width:214px;max-width:min(280px,calc(100vw - 16px));padding:8px;background:rgba(14,14,16,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(28px) saturate(1.7);-webkit-backdrop-filter:blur(28px) saturate(1.7)}",
+  ".nt-menu p{margin:0 0 4px;padding:6px 10px 4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#7A756C}",
+  ".nt-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;color:#EDE8DF;cursor:pointer;font-family:'Manrope',sans-serif;font-size:14px}",
+  ".nt-menu button:hover,.nt-menu button.is-on{background:rgba(255,255,255,.06)}",
+  ".nt-menu button.is-on{color:var(--mc)}",
+  ".nt-menu button.is-danger{color:#C08C8C}",
+  ".nt-menu-sep{height:1px;margin:6px 8px;background:rgba(255,255,255,.08)}",
+  ".nt-rename{width:100%;background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--nc,#EDE8DF) 55%,transparent);color:#EDE8DF;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;padding:4px 0;outline:none;user-select:text;-webkit-user-select:text}",
   ".nt-editor{min-width:0;min-height:0;overflow-y:auto;padding:28px 36px 80px}",
   ".nt-ed-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}",
   ".nt-ed-head h2{margin:0;font-family:'Syne',sans-serif;font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-.045em;line-height:1.1;overflow-wrap:anywhere}",
@@ -197,7 +204,7 @@ var JR_CSS = [
   ".nt-split{grid-template-columns:1fr}",
   ".nt-list{border-right:none;padding:8px 8px 88px}",
   ".nt-editor{padding:18px 16px 80px}",
-  ".nt-note-x{opacity:1}",
+  ".nt-note-x{display:none}",
   ".nt-note-s{-webkit-line-clamp:1}",
   ".gn-field{height:min(640px,70vh)}",
   ".gn-orb--a{width:70vw;height:70vw;max-width:none;max-height:none}",
@@ -216,7 +223,7 @@ var JR_CSS = [
   ".gn-chevron svg{width:16px;height:16px}",
   ".gn-count{padding:3px 9px;font-size:11px}",
   ".gn-x{opacity:1!important;width:36px!important;height:36px!important;font-size:18px!important}",
-  ".gn-catbtn{display:flex}",
+  ".gn-catbtn{display:none}",
   ".gn-catmenu button{min-height:46px;font-size:14px}",
   ".gn-newnote{gap:10px;margin-top:16px;position:sticky;bottom:0;padding-bottom:max(8px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(9,9,10,.92) 30%)}",
   ".gn-newnote-btn{width:48px;height:48px;font-size:20px}",
@@ -282,7 +289,7 @@ function handleJournalCopy(e) {
   if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
   var text = sel.toString();
   var html =
-    '<span style="font-family:JetBrains Mono,monospace;color:#FFFFFF;letter-spacing:0.04em;line-height:1.75;">' +
+    '<span style="font-family:Manrope,sans-serif;color:#FFFFFF;letter-spacing:-0.01em;line-height:1.6;">' +
     escapeHtml(text).replace(/\n/g, "<br/>") +
     "</span>";
   e.clipboardData.setData("text/plain", text);
@@ -385,6 +392,15 @@ export default function Journal() {
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
   var catPickS = useState(null);
   var catPick = catPickS[0], setCatPick = catPickS[1];
+  var menuS = useState(null);
+  var menu = menuS[0], setMenu = menuS[1];
+  var renameIdS = useState(null);
+  var renameId = renameIdS[0], setRenameId = renameIdS[1];
+  var renameValS = useState("");
+  var renameVal = renameValS[0], setRenameVal = renameValS[1];
+  var skipClickRef = useRef(false);
+  var pressTimerRef = useRef(0);
+  var pressPosRef = useRef(null);
   var catFormS = useState(null);
   var catForm = catFormS[0], setCatForm = catFormS[1];
   var queryS = useState("");
@@ -760,6 +776,39 @@ export default function Journal() {
     if (catFilter && catFilter !== "all" && catFilter !== "none") assignNoteToBlock(s.id, catFilter);
   }
 
+  function renameSpace(space, name) {
+    var nextName = (name || "").trim();
+    if (!space || !nextName || nextName === space.title) return;
+    var next = spaces.map(function(s) {
+      return s.id === space.id ? Object.assign({}, s, { title: nextName, updated: Date.now() }) : s;
+    });
+    spacesRef.current = next;
+    setSpaces(next);
+    persistSpaces(next);
+  }
+
+  function closeNoteMenu() {
+    setMenu(null);
+  }
+
+  function openNoteMenu(space, x, y) {
+    if (!space) return;
+    var mw = 228;
+    var mh = 72 + ((noteBlocks.blocks || []).length + 1) * 40;
+    var pad = 10;
+    var left = Math.max(pad, Math.min(x, window.innerWidth - mw - pad));
+    var top = Math.max(pad, Math.min(y, window.innerHeight - Math.min(mh, window.innerHeight - pad * 2) - pad));
+    setMenu({ id: space.id, x: left, y: top });
+  }
+
+  function clearPressTimer() {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = 0;
+    }
+    pressPosRef.current = null;
+  }
+
   async function removeSpace(space) {
     if (!space) return;
     if (!window.confirm("Eliminar a nota \"" + space.title + "\" e todo o seu conteúdo?")) return;
@@ -911,51 +960,85 @@ export default function Journal() {
 
   function renderNoteItem(s) {
     var on = active === s.id;
-    var currentCat = noteBlocks.assign[s.id];
-    var picking = catPick === s.id;
     var snippet = noteSnippet(s.id, blocks);
+    var renaming = renameId === s.id;
     return (
-      <div key={s.id}>
-        <div className={"nt-row" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} style={{ "--nc": s.color }}>
-          {!isMobile ? (
-            <span
-              className="nt-drag"
-              title="Arrastar para uma categoria"
-              draggable
-              onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
-              onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
-            >⠿</span>
-          ) : null}
-          <button type="button" className="nt-note" onClick={function() { openNote(s.id); }}>
+      <div key={s.id} className={"nt-row" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} style={{ "--nc": s.color }}>
+        {renaming ? (
+          <div className="nt-note">
+            <span className="nt-dot" style={{ background: s.color }} />
+            <input
+              className="nt-rename"
+              autoFocus
+              value={renameVal}
+              onChange={function(e) { setRenameVal(e.target.value); }}
+              onBlur={function() {
+                renameSpace(s, renameVal);
+                setRenameId(null);
+              }}
+              onKeyDown={function(e) {
+                if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); }
+                if (e.key === "Escape") { e.preventDefault(); setRenameId(null); }
+              }}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="nt-note"
+            onClick={function() {
+              if (skipClickRef.current) { skipClickRef.current = false; return; }
+              openNote(s.id);
+            }}
+            onContextMenu={function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              skipClickRef.current = true;
+              openNoteMenu(s, e.clientX, e.clientY);
+            }}
+            onPointerDown={function(e) {
+              if (e.pointerType === "mouse" && e.button !== 0) return;
+              pressPosRef.current = { x: e.clientX, y: e.clientY };
+              clearPressTimer();
+              pressTimerRef.current = setTimeout(function() {
+                skipClickRef.current = true;
+                var pos = pressPosRef.current || { x: 24, y: 24 };
+                openNoteMenu(s, pos.x, pos.y);
+                pressTimerRef.current = 0;
+              }, 480);
+            }}
+            onPointerMove={function(e) {
+              var start = pressPosRef.current;
+              if (!start) return;
+              var dx = e.clientX - start.x;
+              var dy = e.clientY - start.y;
+              if ((dx * dx + dy * dy) > 64) clearPressTimer();
+            }}
+            onPointerUp={clearPressTimer}
+            onPointerCancel={clearPressTimer}
+          >
             <span className="nt-dot" style={{ background: s.color }} />
             <span className="nt-note-body">
               <span className="nt-note-t">{s.title}</span>
               {snippet ? <span className="nt-note-s">{snippet}</span> : null}
             </span>
           </button>
-          {isMobile && noteBlocks.blocks.length ? (
-            <button type="button" className={"gn-catbtn" + (picking || currentCat ? " is-on" : "")} aria-label="Categoria"
-              onClick={function(e) { e.stopPropagation(); setCatPick(picking ? null : s.id); }}>
-              <IconFolder />
-            </button>
-          ) : null}
-          <button type="button" className="nt-note-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" aria-label="Eliminar nota">×</button>
-        </div>
-        {picking ? (
-          <div className="gn-catmenu">
-            <p>Categoria</p>
-            <button type="button" className={!currentCat ? "is-on" : ""} onClick={function() { assignNoteToBlock(s.id, null); setCatPick(null); }}>Sem categoria</button>
-            {noteBlocks.blocks.map(function(blk) {
-              return (
-                <button key={blk.id} type="button" className={currentCat === blk.id ? "is-on" : ""}
-                  onClick={function() { assignNoteToBlock(s.id, blk.id); setCatPick(null); }}>{blk.name}</button>
-              );
-            })}
-          </div>
-        ) : null}
+        )}
       </div>
     );
   }
+
+  useEffect(function() {
+    if (!menu) return;
+    function onKey(e) { if (e.key === "Escape") closeNoteMenu(); }
+    function onScroll() { closeNoteMenu(); }
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    return function() {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [menu]);
 
   function format(cmd, value) {
     document.execCommand(cmd, false, value || null);
@@ -1120,6 +1203,32 @@ export default function Journal() {
           </div>
         </div>
       )}
+
+      {menu ? (function() {
+        var space = spaces.find(function(s) { return s.id === menu.id; });
+        if (!space) return null;
+        var currentCat = noteBlocks.assign[space.id];
+        return (
+          <div
+            className="nt-menu-bg"
+            onClick={closeNoteMenu}
+            onContextMenu={function(e) { e.preventDefault(); closeNoteMenu(); }}
+          >
+            <div className="nt-menu" style={{ left: menu.x, top: menu.y }} onClick={function(e) { e.stopPropagation(); }}>
+              <p>Categoria</p>
+              <button type="button" className={!currentCat ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, null); closeNoteMenu(); }}>Sem categoria</button>
+              {noteBlocks.blocks.map(function(blk) {
+                return (
+                  <button key={blk.id} type="button" className={currentCat === blk.id ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, blk.id); closeNoteMenu(); }}>{blk.name}</button>
+                );
+              })}
+              <div className="nt-menu-sep" />
+              <button type="button" onClick={function() { setRenameVal(space.title || ""); setRenameId(space.id); closeNoteMenu(); }}>Mudar nome</button>
+              <button type="button" className="is-danger" onClick={function() { closeNoteMenu(); removeSpace(space); }}>Eliminar</button>
+            </div>
+          </div>
+        );
+      })() : null}
     </div>
   );
 }

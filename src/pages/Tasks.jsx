@@ -34,7 +34,7 @@ var TASKS_CSS = [
   MICRO_CSS,
   MODULE_GLOW_CSS,
   "@keyframes taskIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
-  ".tk-page{min-height:100vh;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;position:relative;overflow-x:hidden}",
+  ".tk-page{min-height:100vh;background:#070708;color:#EDEDEF;font-family:'Manrope',sans-serif;position:relative;overflow-x:hidden}",
   ".tk-head{position:sticky;top:0;z-index:20;padding:14px 20px;background:rgba(7,7,8,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}",
   ".tk-head-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}",
   ".tk-head-inner--mob{flex-direction:column;align-items:stretch;padding:12px}",
@@ -133,7 +133,7 @@ var TASKS_CSS = [
   ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
   ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:#0C0C0E;border-top:1px solid color-mix(in srgb,var(--mc) 40%,transparent);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
   ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
-  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'IBM Plex Sans',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'Manrope',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
   ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
   ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
   ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
@@ -898,7 +898,7 @@ export default function Tasks() {
                         Apagar tudo
                       </button>
                     ) : null}
-                    {!isMobile ? <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'IBM Plex Sans',sans-serif" }}>{col.hint}</span> : null}
+                    {!isMobile ? <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>{col.hint}</span> : null}
                   </div>
                 </div>
                 <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 80 }}>

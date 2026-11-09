@@ -126,7 +126,7 @@ export default function Finance() {
   var saldo = stats.saldo;
 
   return (
-    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'IBM Plex Sans',sans-serif", position: "relative", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'Manrope',sans-serif", position: "relative", overflowX: "hidden" }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + FIN_CSS}</style>
       <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(MODULE_ACCENT) }} aria-hidden="true" />
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "12px" : "14px 20px" }}>

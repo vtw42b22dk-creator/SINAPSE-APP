@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
           background: '#0A0A0B',
           color: '#EDEDEF',
           padding: 24,
-          fontFamily: "'IBM Plex Sans', sans-serif",
+          fontFamily: "'Manrope', sans-serif",
           position: 'relative',
           overflow: 'hidden',
           '--mc': ACCENT,

@@ -23,8 +23,8 @@ var CSS = [
   ".qa-lead{margin:10px 0 0;font-size:14px;line-height:1.55;color:#A0A0A8;max-width:46ch}",
   ".qa-choice{display:flex;flex-direction:column;gap:10px;margin:22px 0 0}",
   ".qa-pick{min-height:64px;padding:16px 18px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#EDEDEF;text-align:left;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.6px}",
-  ".qa-pick small{display:block;margin-top:6px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;letter-spacing:0;color:#6E6E76}",
-  ".qa-in{width:100%;box-sizing:border-box;min-height:52px;padding:12px 0;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.14);color:#EDEDEF;outline:none;font-size:18px;font-family:'IBM Plex Sans',sans-serif}",
+  ".qa-pick small{display:block;margin-top:6px;font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:0;color:#6E6E76}",
+  ".qa-in{width:100%;box-sizing:border-box;min-height:52px;padding:12px 0;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.14);color:#EDEDEF;outline:none;font-size:18px;font-family:'Manrope',sans-serif}",
   ".qa-in:focus{border-bottom-color:rgba(255,255,255,.4)}",
   ".qa-go{margin-top:18px;min-height:48px;padding:0 18px;border:1px solid rgba(255,255,255,.16);background:#1A1A1D;color:#EDEDEF;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.4px}",
   ".qa-ghost{min-height:44px;padding:0 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:none;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}",
@@ -127,7 +127,7 @@ export default function QuickAdd() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'IBM Plex Sans',sans-serif", position: "relative", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'Manrope',sans-serif", position: "relative", overflowX: "hidden" }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + CSS}</style>
       <div className="mod-glow" style={{ top: -90, right: "8%", background: moduleGlow(ACCENT) }} aria-hidden="true" />
       <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid var(--border-subtle)", padding: "12px 16px" }}>

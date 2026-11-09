@@ -19,7 +19,7 @@ var PRIORITIES = [
 
 var WL_CSS = [
   "@keyframes wlIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
-  ".wl-page{min-height:100vh;background:var(--page-bg);color:var(--page-text);font-family:'IBM Plex Sans',sans-serif;position:relative;overflow-x:hidden}",
+  ".wl-page{min-height:100vh;background:var(--page-bg);color:var(--page-text);font-family:'Manrope',sans-serif;position:relative;overflow-x:hidden}",
   ".wl-glow{position:absolute;width:min(520px,70vw);height:min(520px,70vw);border-radius:50%;pointer-events:none;filter:blur(80px);opacity:.55;transition:background 1s var(--ease)}",
   ".wl-head{position:sticky;top:0;z-index:20;background:rgba(7,7,8,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}",
   ".wl-head-in{max-width:1040px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}",
@@ -33,7 +33,7 @@ var WL_CSS = [
   ".wl-rail-lbl{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6E6E76}",
   ".wl-grp-wrap{display:flex;align-items:center;gap:4px;width:100%}",
   ".wl-grp{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;padding:10px 0 10px 2px;cursor:pointer;",
-  "font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
+  "font-family:'Manrope',sans-serif;font-size:13px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
   "background:transparent;border:none;color:#6E6E76;transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
   ".wl-grp:hover{color:#A0A0A8;padding-left:6px}",
   ".wl-grp.is-on{color:var(--gc);padding-left:8px}",
@@ -44,7 +44,7 @@ var WL_CSS = [
   ".wl-grp-x:hover{color:#C08C8C}",
   ".wl-new-grp{display:flex;align-items:flex-end;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}",
   ".wl-in{width:100%;box-sizing:border-box;min-height:42px;padding:10px 0;background:transparent;border:none;",
-  "border-bottom:1px solid rgba(255,255,255,.12);color:#EDEDEF;outline:none;font-size:14px;line-height:1.5;font-family:'IBM Plex Sans',sans-serif;",
+  "border-bottom:1px solid rgba(255,255,255,.12);color:#EDEDEF;outline:none;font-size:14px;line-height:1.5;font-family:'Manrope',sans-serif;",
   "transition:border-color var(--dur) var(--ease)}",
   ".wl-in:focus{border-bottom-color:rgba(255,255,255,.45)}",
   ".wl-in::placeholder{color:#6E6E76}",

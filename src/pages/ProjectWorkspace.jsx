@@ -37,7 +37,7 @@ var MODULE_COLORS = {
 
 var SIDEBAR_CSS = [
   MODULE_GLOW_CSS,
-  ".pw{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'IBM Plex Sans',sans-serif;isolation:isolate}",
+  ".pw{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#0A0A0B;color:#EDEDEF;overflow:hidden;font-family:'Manrope',sans-serif;isolation:isolate}",
   ".pw-head{position:relative;flex-shrink:0;min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(10,10,12,.28);z-index:60;pointer-events:auto;backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8)}",
   ".pw-hbtn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 4px;border:none;border-bottom:1px solid currentColor;background:transparent;color:#A0A0A8;cursor:pointer;font-size:13px;font-family:inherit;flex-shrink:0}",
   ".pw-shell{flex:1;display:flex;min-height:0}",

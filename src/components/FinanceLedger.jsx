@@ -26,7 +26,7 @@ var FL_CSS = [
   ".fl-icon:hover{background:#1A1A1D;border-color:rgba(255,255,255,0.14);color:#EDEDEF}",
   ".fl-in{width:100%;box-sizing:border-box;min-height:44px;padding:11px 0;",
   "background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.12);color:#EDEDEF;outline:none;",
-  "font-size:14px;line-height:1.5;font-family:'IBM Plex Sans',sans-serif;",
+  "font-size:14px;line-height:1.5;font-family:'Manrope',sans-serif;",
   "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".fl-in:hover:not(:focus){border-bottom-color:rgba(255,255,255,0.28)}",
   ".fl-in:focus{border-bottom-color:rgba(255,255,255,0.4)}",
