@@ -17,23 +17,23 @@ var MODULE_CSS = [
   ".pm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}",
   ".pm-head-t{display:flex;align-items:center;gap:14px;min-width:0}",
   ".pm-head-ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}",
-  ".pm-head h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:600;letter-spacing:.3px;line-height:1.1}",
+  ".pm-head h2{margin:0;font-family:'Manrope',sans-serif;font-size:21px;font-weight:600;letter-spacing:.3px;line-height:1.1}",
   ".pm-head .sub{margin:4px 0 0;font-size:12px;color:#A0A0A8}",
-  ".pm-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 19px;border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:transform .15s,border-color .15s;white-space:nowrap}",
+  ".pm-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 19px;border-radius:12px;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:transform .15s,border-color .15s;white-space:nowrap}",
   ".pm-btn:hover{transform:translateY(-1px)}",
   ".pm-card{border:none;background:transparent}",
   ".pm-input{width:100%;background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:11px;color:#EDEDEF;padding:11px 13px;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color .18s}",
   ".pm-input:focus{border-color:rgba(255,255,255,0.14);}",
-  ".pm-label{display:block;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;margin-bottom:6px;letter-spacing:.6px;text-transform:uppercase}",
+  ".pm-label{display:block;font-size:9px;font-family:'Manrope',sans-serif;color:#6E6E76;margin-bottom:6px;letter-spacing:.6px;text-transform:uppercase}",
   ".pm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:22px}",
   ".pm-stat{padding:16px 0;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent}",
-  ".pm-stat-l{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.6px;text-transform:uppercase}",
-  ".pm-stat-v{margin:9px 0 0;font-size:23px;font-family:'JetBrains Mono',monospace;font-weight:600;line-height:1}",
+  ".pm-stat-l{margin:0;font-size:9px;font-family:'Manrope',sans-serif;color:#6E6E76;letter-spacing:.6px;text-transform:uppercase}",
+  ".pm-stat-v{margin:9px 0 0;font-size:23px;font-family:'Manrope',sans-serif;font-weight:600;line-height:1}",
   ".pm-form{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:16px 18px;margin-bottom:20px}",
   ".pm-f-grow{flex:1 1 220px;min-width:0}",
   ".pm-f-amt{flex:0 0 128px}",
   ".pm-f-type{flex:0 0 148px}",
-  ".pm-sec{margin:26px 0 12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:1.4px;display:flex;align-items:center;gap:10px}",
+  ".pm-sec{margin:26px 0 12px;font-size:10px;font-family:'Manrope',sans-serif;color:#6E6E76;letter-spacing:1.4px;display:flex;align-items:center;gap:10px}",
   ".pm-sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07)}",
   ".pm-tablecard{border:none;background:transparent;overflow:visible}",
   ".pm-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}",
@@ -41,31 +41,31 @@ var MODULE_CSS = [
   ".pm-rows{display:flex;flex-direction:column}",
   ".pm-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.08);align-items:start}",
   ".pm-row h4{margin:0;font-size:14px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}",
-  ".pm-row .meta{margin:6px 0 0;font-size:12px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.45;overflow-wrap:anywhere}",
+  ".pm-row .meta{margin:6px 0 0;font-size:12px;font-family:'Manrope',sans-serif;color:#A0A0A8;line-height:1.45;overflow-wrap:anywhere}",
   ".pm-inv-card{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".pm-inv-grid{display:grid;grid-template-columns:1fr 72px;gap:8px}",
   ".pm-inv-grid-3{display:grid;grid-template-columns:1fr 1fr;gap:8px}",
-  ".pm-table thead th{padding:13px 16px 11px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#6E6E76;letter-spacing:.7px;text-transform:uppercase;text-align:left;background:#0E0E10}",
+  ".pm-table thead th{padding:13px 16px 11px;font-family:'Manrope',sans-serif;font-size:9px;color:#6E6E76;letter-spacing:.7px;text-transform:uppercase;text-align:left;background:#0E0E10}",
   ".pm-table tbody td{padding:11px 16px;border-top:1px solid rgba(255,255,255,0.07);vertical-align:middle}",
   ".pm-table tbody tr{transition:background .14s}",
   ".pm-table tbody tr:hover{background:#1A1A1D}",
-  ".pm-num{font-family:'JetBrains Mono',monospace;text-align:right}",
-  ".pm-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.2px}",
+  ".pm-num{font-family:'Manrope',sans-serif;text-align:right}",
+  ".pm-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:11px;font-family:'Manrope',sans-serif;font-weight:500;letter-spacing:.2px}",
   ".pm-del{width:30px;height:30px;border-radius:9px;border:1px solid transparent;background:transparent;color:#6E6E76;cursor:pointer;font-size:16px;transition:all .15s;display:inline-flex;align-items:center;justify-content:center}",
   ".pm-del:hover{background:rgba(192,140,140,0.14);color:#C08C8C;border-color:rgba(192,140,140,0.35)}",
-  ".pm-status{appearance:none;border-radius:999px;padding:5px 28px 5px 13px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;cursor:pointer;background-repeat:no-repeat;background-position:calc(100% - 9px) 50%;background-size:9px;outline:none}",
+  ".pm-status{appearance:none;border-radius:999px;padding:5px 28px 5px 13px;font-size:11px;font-family:'Manrope',sans-serif;font-weight:600;cursor:pointer;background-repeat:no-repeat;background-position:calc(100% - 9px) 50%;background-size:9px;outline:none}",
   ".pm-pager{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:16px}",
   ".pm-pager button{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#141416;color:#A0A0A8;cursor:pointer;font-size:15px}",
   ".pm-pager button:disabled{opacity:.3;cursor:default}",
   ".pm-empty{padding:44px 20px;text-align:center;border-radius:16px;border:1px dashed rgba(255,255,255,0.14);background:#0E0E10;color:#A0A0A8;font-size:13px}",
-  ".pm-notes{width:100%;min-height:min(66vh,560px);background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:17px;color:#EDEDEF;padding:20px 22px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.75;outline:none;resize:vertical;box-sizing:border-box;transition:border-color .18s}",
+  ".pm-notes{width:100%;min-height:min(66vh,560px);background:#0E0E10;border:1px solid rgba(255,255,255,0.07);border-radius:17px;color:#EDEDEF;padding:20px 22px;font-family:'Manrope',sans-serif;font-size:14px;line-height:1.75;outline:none;resize:vertical;box-sizing:border-box;transition:border-color .18s}",
   ".pm-notes:focus{border-color:rgba(255,255,255,0.14)}",
   ".pm-notes-grid{display:grid;grid-template-columns:236px 1fr;gap:16px;align-items:start}",
   ".pm-notes-aside{display:flex;flex-direction:column;gap:7px}",
   ".pm-note-item{position:relative;display:flex;flex-direction:column;gap:3px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#141416;cursor:pointer;transition:all .15s}",
   ".pm-note-item:hover{border-color:rgba(255,255,255,0.14);background:#1A1A1D}",
   ".pm-note-item.on{border-color:var(--mc);background:var(--mcf)}",
-  ".pm-note-item h4{margin:0;font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:44px}",
+  ".pm-note-item h4{margin:0;font-size:12px;font-family:'Manrope',sans-serif;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:44px}",
   ".pm-note-item p{margin:0;font-size:10px;color:#6E6E76;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".pm-note-del{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:7px;border:none;background:transparent;color:#6E6E76;cursor:pointer;font-size:13px;opacity:0;transition:all .15s}",
   ".pm-note-item:hover .pm-note-del{opacity:1}",
@@ -75,20 +75,20 @@ var MODULE_CSS = [
   ".pm-note-fav.on{opacity:1;color:#C4A57C;}",
   ".pm-note-fav:hover{color:#C4A57C}",
   ".pm-seg{display:inline-flex;padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;gap:3px}",
-  ".pm-seg button{padding:8px 16px;border-radius:9px;border:none;background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}",
+  ".pm-seg button{padding:8px 16px;border-radius:9px;border:none;background:transparent;color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}",
   ".pm-seg button.on{color:#0E0E10}",
   "@media(max-width:719px){.pm-notes-grid{grid-template-columns:1fr}.pm-note-del,.pm-note-fav{opacity:1;width:40px;height:40px;font-size:16px}.pm-note-item{padding:14px 14px 14px 12px;min-height:56px}.pm-note-item h4{padding-right:88px;font-size:14px}.pm-input{font-size:16px!important;min-height:44px}}",
   ".pm-hero{display:flex;align-items:center;gap:20px;padding:20px 22px;border-radius:17px;margin-bottom:8px;flex-wrap:wrap}",
   ".pm-hero-ring{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
-  ".pm-hero-ring i{width:60px;height:60px;border-radius:50%;background:#141416;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;font-family:'JetBrains Mono',monospace}",
+  ".pm-hero-ring i{width:60px;height:60px;border-radius:50%;background:#141416;display:flex;flex-direction:column;align-items:center;justify-content:center;font-style:normal;font-family:'Manrope',sans-serif}",
   ".pm-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}",
   ".pm-kpi{padding:16px 0;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent}",
   ".pm-kpi:hover{transform:translateY(-2px)}",
-  ".pm-kpi-status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.3px}",
+  ".pm-kpi-status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:9px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:.3px}",
   ".pm-kpi-bar{height:12px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin:10px 0 12px}",
   ".pm-kpi-bar-fill{height:100%;border-radius:999px;transition:width .4s ease}",
   ".pm-kpi-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}",
-  ".pm-kpi-remain{margin:10px 0 0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
+  ".pm-kpi-remain{margin:10px 0 0;font-size:10px;font-family:'Manrope',sans-serif;color:#A0A0A8}",
   "@media(max-width:719px){.pm-wrap{padding:18px 16px 60px}.pm-head h2{font-size:18px}.pm-f-amt,.pm-f-type{flex:1 1 calc(50% - 6px)}.pm-form .pm-btn{flex:1 1 100%;justify-content:center}.pm-stats{grid-template-columns:1fr 1fr}.pm-stat-v{font-size:18px}.pm-row{grid-template-columns:1fr}.pm-inv-grid,.pm-inv-grid-3{grid-template-columns:1fr 1fr}}",
 ].join("");
 
@@ -256,7 +256,7 @@ export function ProjectInvestments(props) {
         </div>
         <div className="pm-f-amt">
           <label className="pm-label">Valor €</label>
-          <input className="pm-input" value={amount} onChange={function(e) { setAmount(e.target.value); }} inputMode="decimal" placeholder="0,00" style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+          <input className="pm-input" value={amount} onChange={function(e) { setAmount(e.target.value); }} inputMode="decimal" placeholder="0,00" style={{ fontFamily: "'Manrope',sans-serif" }} />
         </div>
         <div className="pm-f-type">
           <label className="pm-label">Tipo</label>
@@ -288,7 +288,7 @@ export function ProjectInvestments(props) {
       {pages > 1 && (
         <div className="pm-pager">
           <button type="button" disabled={page <= 0} onClick={function() { setPage(page - 1); }}>‹</button>
-          <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>{page + 1} / {pages}</span>
+          <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>{page + 1} / {pages}</span>
           <button type="button" disabled={page >= pages - 1} onClick={function() { setPage(page + 1); }}>›</button>
         </div>
       )}
@@ -447,11 +447,11 @@ export function ProjectNotes(props) {
           {active && (
             <div>
               <input className="pm-input" value={active.title} onChange={function(e) { updateNote(active.id, { title: e.target.value }); }}
-                placeholder="Título da nota" style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, fontSize: 15, marginBottom: 12 }} />
+                placeholder="Título da nota" style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 15, marginBottom: 12 }} />
               <textarea className="pm-notes" style={{ minHeight: "min(58vh,480px)" }} value={active.body}
                 onChange={function(e) { updateNote(active.id, { body: e.target.value }); }}
                 placeholder={"# " + (active.title || "Nota") + "\n\n- Ideia\n- Tarefa\n- Link"} />
-              <p style={{ margin: "12px 2px 0", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>
+              <p style={{ margin: "12px 2px 0", fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#6E6E76" }}>
                 {words} palavras · {active.body.length} caracteres
               </p>
             </div>
@@ -547,12 +547,12 @@ export function ProjectAnalytics(props) {
           </div>
           <div style={{ display: "flex", gap: 30, flexWrap: "wrap" }}>
             <div>
-              <p style={{ margin: 0, fontSize: 26, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, color: "#8FB39B" }}>{kpiOverview.reached}<span style={{ fontSize: 15, color: "#6E6E76" }}>/{kpis.length}</span></p>
-              <p style={{ margin: "5px 0 0", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }}>Metas atingidas</p>
+              <p style={{ margin: 0, fontSize: 26, fontFamily: "'Manrope',sans-serif", fontWeight: 600, color: "#8FB39B" }}>{kpiOverview.reached}<span style={{ fontSize: 15, color: "#6E6E76" }}>/{kpis.length}</span></p>
+              <p style={{ margin: "5px 0 0", fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }}>Metas atingidas</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: 26, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600 }}>{kpis.length - kpiOverview.reached}</p>
-              <p style={{ margin: "5px 0 0", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }}>Em curso</p>
+              <p style={{ margin: 0, fontSize: 26, fontFamily: "'Manrope',sans-serif", fontWeight: 600 }}>{kpis.length - kpiOverview.reached}</p>
+              <p style={{ margin: "5px 0 0", fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }}>Em curso</p>
             </div>
           </div>
         </div>
@@ -599,7 +599,7 @@ export function ProjectAnalytics(props) {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span className="pm-kpi-status" style={{ color: sm.color, background: sm.color + "1a" }}>{sm.label}</span>
-                  <span style={{ fontSize: 14, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, color: sm.color }}>{pct.toFixed(0)}%</span>
+                  <span style={{ fontSize: 14, fontFamily: "'Manrope',sans-serif", fontWeight: 600, color: sm.color }}>{pct.toFixed(0)}%</span>
                 </div>
                 <div className="pm-kpi-bar">
                   <div className="pm-kpi-bar-fill" style={{ width: pct + "%", background: "#E6E6E9" }} />
@@ -607,11 +607,11 @@ export function ProjectAnalytics(props) {
                 <div className="pm-kpi-inputs">
                   <div>
                     <label className="pm-label">Atual</label>
-                    <input type="number" className="pm-input" value={k.current} onChange={function(e) { updateKpi(k.id, { current: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                    <input type="number" className="pm-input" value={k.current} onChange={function(e) { updateKpi(k.id, { current: +e.target.value }); }} style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <div>
                     <label className="pm-label">Meta</label>
-                    <input type="number" className="pm-input" value={k.target} onChange={function(e) { updateKpi(k.id, { target: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                    <input type="number" className="pm-input" value={k.target} onChange={function(e) { updateKpi(k.id, { target: +e.target.value }); }} style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                 </div>
                 <p className="pm-kpi-remain">{pct >= 100 ? "Meta atingida ✓" : "Faltam " + fmtNum(remaining) + (k.unit ? " " + k.unit : "")}</p>
@@ -694,7 +694,7 @@ export function ProjectInventory(props) {
             );
           })}
         </div>
-        <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>{catMeta.hint}</span>
+        <span style={{ fontSize: 11, color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>{catMeta.hint}</span>
       </div>
 
       {visible.length === 0 ? (
@@ -712,16 +712,16 @@ export function ProjectInventory(props) {
                 <div className="pm-inv-grid-3">
                   <div>
                     <label className="pm-label">Qtd</label>
-                    <input type="number" min={0} className="pm-input" value={r.quantity} onChange={function(e) { updateItem(r.id, { quantity: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                    <input type="number" min={0} className="pm-input" value={r.quantity} onChange={function(e) { updateItem(r.id, { quantity: +e.target.value }); }} style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <div>
                     <label className="pm-label">Custo un.</label>
-                    <input type="number" min={0} step="0.01" className="pm-input" value={r.unitCost} onChange={function(e) { updateItem(r.id, { unitCost: +e.target.value }); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                    <input type="number" min={0} step="0.01" className="pm-input" value={r.unitCost} onChange={function(e) { updateItem(r.id, { unitCost: +e.target.value }); }} style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <StatusSelect value={r.status} onChange={function(v) { updateItem(r.id, { status: v }); }} />
-                  <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "#A0A0A8" }}>{fmtEuro(sub)}</span>
+                  <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#A0A0A8" }}>{fmtEuro(sub)}</span>
                 </div>
               </article>
             );

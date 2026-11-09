@@ -24,9 +24,9 @@ export var GLASS_CSS = [
 
   ".seg{position:relative;display:inline-flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.032);border:1px solid rgba(255,255,255,.08)}",
   ".seg-thumb{position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;transition:transform var(--dur-slow) var(--ease),background 1s var(--ease);z-index:0;pointer-events:none}",
-  ".seg button{position:relative;z-index:1;border:none;background:transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;white-space:nowrap;transition:color var(--dur) var(--ease)}",
+  ".seg button{position:relative;z-index:1;border:none;background:transparent;cursor:pointer;font-family:'Manrope',sans-serif;white-space:nowrap;transition:color var(--dur) var(--ease)}",
 
-  ".glow-btn{position:relative;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:transform var(--dur-fast) var(--ease),filter var(--dur) var(--ease),opacity var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".glow-btn{position:relative;cursor:pointer;font-family:'Manrope',sans-serif;transition:transform var(--dur-fast) var(--ease),filter var(--dur) var(--ease),opacity var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".glow-btn:hover:not(:disabled){transform:translateY(-1px)}",
   ".glow-btn:active:not(:disabled){transform:translateY(0) scale(.96)}",
   ".glow-btn:disabled{opacity:.4;cursor:not-allowed}",

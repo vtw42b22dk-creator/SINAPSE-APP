@@ -18,24 +18,24 @@ var ACCENT = moduleColor("finance");
 
 var CSS = [
   MODULE_GLOW_CSS,
-  ".qa-kicker{margin:0 0 8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76}",
-  ".qa-h{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(22px,5vw,32px);font-weight:500;letter-spacing:-.03em;line-height:1.15}",
+  ".qa-kicker{margin:0 0 8px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76}",
+  ".qa-h{margin:0;font-family:'Syne',sans-serif;font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.04em;line-height:1.15}",
   ".qa-lead{margin:10px 0 0;font-size:14px;line-height:1.55;color:#A0A0A8;max-width:46ch}",
   ".qa-choice{display:flex;flex-direction:column;gap:10px;margin:22px 0 0}",
-  ".qa-pick{min-height:64px;padding:16px 18px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#EDEDEF;text-align:left;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.6px}",
+  ".qa-pick{min-height:64px;padding:16px 18px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#EDEDEF;text-align:left;cursor:pointer;font-family:'Manrope',sans-serif;font-size:15px;letter-spacing:.6px}",
   ".qa-pick small{display:block;margin-top:6px;font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:0;color:#6E6E76}",
   ".qa-in{width:100%;box-sizing:border-box;min-height:52px;padding:12px 0;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.14);color:#EDEDEF;outline:none;font-size:18px;font-family:'Manrope',sans-serif}",
   ".qa-in:focus{border-bottom-color:rgba(255,255,255,.4)}",
-  ".qa-go{margin-top:18px;min-height:48px;padding:0 18px;border:1px solid rgba(255,255,255,.16);background:#1A1A1D;color:#EDEDEF;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.4px}",
-  ".qa-ghost{min-height:44px;padding:0 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:none;color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px}",
+  ".qa-go{margin-top:18px;min-height:48px;padding:0 18px;border:1px solid rgba(255,255,255,.16);background:#1A1A1D;color:#EDEDEF;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.4px}",
+  ".qa-ghost{min-height:44px;padding:0 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:none;color:#A0A0A8;cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px}",
   ".qa-ok{margin:0;font-size:15px;line-height:1.5;color:#8FB39B}",
-  ".qa-err{margin:8px 0 0;font-size:13px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
+  ".qa-err{margin:8px 0 0;font-size:13px;color:#C08C8C;font-family:'Manrope',sans-serif}",
   ".qa-card{margin:32px 0 0;padding:22px 0 0;border-top:1px solid rgba(255,255,255,.08)}",
   ".qa-ol{margin:12px 0 0;padding:0 0 0 18px;color:#A0A0A8;font-size:14px;line-height:1.65}",
   ".qa-ol li{margin:0 0 10px}",
-  ".qa-url{margin:10px 0 0;padding:12px 14px;background:#141416;border:1px solid rgba(255,255,255,.08);color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;word-break:break-all}",
+  ".qa-url{margin:10px 0 0;padding:12px 14px;background:#141416;border:1px solid rgba(255,255,255,.08);color:#EDEDEF;font-family:'Manrope',sans-serif;font-size:11px;line-height:1.5;word-break:break-all}",
   ".qa-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}",
-  ".qa-step{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
+  ".qa-step{margin:0 0 6px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
 ].join("");
 
 function eur(n) {
@@ -213,7 +213,7 @@ export default function QuickAdd() {
                 <p className="qa-step">4 / 4 · {title}</p>
                 <h2 className="qa-h" style={{ fontSize: 22 }}>Valor</h2>
                 <input className="qa-in" value={amount} onChange={function(e) { setAmount(e.target.value); }} placeholder="12,50" inputMode="decimal" autoFocus
-                  style={{ fontFamily: "'JetBrains Mono',monospace" }}
+                  style={{ fontFamily: "'Manrope',sans-serif" }}
                   onKeyDown={function(e) { if (e.key === "Enter") submitAmount(); }} />
                 {status === "err" && result && result.error ? <p className="qa-err">{result.error}</p> : null}
                 <button type="button" className="qa-go" disabled={status === "saving"} onClick={submitAmount}>

@@ -48,12 +48,12 @@ var FX_CSS = [
   /* ---------- header capsule ---------- */
   ".fs-headwrap{flex-shrink:0;padding:12px 12px 8px;position:relative;z-index:20}",
   ".fs-head{display:flex;align-items:center;gap:10px;padding:9px 12px}",
-  ".fs-hbtn{padding:8px 12px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:rgba(255,255,255,.03);color:#A0A0A8;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fs-hbtn{padding:8px 12px;border:1px solid rgba(255,255,255,.09);border-radius:999px;background:rgba(255,255,255,.03);color:#A0A0A8;cursor:pointer;font-size:11px;font-family:'Manrope',sans-serif;letter-spacing:.3px;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fs-hbtn:hover{color:#EDEDEF;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06)}",
   ".fs-hbtn:active{transform:scale(.96)}",
   ".fs-headtitle{flex:1;min-width:0;display:flex;align-items:center;gap:10px}",
   ".fs-headic{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:color-mix(in srgb,var(--ac) 16%,transparent);border:1px solid color-mix(in srgb,var(--ac) 35%,transparent);color:var(--ac)}",
-  ".fs-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:10px;letter-spacing:.4px;font-family:'JetBrains Mono',monospace;border:1px solid rgba(255,255,255,.08);flex-shrink:0}",
+  ".fs-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:10px;letter-spacing:.4px;font-family:'Manrope',sans-serif;border:1px solid rgba(255,255,255,.08);flex-shrink:0}",
   ".fs-danger{padding:8px 11px;border:1px solid rgba(192,140,140,.25);border-radius:999px;background:rgba(192,140,140,.06);color:rgba(192,140,140,.85);cursor:pointer;font-size:13px;line-height:1;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fs-danger:hover{background:rgba(192,140,140,.16);border-color:rgba(192,140,140,.5)}",
 
@@ -67,35 +67,35 @@ var FX_CSS = [
   ".fs-dock{position:relative;display:flex;align-items:stretch;justify-content:space-around;gap:0;padding:5px}",
   ".fs-dock-thumb{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/5);border-radius:20px;background:color-mix(in srgb,var(--ac) 16%,transparent);border:1px solid color-mix(in srgb,var(--ac) 34%,transparent);transition:transform var(--dur-slow) var(--ease);z-index:0}",
   ".fs-navitem{position:relative;z-index:1;flex:1;height:52px;border:none;background:transparent;color:#6E6E76;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:16px;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
-  ".fs-navitem span{font-size:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.7px;line-height:1;text-transform:uppercase}",
+  ".fs-navitem span{font-size:8px;font-family:'Manrope',sans-serif;letter-spacing:.7px;line-height:1;text-transform:uppercase}",
   ".fs-navitem:active{transform:scale(.93)}",
   ".fs-navitem.on{color:#EDEDEF}",
 
   /* ---------- generic panel bits ---------- */
   ".fs-panel{flex:1;width:100%;min-height:0;padding:14px 2px 28px;animation:fxIn var(--dur-slow) var(--ease) both;box-sizing:border-box;display:flex;flex-direction:column}",
   ".fs-panel--clock{justify-content:center;align-items:center;min-height:calc(100vh - 150px);padding:20px 12px}",
-  ".fs-title{margin:0 0 18px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.5px}",
+  ".fs-title{margin:0 0 18px;display:flex;align-items:center;gap:10px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:500;letter-spacing:.5px}",
   ".fs-icon-badge{width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:color-mix(in srgb,currentColor 14%,transparent);border:1px solid color-mix(in srgb,currentColor 32%,transparent)}",
-  ".fs-label{display:block;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;margin-bottom:8px;letter-spacing:1.6px;text-transform:uppercase}",
-  ".fs-note{margin:14px 0 0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;text-align:center;line-height:1.6;max-width:420px}",
+  ".fs-label{display:block;font-size:10px;font-family:'Manrope',sans-serif;color:#6E6E76;margin-bottom:8px;letter-spacing:1.6px;text-transform:uppercase}",
+  ".fs-note{margin:14px 0 0;font-size:10px;font-family:'Manrope',sans-serif;color:#6E6E76;text-align:center;line-height:1.6;max-width:420px}",
 
   ".fs-input,.fs-area{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:14px;color:#EDEDEF;padding:12px 14px;font-size:14px;line-height:1.5;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".fs-input:hover:not(:focus):not(:disabled),.fs-area:hover:not(:focus):not(:disabled){border-color:rgba(255,255,255,.16)}",
   ".fs-input:focus,.fs-area:focus{border-color:color-mix(in srgb,var(--ac) 55%,transparent);background:rgba(255,255,255,.05)}",
-  ".fs-area{min-height:min(360px,42vh);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;resize:vertical;flex:1}",
+  ".fs-area{min-height:min(360px,42vh);font-family:'Manrope',sans-serif;font-size:13px;line-height:1.7;resize:vertical;flex:1}",
 
-  ".fs-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500}",
+  ".fs-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:#EDEDEF;font-family:'Manrope',sans-serif;font-size:12px;font-weight:500}",
   ".fs-btn:hover:not(:disabled){background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}",
   ".fs-btn:disabled{opacity:.4;cursor:not-allowed}",
   ".fs-x{background:none;border:none;color:#6E6E76;cursor:pointer;font-size:15px;line-height:1;padding:4px;opacity:0;transition:opacity var(--dur) var(--ease),color var(--dur) var(--ease)}",
 
   /* ---------- segmented controls (mode / clock style) ---------- */
   ".fs-modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}",
-  ".fs-mode{padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:#8A8A90;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.4px;cursor:pointer;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fs-mode{padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:#8A8A90;font-family:'Manrope',sans-serif;font-size:11px;font-weight:500;letter-spacing:.4px;cursor:pointer;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fs-mode:hover{color:#EDEDEF;border-color:rgba(255,255,255,.2)}",
   ".fs-mode.on{color:var(--ac);background:color-mix(in srgb,var(--ac) 16%,transparent);border-color:color-mix(in srgb,var(--ac) 45%,transparent)}",
   ".fs-styletog{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}",
-  ".fs-stybtn{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);color:#6E6E76;font-size:10.5px;letter-spacing:.5px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".fs-stybtn{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);color:#6E6E76;font-size:10.5px;letter-spacing:.5px;font-family:'Manrope',sans-serif;cursor:pointer;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".fs-stybtn:hover{color:#A0A0A8;border-color:rgba(255,255,255,.18)}",
   ".fs-stybtn.on{color:var(--glow);background:color-mix(in srgb,var(--glow) 14%,transparent);border-color:color-mix(in srgb,var(--glow) 40%,transparent)}",
   ".fs-notes-seg button{padding:9px 16px;font-size:11.5px;letter-spacing:.3px;color:#8A8A90}",
@@ -108,7 +108,7 @@ var FX_CSS = [
   ".fs-halo-rim{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.1)}",
   ".fs-halo-face{position:relative;width:86%;height:86%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.012) 65%);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);overflow:hidden;padding:6%;box-sizing:border-box}",
 
-  ".fs-digital{font-family:'JetBrains Mono',monospace;font-weight:300;font-size:clamp(42px,11vw,78px);line-height:.9;letter-spacing:-.04em;color:#EDEDEF;font-variant-numeric:tabular-nums;text-align:center;transition:color var(--dur-slow) var(--ease)}",
+  ".fs-digital{font-family:'Manrope',sans-serif;font-weight:300;font-size:clamp(42px,11vw,78px);line-height:.9;letter-spacing:-.04em;color:#EDEDEF;font-variant-numeric:tabular-nums;text-align:center;transition:color var(--dur-slow) var(--ease)}",
   ".fs-digital.is-run{color:var(--glow);animation:glowPulse 2.6s var(--ease) infinite}",
 
   ".fs-analog{width:78%;height:78%;position:relative}",
@@ -124,14 +124,14 @@ var FX_CSS = [
   ".fs-ring-progress{fill:none;stroke:var(--glow);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .9s linear;filter:drop-shadow(0 0 7px var(--glow))}",
 
   ".fs-blocks{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:center}",
-  ".fs-block{width:clamp(26px,6.4vw,40px);height:clamp(44px,10.4vw,62px);border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(17px,4.6vw,28px);font-weight:300;color:#6E6E76;transition:color var(--dur-slow) var(--ease),background var(--dur-slow) var(--ease),border-color var(--dur-slow) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fs-block{width:clamp(26px,6.4vw,40px);height:clamp(44px,10.4vw,62px);border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-size:clamp(17px,4.6vw,28px);font-weight:300;color:#6E6E76;transition:color var(--dur-slow) var(--ease),background var(--dur-slow) var(--ease),border-color var(--dur-slow) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fs-block.on{color:var(--glow);background:color-mix(in srgb,var(--glow) 14%,transparent);border-color:color-mix(in srgb,var(--glow) 40%,transparent);transform:translateY(-2px)}",
 
-  ".fs-phase{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 15px;border-radius:999px;border:1px solid}",
+  ".fs-phase{margin:0;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 15px;border-radius:999px;border:1px solid}",
   ".fs-prog{width:100%;max-width:420px;height:5px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}",
   ".fs-prog i{display:block;height:100%;border-radius:999px;background:var(--glow);transition:width 1s linear;filter:drop-shadow(0 0 6px var(--glow))}",
   ".fs-tcontrols{display:flex;gap:14px;width:100%;max-width:420px;align-items:center;justify-content:center}",
-  ".fs-tbtn{flex:1;min-height:52px;padding:14px 20px;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.6px;cursor:pointer;border:1px solid;background:rgba(255,255,255,.04)}",
+  ".fs-tbtn{flex:1;min-height:52px;padding:14px 20px;border-radius:999px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:500;letter-spacing:.6px;cursor:pointer;border:1px solid;background:rgba(255,255,255,.04)}",
   ".fs-tbtn:disabled{opacity:.35;cursor:not-allowed}",
 
   /* ---------- project picker ---------- */
@@ -145,9 +145,9 @@ var FX_CSS = [
   ".fs-proj:hover .fs-proj-del{opacity:1}",
   ".fs-proj-del:hover{background:rgba(192,140,140,.16);color:#C08C8C;border-color:rgba(192,140,140,.4)}",
   ".fs-proj-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:14px}",
-  ".fs-proj-play{display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pc) 40%,transparent);background:color-mix(in srgb,var(--pc) 10%,transparent);color:var(--pc);font-family:'JetBrains Mono',monospace;font-size:10.5px;cursor:pointer;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".fs-proj-play{display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pc) 40%,transparent);background:color-mix(in srgb,var(--pc) 10%,transparent);color:var(--pc);font-family:'Manrope',sans-serif;font-size:10.5px;cursor:pointer;transition:background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".fs-proj-play:hover{background:color-mix(in srgb,var(--pc) 22%,transparent);transform:translateY(-1px)}",
-  ".fs-proj-ring text{font-family:'JetBrains Mono',monospace}",
+  ".fs-proj-ring text{font-family:'Manrope',sans-serif}",
   ".fs-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:172px;border-radius:var(--radius-xl);border:1.5px dashed rgba(255,255,255,.14);background:rgba(255,255,255,.015);cursor:pointer;color:#6E6E76;transition:border-color var(--dur) var(--ease),color var(--dur) var(--ease),background var(--dur) var(--ease)}",
   ".fs-addcard:hover{border-color:color-mix(in srgb,var(--ac) 50%,transparent);color:var(--ac);background:color-mix(in srgb,var(--ac) 6%,transparent)}",
   ".fs-addcard-plus{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,.14);transition:border-color var(--dur) var(--ease),filter var(--dur) var(--ease)}",
@@ -165,8 +165,8 @@ var FX_CSS = [
   /* ---------- stats / analytics ---------- */
   ".fs-statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}",
   ".fs-stat{padding:16px}",
-  ".fs-stat p{margin:0;font-size:10px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:1.4px;text-transform:uppercase}",
-  ".fs-stat strong{display:block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:400;font-variant-numeric:tabular-nums}",
+  ".fs-stat p{margin:0;font-size:10px;font-family:'Manrope',sans-serif;color:#6E6E76;letter-spacing:1.4px;text-transform:uppercase}",
+  ".fs-stat strong{display:block;margin-top:8px;font-family:'Manrope',sans-serif;font-size:21px;font-weight:400;font-variant-numeric:tabular-nums}",
   ".fs-goal{margin:6px 0 20px;padding:18px}",
   ".fs-goalbar{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:12px}",
   ".fs-goalbar i{display:block;height:100%;border-radius:999px;background:var(--ac);filter:drop-shadow(0 0 6px var(--ac));transition:width var(--dur-slow) var(--ease)}",
@@ -175,7 +175,7 @@ var FX_CSS = [
   ".fs-bar{width:100%;max-width:36px;border-radius:8px 8px 3px 3px;min-height:4px;background:linear-gradient(180deg,var(--ac),color-mix(in srgb,var(--ac) 25%,transparent));transition:height var(--dur-slow) var(--ease),opacity var(--dur) var(--ease)}",
   ".fs-tablewrap{padding:6px 10px;overflow-x:auto}",
   ".fs-table{width:100%;border-collapse:collapse;font-size:12px}",
-  ".fs-table th,.fs-table td{padding:10px 12px;text-align:left;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".fs-table th,.fs-table td{padding:10px 12px;text-align:left;font-family:'Manrope',sans-serif;border-bottom:1px solid rgba(255,255,255,.06)}",
   ".fs-table th{font-size:9.5px;color:#6E6E76;letter-spacing:1.4px;text-transform:uppercase;font-weight:500}",
   ".fs-table tr:last-child td{border-bottom:none}",
   ".fs-table tbody tr{transition:background var(--dur) var(--ease)}",
@@ -200,7 +200,7 @@ var FX_CSS = [
   ".fs-immersive-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:640px;pointer-events:none}",
   ".fs-immersive .fs-halo{width:min(72vw,420px);height:min(72vw,420px)}",
   ".fs-immersive .fs-digital{font-size:clamp(60px,16vw,116px)!important}",
-  ".fs-immersive-hint{margin:0;font-size:10px;color:#6E6E76;font-family:'JetBrains Mono',monospace;letter-spacing:.4px;opacity:.7}",
+  ".fs-immersive-hint{margin:0;font-size:10px;color:#6E6E76;font-family:'Manrope',sans-serif;letter-spacing:.4px;opacity:.7}",
   ".fs-immersive-bar{position:fixed;bottom:0;left:0;right:0;padding:20px 24px max(20px,env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(7,7,8,.92) 45%);display:flex;gap:12px;justify-content:center;pointer-events:auto;z-index:2}",
   ".fs-sub{display:block}",
   ".fs-headtitle h1{margin:0}",
@@ -496,7 +496,7 @@ function ProjectPicker(props) {
           <div className="fs-headtitle">
             <span className="fs-headic">◷</span>
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14, fontWeight: 500, color: CYAN, letterSpacing: 1.2 }}>ESTÚDIO DE FOCO</h1>
+              <h1 style={{ margin: 0, fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 700, color: CYAN, letterSpacing: "-0.04em" }}>Estúdio de foco</h1>
               <p className="fs-sub" style={{ margin: "3px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90" }}>Escolhe ou cria um projeto de estudo</p>
             </div>
           </div>
@@ -513,8 +513,8 @@ function ProjectPicker(props) {
                 <div className="fs-proj-top">
                   <span className="fs-proj-ic">{p.icon}</span>
                   <div style={{ minWidth: 0 }}>
-                    <h2 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 14.5, fontWeight: 500, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
-                    <p style={{ margin: "5px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90", fontFamily: "'JetBrains Mono',monospace" }}>{fmtHours(prog.studied)} estudados</p>
+                    <h2 style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 14.5, fontWeight: 500, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
+                    <p style={{ margin: "5px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90", fontFamily: "'Manrope',sans-serif" }}>{fmtHours(prog.studied)} estudados</p>
                   </div>
                 </div>
                 <div className="fs-proj-foot">
@@ -527,7 +527,7 @@ function ProjectPicker(props) {
                       <text x="23" y="26.5" textAnchor="middle" fontSize="9" fill={p.color}>{prog.pct}%</text>
                     </svg>
                   ) : (
-                    <p style={{ margin: 0, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>Sem meta</p>
+                    <p style={{ margin: 0, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>Sem meta</p>
                   )}
                   <button type="button" className="fs-proj-play" onClick={function(e) { e.stopPropagation(); if (props.onQuickStart) props.onQuickStart(p); }}>▶ Iniciar agora</button>
                 </div>
@@ -536,7 +536,7 @@ function ProjectPicker(props) {
           })}
           <button type="button" className="fs-addcard" onClick={openCreate}>
             <span className="fs-addcard-plus" style={{ color: CYAN }}>+</span>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, letterSpacing: 0.4 }}>Novo projeto</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, letterSpacing: 0.4 }}>Novo projeto</span>
           </button>
         </div>
       </main>
@@ -544,7 +544,7 @@ function ProjectPicker(props) {
       {modalOpen && (
         <div className="fs-modal-bg" onClick={function(e) { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div className="fs-modal glass glass-in" onClick={function(e) { e.stopPropagation(); }}>
-            <p style={{ margin: "0 0 20px", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: "#6E6E76", letterSpacing: 1.6 }}>NOVO PROJETO DE FOCO</p>
+            <p style={{ margin: "0 0 20px", fontFamily: "'Manrope',sans-serif", fontSize: 10, color: "#6E6E76", letterSpacing: 1.6 }}>NOVO PROJETO DE FOCO</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label className="fs-label">Nome</label>
@@ -984,8 +984,8 @@ export default function Focus() {
           <div className="fs-headtitle">
             <span className="fs-headic">{activeProject.icon}</span>
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 13 : 12.5, color: "#EDEDEF", letterSpacing: 0.6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
-              <p className="fs-sub" style={{ margin: "2px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'JetBrains Mono',monospace" }}>
+              <h1 style={{ margin: 0, fontFamily: "'Syne',sans-serif", fontSize: isMobile ? 16 : 18, fontWeight: 700, color: "#EDEDEF", letterSpacing: "-0.04em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProject.name}</h1>
+              <p className="fs-sub" style={{ margin: "2px 0 0", fontSize: 10, color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>
                 {timer.running ? "● Sessão activa" : "Estúdio de Foco"} · hoje {todayMetric.minutes} min
               </p>
             </div>
@@ -1073,7 +1073,7 @@ export default function Focus() {
               <label className="fs-label">Minutos hoje (ajuste manual)</label>
               <input type="number" min={0} className="fs-input" value={todayMetric.minutes} disabled={dis}
                 onChange={function(e) { updateTodayMetric({ minutes: Math.max(0, parseInt(e.target.value, 10) || 0) }); }}
-                style={{ fontFamily: "'JetBrains Mono',monospace", marginBottom: 12, maxWidth: 420 }} />
+                style={{ fontFamily: "'Manrope',sans-serif", marginBottom: 12, maxWidth: 420 }} />
               <label className="fs-label">Páginas lidas hoje</label>
               <input type="number" min={0} className="fs-input" value={todayMetric.pages} disabled={dis}
                 onChange={function(e) { updateTodayMetric({ pages: Math.max(0, parseInt(e.target.value, 10) || 0) }); }}
@@ -1102,7 +1102,7 @@ export default function Focus() {
                     <button type="button" className="fs-btn glow-btn" disabled={dis || !ideaInput.trim()} onClick={function() { addIdea("idea"); }}>+</button>
                   </div>
                   {ideasOnly.length === 0 ? (
-                    <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Sem ideias ainda.</p>
+                    <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'Manrope',sans-serif", padding: 24 }}>Sem ideias ainda.</p>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {ideasOnly.map(function(it) {
@@ -1110,7 +1110,7 @@ export default function Focus() {
                           <div key={it.id} className="fs-idea glass-flat">
                             <button type="button" onClick={function() { removeIdea(it.id); }}>×</button>
                             {it.content}
-                            <time style={{ display: "block", marginTop: 6, fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>{it.day_key}</time>
+                            <time style={{ display: "block", marginTop: 6, fontSize: 8, fontFamily: "'Manrope',sans-serif", color: "#6E6E76" }}>{it.day_key}</time>
                           </div>
                         );
                       })}
@@ -1146,11 +1146,11 @@ export default function Focus() {
               {goal.goalMin > 0 ? (
                 <div className="fs-goal glass-flat">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                    <p style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: "#A0A0A8" }}>Meta: {activeProject.goal_hours}h até {activeProject.deadline ? new Date(activeProject.deadline).toLocaleDateString("pt-PT") : "—"}</p>
-                    <strong style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 14, color: accent }}>{goal.pct}%</strong>
+                    <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 11, color: "#A0A0A8" }}>Meta: {activeProject.goal_hours}h até {activeProject.deadline ? new Date(activeProject.deadline).toLocaleDateString("pt-PT") : "—"}</p>
+                    <strong style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: accent }}>{goal.pct}%</strong>
                   </div>
                   <div className="fs-goalbar"><i style={{ width: goal.pct + "%" }} /></div>
-                  <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }}>
+                  <div style={{ display: "flex", gap: 16, marginTop: 10, flexWrap: "wrap", fontSize: 10, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }}>
                     <span>Faltam <strong style={{ color: accent }}>{fmtHours(goal.remaining)}</strong></span>
                     {goal.daysLeft != null ? <span><strong style={{ color: AMBER }}>{goal.daysLeft}</strong> dias restantes</span> : null}
                     {goal.daysLeft != null && goal.daysLeft > 0 ? (
@@ -1167,9 +1167,9 @@ export default function Focus() {
                   var isToday = d.day_key === today;
                   return (
                     <div key={d.day_key} className="fs-col" title={d.minutes + " min"}>
-                      <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "#6E6E76" }}>{d.minutes || "·"}</span>
+                      <span style={{ fontSize: 9, fontFamily: "'Manrope',sans-serif", color: isToday ? accent : "#6E6E76" }}>{d.minutes || "·"}</span>
                       <div className="fs-bar" style={{ height: (d.minutes > 0 ? Math.max(6, h) : 3) + "%", opacity: d.minutes ? 1 : 0.25, "--ac": isToday ? accent : "#6E6E76" }} />
-                      <span style={{ fontSize: 8, fontFamily: "'JetBrains Mono',monospace", color: isToday ? accent : "#6E6E76" }}>{weekdayShort(d.day_key)}</span>
+                      <span style={{ fontSize: 8, fontFamily: "'Manrope',sans-serif", color: isToday ? accent : "#6E6E76" }}>{weekdayShort(d.day_key)}</span>
                     </div>
                   );
                 })}
@@ -1206,7 +1206,7 @@ export default function Focus() {
                 <button type="button" className="fs-btn glow-btn" disabled={dis || !taskInput.trim()} onClick={addTask}>+</button>
               </div>
               {projectTasks.length === 0 ? (
-                <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", padding: 24 }}>Lista vazia. Adiciona tarefas para este projeto.</p>
+                <p style={{ textAlign: "center", color: "#6E6E76", fontSize: 11, fontFamily: "'Manrope',sans-serif", padding: 24 }}>Lista vazia. Adiciona tarefas para este projeto.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {projectTasks.map(function(t) {

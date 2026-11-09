@@ -180,11 +180,11 @@ function NodeCircle(props) {
           <input ref={iref} value={lab} onChange={function(e){setLab(e.target.value);}}
             onBlur={function(){props.onCommit(node.id,lab);}}
             onKeyDown={function(e){if(e.key==="Enter")props.onCommit(node.id,lab);if(e.key==="Escape")props.onCommit(node.id,node.label);}}
-            style={{width:"100%",height:"100%",background:"#0E0E10",border:"1px solid rgba(255,255,255,0.14)",borderRadius:mobile?12:8,color:"#EDEDEF",fontSize:mobile?16:11,textAlign:"center",padding:mobile?"7px 10px":"5px 8px",fontFamily:"'JetBrains Mono',monospace",outline:"none"}}/>
+            style={{width:"100%",height:"100%",background:"#0E0E10",border:"1px solid rgba(255,255,255,0.14)",borderRadius:mobile?12:8,color:"#EDEDEF",fontSize:mobile?16:11,textAlign:"center",padding:mobile?"7px 10px":"5px 8px",fontFamily:"'Manrope',sans-serif",outline:"none"}}/>
         </foreignObject>
       ) : (
         <text x={node.x} textAnchor="middle" fill={isSel?"#EDEDEF":"#A0A0A8"} fontSize={node.isChild?9:11}
-          fontFamily="'JetBrains Mono',monospace" fontWeight="500" style={{pointerEvents:"none",userSelect:"none"}}>
+          fontFamily="'Manrope',sans-serif" fontWeight="500" style={{pointerEvents:"none",userSelect:"none"}}>
           {lines.map(function(line, i) {
             var totalH = lines.length * (node.isChild ? 11 : 13);
             var startY = node.y - totalH / 2 + (node.isChild ? 7 : 8);
@@ -195,14 +195,14 @@ function NodeCircle(props) {
       {fc > 0 && (
         <g>
           <circle cx={node.x+r*0.62} cy={node.y-r*0.62} r={8} fill="#141416" stroke="rgba(255,255,255,0.14)" strokeWidth="0.8"/>
-          <text x={node.x+r*0.62} y={node.y-r*0.62+0.5} textAnchor="middle" dominantBaseline="central" fill="#A0A0A8" fontSize="7" fontFamily="'JetBrains Mono',monospace" fontWeight="600">{fc}</text>
+          <text x={node.x+r*0.62} y={node.y-r*0.62+0.5} textAnchor="middle" dominantBaseline="central" fill="#A0A0A8" fontSize="7" fontFamily="'Manrope',sans-serif" fontWeight="600">{fc}</text>
         </g>
       )}
       {node.notes && node.notes.length > 0 && <circle cx={node.x-r*0.62} cy={node.y-r*0.62} r={4} fill={c} opacity="0.72"/>}
       {hasHid && (
         <g>
           <circle cx={node.x} cy={node.y+r+14} r={10} fill="#141416" stroke="rgba(255,255,255,0.14)" strokeWidth="1" strokeDasharray="4 2.5"/>
-          <text x={node.x} y={node.y+r+15} textAnchor="middle" dominantBaseline="central" fill="#A0A0A8" fontSize="10" fontFamily="'JetBrains Mono',monospace">{"\u2026"}</text>
+          <text x={node.x} y={node.y+r+15} textAnchor="middle" dominantBaseline="central" fill="#A0A0A8" fontSize="10" fontFamily="'Manrope',sans-serif">{"\u2026"}</text>
         </g>
       )}
     </g>
@@ -230,7 +230,7 @@ function mobileActionStyle(color) {
     background: "#1A1A1D",
     color: color === "#ffffff" ? "#6E6E76" : "#EDEDEF",
     fontSize: 11,
-    fontFamily: "'JetBrains Mono',monospace",
+    fontFamily: "'Manrope',sans-serif",
     cursor: "pointer",
   };
 }
@@ -289,7 +289,7 @@ function SearchBar(props) {
           <span style={{fontSize:16,color:"#6E6E76"}}>&#128269;</span>
           <input ref={ref} value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Procurar sinapses..."
             style={{flex:1,background:"none",border:"none",color:"#EDEDEF",fontSize:15,fontFamily:"'Manrope',sans-serif",outline:"none"}}/>
-          <button onClick={props.onClose} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,color:"#6E6E76",fontSize:10,padding:"4px 8px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>ESC</button>
+          <button onClick={props.onClose} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",borderRadius:8,color:"#6E6E76",fontSize:10,padding:"4px 8px",cursor:"pointer",fontFamily:"'Manrope',sans-serif"}}>ESC</button>
         </div>
         {results.length > 0 && (
           <div data-scrollable style={{maxHeight:320,overflow:"auto",padding:8}}>
@@ -301,10 +301,10 @@ function SearchBar(props) {
                   onMouseLeave={function(e){e.currentTarget.style.background="transparent";}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:n.color,opacity:0.7,flexShrink:0}}/>
                   <div style={{minWidth:0,flex:1}}>
-                    <p style={{fontSize:13,color:"#EDEDEF",fontFamily:"'JetBrains Mono',monospace",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.label||"Sem nome"}</p>
+                    <p style={{fontSize:13,color:"#EDEDEF",fontFamily:"'Manrope',sans-serif",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.label||"Sem nome"}</p>
                     {n.notes && n.notes.length > 0 && <p style={{fontSize:11,color:"#6E6E76",marginTop:2,fontFamily:"'Manrope',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",margin:0}}>{n.notes.slice(0,60)}</p>}
                   </div>
-                  <span style={{marginLeft:"auto",fontSize:10,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{n.isChild?"filho":"raiz"}</span>
+                  <span style={{marginLeft:"auto",fontSize:10,color:"#6E6E76",fontFamily:"'Manrope',sans-serif",flexShrink:0}}>{n.isChild?"filho":"raiz"}</span>
                 </button>
               );
             })}
@@ -500,7 +500,7 @@ function DocPanel(props) {
   }
   function tabBtn(key, icon, label, count) {
     var active = tab === key;
-    return <button onClick={function(){setTab(key);}} style={{border:"1px solid "+(active?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:active?"#1A1A1D":"#141416",color:active?"#EDEDEF":"#6E6E76",borderRadius:14,padding:isMobile?"9px 10px":"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}><span style={{fontSize:14}}>{icon}</span>{label}<span style={{opacity:0.45}}>{count}</span></button>;
+    return <button onClick={function(){setTab(key);}} style={{border:"1px solid "+(active?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:active?"#1A1A1D":"#141416",color:active?"#EDEDEF":"#6E6E76",borderRadius:14,padding:isMobile?"9px 10px":"10px 14px",fontSize:11,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}><span style={{fontSize:14}}>{icon}</span>{label}<span style={{opacity:0.45}}>{count}</span></button>;
   }
   function emptyState(icon, text) {
     return <div style={{minHeight:170,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,textAlign:"center",border:"1px dashed rgba(255,255,255,0.07)",borderRadius:18,background:"#141416"}}><div style={{width:58,height:58,borderRadius:20,background:"#1A1A1D",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>{icon}</div><p style={{fontSize:13,color:"#6E6E76",lineHeight:1.6,margin:0}}>{text}</p></div>;
@@ -526,11 +526,11 @@ function DocPanel(props) {
     return (
       <div key={f.id} className={recent ? "doc-recent-row" : ""} style={{display:"grid",gridTemplateColumns:isMobile?"1fr auto":"minmax(0,1fr) 90px 110px auto",gap:10,alignItems:"center",padding:"12px 14px",borderRadius:14,border:"1px solid "+(recent?"rgba(196,165,124,0.28)":"rgba(255,255,255,0.07)"),background:recent?"rgba(196,165,124,0.06)":"#141416",transition:"border-color .35s ease, background .35s ease"}}>
         <div style={{minWidth:0,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",flexShrink:0}}>{kind}</span>
+          <span style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",flexShrink:0}}>{kind}</span>
           <a href={f.url||f.data} target="_blank" rel="noopener noreferrer" download={f.name} style={{color:"#EDEDEF",fontSize:13,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</a>
-          {recent ? <span style={{fontSize:9,padding:"2px 7px",borderRadius:999,background:"rgba(196,165,124,0.12)",color:"#C4A57C",fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>Recente</span> : null}
+          {recent ? <span style={{fontSize:9,padding:"2px 7px",borderRadius:999,background:"rgba(196,165,124,0.12)",color:"#C4A57C",fontFamily:"'Manrope',sans-serif",flexShrink:0}}>Recente</span> : null}
         </div>
-        {!isMobile && <span style={{fontSize:10,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>{when}</span>}
+        {!isMobile && <span style={{fontSize:10,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>{when}</span>}
         {!isMobile && <span style={{fontSize:10,color:"#6E6E76"}}>{f.folderId ? "Pasta" : "Geral"}</span>}
         <div style={{display:"flex",gap:6,justifyContent:"flex-end"}}>
           <button onClick={function(){togglePin(f);}} style={{background:"none",border:"none",fontSize:13,cursor:"pointer",color:isPinned?"#C4A57C":"#6E6E76"}}>&#9733;</button>
@@ -562,8 +562,8 @@ function DocPanel(props) {
           <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
             <div style={{width:54,height:54,borderRadius:20,background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",color:"#A0A0A8",fontSize:23,flexShrink:0}}>&#10022;</div>
             <div style={{flex:1,minWidth:0}}>
-              <p style={{margin:"0 0 4px",fontSize:10,fontFamily:"'JetBrains Mono',monospace",letterSpacing:2,color:"#6E6E76"}}>SINAPSE HUB</p>
-              <h2 style={{margin:0,fontSize:isMobile?20:26,color:"#EDEDEF",fontFamily:"'JetBrains Mono',monospace",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{node.label||"Sem nome"}</h2>
+              <p style={{margin:"0 0 4px",fontSize:10,fontFamily:"'Manrope',sans-serif",letterSpacing:2,color:"#6E6E76"}}>SINAPSE HUB</p>
+              <h2 style={{margin:0,fontSize:isMobile?20:26,color:"#EDEDEF",fontFamily:"'Manrope',sans-serif",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{node.label||"Sem nome"}</h2>
               <p style={{margin:"8px 0 0",fontSize:12,color:"#6E6E76"}}>{files.length} ficheiro{files.length!==1?"s":""} · {links.length} link{links.length!==1?"s":""} · {notes.length} caracteres em notas</p>
               {uploadStatus ? <p style={{margin:"6px 0 0",fontSize:11,color:"#A0A0A8"}}>{uploadStatus}</p> : null}
             </div>
@@ -571,9 +571,9 @@ function DocPanel(props) {
           </div>
           <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.2fr repeat(3,0.45fr)",gap:10,marginTop:18}}>
             <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)"}}><span style={{color:"#6E6E76"}}>&#128269;</span><input value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Filtrar ficheiros e links..." style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#EDEDEF",fontSize:isMobile?16:13,fontFamily:"'Manrope',sans-serif"}}/></div>
-            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>FICHEIROS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{files.length}</strong></div>
-            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>LINKS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{links.length}</strong></div>
-            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#C4A57C",fontFamily:"'JetBrains Mono',monospace"}}>FAVORITOS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{pinned.length}</strong></div>
+            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>FICHEIROS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{files.length}</strong></div>
+            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>LINKS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{links.length}</strong></div>
+            <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#C4A57C",fontFamily:"'Manrope',sans-serif"}}>FAVORITOS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{pinned.length}</strong></div>
           </div>
         </div>
 
@@ -589,7 +589,7 @@ function DocPanel(props) {
           {tab==="home" && (
             <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:16}}>
               <div style={{borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
-                <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 12px"}}>AÇÕES RÁPIDAS</p>
+                <p style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 12px"}}>AÇÕES RÁPIDAS</p>
                 <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
                   {actionButton("Adicionar ficheiros","\uD83D\uDCC4",function(){pickFiles(null);},true)}
                   {actionButton("Novo link","\uD83D\uDD17",function(){setTab("links");setAddingLink(true);},false)}
@@ -598,15 +598,15 @@ function DocPanel(props) {
                 </div>
               </div>
               <div style={{borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
-                <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 10px"}}>NOTA RÁPIDA</p>
+                <p style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 10px"}}>NOTA RÁPIDA</p>
                 <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Ideias, contexto, próximos passos..." style={{width:"100%",minHeight:isMobile?280:(isTablet?300:230),background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,color:"#EDEDEF",fontSize:isMobile?16:14.5,lineHeight:1.85,padding:14,resize:"vertical",outline:"none",fontFamily:"'Manrope',sans-serif",boxSizing:"border-box"}}/>
               </div>
               <div style={{gridColumn:isMobile?"auto":"1 / -1",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
-                <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#C4A57C",letterSpacing:1.2,margin:"0 0 12px"}}>FAVORITOS</p>
+                <p style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#C4A57C",letterSpacing:1.2,margin:"0 0 12px"}}>FAVORITOS</p>
                 {quick.length===0 ? emptyState("\u2B50","Marca ficheiros ou links com estrela para aparecerem aqui.") : <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax("+ (isMobile ? "120px" : "150px") +",1fr))",gap:10}}>{quick.map(function(it){return it.url?linkCard(it):fileCard(it,true);})}</div>}
               </div>
               <div style={{gridColumn:isMobile?"auto":"1 / -1",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",padding:16}}>
-                <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 10px"}}>LIGAÇÕES</p>
+                <p style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",letterSpacing:1.2,margin:"0 0 10px"}}>LIGAÇÕES</p>
                 {linkedWishlist.length ? linkedWishlist.map(function(l) {
                   return <div key={"wl-"+l.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,fontSize:12}}><span style={{color:"#A0A0A8"}}>Wishlist · {l.title}</span><button onClick={function(){unlinkWishlist(l.id);}} style={{background:"none",border:"none",color:"#6E6E76",cursor:"pointer"}}>×</button></div>;
                 }) : null}
@@ -643,14 +643,14 @@ function DocPanel(props) {
                 {actionButton("Adicionar ficheiro","\uD83D\uDCC4",function(){pickFiles(null);},true)}
                 {actionButton("Criar pasta","\uD83D\uDCC1",function(){setAddingFolder(true);},false)}
               </div>
-              <p style={{margin:"0 0 10px",fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",letterSpacing:1}}>DOCUMENTOS · MAIS RECENTES NO TOPO</p>
+              <p style={{margin:"0 0 10px",fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",letterSpacing:1}}>DOCUMENTOS · MAIS RECENTES NO TOPO</p>
               {addingFolder && <div style={{display:"flex",gap:8,marginBottom:14}}><input value={newFolder} onChange={function(e){setNewFolder(e.target.value);}} placeholder="Nome da pasta..." autoFocus onKeyDown={function(e){if(e.key==="Enter")addFolderFn();}} style={{flex:1,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#EDEDEF",fontSize:13,padding:"10px 12px",outline:"none"}}/><button onClick={addFolderFn} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:12,color:"#EDEDEF",padding:"0 16px",cursor:"pointer"}}>Criar</button></div>}
               {allFilesSorted.length ? filesTable(allFilesSorted, "") : emptyState("\uD83D\uDCC4","Adiciona PDF ou imagens (JPG, PNG).")}
               {folders.map(function(folder){
                 var ff = sortDocsRecent(visibleFiles.filter(function(f){return f.folderId===folder.id;}));
                 return <div key={folder.id} style={{marginTop:18}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                    <p style={{margin:0,fontSize:12,color:"#A0A0A8",fontFamily:"'JetBrains Mono',monospace"}}>&#128194; {folder.name} <span style={{opacity:0.5}}>{ff.length}</span></p>
+                    <p style={{margin:0,fontSize:12,color:"#A0A0A8",fontFamily:"'Manrope',sans-serif"}}>&#128194; {folder.name} <span style={{opacity:0.5}}>{ff.length}</span></p>
                     <div style={{display:"flex",gap:8}}>
                       <button onClick={function(){pickFiles(folder.id);}} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,color:"#A0A0A8",padding:"6px 10px",fontSize:10,cursor:"pointer"}}>+ Ficheiro</button>
                       <button onClick={function(){rmFolder(folder.id);}} style={{background:"none",border:"none",color:"#6E6E76",cursor:"pointer"}}>&#10005;</button>
@@ -681,13 +681,13 @@ function DocPanel(props) {
             <div>
               <textarea value={notes} onChange={function(e){sync({notes:e.target.value});}} placeholder="Escreve livremente..." style={{width:"100%",minHeight:isMobile?520:(isTablet?560:440),background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:20,color:"#EDEDEF",fontSize:isMobile?16:15,fontFamily:"'Manrope',sans-serif",lineHeight:1.9,padding:isMobile?16:20,resize:"vertical",outline:"none",boxSizing:"border-box"}}/>
               <div style={{display:"flex",gap:8,alignItems:"center",marginTop:10,flexWrap:isMobile?"wrap":"nowrap"}}>
-                <p style={{fontSize:10,color:"#6E6E76",margin:0,fontFamily:"'JetBrains Mono',monospace",flex:1}}>{notes.length} caracteres · auto-guardado</p>
+                <p style={{fontSize:10,color:"#6E6E76",margin:0,fontFamily:"'Manrope',sans-serif",flex:1}}>{notes.length} caracteres · auto-guardado</p>
                 <select value={journalSpaceId} onChange={function(e){setJournalSpaceId(e.target.value);}} style={{minWidth:isMobile?"100%":170,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#EDEDEF",fontSize:12,padding:"9px 10px",outline:"none"}}>
                   {journalSpaces.map(function(s){return <option key={s.id} value={s.id}>{s.title}</option>;})}
                 </select>
                 <button onClick={sendNoteToJournal} disabled={!notes.trim() || !journalSpaceId} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:12,color:"#EDEDEF",padding:"10px 12px",cursor:(!notes.trim()||!journalSpaceId)?"default":"pointer",opacity:(!notes.trim()||!journalSpaceId)?0.45:1,fontSize:12}}>Enviar para Notas</button>
               </div>
-              {journalStatus && <p style={{fontSize:10,color:"#A0A0A8",margin:"8px 0 0",fontFamily:"'JetBrains Mono',monospace"}}>{journalStatus}</p>}
+              {journalStatus && <p style={{fontSize:10,color:"#A0A0A8",margin:"8px 0 0",fontFamily:"'Manrope',sans-serif"}}>{journalStatus}</p>}
             </div>
           )}
         </div>
@@ -1206,11 +1206,11 @@ export default function Synapse(props) {
       <div style={{width:"min(920px,94vw)"}}>
         <style>{HUB_BACK_CSS}</style>
         <div style={{ marginBottom: 22 }}><HubBack /></div>
-        <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,letterSpacing:2,color:"#6E6E76",margin:0}}>PROJETOS DE SINAPSE</p>
-        <h1 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"clamp(30px,6vw,54px)",margin:"8px 0 18px",color:"#EDEDEF"}}>Escolhe um projeto</h1>
+        <p style={{fontFamily:"'Manrope',sans-serif",fontSize:11,letterSpacing:2,color:"#6E6E76",margin:0}}>PROJETOS DE SINAPSE</p>
+        <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:"clamp(30px,6vw,54px)",fontWeight:700,letterSpacing:"-.04em",margin:"8px 0 18px",color:"#EDEDEF"}}>Escolhe um projeto</h1>
         <div style={{display:"flex",gap:10,marginBottom:22,flexWrap:isMob?"wrap":"nowrap"}}>
           <input value={newProjectName} onChange={function(e){setNewProjectName(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")createProject();}} placeholder="Nome do novo projeto..." style={{flex:1,minWidth:isMob?"100%":220,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,color:"#EDEDEF",padding:"12px 14px",outline:"none",fontSize:isMob?16:14}}/>
-          <button onClick={createProject} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:14,color:"#EDEDEF",padding:"0 18px",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>Criar</button>
+          <button onClick={createProject} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:14,color:"#EDEDEF",padding:"0 18px",cursor:"pointer",fontFamily:"'Manrope',sans-serif"}}>Criar</button>
         </div>
         <div style={{display:"grid",gridTemplateColumns:isMob?"1fr":"repeat(auto-fit,minmax(220px,1fr))",gap:16}}>
           {projects.map(function(p){return <div key={p.id} style={{position:"relative",minHeight:isMob?130:150,borderRadius:22,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",color:"#EDEDEF",padding:isMob?18:20,overflow:"hidden"}}>
@@ -1220,7 +1220,7 @@ export default function Synapse(props) {
             </div>
             <button onClick={function(){setActiveProject(p);}} style={{width:"100%",height:"100%",textAlign:"left",background:"transparent",border:"none",color:"inherit",padding:0,cursor:"pointer"}}>
               <div style={{width:38,height:38,borderRadius:14,background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",color:"#A0A0A8",marginBottom:22}}>✦</div>
-              <h2 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:isMob?20:18,margin:"0 0 8px",paddingRight:70,color:"#EDEDEF"}}>{p.name}</h2>
+              <h2 style={{fontFamily:"'Manrope',sans-serif",fontSize:isMob?20:18,margin:"0 0 8px",paddingRight:70,color:"#EDEDEF"}}>{p.name}</h2>
               <p style={{fontSize:isMob?14:12,color:"#6E6E76",margin:0}}>Entrar no workspace</p>
             </button>
           </div>;})}
@@ -1245,7 +1245,7 @@ export default function Synapse(props) {
           <style>{HUB_BACK_CSS}</style>
           <HubBack />
           <button onClick={function(){setActiveProject(null);}} style={{background:"transparent",border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",color:"#A0A0A8",padding:isMob?"8px 0":"5px 0",fontSize:11,fontFamily:"'Manrope',sans-serif",cursor:"pointer"}}>{isMob ? "Projetos" : "\u2190"}</button>
-          <h1 style={{fontSize:isMob?12:15,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",color:"#EDEDEF",letterSpacing:1,maxWidth:isMob?110:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
+          <h1 style={{fontSize:isMob?14:18,fontWeight:700,fontFamily:"'Syne',sans-serif",color:"#EDEDEF",letterSpacing:"-.04em",maxWidth:isMob?140:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
         )}
         <div style={{display:"flex",gap:isMob?3:5,alignItems:"center"}}>
@@ -1275,7 +1275,7 @@ export default function Synapse(props) {
       )}
       {placing && (
         <div style={{position:"absolute",bottom:88,right:16,zIndex:25,background:"#141416",borderRadius:12,padding:"8px 14px",border:"1px solid rgba(255,255,255,0.07)"}}>
-          <p style={{fontSize:11,color:"#A0A0A8",fontFamily:"'JetBrains Mono',monospace",margin:0}}>Toca no canvas para criar</p>
+          <p style={{fontSize:11,color:"#A0A0A8",fontFamily:"'Manrope',sans-serif",margin:0}}>Toca no canvas para criar</p>
         </div>
       )}
       {touchUI && selectedNode && !docNode && !ctx && (
@@ -1293,19 +1293,19 @@ export default function Synapse(props) {
           <div style={{width:72,height:72,borderRadius:"50%",border:"1px dashed rgba(255,255,255,0.14)",margin:"0 auto 24px",display:"flex",alignItems:"center",justifyContent:"center"}}>
             <span style={{fontSize:28,color:"#6E6E76"}}>{"\u2726"}</span>
           </div>
-          <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:isMob?13:15,color:"#A0A0A8",marginBottom:10}}>{touchUI?"Toca no + para começar":"Clica direito para começar"}</p>
+          <p style={{fontFamily:"'Manrope',sans-serif",fontSize:isMob?13:15,color:"#A0A0A8",marginBottom:10}}>{touchUI?"Toca no + para começar":"Clica direito para começar"}</p>
           <p style={{fontFamily:"'Manrope',sans-serif",fontSize:11.5,color:"#6E6E76",lineHeight:2,whiteSpace:"pre-line"}}>{touchUI?"Toca num nó → menu em baixo\n+ no canto → nova sinapse":"Botão direito → criar · Clique → ficheiros\nDuplo clique → colapsar · Scroll → zoom · Cmd+K → procurar"}</p>
         </div>
       )}
 
       {help && nodes.length>0 && !touchUI && (
         <div style={{position:"absolute",bottom:16,left:16,zIndex:15,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px 18px",animation:"slideUp 0.3s ease",maxWidth:260}}>
-          <p style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:"#6E6E76",marginBottom:8,letterSpacing:1}}>CONTROLOS</p>
+          <p style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",marginBottom:8,letterSpacing:1}}>CONTROLOS</p>
           {(isTab?[["Long press","Criar / Menu"],["Toque","Ficheiros"],["Duplo toque","Colapsar"],["Pinch","Zoom"],["Arrastar","Navegar"]]:[["Botão direito","Criar / Menu"],["Clique","Ficheiros"],["Duplo clique","Colapsar"],["Dir. na linha","Apagar"],["Scroll","Zoom"],["Arrastar","Navegar"],["Cmd+K ou /","Procurar"]]).map(function(pair,i){
             return (
               <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
                 <span style={{fontSize:10.5,color:"#A0A0A8"}}>{pair[0]}</span>
-                <span style={{fontSize:10.5,color:"#6E6E76",fontFamily:"'JetBrains Mono',monospace"}}>{pair[1]}</span>
+                <span style={{fontSize:10.5,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>{pair[1]}</span>
               </div>
             );
           })}
@@ -1313,7 +1313,7 @@ export default function Synapse(props) {
       )}
 
       <div style={{position:"absolute",bottom:isMob?8:16,left:isMob?"50%":undefined,right:isMob?undefined:16,transform:isMob?"translateX(-50%)":"none",zIndex:15}}>
-        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9.5,color:"#6E6E76",letterSpacing:1}}>{nodes.length+" nós · "+conns.length+" ligações · "+Math.round(zoom*100)+"%"}</span>
+        <span style={{fontFamily:"'Manrope',sans-serif",fontSize:9.5,color:"#6E6E76",letterSpacing:1}}>{nodes.length+" nós · "+conns.length+" ligações · "+Math.round(zoom*100)+"%"}</span>
       </div>
 
       <svg ref={svgRef} width="100%" height="100%" style={{position:"absolute",inset:0,cursor:connFrom||placing?"crosshair":isPanning?"grabbing":"default",touchAction:"none"}}

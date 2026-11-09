@@ -6,13 +6,13 @@ import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 var SAVE_DEBOUNCE_MS = 1800;
 
 var FL_CSS = [
-  ".fl-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
-  ".fl-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}",
-  ".fl-num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}",
+  ".fl-lbl{margin:0;font-family:'Manrope',sans-serif;font-size:10px;line-height:1.5;letter-spacing:1.6px;text-transform:uppercase;color:#6E6E76}",
+  ".fl-mono{font-family:'Manrope',sans-serif;font-variant-numeric:tabular-nums}",
+  ".fl-num{font-family:'Manrope',sans-serif;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}",
   ".fl-card{border:none;background:transparent}",
   ".fl-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 2px;",
   "background:transparent;border:none;border-bottom:1px solid currentColor;color:var(--fl-fg,#A0A0A8);",
-  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;",
+  "cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.4px;",
   "transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".fl-btn:hover:not(:disabled){color:#EDEDEF}",
   ".fl-btn:disabled{cursor:not-allowed}",
@@ -408,8 +408,8 @@ export default function FinanceLedger(props) {
       <div className="fl-card" style={{ display: "grid", gap: 12, marginBottom: 20, padding: 16 }}>
         <input className="fl-in" value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="Descrição" onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 140px 1fr", gap: 12 }}>
-          <input className="fl-in" value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={{ fontFamily: "'JetBrains Mono',monospace", fontVariantNumeric: "tabular-nums" }} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
-          <input className="fl-in" type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+          <input className="fl-in" value={draft.amount} onChange={function(e) { setDraft(Object.assign({}, draft, { amount: e.target.value })); }} placeholder="Valor €" type="number" min="0" step="0.01" style={{ fontFamily: "'Manrope',sans-serif", fontVariantNumeric: "tabular-nums" }} onKeyDown={function(e) { if (e.key === "Enter") addRow(); }} />
+          <input className="fl-in" type="date" value={draft.day} onChange={function(e) { setDraft(Object.assign({}, draft, { day: e.target.value })); }} style={{ fontFamily: "'Manrope',sans-serif" }} />
         </div>
         <p className="fl-lbl" style={{ marginTop: 4 }}>CATEGORIAS (máx. 2)</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

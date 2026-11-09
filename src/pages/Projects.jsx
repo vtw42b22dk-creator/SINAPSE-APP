@@ -46,8 +46,8 @@ var PROJ_CSS = [
   ".pj-page{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;isolation:isolate;background:#0A0A0B;color:#EDEDEF;font-family:'Manrope',sans-serif}",
   ".pj-top{position:relative;z-index:2;flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0A0A0B;pointer-events:auto}",
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
-  ".pj-brand h1{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--mc);letter-spacing:1.6px}",
-  ".pj-brand span{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#6E6E76;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
+  ".pj-brand h1{margin:0;font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#EDE8DF;letter-spacing:-.04em}",
+  ".pj-brand span{font-size:10.5px;font-family:'Manrope',sans-serif;color:#6E6E76;padding:3px 9px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
   ".pj-search{flex:1;min-width:140px;max-width:300px;position:relative;display:flex;align-items:center}",
   ".pj-search svg{position:absolute;left:12px;color:#6E6E76;pointer-events:none;transition:color var(--dur) var(--ease)}",
   ".pj-search:focus-within svg{color:#A0A0A8}",
@@ -57,20 +57,20 @@ var PROJ_CSS = [
   ".pj-viewtog button{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#141416;border:none;color:#6E6E76;cursor:pointer;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-viewtog button.on{background:#1A1A1D;color:#EDEDEF}",
   ".pj-top-actions{display:flex;align-items:center;gap:12px;margin-left:auto}",
-  ".pj-new{padding:9px 2px;border:none;border-bottom:1px solid #EDEDEF;background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:400;letter-spacing:.4px;cursor:pointer;white-space:nowrap}",
+  ".pj-new{padding:9px 2px;border:none;border-bottom:1px solid #EDEDEF;background:transparent;color:#EDEDEF;font-family:'Manrope',sans-serif;font-size:11px;font-weight:400;letter-spacing:.4px;cursor:pointer;white-space:nowrap}",
   ".pj-preset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}",
-  ".pj-preset button{flex:1;min-width:90px;padding:10px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".pj-preset button{flex:1;min-width:90px;padding:10px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#A0A0A8;font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-preset button.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
   ".pj-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 20px 28px;-webkit-overflow-scrolling:touch;pointer-events:auto;touch-action:pan-y}",
   ".pj-body{width:100%;max-width:920px;margin:0 auto;padding-top:20px}",
   ".pj-body.dense{max-width:1180px}",
   ".pj-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px;padding:8px 0 24px;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;position:relative}",
-  ".pj-hero h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(17px,3vw,22px);font-weight:500;letter-spacing:-.01em;color:#EDEDEF}",
+  ".pj-hero h2{margin:0;font-family:'Manrope',sans-serif;font-size:clamp(17px,3vw,22px);font-weight:500;letter-spacing:-.01em;color:#EDEDEF}",
   ".pj-hero p{margin:8px 0 0;font-size:12.5px;color:#A0A0A8;line-height:1.55;max-width:420px}",
   ".pj-chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
-  ".pj-chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;white-space:nowrap}",
+  ".pj-chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;font-size:10.5px;font-family:'Manrope',sans-serif;color:#A0A0A8;white-space:nowrap}",
   ".pj-chip strong{color:#EDEDEF;font-weight:500}",
-  ".pj-sech{margin:0 0 12px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#6E6E76;letter-spacing:1.6px;display:flex;align-items:center;gap:10px}",
+  ".pj-sech{margin:0 0 12px;font-size:10px;font-family:'Manrope',sans-serif;font-weight:500;color:#6E6E76;letter-spacing:1.6px;display:flex;align-items:center;gap:10px}",
   ".pj-sech::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}",
   ".pj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-content:start;justify-content:center}",
   ".pj-grid.sparse{grid-template-columns:repeat(auto-fit,minmax(280px,420px));justify-content:center;gap:16px}",
@@ -86,8 +86,8 @@ var PROJ_CSS = [
   ".pj-card-in{padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px;min-height:128px}",
   ".pj-card-row{display:flex;align-items:flex-start;gap:12px}",
   ".pj-card-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}",
-  ".pj-card-name{margin:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;z-index:3;cursor:text}",
-  ".pj-card-tag{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:10px;line-height:1.4;font-family:'JetBrains Mono',monospace;letter-spacing:.6px}",
+  ".pj-card-name{margin:0;font-family:'Manrope',sans-serif;font-size:14px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;z-index:3;cursor:text}",
+  ".pj-card-tag{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;font-size:10px;line-height:1.4;font-family:'Manrope',sans-serif;letter-spacing:.6px}",
   ".pj-card-desc{margin:0;font-size:12.5px;color:#A0A0A8;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
   ".pj-card-desc.is-editing,.pj-grid.sparse .pj-card-desc.is-editing{display:block;-webkit-line-clamp:unset;line-clamp:unset;-webkit-box-orient:unset;overflow:visible;white-space:normal}",
   ".pj-card-desc.is-editing textarea{display:block;width:100%;min-height:3.2em;overflow:auto}",
@@ -95,8 +95,8 @@ var PROJ_CSS = [
   ".pj-mod{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10}",
   ".pj-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)}",
   ".pj-ring{position:relative;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
-  ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0E0E10;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;font-family:'JetBrains Mono',monospace;color:#A0A0A8}",
-  ".pj-roi{padding:4px 10px;border-radius:999px;font-size:10.5px;font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:.3px}",
+  ".pj-ring i{position:absolute;inset:4px;border-radius:50%;background:#0E0E10;display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;font-family:'Manrope',sans-serif;color:#A0A0A8}",
+  ".pj-roi{padding:4px 10px;border-radius:999px;font-size:10.5px;font-family:'Manrope',sans-serif;font-weight:500;letter-spacing:.3px}",
   ".pj-act{position:absolute;top:10px;right:10px;display:flex;gap:6px;opacity:1;transition:opacity var(--dur) var(--ease);z-index:8;pointer-events:auto}",
   ".pj-act button{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.45);color:#A0A0A8;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-act button:hover{background:#1A1A1D;color:#EDEDEF;border-color:rgba(255,255,255,0.14)}",
@@ -105,16 +105,16 @@ var PROJ_CSS = [
   ".pj-addcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:156px;border-radius:14px;border:1px dashed rgba(255,255,255,0.14);background:transparent;cursor:pointer;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease);color:#6E6E76}",
   ".pj-addcard:hover{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
   ".pj-addcard span:first-child{font-size:24px;line-height:1;opacity:.7}",
-  ".pj-addcard span:last-child{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.6px}",
+  ".pj-addcard span:last-child{font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.6px}",
   ".pj-rowcard{display:flex;align-items:center;gap:14px;padding:14px 0;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;cursor:pointer;position:relative}",
   ".pj-rowcard:hover{background:transparent;border-bottom-color:rgba(255,255,255,0.28)}",
   ".pj-rowcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc);opacity:.6}",
   ".pj-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;border-radius:14px;border:1px dashed rgba(255,255,255,0.14);background:transparent;text-align:center;max-width:480px;margin:40px auto 0}",
-  ".pj-empty::before{content:'✦';font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1;color:#6E6E76;margin-bottom:16px}",
+  ".pj-empty::before{content:'✦';font-family:'Manrope',sans-serif;font-size:22px;line-height:1;color:#6E6E76;margin-bottom:16px}",
   ".pj-mbk{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;animation:pjFade var(--dur) var(--ease)}",
   ".pj-modal{width:min(450px,100%);border:none;border-top:1px solid rgba(255,255,255,0.16);background:#070708;padding:24px 4px;animation:pjFade var(--dur-slow) var(--ease)}",
   ".pj-mods-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}",
-  ".pj-mods-grid button{padding:10px 4px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#6E6E76;font-size:10px;line-height:1.4;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:center;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
+  ".pj-mods-grid button{padding:10px 4px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:#0E0E10;color:#6E6E76;font-size:10px;line-height:1.4;font-family:'Manrope',sans-serif;cursor:pointer;text-align:center;transition:background-color var(--dur) var(--ease),border-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-mods-grid button.on{border-color:rgba(255,255,255,0.14);background:#1A1A1D;color:#EDEDEF}",
   ".pj-pal{display:flex;gap:8px;flex-wrap:wrap}",
   ".pj-pal button{width:28px;height:28px;border-radius:9px;border:2px solid transparent;cursor:pointer;padding:2px;transition:transform var(--dur-fast) var(--ease),border-color var(--dur) var(--ease)}",
@@ -243,10 +243,10 @@ function ProjectCard(props) {
           {st.total > 0 ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <ProgressRing pct={donePct} color={meta.color} />
-              <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }}>{st.pending} por fazer</span>
+              <span style={{ fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }}>{st.pending} por fazer</span>
             </div>
           ) : (
-            <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76" }}>Sem tarefas</span>
+            <span style={{ fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#6E6E76" }}>Sem tarefas</span>
           )}
           {st.hasInvestments && <RoiPill roi={st.roi} />}
         </div>
@@ -288,7 +288,7 @@ function ProjectRow(props) {
       {st.total > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <ProgressRing pct={donePct} color={meta.color} />
-          <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8", width: 60 }}>{st.pending} restam</span>
+          <span style={{ fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8", width: 60 }}>{st.pending} restam</span>
         </div>
       )}
       {st.hasInvestments && <RoiPill roi={st.roi} />}
@@ -552,10 +552,10 @@ export default function Projects() {
         <HubBack />
         {isMobile ? (
           <div className="pj-top-head">
-            <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
+            <div className="pj-brand"><h1>Projetos</h1><span>{projects.length}</span></div>
           </div>
         ) : (
-          <div className="pj-brand"><h1>PROJETOS</h1><span>{projects.length}</span></div>
+          <div className="pj-brand"><h1>Projetos</h1><span>{projects.length}</span></div>
         )}
         <div className="pj-search">
           <SearchIcon />
@@ -588,7 +588,7 @@ export default function Projects() {
 
           {filtered.length === 0 ? (
             <div className="pj-empty">
-              <p style={{ margin: "0 0 8px", fontFamily: "'JetBrains Mono',monospace", fontSize: 15, fontWeight: 500, color: ACCENT }}>Nenhum projeto encontrado</p>
+              <p style={{ margin: "0 0 8px", fontFamily: "'Manrope',sans-serif", fontSize: 15, fontWeight: 500, color: ACCENT }}>Nenhum projeto encontrado</p>
               <p style={{ margin: "0 0 20px", fontSize: 12.5, lineHeight: 1.55, color: "#A0A0A8" }}>
                 {query ? "Ajusta a pesquisa." : "Cria o teu primeiro workspace modular."}
               </p>
@@ -618,7 +618,7 @@ export default function Projects() {
         <div className="pj-mbk" onClick={function(e) { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div className="pj-modal" onClick={function(e) { e.stopPropagation(); }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <p style={{ margin: 0, fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: ACCENT, letterSpacing: 1.6 }}>NOVO PROJETO</p>
+              <p style={{ margin: 0, fontSize: 10, fontFamily: "'Manrope',sans-serif", color: ACCENT, letterSpacing: 1.6 }}>NOVO PROJETO</p>
               <button type="button" className="pj-ghost" onClick={function() { setModalOpen(false); }} style={{ padding: "6px 11px" }}>×</button>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -675,5 +675,5 @@ function inputStyle() {
   return { width: "100%", background: "#0E0E10", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, color: "#EDEDEF", padding: "11px 13px", fontSize: 14, lineHeight: 1.5, outline: "none", fontFamily: "inherit", boxSizing: "border-box" };
 }
 function lblMini() {
-  return { margin: "0 0 8px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", fontWeight: 500, color: "#6E6E76", letterSpacing: 1.6 };
+  return { margin: "0 0 8px", fontSize: 10, fontFamily: "'Manrope',sans-serif", fontWeight: 500, color: "#6E6E76", letterSpacing: 1.6 };
 }

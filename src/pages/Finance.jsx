@@ -23,13 +23,13 @@ var FIN_CSS = [
   MODULE_GLOW_CSS,
   ".fin-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 2px;",
   "background:transparent;border:none;border-bottom:1px solid currentColor;color:var(--fin-fg,#A0A0A8);",
-  "cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px}",
+  "cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.4px}",
   ".fin-btn:hover{color:#EDEDEF}",
-  ".fin-lbl{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76}",
-  ".fin-num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}",
+  ".fin-lbl{margin:0;font-family:'Manrope',sans-serif;font-size:10px;line-height:1.5;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76}",
+  ".fin-num{font-family:'Manrope',sans-serif;font-variant-numeric:tabular-nums}",
   ".fin-seq{width:100%;text-align:left;padding:14px 0;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:none;color:#A0A0A8;cursor:pointer}",
   ".fin-seq.on{color:#EDEDEF;border-bottom-color:rgba(255,255,255,.28)}",
-  ".fin-seq h3{margin:0;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.4px;text-transform:uppercase}",
+  ".fin-seq h3{margin:0;font-family:'Manrope',sans-serif;font-size:13px;font-weight:500;letter-spacing:.4px;text-transform:uppercase}",
   ".fin-seq p{margin:6px 0 0;font-size:12px;color:#6E6E76}",
   ".fin-line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}",
   ".fin-line:last-child{border-bottom:none}",
@@ -133,7 +133,7 @@ export default function Finance() {
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <HubBack />
-            <h1 className="mod-h1" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: isMobile ? 18 : 16, fontWeight: 500, letterSpacing: 0.2, color: MODULE_ACCENT, margin: 0 }}>Financeiro</h1>
+            <h1 className="mod-h1" style={{ fontFamily: "'Syne',sans-serif", fontSize: isMobile ? 22 : 24, fontWeight: 700, letterSpacing: "-0.04em", color: MODULE_ACCENT, margin: 0 }}>Financeiro</h1>
           </div>
           <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto", flexWrap: "wrap" }}>
             <button className="fin-btn" onClick={function() { setView("move"); }} style={Object.assign({}, tabBtn(view === "move", MODULE_ACCENT), isMobile ? { flex: 1 } : null)}>Movimentos</button>
@@ -283,7 +283,7 @@ function Report(props) {
             return (
               <div key={r.id} className="fin-line">
                 <span>
-                  <span style={{ color: INCOME_ACCENT, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, marginRight: 8 }}>RECURSO</span>
+                  <span style={{ color: INCOME_ACCENT, fontFamily: "'Manrope',sans-serif", fontSize: 10, marginRight: 8 }}>RECURSO</span>
                   {r.title}
                   <span style={{ color: "#6E6E76", marginLeft: 8 }}>{sequenceLabel(r.sequence)}</span>
                 </span>
@@ -295,7 +295,7 @@ function Report(props) {
             return (
               <div key={r.id} className="fin-line">
                 <span>
-                  <span style={{ color: EXPENSE_ACCENT, fontFamily: "'JetBrains Mono',monospace", fontSize: 10, marginRight: 8 }}>GASTO</span>
+                  <span style={{ color: EXPENSE_ACCENT, fontFamily: "'Manrope',sans-serif", fontSize: 10, marginRight: 8 }}>GASTO</span>
                   {r.title}
                   <span style={{ color: "#6E6E76", marginLeft: 8 }}>{sequenceLabel(r.sequence)}</span>
                 </span>

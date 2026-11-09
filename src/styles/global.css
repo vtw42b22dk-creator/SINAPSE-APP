@@ -108,12 +108,12 @@ body {
 }
 
 h1, h2, h3 {
-  letter-spacing: -0.03em;
+  font-family: "Syne", sans-serif;
+  letter-spacing: -0.04em;
   line-height: 1.15;
-  font-weight: 400;
+  font-weight: 700;
 }
 
-[style*="JetBrains"],
 code, kbd, pre {
   font-variant-numeric: tabular-nums;
 }
@@ -799,6 +799,7 @@ textarea::placeholder {
   }
 }
 
+[style*="JetBrains"],
 [style*="IBM Plex"] {
   font-family: "Manrope", system-ui, sans-serif !important;
 }
@@ -817,7 +818,16 @@ textarea::placeholder {
 #root h1,
 #root h2,
 #root h3,
-#root .mod-h1 {
+#root .mod-h1,
+#root .hub-hello,
+#root .hub-time,
+#root .hub-stat b,
+#root .ag-aside-t,
+#root .ag-title,
+#root .ch-brand h1,
+#root .ch-sheet-lbl,
+#root .nt-brand h1,
+#root .sh-brand-txt strong {
   font-family: "Syne", sans-serif !important;
   letter-spacing: -0.04em;
 }

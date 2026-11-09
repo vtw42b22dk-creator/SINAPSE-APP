@@ -10,32 +10,32 @@ var STOCK_CSS = [
   ".pm-wrap{padding:14px 16px 40px!important}",
   ".pm-head{margin-bottom:10px!important;align-items:center!important}",
   ".ps-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
-  ".ps-hide{border:1px solid rgba(255,255,255,0.14);background:#1A1A1D;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:10px 14px;border-radius:12px;cursor:pointer}",
+  ".ps-hide{border:1px solid rgba(255,255,255,0.14);background:#1A1A1D;color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;padding:10px 14px;border-radius:12px;cursor:pointer}",
   ".ps-hide.on{color:#EDEDEF;border-color:rgba(255,255,255,0.32);background:#141416}",
   ".ps-top{margin-bottom:8px}",
   ".ps-add{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}",
   ".ps-week{margin:0 0 10px}",
-  ".ps-week-h{margin:0 0 2px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px;text-transform:uppercase}",
+  ".ps-week-h{margin:0 0 2px;font-size:10px;font-family:'Manrope',sans-serif;color:#A0A0A8;letter-spacing:.4px;text-transform:uppercase}",
   ".ps-week-h span{color:#6E6E76;letter-spacing:0;text-transform:none;font-weight:400;margin-left:8px}",
   ".ps-week .ps-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin:0}",
   ".ps-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 8px}",
   ".ps-stat{min-width:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
-  ".ps-stat p{margin:0;font-size:9px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
-  ".ps-stat b{display:block;margin-top:5px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;line-height:1.15;word-break:break-word}",
+  ".ps-stat p{margin:0;font-size:9px;font-family:'Manrope',sans-serif;color:#6E6E76;letter-spacing:.5px;text-transform:uppercase}",
+  ".ps-stat b{display:block;margin-top:5px;font-size:16px;font-family:'Manrope',sans-serif;font-weight:600;line-height:1.15;word-break:break-word}",
   ".ps-meta{padding:8px 0;margin:0 0 8px;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-meta-row{display:flex;align-items:center;justify-content:space-between;gap:12px}",
   ".ps-meta-bar{height:7px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;margin:8px 0 0}",
   ".ps-meta-fill{height:100%;border-radius:999px;background:#8FA8C4}",
-  ".ps-ghost{border:none;border-bottom:1px solid rgba(255,255,255,0.2);background:transparent;color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 2px;cursor:pointer}",
+  ".ps-ghost{border:none;border-bottom:1px solid rgba(255,255,255,0.2);background:transparent;color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:11px;padding:6px 2px;cursor:pointer}",
   ".ps-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}",
-  ".ps-chart h3{margin:0 0 4px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;letter-spacing:.4px}",
+  ".ps-chart h3{margin:0 0 4px;font-size:10px;font-family:'Manrope',sans-serif;color:#A0A0A8;letter-spacing:.4px}",
   ".ps-chart svg{width:100%;height:auto;display:block}",
   ".ps-tabs{display:flex;gap:8px;margin:0 0 6px;flex-wrap:wrap}",
   ".ps-tabs .pm-seg{flex-wrap:wrap}",
   ".ps-hint{margin:0 0 12px;font-size:12px;line-height:1.5;color:#A0A0A8}",
   ".ps-check{display:flex;align-items:center;gap:8px;font-size:13px;color:#A0A0A8;cursor:pointer}",
   ".ps-check input{accent-color:#C4A57C}",
-  ".ps-h{margin:0 0 2px;padding:0;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
+  ".ps-h{margin:0 0 2px;padding:0;font-size:11px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#A0A0A8}",
   ".ps-list{display:flex;flex-direction:column;margin:0}",
   ".ps-list.marks{padding-left:22px}",
   ".ps-line{position:relative}",
@@ -44,36 +44,36 @@ var STOCK_CSS = [
   ".ps-card h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
   ".ps-card h4.suspenso{color:#E07070}",
   ".ps-menu{position:fixed;z-index:90;min-width:188px;background:#141416;border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,0.5)}",
-  ".ps-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;color:#EDEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:8px;cursor:pointer}",
+  ".ps-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;color:#EDEDEF;font-family:'Manrope',sans-serif;font-size:12px;padding:10px 12px;border-radius:8px;cursor:pointer}",
   ".ps-menu button:hover{background:rgba(255,255,255,0.06)}",
   ".ps-menu button.on{color:#E07070}",
   ".ps-menu button.limit.on{color:#C4A57C}",
-  ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
+  ".ps-card .meta{margin:3px 0 0;font-size:11px;font-family:'Manrope',sans-serif;color:#A0A0A8;line-height:1.35;overflow-wrap:anywhere}",
   ".ps-acts{display:flex;flex-direction:row;gap:14px;align-items:center;flex-wrap:wrap}",
-  ".ps-link{border:none;background:none;padding:0;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
+  ".ps-link{border:none;background:none;padding:0;font-family:'Manrope',sans-serif;font-size:11px;font-weight:500;letter-spacing:.2px;cursor:pointer;color:#A0A0A8}",
   ".ps-link.sell{color:#8FB39B}",
   ".ps-link.arrive{color:#C4A57C}",
   ".ps-link.del{color:#C08C8C}",
-  ".ps-stat-sub{display:block;margin-top:4px;font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:500;color:#A0A0A8}",
-  ".ps-expect{display:inline-flex;align-items:center;margin-top:6px;border:1px solid rgba(196,165,124,0.45);background:transparent;color:#C4A57C;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.2px;padding:3px 8px;border-radius:999px;cursor:pointer;line-height:1.2}",
+  ".ps-stat-sub{display:block;margin-top:4px;font-size:11px;font-family:'Manrope',sans-serif;font-weight:500;color:#A0A0A8}",
+  ".ps-expect{display:inline-flex;align-items:center;margin-top:6px;border:1px solid rgba(196,165,124,0.45);background:transparent;color:#C4A57C;font-family:'Manrope',sans-serif;font-size:10px;font-weight:600;letter-spacing:.2px;padding:3px 8px;border-radius:999px;cursor:pointer;line-height:1.2}",
   ".ps-expect:hover{background:rgba(196,165,124,0.12)}",
   ".ps-sheet.expect{width:min(480px,100%);max-height:min(88vh,760px);display:flex;flex-direction:column;overflow:hidden}",
   ".ps-expect-list{overflow:auto;flex:1 1 auto;min-height:0;margin:0 0 8px}",
   ".ps-expect-row{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px 10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08)}",
   ".ps-expect-row h4{margin:0;font-size:13.5px;font-weight:500;line-height:1.25;overflow-wrap:anywhere}",
-  ".ps-expect-row .meta{margin:3px 0 0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#A0A0A8;line-height:1.35}",
+  ".ps-expect-row .meta{margin:3px 0 0;font-size:11px;font-family:'Manrope',sans-serif;color:#A0A0A8;line-height:1.35}",
   ".ps-expect-row .pm-input{min-height:36px;padding:8px 10px}",
-  ".ps-expect-sum{margin:0;font-family:'JetBrains Mono',monospace;font-size:12px;color:#A0A0A8}",
+  ".ps-expect-sum{margin:0;font-family:'Manrope',sans-serif;font-size:12px;color:#A0A0A8}",
   ".ps-expect-sum b{font-weight:600}",
-  ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'JetBrains Mono',monospace}",
-  ".ps-ok{margin:0 0 8px;font-size:12px;color:#8FB39B;font-family:'JetBrains Mono',monospace}",
+  ".ps-err{margin:0 0 8px;font-size:12px;color:#C08C8C;font-family:'Manrope',sans-serif}",
+  ".ps-ok{margin:0 0 8px;font-size:12px;color:#8FB39B;font-family:'Manrope',sans-serif}",
   ".ps-empty{padding:10px 0;font-size:12px;color:#6E6E76}",
   ".ps-sheet-bk{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.62);display:flex;align-items:flex-end;justify-content:center;padding:12px}",
   ".ps-sheet{width:min(440px,100%);background:#0E0E10;border:1px solid rgba(255,255,255,0.12);border-radius:18px 18px 12px 12px;padding:18px 16px 16px}",
-  ".ps-sheet h3{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600}",
+  ".ps-sheet h3{margin:0 0 14px;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600}",
   ".ps-sheet .row{display:flex;flex-direction:column;gap:10px}",
   ".ps-sheet .acts{display:flex;gap:8px;margin-top:14px}",
-  ".ps-more{margin:12px 0 0;font-size:11px;color:#6E6E76;background:none;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace}",
+  ".ps-more{margin:12px 0 0;font-size:11px;color:#6E6E76;background:none;border:none;cursor:pointer;font-family:'Manrope',sans-serif}",
   "@media(max-width:719px){",
   ".ps-add{grid-template-columns:1fr 1fr}.ps-add .pm-btn{grid-column:1/-1;justify-content:center;min-height:44px}",
   ".ps-stats{grid-template-columns:1fr 1fr;gap:6px}",
@@ -190,7 +190,7 @@ function ChartFrame(props) {
       {labels.map(function(label, i) {
         if (i % showEvery !== 0 && i !== labels.length - 1) return null;
         return (
-          <text key={label + i} x={xAt(i)} y={h - 8} fill="#6E6E76" fontSize="8" textAnchor="middle" fontFamily="JetBrains Mono,monospace">
+          <text key={label + i} x={xAt(i)} y={h - 8} fill="#6E6E76" fontSize="8" textAnchor="middle" fontFamily="Manrope,monospace">
             {String(label).replace("Sem ", "")}
           </text>
         );
@@ -688,7 +688,7 @@ export function ProjectStock(props) {
           <div>
             <label className="pm-label">Compra</label>
             <input className="pm-input" value={compra} onChange={function(e) { setCompra(e.target.value); }} inputMode="decimal" placeholder="0€"
-              style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+              style={{ fontFamily: "'Manrope',sans-serif" }} />
           </div>
           <PrimaryBtn onClick={addCompra}>Guardar</PrimaryBtn>
         </div>
@@ -748,10 +748,10 @@ export function ProjectStock(props) {
           <div className="ps-meta-row">
             <div>
               <p className="pm-label" style={{ marginBottom: 4 }}>Meta de lucro</p>
-              <p style={{ margin: 0, fontFamily: "'JetBrains Mono',monospace", fontSize: 16, fontWeight: 600 }}>
+              <p style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 16, fontWeight: 600 }}>
                 {fmtShort(stats.lucroTotal)} <span style={{ color: "#6E6E76", fontSize: 12 }}>/ {fmtShort(stats.meta)}</span>
               </p>
-              <p style={{ margin: "5px 0 0", fontSize: 11, color: "#A0A0A8", fontFamily: "'JetBrains Mono',monospace" }}>
+              <p style={{ margin: "5px 0 0", fontSize: 11, color: "#A0A0A8", fontFamily: "'Manrope',sans-serif" }}>
                 {stats.percentagem.toFixed(0)}% · {stats.dias} dias
               </p>
             </div>
@@ -834,7 +834,7 @@ export function ProjectStock(props) {
             <div>
               <label className="pm-label">Valor</label>
               <input className="pm-input" value={invAmount} onChange={function(e) { setInvAmount(e.target.value); }} inputMode="decimal" placeholder="0€"
-                style={{ fontFamily: "'JetBrains Mono',monospace" }} onKeyDown={function(e) { if (e.key === "Enter") addApontamento(); }} />
+                style={{ fontFamily: "'Manrope',sans-serif" }} onKeyDown={function(e) { if (e.key === "Enter") addApontamento(); }} />
             </div>
             <PrimaryBtn onClick={addApontamento}>Apontar</PrimaryBtn>
           </div>
@@ -925,12 +925,12 @@ export function ProjectStock(props) {
                   <div>
                     <label className="pm-label">Preço de venda</label>
                     <input className="pm-input" value={venda} onChange={function(e) { setVenda(e.target.value); }} inputMode="decimal" placeholder="55" autoFocus
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <div>
                     <label className="pm-label">Custos extra</label>
                     <input className="pm-input" value={extra} onChange={function(e) { setExtra(e.target.value); }} inputMode="decimal"
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                 </div>
                 <div className="acts">
@@ -950,17 +950,17 @@ export function ProjectStock(props) {
                   <div>
                     <label className="pm-label">Compra</label>
                     <input className="pm-input" value={editCompra} onChange={function(e) { setEditCompra(e.target.value); }} inputMode="decimal"
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <div>
                     <label className="pm-label">Custos extra</label>
                     <input className="pm-input" value={editExtra} onChange={function(e) { setEditExtra(e.target.value); }} inputMode="decimal"
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <div>
                     <label className="pm-label">Venda (vazio = em stock)</label>
                     <input className="pm-input" value={venda} onChange={function(e) { setVenda(e.target.value); }} inputMode="decimal"
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                   <label className="ps-check">
                     <input type="checkbox" checked={aChegar} onChange={function(e) { setAChegar(e.target.checked); }} />
@@ -1000,7 +1000,7 @@ export function ProjectStock(props) {
                             </p>
                           </div>
                           <input className="pm-input" value={raw} onChange={function(e) { setExpect(item.id, e.target.value); }} inputMode="decimal" placeholder="0€"
-                            style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                            style={{ fontFamily: "'Manrope',sans-serif" }} />
                         </div>
                       );
                     })}
@@ -1025,7 +1025,7 @@ export function ProjectStock(props) {
                   <div>
                     <label className="pm-label">Objetivo de lucro €</label>
                     <input className="pm-input" value={metaVal} onChange={function(e) { setMetaVal(e.target.value); }} inputMode="decimal" placeholder="500"
-                      style={{ fontFamily: "'JetBrains Mono',monospace" }} />
+                      style={{ fontFamily: "'Manrope',sans-serif" }} />
                   </div>
                 </div>
                 <div className="acts">

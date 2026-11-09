@@ -14,7 +14,7 @@ export var PAGE_LOADER_CSS = [
   "animation:plPulse 1.6s ease-in-out infinite}",
   ".pl-dot{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--mc,#E6E6E9);",
   "top:50%;left:50%;margin:-3.5px 0 0 -3.5px;animation:plPulse 1.6s ease-in-out infinite}",
-  ".pl-label{margin:0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.4px;",
+  ".pl-label{margin:0;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:2.4px;",
   "text-transform:uppercase;color:#6E6E76}",
 ].join("");
 

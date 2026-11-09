@@ -38,29 +38,29 @@ var TASKS_CSS = [
   ".tk-head{position:sticky;top:0;z-index:20;padding:14px 20px;background:rgba(7,7,8,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}",
   ".tk-head-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}",
   ".tk-head-inner--mob{flex-direction:column;align-items:stretch;padding:12px}",
-  ".tk-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:12px;cursor:pointer;font-family:'Manrope',sans-serif;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
   ".tk-back:active{transform:translateY(1px)}",
   ".tk-search-row{display:flex;align-items:center;gap:10px;flex:1;max-width:380px;min-width:180px}",
   ".tk-search-row--full{max-width:none}",
-  ".tk-focus-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-focus-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-focus-btn.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-focus-btn:active{transform:scale(.96)}",
-  ".tk-zone-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:transparent;color:#A0A0A8;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-zone-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:transparent;color:#A0A0A8;font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-zone-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-zone-btn:active{transform:scale(.96)}",
   ".tk-zone-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin:0 0 22px;padding:16px 2px;border:none;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);background:transparent;color:#A0A0A8;cursor:pointer;text-align:left;font-family:inherit}",
-  ".tk-zone-entry strong{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:13px;letter-spacing:.3px;color:#EDEDEF}",
+  ".tk-zone-entry strong{font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;letter-spacing:.3px;color:#EDEDEF}",
   ".tk-zone-entry span{font-size:12px;color:#6E6E76}",
   ".tk-zone-entry:hover strong{color:var(--mc)}",
-  ".tk-horizon{padding:11px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;text-align:left;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
+  ".tk-horizon{padding:11px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;font-family:'Manrope',sans-serif;cursor:pointer;text-align:left;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".tk-horizon.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-horizon-hint{margin:8px 0 0;font-size:12px;line-height:1.5;color:#6E6E76}",
   ".tk-long-lead{margin:0 0 18px;max-width:56ch;font-size:13.5px;line-height:1.55;color:#A0A0A8}",
   ".tk-long-list{display:flex;flex-direction:column;gap:10px;max-width:720px}",
-  ".tk-release{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;padding:6px 2px;white-space:nowrap}",
+  ".tk-release{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;cursor:pointer;font-size:10px;font-family:'Manrope',sans-serif;letter-spacing:.3px;padding:6px 2px;white-space:nowrap}",
   ".tk-release:hover{color:var(--mc);border-bottom-color:var(--mc)}",
-  ".tk-new-btn{background:transparent;border:none;border-bottom:2px solid var(--mc);color:var(--mc);font-size:12px;padding:10px 4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:500;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-new-btn{background:transparent;border:none;border-bottom:2px solid var(--mc);color:var(--mc);font-size:12px;padding:10px 4px;cursor:pointer;font-family:'Manrope',sans-serif;font-weight:500;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-new-btn:hover{opacity:.85}",
   ".tk-new-btn:active{transform:scale(.96);opacity:.7}",
   ".tk-body{max-width:1200px;margin:0 auto;padding:16px 20px 80px}",
@@ -68,18 +68,18 @@ var TASKS_CSS = [
   ".tk-progress-wrap{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}",
   ".tk-progress{flex:1;min-width:200px;height:4px;background:rgba(255,255,255,.08);overflow:hidden;border-radius:var(--radius-pill)}",
   ".tk-progress i{display:block;height:100%;background:var(--mc);transition:width var(--dur-slow) var(--ease)}",
-  ".tk-stats{margin:0;font-size:11px;font-family:'JetBrains Mono',monospace;color:#6E6E76;letter-spacing:.3px}",
+  ".tk-stats{margin:0;font-size:11px;font-family:'Manrope',sans-serif;color:#6E6E76;letter-spacing:.3px}",
   ".tk-form{margin-bottom:28px;padding:0 0 24px;border-bottom:1px solid rgba(255,255,255,.1);animation:taskIn var(--dur) var(--ease)}",
   ".tk-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}",
   ".tk-form-grid--mob{grid-template-columns:1fr}",
   ".tk-form-actions{display:flex;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap}",
-  ".tk-save{padding:10px 4px;border:none;border-bottom:2px solid #EDEDEF;background:transparent;color:#EDEDEF;font-size:12px;font-weight:500;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
+  ".tk-save{padding:10px 4px;border:none;border-bottom:2px solid #EDEDEF;background:transparent;color:#EDEDEF;font-size:12px;font-weight:500;cursor:pointer;font-family:'Manrope',sans-serif;transition:transform var(--dur-fast) var(--ease),opacity var(--dur-fast) var(--ease)}",
   ".tk-save:active{transform:scale(.96);opacity:.75}",
   ".tk-cancel,.tk-quick-save{padding:10px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#A0A0A8;font-size:12px;cursor:pointer;font-family:inherit;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".tk-cancel:hover{color:#EDEDEF;border-bottom-color:rgba(255,255,255,.3)}",
   ".tk-quick-save{margin-left:auto;color:#6E6E76;border:none}",
   ".tk-quick-save:hover{color:#A0A0A8}",
-  ".tk-warn{margin:0 0 14px;padding:10px 0;border-bottom:1px solid rgba(196,165,124,.35);color:#C4A57C;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.5}",
+  ".tk-warn{margin:0 0 14px;padding:10px 0;border-bottom:1px solid rgba(196,165,124,.35);color:#C4A57C;font-size:11px;font-family:'Manrope',sans-serif;line-height:1.5}",
   ".task-col{animation:taskIn var(--dur-slow) var(--ease) both}",
   ".tk-card{padding:14px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-md);margin-bottom:8px;transition:opacity var(--dur) var(--ease),border-color var(--dur) var(--ease),background var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-card:hover{background:rgba(255,255,255,.04);border-color:color-mix(in srgb,var(--mc) 30%,rgba(255,255,255,.1));transform:translateY(-2px)}",
@@ -94,7 +94,7 @@ var TASKS_CSS = [
   ".tk-card.is-done .tk-title{text-decoration:line-through;color:#6E6E76}",
   ".tk-notes{margin:7px 0 0;line-height:1.55;color:#A0A0A8;overflow-wrap:anywhere}",
   ".tk-notes.is-min{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-clamp:2}",
-  ".tk-notes-tog{margin:6px 0 0;padding:0;border:none;background:none;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;cursor:pointer;min-height:0}",
+  ".tk-notes-tog{margin:6px 0 0;padding:0;border:none;background:none;color:#6E6E76;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.5px;cursor:pointer;min-height:0}",
   ".tk-notes-tog:hover{color:var(--mc)}",
   ".tk-subs{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}",
   ".tk-sub{display:flex;align-items:center;gap:9px;font-size:12.5px}",
@@ -103,7 +103,7 @@ var TASKS_CSS = [
   ".tk-sub>button.on{background:#E6E6E9;border-color:#E6E6E9;color:#070708}",
   ".tk-sub>span{color:#A0A0A8;line-height:1.4}",
   ".tk-sub.on>span{color:#6E6E76;text-decoration:line-through}",
-  ".tk-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:11px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px}",
+  ".tk-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:11px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.6px}",
   ".tk-dot{display:inline-block;width:5px;height:5px;margin-right:6px;vertical-align:middle}",
   ".tk-due{color:#6E6E76}",
   ".tk-due.late{color:#C08C8C}",
@@ -114,30 +114,30 @@ var TASKS_CSS = [
   ".tk-act>button{background:none;border:none;color:#6E6E76;cursor:pointer;font-size:12px;line-height:1;padding:5px 6px;transition:color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-act>button:hover{color:#EDEDEF;transform:scale(1.1)}",
   "@media(hover:none){.tk-act{opacity:1}}",
-  ".tk-lbl{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;font-family:'JetBrains Mono',monospace}",
-  ".tk-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6E6E76;padding:0}",
+  ".tk-lbl{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;font-family:'Manrope',sans-serif}",
+  ".tk-count{font-family:'Manrope',sans-serif;font-size:11px;color:#6E6E76;padding:0}",
   ".tk-empty{margin:0;padding:22px 0;text-align:left;font-size:12px;color:#6E6E76;line-height:1.5}",
   ".tk-in{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);color:#EDEDEF;outline:none;font-family:inherit;transition:border-color var(--dur) var(--ease),padding-left var(--dur) var(--ease)}",
   ".tk-in:focus{border-bottom-color:rgba(255,255,255,.4);padding-left:4px}",
   ".tk-col{padding:8px 0 18px;background:transparent;border:none}",
   ".tk-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px;gap:8px;flex-wrap:wrap}",
   ".tk-col-title{display:flex;align-items:center;gap:9px}",
-  ".tk-clear{padding:6px 4px;border:none;border-bottom:1px solid rgba(192,140,140,.35);background:transparent;color:#C08C8C;cursor:pointer;font-size:11px;font-family:'JetBrains Mono',monospace;white-space:nowrap;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
+  ".tk-clear{padding:6px 4px;border:none;border-bottom:1px solid rgba(192,140,140,.35);background:transparent;color:#C08C8C;cursor:pointer;font-size:11px;font-family:'Manrope',sans-serif;white-space:nowrap;transition:opacity var(--dur-fast) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-clear:active{transform:scale(.96);opacity:.75}",
   ".tk-tab{display:flex;align-items:center;gap:16px;width:100%;text-align:left;padding:20px 0;cursor:pointer;font-family:inherit;border:none;border-bottom:1px solid rgba(255,255,255,.08);background:transparent;transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-tab:hover{padding-left:6px}",
   ".tk-tab:active{transform:scale(.995)}",
   ".tk-tab-icon{font-size:20px;line-height:1;color:#A0A0A8;flex-shrink:0;width:32px}",
-  ".tk-tab-count{font-size:15px;font-family:'JetBrains Mono',monospace;color:#EDEDEF;min-width:34px;text-align:right}",
+  ".tk-tab-count{font-size:15px;font-family:'Manrope',sans-serif;color:#EDEDEF;min-width:34px;text-align:right}",
   ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer;display:flex;align-items:center;justify-content:center}",
   ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
   ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:#0C0C0E;border-top:1px solid color-mix(in srgb,var(--mc) 40%,transparent);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:22px 22px 0 0}",
   ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
   ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'Manrope',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
   ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
-  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer}",
+  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:12px;cursor:pointer}",
   ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
-  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;cursor:pointer}",
+  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer}",
   ".tk-sheet-cancel{width:100%;min-height:46px;margin-top:8px;border:none;background:transparent;color:#6E6E76;font-size:14px;cursor:pointer}",
   "@media(min-width:720px){.tk-sheet{width:min(480px,100%);margin:0 auto;border-radius:22px 22px 0 0}}",
   "@media(max-width:719px){",
@@ -707,7 +707,7 @@ export default function Tasks() {
             ) : (
               <HubBack />
             )}
-            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 16, 19), fontFamily: "'JetBrains Mono',monospace", color: ACCENT, fontWeight: 500, letterSpacing: 0.5 }}>
+            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 20, 24), fontFamily: "'Syne',sans-serif", color: ACCENT, fontWeight: 700, letterSpacing: "-0.04em" }}>
               {showLong ? "Longo prazo" : isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
             </h1>
           </div>
@@ -785,7 +785,7 @@ export default function Tasks() {
                 {PRIORITIES.map(function(p) { return <option key={p.id} value={p.id}>{p.label}</option>; })}
               </select>
               <input className="tk-in ui-in" type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
-                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13, fontFamily: "'JetBrains Mono',monospace", color: "#A0A0A8" }} />
+                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }} />
               <input className="tk-in ui-in" value={draft.tags} onChange={function(e) { setDraft(Object.assign({}, draft, { tags: e.target.value })); }} placeholder="Tags: casa, estudo..."
                 style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }} />
             </div>
@@ -830,7 +830,7 @@ export default function Tasks() {
                 <button key={v.id} type="button" className="tk-tab ui-tap" onClick={function() { setZone("board"); setMobileTab(v.id); }}>
                   <span className="tk-tab-icon">{v.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 17, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500 }}>{v.label}</p>
+                    <p style={{ margin: 0, fontSize: 17, fontFamily: "'Manrope',sans-serif", color: "#EDEDEF", fontWeight: 500 }}>{v.label}</p>
                     <p style={{ margin: "5px 0 0", fontSize: 13, color: "#6E6E76", lineHeight: 1.4 }}>{v.hint}</p>
                   </div>
                   <span className="tk-tab-count">{n}</span>
@@ -840,7 +840,7 @@ export default function Tasks() {
             <button type="button" className="tk-tab ui-tap" onClick={openLong}>
               <span className="tk-tab-icon">◷</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 17, fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500 }}>Longo prazo</p>
+                <p style={{ margin: 0, fontSize: 17, fontFamily: "'Manrope',sans-serif", color: "#EDEDEF", fontWeight: 500 }}>Longo prazo</p>
                 <p style={{ margin: "5px 0 0", fontSize: 13, color: "#6E6E76", lineHeight: 1.4 }}>Fora do quadro — não aparecem nas listas</p>
               </div>
               <span className="tk-tab-count">{stats.longTotal}</span>
@@ -889,7 +889,7 @@ export default function Tasks() {
                 <div className="tk-col-head">
                   <div className="tk-col-title">
                     <span style={{ fontSize: fs(isMobile, 13, 15), color: "#6E6E76", lineHeight: 1 }}>{col.icon}</span>
-                    <span style={{ fontSize: fs(isMobile, 13, 15), fontFamily: "'JetBrains Mono',monospace", color: "#EDEDEF", fontWeight: 500, letterSpacing: 0.3 }}>{col.label}</span>
+                    <span style={{ fontSize: fs(isMobile, 13, 15), fontFamily: "'Manrope',sans-serif", color: "#EDEDEF", fontWeight: 500, letterSpacing: 0.3 }}>{col.label}</span>
                     <span className="tk-count">{list.length}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto" }}>

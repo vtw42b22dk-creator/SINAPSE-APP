@@ -15,7 +15,7 @@ function Tag(props) {
   return (
     <span style={{
       fontSize: 9,
-      fontFamily: "'JetBrains Mono',monospace",
+      fontFamily: "'Manrope',sans-serif",
       letterSpacing: 0.6,
       padding: "3px 8px",
       borderRadius: 999,
@@ -50,7 +50,7 @@ export function UpdatesFloatingButton(props) {
         borderBottom: "1px solid rgba(255,255,255,0.2)",
         background: "transparent",
         cursor: "pointer",
-        fontFamily: "'JetBrains Mono',monospace",
+        fontFamily: "'Manrope',sans-serif",
         color: "#EDEDEF",
         fontSize: 11,
         letterSpacing: 1.4,
@@ -85,13 +85,13 @@ export function UpdatesFloatingButton(props) {
         ) : null}
       </span>
       <span style={{ textAlign: "left", minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 1 }}>NOVIDADES</span>
+        <span style={{ display: "block", fontSize: 11, fontFamily: "'Manrope',sans-serif", color: "#6E6E76", letterSpacing: 1 }}>NOVIDADES</span>
         <span style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#EDEDEF", whiteSpace: "nowrap" }}>Ver atualizações</span>
       </span>
       {unread && !isMobile ? (
         <span style={{
           fontSize: 9,
-          fontFamily: "'JetBrains Mono',monospace",
+          fontFamily: "'Manrope',sans-serif",
           color: "#EDEDEF",
           background: "#1A1A1D",
           border: "1px solid rgba(255,255,255,0.14)",
@@ -196,8 +196,8 @@ export default function UpdatesChangelog(props) {
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
             <div>
-              <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: "#6E6E76", letterSpacing: 2 }}>CHANGELOG · {data.dateLabel}</p>
-              <h2 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontFamily: "'JetBrains Mono',monospace", fontWeight: 600, lineHeight: 1.2 }}>{data.title}</h2>
+              <p style={{ margin: "0 0 6px", fontSize: 10, fontFamily: "'Manrope',sans-serif", color: "#6E6E76", letterSpacing: 2 }}>CHANGELOG · {data.dateLabel}</p>
+              <h2 style={{ margin: 0, fontSize: isMobile ? 22 : 26, fontFamily: "'Manrope',sans-serif", fontWeight: 600, lineHeight: 1.2 }}>{data.title}</h2>
               <p style={{ margin: "8px 0 0", fontSize: 13, color: "#A0A0A8", lineHeight: 1.5 }}>{data.subtitle}</p>
             </div>
             <button type="button" onClick={closeAndSeen} style={{
@@ -210,7 +210,7 @@ export default function UpdatesChangelog(props) {
               return (
                 <span key={h.label} style={{
                   fontSize: 10,
-                  fontFamily: "'JetBrains Mono',monospace",
+                  fontFamily: "'Manrope',sans-serif",
                   padding: "6px 12px",
                   borderRadius: 999,
                   border: "1px solid " + h.color + "35",
@@ -239,7 +239,7 @@ export default function UpdatesChangelog(props) {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 14, color: section.accent,
                   }}>{section.icon}</span>
-                  <h3 style={{ margin: 0, fontSize: 13, fontFamily: "'JetBrains Mono',monospace", color: section.accent, letterSpacing: 0.5 }}>{section.title}</h3>
+                  <h3 style={{ margin: 0, fontSize: 13, fontFamily: "'Manrope',sans-serif", color: section.accent, letterSpacing: 0.5 }}>{section.title}</h3>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingLeft: isMobile ? 0 : 8 }}>
                   {section.items.map(function(item, ii) {
@@ -271,7 +271,7 @@ export default function UpdatesChangelog(props) {
                             <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 600, color: "#EDEDEF" }}>{item.title}</p>
                             <p style={{ margin: 0, fontSize: 12, color: "#A0A0A8", lineHeight: 1.55 }}>{item.desc}</p>
                             {canGo ? (
-                              <p style={{ margin: "8px 0 0", fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: section.accent }}>Abrir módulo →</p>
+                              <p style={{ margin: "8px 0 0", fontSize: 10, fontFamily: "'Manrope',sans-serif", color: section.accent }}>Abrir módulo →</p>
                             ) : null}
                           </div>
                         </div>
@@ -300,7 +300,7 @@ export default function UpdatesChangelog(props) {
               border: "1px solid rgba(255,255,255,0.14)",
               background: "#1A1A1D",
               color: "#EDEDEF",
-              fontFamily: "'JetBrains Mono',monospace",
+              fontFamily: "'Manrope',sans-serif",
               fontSize: 12,
               letterSpacing: 1,
               cursor: "pointer",

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 export var HUB_BACK_CSS = [
   ".hub-back{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:7px 12px 7px 9px;",
   "border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);",
-  "color:#A0A0A8;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.6px;",
+  "color:#A0A0A8;cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.6px;",
   "transition:color .2s ease,background .2s ease,border-color .2s ease,transform .15s ease}",
   ".hub-back:hover{color:#EDEDEF;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)}",
   ".hub-back:active{transform:scale(.96)}",
