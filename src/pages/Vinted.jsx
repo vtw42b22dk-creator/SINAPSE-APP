@@ -21,9 +21,9 @@ var VIN_CSS = [
   MODULE_ENTRY_CSS,
   MICRO_CSS,
   GLASS_CSS,
-  ".vin-root{height:100%;overflow:auto;-webkit-overflow-scrolling:touch;position:relative;background:transparent;color:" + COLORS.text + ";font-family:'Manrope',sans-serif}",
-  ".vin-inner{max-width:1080px;margin:0 auto;padding:40px 28px 96px;position:relative;z-index:1}",
-  ".vin-glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(70px);z-index:0}",
+  ".vin-root{height:100%;max-height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;overscroll-behavior-y:none;touch-action:pan-y;position:relative;background:transparent;color:" + COLORS.text + ";font-family:'Manrope',sans-serif;width:100%;max-width:100%}",
+  ".vin-inner{max-width:1080px;width:100%;margin:0 auto;padding:40px 28px 96px;position:relative;z-index:1;box-sizing:border-box;min-width:0}",
+  ".vin-glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(70px);z-index:0;max-width:none}",
   ".vin-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:36px}",
   ".vin-kicker{margin:0 0 12px;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";display:flex;align-items:center;gap:8px}",
   ".vin-live{width:6px;height:6px;border-radius:50%;background:var(--mc);flex-shrink:0;animation:hubPulse 2.2s ease-in-out infinite}",
@@ -50,12 +50,13 @@ var VIN_CSS = [
   ".vin-card{padding:18px 18px 8px;border-radius:18px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);backdrop-filter:blur(22px) saturate(1.9);-webkit-backdrop-filter:blur(22px) saturate(1.9);margin-bottom:18px}",
   ".vin-card h2{margin:0 0 4px;font-family:'Syne',sans-serif;font-size:18px;letter-spacing:-.03em}",
   ".vin-card .lead{margin:0 0 14px;font-size:13px;line-height:1.5;color:" + COLORS.muted + "}",
-  ".vin-row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 0;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit;text-align:left;text-decoration:none;font-family:inherit}",
+  ".vin-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;width:100%;max-width:100%;min-width:0;padding:12px 0;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit;text-align:left;text-decoration:none;font-family:inherit;box-sizing:border-box}",
   ".vin-row:last-child{border-bottom:none}",
-  ".vin-row h3{margin:0;font-size:14px;font-weight:600;color:" + COLORS.text + "}",
-  ".vin-row p{margin:3px 0 0;font-size:12px;color:" + COLORS.faint + ";line-height:1.4}",
+  ".vin-row>div{min-width:0;flex:1 1 140px}",
+  ".vin-row h3{margin:0;font-size:14px;font-weight:600;color:" + COLORS.text + ";overflow:hidden;text-overflow:ellipsis}",
+  ".vin-row p{margin:3px 0 0;font-size:12px;color:" + COLORS.faint + ";line-height:1.4;overflow:hidden;text-overflow:ellipsis}",
   ".vin-foto{width:44px;height:44px;object-fit:cover;flex-shrink:0;border-radius:10px;background:rgba(255,255,255,.04)}",
-  ".vin-field{width:100%;margin-top:8px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:" + COLORS.text + ";font-family:'Manrope',sans-serif;font-size:14px;outline:none}",
+  ".vin-field{width:100%;max-width:100%;box-sizing:border-box;margin-top:8px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:" + COLORS.text + ";font-family:'Manrope',sans-serif;font-size:14px;outline:none}",
   ".vin-field:focus{border-color:color-mix(in srgb,var(--mc) 55%,#fff 20%)}",
   ".vin-seg{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}",
   ".vin-chip{min-height:36px;padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:" + COLORS.muted + ";cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.3px}",
@@ -68,7 +69,7 @@ var VIN_CSS = [
   ".vin-note{margin:0 0 16px;font-size:13px;color:" + COLORS.muted + ";line-height:1.5}",
   ".vin-note.err{color:" + COLORS.negative + "}",
   "@media(max-width:1100px){.vin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.vin-top{flex-direction:column}}",
-  "@media(max-width:719px){.vin-inner{padding:22px 16px max(96px,env(safe-area-inset-bottom))}.vin-actions{width:100%;justify-content:stretch}.vin-glass-btn{flex:1}.vin-stats{grid-template-columns:1fr 1fr;gap:10px}.vin-stat:last-child:nth-child(odd){grid-column:1/-1}}",
+  "@media(max-width:719px){.vin-root{overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y}.vin-inner{padding:22px 16px max(96px,env(safe-area-inset-bottom));overflow-x:hidden}.vin-actions{width:100%;justify-content:stretch}.vin-glass-btn{flex:1 1 auto;min-width:0}.vin-stats{grid-template-columns:1fr 1fr;gap:10px}.vin-stat:last-child:nth-child(odd){grid-column:1/-1}.vin-week{gap:4px}.vin-day{padding:10px 0;min-width:0}.vin-day b{font-size:14px}.vin-glow{opacity:.7}}",
 ].join("");
 
 export default function Vinted() {
@@ -94,7 +95,7 @@ export default function Vinted() {
   var porDia = Array.isArray(semana.porDia) ? semana.porDia : [0, 0, 0, 0, 0, 0, 0];
 
   return (
-    <div className="vin-root" style={{ "--mc": ACCENT }}>
+    <div className="vin-root" data-scrollable style={{ "--mc": ACCENT }}>
       <style>{VIN_CSS}</style>
       <div className="vin-glow" style={{ width: "min(520px,70vw)", height: "min(520px,70vw)", top: "-8%", right: "-10%", background: moduleGlow(ACCENT, "55") }} aria-hidden="true" />
       <div className="vin-glow" style={{ width: "min(380px,50vw)", height: "min(380px,50vw)", top: "18%", left: "-14%", background: moduleGlow("#8FA8C4", "40"), animationDelay: "-8s" }} aria-hidden="true" />
@@ -255,16 +256,15 @@ function Mensagens(props) {
         <Card titulo="Modo vendedor" lead={msgs.vivo ? "A correr agora" : "Parado"}>
           <Switch
             nome="Modo vendedor"
-            detalhe={msgs.vendedor ? "A página de notificações monitoriza favoritos." : "Parado — não envia a quem põe favorito."}
+            detalhe={ponte.pendente ? "A aplicar no computador…" : (msgs.vendedor ? "A página de notificações monitoriza favoritos." : "Parado — não envia a quem põe favorito.")}
             ligado={Boolean(msgs.vendedor)}
-            disabled={ponte.busy}
             onClick={function() { ponte.pedir("modo-vendedor", { ligado: !msgs.vendedor }); }}
           />
           <Switch
             nome="Envio automático"
             detalhe={(msgs.contador || 0) + " enviadas · " + ((msgs.fila || []).length) + " à espera"}
             ligado={Boolean(msgs.auto)}
-            disabled={ponte.busy || !msgs.vendedor}
+            disabled={!msgs.vendedor}
             onClick={function() { ponte.pedir("auto-envio", { ligado: !msgs.auto }); }}
           />
           <label className="vin-kicker" htmlFor="vin-msg" style={{ marginTop: 16, display: "block" }}>Mensagem automática</label>
@@ -278,8 +278,8 @@ function Mensagens(props) {
 
       {sub === "fixar" ? (
         <Card titulo="Fixar mensagens" lead="As fixadas aparecem no topo da caixa.">
-          <Switch nome="Modo fixar" detalhe="Botão Fixar em cada conversa" ligado={msgs.fixar} disabled={ponte.busy} onClick={function() { ponte.pedir("fixar-modo", { ligado: !msgs.fixar }); }} />
-          <Switch nome="Minimizar fixadas" detalhe="Barra compacta no topo" ligado={msgs.fixarMin} disabled={ponte.busy} onClick={function() { ponte.pedir("fixar-min", { ligado: !msgs.fixarMin }); }} />
+          <Switch nome="Modo fixar" detalhe="Botão Fixar em cada conversa" ligado={Boolean(msgs.fixar)} onClick={function() { ponte.pedir("fixar-modo", { ligado: !msgs.fixar }); }} />
+          <Switch nome="Minimizar fixadas" detalhe="Barra compacta no topo" ligado={Boolean(msgs.fixarMin)} onClick={function() { ponte.pedir("fixar-min", { ligado: !msgs.fixarMin }); }} />
           {(msgs.fixadas || []).map(function(f, i, arr) {
             return (
               <div key={f.id} className="vin-row">
@@ -405,7 +405,7 @@ function Analise(props) {
         <Lista itens={payload.envios || []} agora={ponte.agora} envio />
       </Card>
       <Card titulo="Mais">
-        <Switch nome="Modo escuro na Vinted" detalhe="A Central do site já é escura" ligado={Boolean((payload.mensagens || {}).escuro)} disabled={ponte.busy} onClick={function() { ponte.pedir("modo-escuro", { ligado: !(payload.mensagens || {}).escuro }); }} />
+        <Switch nome="Modo escuro na Vinted" detalhe="A Central do site já é escura" ligado={Boolean((payload.mensagens || {}).escuro)} onClick={function() { ponte.pedir("modo-escuro", { ligado: !(payload.mensagens || {}).escuro }); }} />
         <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "10px 0 8px" }}>
           <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("cache", function() { ponte.pedir("limpar-cache"); }); }}>{ponte.conf === "cache" ? "Confirmar limpeza" : "Limpar cache"}</button>
           <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("reler", function() { ponte.pedir("reler-historico"); }); }}>{ponte.conf === "reler" ? "Confirmar releitura" : "Reler histórico"}</button>
@@ -425,9 +425,8 @@ function Compra(props) {
       <Card titulo="Monitor" lead={compra.resumo || "Liga a caça com a Vinted aberta no computador."}>
         <Switch
           nome={compra.ativo ? "Ligado" : "Desligado"}
-          detalhe={(compra.alertasHoje || 0) + " alertas hoje · a cada " + (compra.intervaloSeg || 6) + " s"}
-          ligado={compra.ativo}
-          disabled={ponte.busy}
+          detalhe={ponte.pendente ? "A aplicar no computador…" : ((compra.alertasHoje || 0) + " alertas hoje · a cada " + (compra.intervaloSeg || 6) + " s")}
+          ligado={Boolean(compra.ativo)}
           onClick={function() { ponte.pedir("compra", { ativo: !compra.ativo }); }}
         />
       </Card>

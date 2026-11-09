@@ -36,5 +36,8 @@ create policy "own vinted comandos" on public.vinted_comandos
 grant select, insert, update, delete on public.vinted_estado to authenticated;
 grant select, insert, update, delete on public.vinted_comandos to authenticated;
 
+alter table public.vinted_estado replica identity full;
+alter table public.vinted_comandos replica identity full;
+
 do $rl$ begin alter publication supabase_realtime add table public.vinted_estado; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.vinted_comandos; exception when others then null; end $rl$;

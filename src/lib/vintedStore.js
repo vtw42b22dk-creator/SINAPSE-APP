@@ -43,9 +43,13 @@ export async function pedirComando(tipo, payload) {
 export function ouvirPonte(onChange) {
   if (!supabase) return function() {};
   var channel = supabase
-    .channel("vinted-ponte")
-    .on("postgres_changes", { event: "*", schema: "public", table: "vinted_estado" }, function() { onChange(); })
-    .on("postgres_changes", { event: "*", schema: "public", table: "vinted_comandos" }, function() { onChange(); })
+    .channel("vinted-ponte-" + Math.random().toString(36).slice(2, 8))
+    .on("postgres_changes", { event: "*", schema: "public", table: "vinted_estado" }, function(payload) {
+      onChange({ tipo: "estado", row: payload && payload.new });
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "vinted_comandos" }, function(payload) {
+      onChange({ tipo: "comando", row: payload && payload.new });
+    })
     .subscribe();
   return function() { supabase.removeChannel(channel); };
 }

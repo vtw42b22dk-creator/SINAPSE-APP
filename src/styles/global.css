@@ -33,20 +33,25 @@
 
 html, body {
   width: 100%;
+  max-width: 100%;
   min-height: 100%;
   background: var(--page-bg);
 }
 
 #root {
   width: 100%;
+  max-width: 100%;
   min-height: 100%;
   background: transparent;
+  overflow-x: hidden;
 }
 
 html {
   height: 100%;
+  max-width: 100%;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 @keyframes auroraDrift {
@@ -103,8 +108,11 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: none;
   overscroll-behavior-y: none;
   touch-action: manipulation;
+  max-width: 100%;
+  position: relative;
 }
 
 h1, h2, h3 {

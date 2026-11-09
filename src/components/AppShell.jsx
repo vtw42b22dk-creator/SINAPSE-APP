@@ -315,9 +315,9 @@ export default function AppShell(props) {
 }
 
 var SHELL_CSS = [
-  ".shell{display:flex;height:100vh;height:100dvh;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative}",
+  ".shell{display:flex;height:100vh;height:100dvh;max-height:100dvh;width:100%;max-width:100%;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative;overscroll-behavior:none;touch-action:manipulation}",
   ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.42),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.34),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(143,179,155,.16),transparent 62%)}",
-  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto}",
+  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;max-width:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y}",
   ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page,.shell-stage>.nt-root,.shell-stage>.vin-root{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
   ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(255,255,255,.035);border-right:1px solid rgba(255,255,255,.12);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2)}",
@@ -374,9 +374,12 @@ var SHELL_CSS = [
   ".sh-burger{display:none}",
   ".sh-scrim{display:none}",
   "@media(max-width:719px){",
+  ".shell{overflow:hidden;overscroll-behavior:none;touch-action:manipulation}",
+  ".shell-stage{overflow-x:hidden;overflow-y:auto;overscroll-behavior:none;touch-action:pan-y}",
+  ".shell-stage>.vin-root{overflow-x:hidden!important;overscroll-behavior:none!important}",
   ".sh-burger{display:flex;position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;z-index:80;width:42px;height:42px;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);background:rgba(10,10,12,.45);color:#EDE8DF;cursor:pointer;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}",
   ".sh-scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:85}",
-  ".sh-side{position:fixed;inset:0 auto 0 0;width:min(82vw,280px);transform:translateX(-105%);transition:transform 280ms cubic-bezier(.22,1,.36,1);z-index:90;padding-top:max(18px,env(safe-area-inset-top))}",
+  ".sh-side{position:fixed;inset:0 auto 0 0;width:min(82vw,280px);max-width:100%;transform:translateX(-105%);transition:transform 280ms cubic-bezier(.22,1,.36,1);z-index:90;padding-top:max(18px,env(safe-area-inset-top));overflow-x:hidden}",
   ".sh-side.is-open{transform:none}",
   ".shell-stage .ch-head,.shell-stage .tk-head,.shell-stage .pj-top,.shell-stage .pw-head,.shell-stage .fs-headwrap,.shell-stage .gn-header,.shell-stage .nt-head,.shell-stage .wl-head,.shell-stage .hub-top,.shell-stage>* > header{padding-left:56px!important}",
   "}",
