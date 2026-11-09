@@ -45,9 +45,9 @@ var HUB_CSS = [
   ".hub-date{margin:12px 0 0;font-size:13px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
   ".hub-ring{margin-top:16px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.8px}",
   ".hub-ring svg{display:block}",
-  ".hub-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
-  ".hub-stats.has-resale{grid-template-columns:repeat(5,minmax(0,1fr))}",
-  ".hub-stat{position:relative;padding:16px 16px 14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.045);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(22px) saturate(2.1);-webkit-backdrop-filter:blur(22px) saturate(2.1);overflow:hidden}",
+  ".hub-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
+  ".hub-stats.has-resale{grid-template-columns:repeat(4,minmax(0,1fr))}",
+  ".hub-stat{position:relative;padding:16px 16px 14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.045);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(22px) saturate(2.1);-webkit-backdrop-filter:blur(22px) saturate(2.1);overflow:hidden;border-radius:16px}",
   ".hub-stat::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 48%)}",
   ".hub-stat:hover{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.07)}",
   ".hub-stat b{display:block;font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1}",
@@ -77,9 +77,22 @@ var HUB_CSS = [
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
   "@media(max-width:1100px){.hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
   "@media(max-width:719px){",
-  ".hub-inner{padding:28px 16px max(88px,env(safe-area-inset-bottom))}",
-  ".hub-hello{font-size:36px}",
-  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}",
+  ".hub-inner{padding:22px 18px max(96px,env(safe-area-inset-bottom))}",
+  ".hub-top{margin-bottom:26px;gap:16px}",
+  ".hub-kicker{margin-bottom:10px}",
+  ".hub-hello{font-size:32px}",
+  ".hub-hello span{font-size:.5em;margin-top:8px;max-width:16ch}",
+  ".hub-clock-wrap{padding:2px 0 0}",
+  ".hub-date{margin-top:8px;font-size:12.5px}",
+  ".hub-ring{display:none}",
+  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:28px}",
+  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1}",
+  ".hub-stat{padding:18px 16px 16px;border-radius:18px}",
+  ".hub-stat b{font-size:26px}",
+  ".hub-stat i{margin-top:10px;font-size:10.5px}",
+  ".hub-grid{gap:22px}",
+  ".hub-panel h2{margin-bottom:10px;font-size:14px}",
+  ".hub-foot{margin-top:28px;padding-top:16px}",
   ".hub-tog{grid-template-columns:24px minmax(0,1fr);gap:12px}",
   ".hub-switch{grid-column:1 / -1;justify-self:start}",
   "}",
@@ -91,7 +104,8 @@ function dayKey(d) {
   return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
 }
 function eur(v) {
-  return (Number(v) || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  var n = Math.round(Number(v) || 0);
+  return n.toLocaleString("pt-PT", { maximumFractionDigits: 0, minimumFractionDigits: 0, useGrouping: false }) + " €";
 }
 function canDesktopReorder() {
   try { return window.matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return true; }
@@ -144,11 +158,13 @@ function Clock(props) {
   var dash = (passed * C).toFixed(2);
   return (
     <div className="hub-clock-wrap">
-      <div className="hub-time" style={{ fontSize: props.isMobile ? 48 : 64 }}>
+      <div className="hub-time" style={{ fontSize: props.isMobile ? 36 : 64 }}>
         <span>{h}</span>
         <span className="hub-colon">:</span>
         <span>{m}</span>
-        <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.18em", marginLeft: 10, alignSelf: "flex-end", marginBottom: 6 }}>{s}</span>
+        {props.isMobile ? null : (
+          <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.18em", marginLeft: 10, alignSelf: "flex-end", marginBottom: 6 }}>{s}</span>
+        )}
       </div>
       <p className="hub-date">
         {time.toLocaleDateString("pt-PT", { weekday: "long" })} · {time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}
@@ -409,10 +425,6 @@ export default function Hub() {
                   <b>{snap.events.length}</b>
                   <i>eventos hoje</i>
                 </button>
-                <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.finance }} onClick={function() { navigate("/finance"); }}>
-                  <b>{eur(snap.saldo)}</b>
-                  <i>saldo vivo</i>
-                </button>
                 {snap.lucro != null ? (
                   <button type="button" className="hub-stat" style={{ "--sc": snap.lucro >= 0 ? COLORS.positive : COLORS.negative }} onClick={function() { navigate(snap.resalePath || "/projects"); }}>
                     <b>{eur(snap.lucro)}</b>
@@ -453,7 +465,6 @@ export default function Hub() {
 
             <footer className="hub-foot">
               <p>{snap ? (snap.projects + " projetos · " + snap.wishes + " na wishlist") : "Sinapse"}</p>
-              <button type="button" className="ui-line-btn ui-tap" onClick={function() { setScreen("settings"); }}>Definições</button>
             </footer>
           </div>
         )}

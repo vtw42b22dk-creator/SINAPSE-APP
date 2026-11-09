@@ -152,6 +152,18 @@ var FX_CSS = [
   ".fs-addcard:hover{border-color:color-mix(in srgb,var(--ac) 50%,transparent);color:var(--ac);background:color-mix(in srgb,var(--ac) 6%,transparent)}",
   ".fs-addcard-plus{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(255,255,255,.14);transition:border-color var(--dur) var(--ease),filter var(--dur) var(--ease)}",
   ".fs-addcard:hover .fs-addcard-plus{border-color:color-mix(in srgb,var(--ac) 55%,transparent);filter:drop-shadow(0 0 12px var(--ac))}",
+  ".fs-shelf{display:flex;flex-direction:column;gap:32px;width:100%;flex:1;padding-bottom:24px}",
+  ".fs-shelf-h{margin:0 0 14px}",
+  ".fs-shelf-h b{display:block;font-family:'Syne',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.04em;color:#EDE8DF}",
+  ".fs-shelf-h span{display:block;margin-top:4px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:400;color:#7A756C;line-height:1.45}",
+  ".fs-passed{min-height:160px;padding:14px;border:1px dashed rgba(255,255,255,.14);border-radius:20px;background:rgba(255,255,255,.02)}",
+  ".fs-passed.is-hot{border-color:color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 6%,transparent)}",
+  ".fs-passed-empty{min-height:132px;display:flex;align-items:center;justify-content:center;text-align:center;color:#7A756C;font-size:13.5px;line-height:1.55;padding:18px}",
+  ".fs-proj.is-drag{opacity:.42}",
+  ".fs-proj-arch{padding:8px 12px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:transparent;color:#8A857C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;white-space:nowrap}",
+  ".fs-proj-arch:hover{color:#EDE8DF;border-color:rgba(255,255,255,.24)}",
+  ".fs-proj--passed{min-height:132px;opacity:.82}",
+  ".fs-proj--passed .fs-proj-play{display:none}",
 
   ".fs-modal-bg{position:fixed;inset:0;z-index:100;background:rgba(4,4,5,.72);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}",
   ".fs-modal{width:min(460px,100%);max-height:88vh;overflow-y:auto;padding:26px}",
@@ -219,6 +231,9 @@ var FX_CSS = [
   ".fs-headic{width:30px;height:30px;font-size:15px;border-radius:10px}",
   ".fs-main{padding:2px 12px 6px}",
   ".fs-proj-del{opacity:1}",
+  ".fs-shelf-h span{font-size:12.5px}",
+  ".fs-shelf{gap:24px}",
+  ".fs-passed{padding:10px}",
   ".fs-panel{padding:12px 0 24px}",
   ".fs-panel--clock{min-height:calc(100dvh - 220px);padding:10px 4px 18px}",
   ".fs-halo{width:min(280px,78vw);height:min(280px,78vw)}",
@@ -439,6 +454,62 @@ function ImmersiveSession(props) {
 
 /* ------------------------------ SELETOR PROJETOS ------------------------------ */
 
+function renderFocusCard(p, idx, opts) {
+  var prog = focusStore.goalProgress(p, opts.metrics || []);
+  var r = 20, c = 2 * Math.PI * r;
+  var passed = !!opts.passed;
+  return (
+    <article
+      key={p.id}
+      className={"fs-proj glass glass-in" + (passed ? " fs-proj--passed" : "") + (opts.dragId === p.id ? " is-drag" : "")}
+      style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }}
+      draggable={!passed && !!opts.canDrag}
+      onClick={function() { opts.onSelect(p); }}
+      onDragStart={function(e) {
+        if (passed) { e.preventDefault(); return; }
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", p.id);
+        if (opts.onDragStart) opts.onDragStart();
+      }}
+      onDragOver={opts.onDragOver}
+      onDrop={opts.onDrop}
+      onDragEnd={opts.onDragEnd}
+    >
+      <button type="button" className="fs-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { opts.onDelete(e, p); }}>×</button>
+      <div className="fs-proj-top">
+        <span className="fs-proj-ic">{p.icon}</span>
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ margin: 0, fontFamily: "'Syne',sans-serif", fontSize: 16, fontWeight: 700, letterSpacing: "-0.03em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
+          <p style={{ margin: "5px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90", fontFamily: "'Manrope',sans-serif" }}>{fmtHours(prog.studied)} estudados</p>
+        </div>
+      </div>
+      <div className="fs-proj-foot">
+        {prog.goalMin > 0 ? (
+          <svg className="fs-proj-ring" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+            <circle cx="23" cy="23" r={r} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="3" />
+            <circle cx="23" cy="23" r={r} fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
+              strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, prog.pct) / 100)}
+              transform="rotate(-90 23 23)" style={{ filter: glowFilter(p.color, 6, 0.6), transition: "stroke-dashoffset var(--dur-slow) var(--ease)" }} />
+            <text x="23" y="26.5" textAnchor="middle" fontSize="9" fill={p.color}>{prog.pct}%</text>
+          </svg>
+        ) : (
+          <p style={{ margin: 0, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>{passed ? "Concluído" : "Sem meta"}</p>
+        )}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {passed ? (
+            <button type="button" className="fs-proj-arch" onClick={function(e) { opts.onRestore(e, p); }}>Voltar aos ativos</button>
+          ) : (
+            <>
+              <button type="button" className="fs-proj-arch" onClick={function(e) { opts.onArchive(e, p); }}>Já passou</button>
+              <button type="button" className="fs-proj-play" onClick={function(e) { e.stopPropagation(); if (opts.onQuickStart) opts.onQuickStart(p); }}>▶ Iniciar</button>
+            </>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function ProjectPicker(props) {
   var navigate = useNavigate();
   var modalS = useState(false);
@@ -455,6 +526,19 @@ function ProjectPicker(props) {
   var deadline = deadlineS[0], setDeadline = deadlineS[1];
   var hasGoalS = useState(false);
   var hasGoal = hasGoalS[0], setHasGoal = hasGoalS[1];
+  var shelfS = useState(focusStore.loadShelf);
+  var shelf = shelfS[0];
+  var dragIdS = useState(null);
+  var dragId = dragIdS[0], setDragId = dragIdS[1];
+  var hotPassS = useState(false);
+  var hotPass = hotPassS[0], setHotPass = hotPassS[1];
+  var split = focusStore.splitProjects(props.projects, shelf);
+  var canDrag = false;
+  try { canDrag = window.matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) {}
+
+  function persistShelf(next) {
+    shelfS[1](focusStore.saveShelf(next));
+  }
 
   function openCreate() {
     setName(""); setIcon("◈"); setColor(focusStore.PROJECT_COLORS[props.projects.length % focusStore.PROJECT_COLORS.length]);
@@ -469,8 +553,39 @@ function ProjectPicker(props) {
       deadline: hasGoal ? deadline : "",
     });
     props.onCreate(p);
+    persistShelf({
+      order: [p.id].concat(shelf.order.filter(function(id) { return id !== p.id; })),
+      archived: shelf.archived.filter(function(id) { return id !== p.id; }),
+    });
     setModalOpen(false);
     props.onSelect(p);
+  }
+
+  function archiveProject(e, p) {
+    e.stopPropagation();
+    persistShelf({
+      order: shelf.order.filter(function(id) { return id !== p.id; }),
+      archived: [p.id].concat(shelf.archived.filter(function(id) { return id !== p.id; })),
+    });
+  }
+
+  function restoreProject(e, p) {
+    e.stopPropagation();
+    persistShelf({
+      archived: shelf.archived.filter(function(id) { return id !== p.id; }),
+      order: [p.id].concat(shelf.order.filter(function(id) { return id !== p.id; })),
+    });
+  }
+
+  function reorderActive(fromId, toId) {
+    if (!fromId || !toId || fromId === toId) return;
+    var ids = split.active.map(function(p) { return p.id; });
+    var from = ids.indexOf(fromId);
+    var to = ids.indexOf(toId);
+    if (from < 0 || to < 0) return;
+    ids.splice(from, 1);
+    ids.splice(to, 0, fromId);
+    persistShelf({ order: ids, archived: shelf.archived });
   }
 
   function removeProject(e, p) {
@@ -503,41 +618,75 @@ function ProjectPicker(props) {
         </header>
       </div>
       <main className="fs-main">
-        <div className="fs-grid">
-          {props.projects.map(function(p, idx) {
-            var prog = focusStore.goalProgress(p, props.metricsByProject[p.id] || []);
-            var r = 20, c = 2 * Math.PI * r;
-            return (
-              <article key={p.id} className="fs-proj glass glass-in" style={{ "--pc": p.color, animationDelay: (idx * 0.04) + "s" }} onClick={function() { props.onSelect(p); }}>
-                <button type="button" className="fs-proj-del" title="Eliminar projeto" aria-label="Eliminar projeto" onClick={function(e) { removeProject(e, p); }}>×</button>
-                <div className="fs-proj-top">
-                  <span className="fs-proj-ic">{p.icon}</span>
-                  <div style={{ minWidth: 0 }}>
-                    <h2 style={{ margin: 0, fontFamily: "'Manrope',sans-serif", fontSize: 14.5, fontWeight: 500, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</h2>
-                    <p style={{ margin: "5px 0 0", fontSize: 11, lineHeight: 1.5, color: "#8A8A90", fontFamily: "'Manrope',sans-serif" }}>{fmtHours(prog.studied)} estudados</p>
-                  </div>
+        <div className="fs-shelf">
+          <section>
+            <p className="fs-shelf-h">
+              <b>Mais ativos</b>
+              <span>{canDrag ? "Arrasta para ordenar. Tu decides quais ficam em cima." : "Tu decides quais ficam em cima — toca em «Já passou» para arquivar."}</span>
+            </p>
+            <div className="fs-grid">
+              {split.active.map(function(p, idx) {
+                return renderFocusCard(p, idx, {
+                  passed: false,
+                  canDrag: canDrag,
+                  dragId: dragId,
+                  onSelect: props.onSelect,
+                  onDelete: removeProject,
+                  onArchive: archiveProject,
+                  onQuickStart: props.onQuickStart,
+                  metrics: props.metricsByProject[p.id] || [],
+                  onDragStart: function() { setDragId(p.id); },
+                  onDragOver: function(e) { e.preventDefault(); },
+                  onDrop: function(e) {
+                    e.preventDefault();
+                    reorderActive(dragId, p.id);
+                    setDragId(null);
+                  },
+                  onDragEnd: function() { setDragId(null); setHotPass(false); },
+                });
+              })}
+              <button type="button" className="fs-addcard" onClick={openCreate}>
+                <span className="fs-addcard-plus" style={{ color: CYAN }}>+</span>
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, letterSpacing: 0.4 }}>Novo projeto</span>
+              </button>
+            </div>
+          </section>
+          <section>
+            <p className="fs-shelf-h">
+              <b>Já passaram</b>
+              <span>Os que já acabaram ficam aqui, sem desaparecer.</span>
+            </p>
+            <div
+              className={"fs-passed" + (hotPass ? " is-hot" : "") + (split.passed.length ? "" : " is-empty")}
+              onDragOver={function(e) { if (!dragId) return; e.preventDefault(); setHotPass(true); }}
+              onDragLeave={function() { setHotPass(false); }}
+              onDrop={function(e) {
+                e.preventDefault();
+                setHotPass(false);
+                if (!dragId) return;
+                var p = props.projects.find(function(x) { return x.id === dragId; });
+                if (p) archiveProject(e, p);
+                setDragId(null);
+              }}
+            >
+              {split.passed.length ? (
+                <div className="fs-grid">
+                  {split.passed.map(function(p, idx) {
+                    return renderFocusCard(p, idx, {
+                      passed: true,
+                      dragId: null,
+                      onSelect: props.onSelect,
+                      onDelete: removeProject,
+                      onRestore: restoreProject,
+                      metrics: props.metricsByProject[p.id] || [],
+                    });
+                  })}
                 </div>
-                <div className="fs-proj-foot">
-                  {prog.goalMin > 0 ? (
-                    <svg className="fs-proj-ring" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
-                      <circle cx="23" cy="23" r={r} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="3" />
-                      <circle cx="23" cy="23" r={r} fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
-                        strokeDasharray={c} strokeDashoffset={c * (1 - Math.min(100, prog.pct) / 100)}
-                        transform="rotate(-90 23 23)" style={{ filter: glowFilter(p.color, 6, 0.6), transition: "stroke-dashoffset var(--dur-slow) var(--ease)" }} />
-                      <text x="23" y="26.5" textAnchor="middle" fontSize="9" fill={p.color}>{prog.pct}%</text>
-                    </svg>
-                  ) : (
-                    <p style={{ margin: 0, fontSize: 9.5, letterSpacing: 1.2, textTransform: "uppercase", color: "#6E6E76", fontFamily: "'Manrope',sans-serif" }}>Sem meta</p>
-                  )}
-                  <button type="button" className="fs-proj-play" onClick={function(e) { e.stopPropagation(); if (props.onQuickStart) props.onQuickStart(p); }}>▶ Iniciar agora</button>
-                </div>
-              </article>
-            );
-          })}
-          <button type="button" className="fs-addcard" onClick={openCreate}>
-            <span className="fs-addcard-plus" style={{ color: CYAN }}>+</span>
-            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, letterSpacing: 0.4 }}>Novo projeto</span>
-          </button>
+              ) : (
+                <p className="fs-passed-empty">Larga aqui um projeto, ou toca em «Já passou» no cartão.</p>
+              )}
+            </div>
+          </section>
         </div>
       </main>
 

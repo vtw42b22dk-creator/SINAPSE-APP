@@ -19,6 +19,7 @@ var METRICS_KEY = "study-metrics-v1";
 var TASKS_TABLE = "focus_tasks";
 var TASKS_KEY = "focus-tasks-v1";
 var ACTIVE_PROJECT_KEY = "focus-active-project-v1";
+var SHELF_KEY = "focus-project-shelf-v1";
 var DIARY_SPACE_TITLE = "Estudo";
 
 export var PROJECT_COLORS = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
@@ -107,6 +108,7 @@ export function clearProjectLocalData(projectId) {
   if (!projectId) return;
   try { localStorage.removeItem("focus-review-draft:" + projectId); } catch (e) {}
   if (loadActiveProjectId() === projectId) saveActiveProjectId("");
+  removeFromShelf(projectId);
 }
 
 /** Elimina projeto e todos os dados associados (ideias, métricas, tarefas) com persistência local + nuvem. */
@@ -143,6 +145,61 @@ export function saveActiveProjectId(id) {
     if (id) localStorage.setItem(ACTIVE_PROJECT_KEY, id);
     else localStorage.removeItem(ACTIVE_PROJECT_KEY);
   } catch (e) {}
+}
+
+export function loadShelf() {
+  try {
+    var raw = localStorage.getItem(SHELF_KEY);
+    var d = raw ? JSON.parse(raw) : {};
+    return {
+      order: Array.isArray(d.order) ? d.order : [],
+      archived: Array.isArray(d.archived) ? d.archived : [],
+    };
+  } catch (e) {
+    return { order: [], archived: [] };
+  }
+}
+
+export function saveShelf(shelf) {
+  var next = {
+    order: (shelf && shelf.order) || [],
+    archived: (shelf && shelf.archived) || [],
+  };
+  try { localStorage.setItem(SHELF_KEY, JSON.stringify(next)); } catch (e) {}
+  return next;
+}
+
+export function removeFromShelf(projectId) {
+  var s = loadShelf();
+  s.order = s.order.filter(function(id) { return id !== projectId; });
+  s.archived = s.archived.filter(function(id) { return id !== projectId; });
+  return saveShelf(s);
+}
+
+export function splitProjects(projects, shelf) {
+  shelf = shelf || loadShelf();
+  var archivedSet = {};
+  (shelf.archived || []).forEach(function(id) { archivedSet[id] = true; });
+  var active = [];
+  var passed = [];
+  (projects || []).forEach(function(p) {
+    if (archivedSet[p.id]) passed.push(p);
+    else active.push(p);
+  });
+  function rank(list, ids) {
+    return list.slice().sort(function(a, b) {
+      var ia = ids.indexOf(a.id);
+      var ib = ids.indexOf(b.id);
+      if (ia < 0 && ib < 0) return (b.created || 0) - (a.created || 0);
+      if (ia < 0) return 1;
+      if (ib < 0) return -1;
+      return ia - ib;
+    });
+  }
+  return {
+    active: rank(active, shelf.order || []),
+    passed: rank(passed, shelf.archived || []),
+  };
 }
 
 /* ------------------------------- IDEIAS ------------------------------- */
