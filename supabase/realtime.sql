@@ -18,3 +18,5 @@ do $rl$ begin alter publication supabase_realtime add table public.project_inves
 do $rl$ begin alter publication supabase_realtime add table public.project_notes; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.project_kpis; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.project_inventory; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.vinted_estado; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.vinted_comandos; exception when others then null; end $rl$;

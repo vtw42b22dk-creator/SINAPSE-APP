@@ -35,6 +35,14 @@ export function FinanceIcon() {
     </svg>
   );
 }
+export function VintedIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <path d="M14 10 H30 L38 18 V38 H14 Z" stroke="currentColor" strokeWidth="2.2" />
+      <circle cx="22" cy="20" r="2.2" stroke="currentColor" strokeWidth="2.2" />
+    </svg>
+  );
+}
 export function JournalIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -77,6 +85,7 @@ export var MODULES = [
   { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects", color: MODULE_COLORS.projects },
   { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist", color: MODULE_COLORS.wishlist },
   { id: "finance", name: "Financeiro", desc: "Saldo vivo, sequências e relatório do mês", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },
+  { id: "vinted", name: "Vinted", desc: "A Central, no mesmo sítio: semana, anúncios, vendas e mensagens", Icon: VintedIcon, path: "/vinted", color: MODULE_COLORS.vinted },
 ];
 
 function emitNav() {

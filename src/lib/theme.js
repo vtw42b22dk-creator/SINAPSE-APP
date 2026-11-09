@@ -32,6 +32,7 @@ export var MODULE_COLORS = {
   projects: "#A0A0A8",
   wishlist: "#C4A57C",
   finance: "#A0A0A8",
+  vinted: "#C4A57C",
   hub: "#E6E6E9",
   auth: "#8FA8C4",
 };
@@ -45,6 +46,7 @@ export function moduleFromPath(path) {
   if (path.indexOf("/projects") === 0) return "projects";
   if (path.indexOf("/wishlist") === 0) return "wishlist";
   if (path.indexOf("/finance") === 0) return "finance";
+  if (path.indexOf("/vinted") === 0) return "vinted";
   if (path.indexOf("/quick") === 0) return "finance";
   return "hub";
 }

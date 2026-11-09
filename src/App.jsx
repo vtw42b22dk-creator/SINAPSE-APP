@@ -8,10 +8,12 @@ import Tasks from './pages/Tasks'
 import Journal from './pages/Journal'
 import Wishlist from './pages/Wishlist'
 import Finance from './pages/Finance'
+import Vinted from './pages/Vinted'
 import QuickAdd from './pages/QuickAdd'
 import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
 import SyncRoot from './components/SyncRoot'
+import VintedLink from './components/VintedLink'
 import AppShell from './components/AppShell'
 import RouteAccent from './lib/RouteAccent'
 import { AuthProvider } from './lib/AuthContext'
@@ -28,6 +30,7 @@ export default function App() {
           <style>{MOBILE_GLOBAL_CSS + MODULE_ACCENT_CSS}</style>
           <AuthGate>
             <SyncRoot>
+            <VintedLink />
             <AppShell>
             <Routes>
               <Route path="/" element={<Hub />} />
@@ -40,6 +43,7 @@ export default function App() {
               <Route path="/journal" element={<Journal />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/finance" element={<Finance />} />
+              <Route path="/vinted" element={<Vinted />} />
               <Route path="/quick" element={<QuickAdd />} />
               <Route path="/focus" element={<Focus />} />
             </Routes>
