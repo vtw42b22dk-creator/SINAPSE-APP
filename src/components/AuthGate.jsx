@@ -60,13 +60,13 @@ export default function AuthGate(props) {
       <aside className="ag-aside" aria-hidden="true">
         <p className="ag-aside-k">Ecossistema</p>
         <p className="ag-aside-t">Sinapse</p>
-        <p className="ag-aside-d">Calendário, tarefas, diário, foco e o resto — no mesmo sítio.</p>
+        <p className="ag-aside-d">Calendário, tarefas, notas, foco e o resto — no mesmo sítio.</p>
       </aside>
       <form className="ag-form" onSubmit={submit}>
         <p className="ag-kicker">Conta</p>
         <h1 className="ag-title">{mode === "login" ? "Entrar" : "Criar conta"}</h1>
         <p className="ag-lead">
-          Sincroniza calendário, tarefas, sinapses e diário entre dispositivos.
+          Sincroniza calendário, tarefas, sinapses e notas entre dispositivos.
         </p>
         <label className="ag-field">
           <span>Email</span>

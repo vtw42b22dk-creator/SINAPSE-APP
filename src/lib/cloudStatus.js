@@ -4,8 +4,8 @@ import { supabase } from "./supabase";
 export var SYNC_REV = typeof __APP_SYNC_REV__ !== "undefined" ? __APP_SYNC_REV__ : "desconhecida";
 
 var TABLES = [
-  { table: "journal_spaces", label: "Diário (temas)" },
-  { table: "journal_blocks", label: "Diário (texto)" },
+  { table: "journal_spaces", label: "Notas (cadernos)" },
+  { table: "journal_blocks", label: "Notas (texto)" },
   { table: "wishlist_groups", label: "Wishlist (grupos)" },
   { table: "wishlist_items", label: "Wishlist (itens)" },
   { table: "expenses", label: "Gastos" },

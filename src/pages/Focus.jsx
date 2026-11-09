@@ -1120,11 +1120,11 @@ export default function Focus() {
               ) : (
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                   <textarea className="fs-area" value={reviewText} disabled={dis}
-                    placeholder={"Resumo importante da matéria…\n\nEnvia para o Diário quando estiveres pronto."}
+                    placeholder={"Resumo importante da matéria…\n\nEnvia para Notas quando estiveres pronto."}
                     onChange={function(e) { onReviewChange(e.target.value); }} />
                   <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
                     <button type="button" className="fs-btn glow-btn" disabled={!reviewText.trim() || syncStatus === "sending" || !auth.user} onClick={syncToDiary}>
-                      {syncStatus === "sending" ? "A enviar…" : "↗ Sincronizar com Diário"}
+                      {syncStatus === "sending" ? "A enviar…" : "↗ Sincronizar com Notas"}
                     </button>
                     {syncStatus === "sent" && <span className="fs-badge" style={{ color: "#8FB39B", background: "rgba(143,179,155,0.14)" }}>Enviado ✓</span>}
                   </div>

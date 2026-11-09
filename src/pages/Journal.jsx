@@ -4,12 +4,11 @@ import * as attachmentsStore from "../lib/attachmentsStore";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
-import { pageBg } from "../lib/ThemeContext";
 import { useCloudSync } from "../lib/useCloudSync";
 import { onSync } from "../lib/syncEvents";
 import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
-import { moduleColor, moduleGlow, PALETTE, alpha } from "../lib/theme";
+import { moduleColor, moduleGlow, PALETTE } from "../lib/theme";
 import { GLASS_CSS } from "../lib/glassUi";
 
 var ACCENT = moduleColor("journal");
@@ -26,6 +25,54 @@ var JOURNAL_TEXT = {
 
 var JR_CSS = [
   GLASS_CSS,
+  ".nt-root{height:100%;min-height:0;display:flex;flex-direction:column;background:transparent;color:#EDE8DF;font-family:'Manrope',sans-serif;position:relative;overflow:hidden}",
+  ".nt-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px 12px;z-index:20;background:rgba(255,255,255,.04);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".nt-brand{display:flex;align-items:baseline;gap:10px;min-width:0}",
+  ".nt-brand h1{margin:0;font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.04em;color:#EDE8DF}",
+  ".nt-count{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.8px;color:#7A756C}",
+  ".nt-tools{display:flex;align-items:center;gap:8px;min-width:0;flex:1;justify-content:flex-end}",
+  ".nt-search{width:min(240px,32vw);background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);color:#EDE8DF;padding:9px 12px;font-family:'Manrope',sans-serif;font-size:13px;outline:none}",
+  ".nt-search:focus{border-color:color-mix(in srgb,var(--mc) 55%,transparent)}",
+  ".nt-new{display:flex;align-items:center;gap:8px;min-width:0}",
+  ".nt-new input{width:min(180px,28vw);background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#EDE8DF;padding:8px 2px;font-family:'Manrope',sans-serif;font-size:13px;outline:none}",
+  ".nt-new input:focus{border-bottom-color:var(--mc)}",
+  ".nt-new-btn{width:36px;height:36px;border:1px solid color-mix(in srgb,var(--mc) 40%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent);color:var(--mc);cursor:pointer;font-size:18px;line-height:1}",
+  ".nt-rail{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:10px 22px;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.06);z-index:12}",
+  ".nt-chip{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#8A857C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12.5px;white-space:nowrap;border-radius:999px}",
+  ".nt-chip:hover{color:#EDE8DF;border-color:rgba(255,255,255,.2)}",
+  ".nt-chip.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--mc) 18%,rgba(255,255,255,.05));border-color:color-mix(in srgb,var(--mc) 40%,transparent)}",
+  ".nt-chip.is-hot{outline:1px dashed color-mix(in srgb,var(--mc) 55%,transparent);outline-offset:2px}",
+  ".nt-chip b{font-weight:500;font-family:'JetBrains Mono',monospace;font-size:10px;color:#7A756C}",
+  ".nt-chip-x{border:none;background:transparent;color:#6A655E;cursor:pointer;padding:0 0 0 2px;font-size:14px;line-height:1}",
+  ".nt-chip-x:hover{color:#C08C8C}",
+  ".nt-chip-add{border-style:dashed}",
+  ".nt-split{flex:1;min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr)}",
+  ".nt-list{min-height:0;overflow-y:auto;padding:10px 10px 24px;border-right:1px solid rgba(255,255,255,.07)}",
+  ".nt-empty{margin:28px 12px;font-size:13px;line-height:1.55;color:#7A756C}",
+  ".nt-row{display:flex;align-items:flex-start;gap:6px;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}",
+  ".nt-row.is-on{background:color-mix(in srgb,var(--nc,#EDE8DF) 12%,rgba(255,255,255,.04))}",
+  ".nt-row:hover{background:rgba(255,255,255,.04)}",
+  ".nt-note{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;padding:2px 0;border:none;background:transparent;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
+  ".nt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px}",
+  ".nt-note-body{min-width:0;flex:1}",
+  ".nt-note-t{display:block;font-size:14px;font-weight:600;letter-spacing:-.02em;color:#EDE8DF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+  ".nt-note-s{margin-top:3px;font-size:12px;line-height:1.4;color:#7A756C;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
+  ".nt-drag{cursor:grab;color:#5A5A62;font-size:12px;line-height:1;user-select:none;flex-shrink:0;margin-top:5px}",
+  ".nt-note-x{width:26px;height:26px;flex-shrink:0;border:none;background:transparent;color:#6A655E;cursor:pointer;opacity:0;font-size:16px}",
+  ".nt-row:hover .nt-note-x,.nt-note-x:focus{opacity:1}",
+  ".nt-note-x:hover{color:#C08C8C}",
+  ".nt-editor{min-width:0;min-height:0;overflow-y:auto;padding:28px 36px 80px}",
+  ".nt-ed-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}",
+  ".nt-ed-head h2{margin:0;font-family:'Syne',sans-serif;font-size:clamp(26px,3.6vw,40px);font-weight:700;letter-spacing:-.045em;line-height:1.1;overflow-wrap:anywhere}",
+  ".nt-fmt{display:inline-flex;gap:2px;padding:3px;margin-bottom:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}",
+  ".nt-fmt button{background:transparent;border:none;color:#8A857C;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;padding:7px 12px}",
+  ".nt-fmt button:hover{color:#EDE8DF;background:rgba(255,255,255,.06)}",
+  ".nt-insert{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}",
+  ".nt-insert button{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.035);color:#A0988C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12.5px;backdrop-filter:blur(18px)}",
+  ".nt-insert button:hover{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 40%,transparent);background:color-mix(in srgb,var(--mc) 10%,transparent)}",
+  ".nt-insert svg{width:14px;height:14px}",
+  ".nt-catform{display:flex;align-items:center;gap:8px;padding:0 8px}",
+  ".nt-catform input{width:160px;background:transparent;border:none;border-bottom:1px solid color-mix(in srgb,var(--mc) 50%,transparent);color:#EDE8DF;padding:6px 2px;font-size:13px;outline:none}",
   ".jr-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:#6E6E76;margin:0}",
 
   /* ---------- ambient field ---------- */
@@ -141,6 +188,17 @@ var JR_CSS = [
 
   /* ---------- responsive ---------- */
   "@media(max-width:720px){",
+  ".nt-head{padding:max(12px,env(safe-area-inset-top)) 12px 12px;flex-wrap:wrap}",
+  ".nt-tools{flex-basis:100%;justify-content:stretch}",
+  ".nt-search,.nt-new{flex:1}",
+  ".nt-search{width:auto}",
+  ".nt-new input{width:auto;flex:1}",
+  ".nt-rail{padding:8px 12px;gap:6px}",
+  ".nt-split{grid-template-columns:1fr}",
+  ".nt-list{border-right:none;padding:8px 8px 88px}",
+  ".nt-editor{padding:18px 16px 80px}",
+  ".nt-note-x{opacity:1}",
+  ".nt-note-s{-webkit-line-clamp:1}",
   ".gn-field{height:min(640px,70vh)}",
   ".gn-orb--a{width:70vw;height:70vw;max-width:none;max-height:none}",
   ".gn-orb--b{width:55vw;height:55vw;max-width:none;max-height:none}",
@@ -205,6 +263,18 @@ function escapeHtml(text) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+function stripHtml(html) {
+  return String(html || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+}
+function noteSnippet(spaceId, allBlocks) {
+  var list = (allBlocks || []).filter(function(b) { return b.space_id === spaceId; }).sort(function(a, b) { return (a.order_index || 0) - (b.order_index || 0); });
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].type !== "title" && list[i].type !== "text") continue;
+    var t = stripHtml(list[i].content || "");
+    if (t) return t;
+  }
+  return "";
 }
 
 function handleJournalCopy(e) {
@@ -317,6 +387,10 @@ export default function Journal() {
   var catPick = catPickS[0], setCatPick = catPickS[1];
   var catFormS = useState(null);
   var catForm = catFormS[0], setCatForm = catFormS[1];
+  var queryS = useState("");
+  var query = queryS[0], setQuery = queryS[1];
+  var catFilterS = useState("all");
+  var catFilter = catFilterS[0], setCatFilter = catFilterS[1];
   var catFormRef = useRef(null);
   var skipCatBlurRef = useRef(false);
   var dragNoteRef = useRef(null);
@@ -516,7 +590,7 @@ export default function Journal() {
   function reportSave(res) {
     if (!res) return;
     if (res.emergency || (res.spaces && res.spaces.emergency) || (res.blocks && res.blocks.emergency)) {
-      setSessionWarn("Sessão expirada — o Diário foi guardado neste dispositivo. Inicia sessão no Hub para sincronizar.");
+      setSessionWarn("Sessão expirada — as notas foram guardadas neste dispositivo. Inicia sessão no Hub para sincronizar.");
       return;
     }
     if (res.ok && res.cloud !== false) {
@@ -656,6 +730,19 @@ export default function Journal() {
     });
     return { byBlock: byBlock, ungrouped: ungrouped };
   }, [spaces, noteBlocks]);
+  var visibleNotes = useMemo(function() {
+    var q = (query || "").trim().toLowerCase();
+    var valid = {};
+    noteBlocks.blocks.forEach(function(b) { valid[b.id] = true; });
+    return spaces.filter(function(s) {
+      var bid = noteBlocks.assign[s.id];
+      var grouped = !!(bid && valid[bid]);
+      if (catFilter === "none" && grouped) return false;
+      if (catFilter !== "all" && catFilter !== "none" && bid !== catFilter) return false;
+      if (q && (s.title || "").toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }, [spaces, noteBlocks, catFilter, query]);
 
   function createSpace() {
     if (!isHydrated) return;
@@ -670,6 +757,7 @@ export default function Journal() {
     setNewTitle("");
     if (isMobile) setMobileNoteOpen(true);
     persistSpaces(next);
+    if (catFilter && catFilter !== "all" && catFilter !== "none") assignNoteToBlock(s.id, catFilter);
   }
 
   async function removeSpace(space) {
@@ -823,25 +911,27 @@ export default function Journal() {
 
   function renderNoteItem(s) {
     var on = active === s.id;
-    var initial = (s.title || "?").trim().charAt(0).toUpperCase() || "?";
     var currentCat = noteBlocks.assign[s.id];
     var picking = catPick === s.id;
+    var snippet = noteSnippet(s.id, blocks);
     return (
-      <div key={s.id} className="gn-noterow-wrap">
-        <div className="gn-noterow">
+      <div key={s.id}>
+        <div className={"nt-row" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} style={{ "--nc": s.color }}>
           {!isMobile ? (
             <span
-              className="gn-drag"
+              className="nt-drag"
               title="Arrastar para uma categoria"
               draggable
               onDragStart={function(e) { dragNoteRef.current = s.id; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {} }}
               onDragEnd={function() { dragNoteRef.current = null; setDragOverTarget(null); }}
             >⠿</span>
           ) : null}
-          <button type="button" className={"gn-note" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} onClick={function() { openNote(s.id); }}
-            style={{ "--nc": s.color, fontSize: isMobile ? 15 : 13, padding: isMobile ? "12px 12px" : "9px 11px" }}>
-            <span className="gn-avatar" style={{ background: alpha(s.color, 0.18), color: s.color, borderColor: alpha(s.color, 0.4) }}>{initial}</span>
-            <span className="gn-notetitle">{s.title}</span>
+          <button type="button" className="nt-note" onClick={function() { openNote(s.id); }}>
+            <span className="nt-dot" style={{ background: s.color }} />
+            <span className="nt-note-body">
+              <span className="nt-note-t">{s.title}</span>
+              {snippet ? <span className="nt-note-s">{snippet}</span> : null}
+            </span>
           </button>
           {isMobile && noteBlocks.blocks.length ? (
             <button type="button" className={"gn-catbtn" + (picking || currentCat ? " is-on" : "")} aria-label="Categoria"
@@ -849,8 +939,7 @@ export default function Journal() {
               <IconFolder />
             </button>
           ) : null}
-          <button type="button" className="gn-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota"
-            style={{ width: isMobile ? 36 : 28, height: isMobile ? 36 : 28, fontSize: isMobile ? 18 : 15 }} aria-label="Eliminar nota">×</button>
+          <button type="button" className="nt-note-x" onClick={function(e) { e.stopPropagation(); removeSpace(s); }} title="Eliminar nota" aria-label="Eliminar nota">×</button>
         </div>
         {picking ? (
           <div className="gn-catmenu">
@@ -873,102 +962,56 @@ export default function Journal() {
   }
 
   return (
-    <div
-      onCopyCapture={handleJournalCopy}
-      style={{
-        minHeight: "100vh",
-        background: pageBg(),
-        color: "#FFFFFF",
-        fontFamily: JOURNAL_FONT,
-        letterSpacing: JOURNAL_LETTER_SPACING,
-        lineHeight: JOURNAL_LINE_HEIGHT,
-        position: "relative",
-        overflowX: "hidden",
-        "--mc": ACCENT,
-      }}>
+    <div className="nt-root" onCopyCapture={handleJournalCopy} style={{ "--mc": ACCENT }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + JR_CSS}</style>
       <div className="gn-field" aria-hidden="true">
         <span className="gn-orb gn-orb--a" style={{ background: moduleGlow(ACCENT) }} />
         <span className="gn-orb gn-orb--b" style={{ background: moduleGlow(ACCENT, "14") }} />
       </div>
 
-      <header className="gn-header" style={{ padding: isMobile ? "max(12px, env(safe-area-inset-top)) 12px 12px" : "14px 20px" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
-            {isMobile && mobileNoteOpen ? (
-              <HubBack label="Notas" onClick={function() { setMobileNoteOpen(false); }} />
-            ) : (
-              <HubBack />
-            )}
-            <h1 className="mod-h1" style={{ fontFamily: JOURNAL_FONT, fontSize: isMobile ? 17 : 16, color: activeSpace ? activeSpace.color : ACCENT, margin: 0, fontWeight: 500, letterSpacing: JOURNAL_LETTER_SPACING, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Diário"}</h1>
-          </div>
+      <header className="nt-head">
+        <div className="nt-brand">
+          {isMobile && mobileNoteOpen ? (
+            <HubBack label="Notas" onClick={function() { setMobileNoteOpen(false); }} />
+          ) : null}
+          <h1>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Notas"}</h1>
+          {isMobile && mobileNoteOpen ? null : <span className="nt-count">{spaces.length}</span>}
         </div>
+        {isMobile && mobileNoteOpen ? null : (
+          <div className="nt-tools">
+            <input className="nt-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar…" />
+            <div className="nt-new">
+              <input value={newTitle} onChange={function(e) { setNewTitle(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") createSpace(); }} placeholder="Nova nota…" />
+              <button type="button" className="nt-new-btn" onClick={createSpace} title="Criar nota">+</button>
+            </div>
+          </div>
+        )}
       </header>
 
       {sessionWarn ? (
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 20px 0", fontSize: 12, color: "#C4A57C", fontFamily: JOURNAL_FONT, position: "relative", zIndex: 1 }}>
-          {sessionWarn}
-        </div>
+        <div style={{ padding: "8px 22px 0", fontSize: 12, color: "#C4A57C", fontFamily: JOURNAL_FONT, position: "relative", zIndex: 1 }}>{sessionWarn}</div>
       ) : null}
 
-      <main className="mod-main" data-scrollable style={{ maxWidth: 1180, margin: "0 auto", padding: isMobile ? "14px 12px 80px" : "22px 20px", position: "relative", zIndex: 1 }}>
-        {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
-        <div style={{ pointerEvents: isHydrated ? "auto" : "none", userSelect: isHydrated ? "auto" : "none" }}>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "270px minmax(0,1fr)", gap: isMobile ? 14 : 26 }}>
-        {(!isMobile || !mobileNoteOpen) ? (
-        <aside style={{ height: "fit-content" }}>
-          <div className="gn-sidehead">
-            <p className="jr-lbl">Notas</p>
-            <button type="button" className="gn-addblk" onClick={addNoteBlock} title="Nova categoria"><IconFolder /> + Categoria</button>
-          </div>
-          {catForm && catForm.mode === "new" ? (
-            <div className="gn-catform">
-              <input
-                className="gn-input"
-                autoFocus
-                value={catForm.name}
-                onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
-                onKeyDown={function(e) {
-                  if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
-                  if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
-                }}
-                placeholder="Nome da categoria"
-                style={{ fontSize: isMobile ? 16 : 13 }}
-              />
-              <button type="button" className="gn-catform-ok" onClick={submitCatForm} title="Criar">+</button>
-            </div>
-          ) : null}
-          <div data-scrollable style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: isMobile ? "none" : "62vh", overflowY: isMobile ? "visible" : "auto", paddingRight: isMobile ? 0 : 2 }}>
-            {!spaces.length ? (
-              <p className="gn-cats-empty">Ainda não há notas neste dispositivo. Se já as criaste no computador, espera um momento — estão a sincronizar. Caso contrário, cria a primeira em baixo.</p>
-            ) : null}
-            {noteGroups.ungrouped.length > 0 ? (
-              <div {...dropZoneProps(null)} className={"gn-drop" + (dragOverTarget === "__none__" ? " is-hot" : "")}>
-                {noteGroups.ungrouped.map(renderNoteItem)}
-              </div>
-            ) : null}
-            {!noteBlocks.blocks.length ? (
-              <p className="gn-cats-empty">Ainda não tens categorias. Cria uma com «+ Categoria» para organizar as notas — fica igual no telemóvel e no computador.</p>
-            ) : null}
-            {noteBlocks.blocks.map(function(blk) {
-              var items = noteGroups.byBlock[blk.id] || [];
-              var collapsed = !!noteBlocks.collapsed[blk.id];
-              var hot = dragOverTarget === blk.id;
-              return (
-                <div key={blk.id} {...dropZoneProps(blk.id)} className={"gn-group glass-flat" + (hot ? " is-hot" : "")}>
-                  <div className="gn-group-head">
-                    <button type="button" className="gn-chevron" onClick={function() { toggleNoteBlockCollapse(blk.id); }}><IconChevron open={!collapsed} /></button>
-                    {catForm && catForm.mode === "rename" && catForm.id === blk.id ? (
+      {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", pointerEvents: "auto", position: "relative", zIndex: 1 }}>
+          {(!isMobile || !mobileNoteOpen) ? (
+            <div className="nt-rail">
+              <button type="button" className={"nt-chip" + (catFilter === "all" ? " is-on" : "")} onClick={function() { setCatFilter("all"); }}>Todas <b>{spaces.length}</b></button>
+              <button type="button" className={"nt-chip" + (catFilter === "none" ? " is-on" : "") + (dragOverTarget === "__none__" ? " is-hot" : "")} {...dropZoneProps(null)} onClick={function() { setCatFilter("none"); }}>
+                Sem categoria <b>{noteGroups.ungrouped.length}</b>
+              </button>
+              {noteBlocks.blocks.map(function(blk) {
+                var items = noteBlocks.blocks ? (noteGroups.byBlock[blk.id] || []) : [];
+                var hot = dragOverTarget === blk.id;
+                if (catForm && catForm.mode === "rename" && catForm.id === blk.id) {
+                  return (
+                    <div key={blk.id} className="nt-catform">
                       <input
-                        className="gn-rename-in"
                         autoFocus
                         value={catForm.name}
                         onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
                         onBlur={function() {
-                          if (skipCatBlurRef.current) {
-                            skipCatBlurRef.current = false;
-                            return;
-                          }
+                          if (skipCatBlurRef.current) { skipCatBlurRef.current = false; return; }
                           submitCatForm();
                         }}
                         onKeyDown={function(e) {
@@ -976,78 +1019,107 @@ export default function Journal() {
                           if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
                         }}
                       />
-                    ) : (
-                      <button type="button" className="gn-group-name" onClick={function() { renameNoteBlock(blk.id); }} title="Clica para renomear">
-                        <IconFolder />
-                        <span>{blk.name}</span>
-                        <span className="gn-count">{items.length}</span>
-                      </button>
-                    )}
-                    <button type="button" className="gn-x" onClick={function() { deleteNoteBlock(blk.id); }} title="Eliminar categoria" style={{ width: isMobile ? 36 : 24, height: isMobile ? 36 : 24, fontSize: isMobile ? 18 : 14 }}>×</button>
-                  </div>
-                  {!collapsed ? (
-                    <div className="gn-group-body">
-                      {items.length ? items.map(renderNoteItem) : <p className="gn-hint">{isMobile ? "Categoria vazia" : "Arrasta notas para aqui"}</p>}
                     </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-          <div className="gn-newnote">
-            <input className="gn-input" value={newTitle} onChange={function(e) { setNewTitle(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") createSpace(); }} placeholder="Nova nota…" style={{ fontSize: isMobile ? 16 : 13 }} />
-            <button type="button" className="gn-newnote-btn" onClick={createSpace}>+</button>
-          </div>
-        </aside>
-        ) : null}
-
-        {(!isMobile || mobileNoteOpen) ? (
-        <section style={{ minWidth: 0, maxWidth: 720 }}>
-          <div className="gn-canvashead">
-            <span className="gn-dot" style={{ background: color, "--nc": color }} />
-            <h2 style={{ margin: 0, fontSize: isMobile ? "clamp(22px,7vw,30px)" : "clamp(26px,3.8vw,38px)", fontFamily: JOURNAL_FONT, color: "#EDEDEF", fontWeight: 400, letterSpacing: "-0.03em", lineHeight: 1.2, overflowWrap: "anywhere" }}>{activeSpace ? activeSpace.title : "Diário"}</h2>
-          </div>
-          <div className="gn-fmtbar">
-            <button type="button" className="gn-fmtbtn" onClick={function() { format("bold"); }}>{isMobile ? "N" : "Negrito"}</button>
-            <button type="button" className="gn-fmtbtn" onClick={function() { format("italic"); }}>{isMobile ? "I" : "Itálico"}</button>
-            <button type="button" className="gn-fmtbtn" onClick={function() { var url = prompt("Link"); if (url) format("createLink", url); }}>{isMobile ? "Link" : "Hiperligação"}</button>
-          </div>
-          <div className="gn-insertbar glass-flat">
-            <button type="button" className="gn-insert" onClick={function() { addBlock("title"); }}><IconTitle /> Título</button>
-            <button type="button" className="gn-insert" onClick={function() { addBlock("text"); }}><IconParagraph /> Texto</button>
-            <button type="button" className="gn-insert" onClick={function() { addBlock("image"); }}><IconImage /> {isMobile ? "Img" : "Imagem"}</button>
-            <button type="button" className="gn-insert" onClick={function() { addBlock("document"); }}><IconDocument /> {isMobile ? "Doc" : "Documento"}</button>
-          </div>
-          {activeBlocks.length === 0 ? (
-            <div className="gn-emptyblocks">Adiciona blocos para começar a escrever.</div>
-          ) : (
-            <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {activeBlocks.map(function(b) {
+                  );
+                }
                 return (
-                  <JournalBlock
-                    key={b.id}
-                    block={b}
-                    color={color}
-                    collapsed={!!canvasCollapsed[b.id]}
-                    onToggleCollapse={function() { toggleCanvasBlockCollapse(b.id); }}
-                    onChange={updateBlock}
-                    onDelete={removeBlock}
-                    onEditStart={function(id) { editingBlockRef.current = id; }}
-                    onEditEnd={function() { editingBlockRef.current = null; }}
-                    registerFlush={registerFlush}
-                    unregisterFlush={unregisterFlush}
-                    editingEnabled={isHydrated}
-                  />
+                  <button
+                    key={blk.id}
+                    type="button"
+                    className={"nt-chip" + (catFilter === blk.id ? " is-on" : "") + (hot ? " is-hot" : "")}
+                    {...dropZoneProps(blk.id)}
+                    onClick={function() { setCatFilter(blk.id); }}
+                    onDoubleClick={function(e) { e.preventDefault(); renameNoteBlock(blk.id); }}
+                    title="Duplo clique para renomear · arrasta notas para aqui"
+                  >
+                    {blk.name} <b>{items.length}</b>
+                    <span className="nt-chip-x" role="button" title="Eliminar categoria" onClick={function(e) { e.stopPropagation(); deleteNoteBlock(blk.id); }}>×</span>
+                  </button>
                 );
               })}
+              {catForm && catForm.mode === "new" ? (
+                <div className="nt-catform">
+                  <input
+                    autoFocus
+                    value={catForm.name}
+                    onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
+                    onKeyDown={function(e) {
+                      if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
+                      if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
+                    }}
+                    placeholder="Nome da categoria"
+                  />
+                  <button type="button" className="nt-chip is-on" onClick={submitCatForm}>Criar</button>
+                </div>
+              ) : (
+                <button type="button" className="nt-chip nt-chip-add" onClick={addNoteBlock} title="Nova categoria">+ Categoria</button>
+              )}
             </div>
-          )}
-        </section>
-        ) : null}
+          ) : null}
+
+          <div className="nt-split">
+            {(!isMobile || !mobileNoteOpen) ? (
+              <aside className="nt-list" data-scrollable>
+                {!spaces.length ? (
+                  <p className="nt-empty">Ainda não há notas. Cria a primeira em cima — se já as tens noutro dispositivo, espera um momento a sincronizar.</p>
+                ) : !visibleNotes.length ? (
+                  <p className="nt-empty">Nada neste filtro. Muda de categoria ou cria uma nota nova.</p>
+                ) : visibleNotes.map(renderNoteItem)}
+              </aside>
+            ) : null}
+
+            {(!isMobile || mobileNoteOpen) ? (
+              <section className="nt-editor" data-scrollable>
+                {!activeSpace ? (
+                  <p className="nt-empty">Escolhe uma nota à esquerda, ou cria uma nova.</p>
+                ) : (
+                  <div>
+                    <div className="nt-ed-head">
+                      <span className="nt-dot" style={{ background: color, width: 10, height: 10, marginTop: 8 }} />
+                      <h2>{activeSpace.title}</h2>
+                    </div>
+                    <div className="nt-fmt">
+                      <button type="button" onClick={function() { format("bold"); }}>{isMobile ? "N" : "Negrito"}</button>
+                      <button type="button" onClick={function() { format("italic"); }}>{isMobile ? "I" : "Itálico"}</button>
+                      <button type="button" onClick={function() { var url = prompt("Link"); if (url) format("createLink", url); }}>{isMobile ? "Link" : "Hiperligação"}</button>
+                    </div>
+                    <div className="nt-insert">
+                      <button type="button" onClick={function() { addBlock("title"); }}><IconTitle /> Título</button>
+                      <button type="button" onClick={function() { addBlock("text"); }}><IconParagraph /> Texto</button>
+                      <button type="button" onClick={function() { addBlock("image"); }}><IconImage /> {isMobile ? "Img" : "Imagem"}</button>
+                      <button type="button" onClick={function() { addBlock("document"); }}><IconDocument /> {isMobile ? "Doc" : "Documento"}</button>
+                    </div>
+                    {activeBlocks.length === 0 ? (
+                      <div className="gn-emptyblocks">Adiciona um título ou texto para começar.</div>
+                    ) : (
+                      <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        {activeBlocks.map(function(b) {
+                          return (
+                            <JournalBlock
+                              key={b.id}
+                              block={b}
+                              color={color}
+                              collapsed={!!canvasCollapsed[b.id]}
+                              onToggleCollapse={function() { toggleCanvasBlockCollapse(b.id); }}
+                              onChange={updateBlock}
+                              onDelete={removeBlock}
+                              onEditStart={function(id) { editingBlockRef.current = id; }}
+                              onEditEnd={function() { editingBlockRef.current = null; }}
+                              registerFlush={registerFlush}
+                              unregisterFlush={unregisterFlush}
+                              editingEnabled={isHydrated}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            ) : null}
+          </div>
         </div>
-        </div>
-        )}
-      </main>
+      )}
     </div>
   );
 }

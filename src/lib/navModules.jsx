@@ -73,7 +73,7 @@ export var MODULES = [
   { id: "calendar", name: "Calendário", desc: "Visualiza e organiza o teu tempo", Icon: CalendarIcon, path: "/calendar", color: MODULE_COLORS.calendar },
   { id: "focus", name: "Estúdio de Foco", desc: "Sessões de estudo, ideias e métricas diárias", Icon: FocusIcon, path: "/focus", color: MODULE_COLORS.focus },
   { id: "tasks", name: "Tarefas", desc: "Captura, prioriza, conquista", Icon: TasksIcon, path: "/tasks", color: MODULE_COLORS.tasks },
-  { id: "journal", name: "Diário", desc: "Blocos de escrita para tudo o que vem à cabeça", Icon: JournalIcon, path: "/journal", color: MODULE_COLORS.journal },
+  { id: "journal", name: "Notas", desc: "Escreve, organiza e volta a encontrar", Icon: JournalIcon, path: "/journal", color: MODULE_COLORS.journal },
   { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects", color: MODULE_COLORS.projects },
   { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist", color: MODULE_COLORS.wishlist },
   { id: "finance", name: "Financeiro", desc: "Saldo vivo, sequências e relatório do mês", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },

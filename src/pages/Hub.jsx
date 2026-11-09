@@ -421,7 +421,7 @@ export default function Hub() {
                 ) : null}
                 <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.journal }} onClick={function() { navigate("/journal"); }}>
                   <b>{snap.notes}</b>
-                  <i>espaços no diário</i>
+                  <i>notas</i>
                 </button>
               </div>
             ) : null}

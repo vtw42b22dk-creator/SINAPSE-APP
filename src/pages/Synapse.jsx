@@ -481,7 +481,7 @@ function DocPanel(props) {
       synapse_label: node.label || "Sem nome",
       created_from: "quick_note",
     });
-    setJournalStatus("Enviado para o Diário");
+    setJournalStatus("Enviado para Notas");
     setTimeout(function(){ setJournalStatus(""); }, 2200);
   }
 
@@ -685,7 +685,7 @@ function DocPanel(props) {
                 <select value={journalSpaceId} onChange={function(e){setJournalSpaceId(e.target.value);}} style={{minWidth:isMobile?"100%":170,background:"#0E0E10",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,color:"#EDEDEF",fontSize:12,padding:"9px 10px",outline:"none"}}>
                   {journalSpaces.map(function(s){return <option key={s.id} value={s.id}>{s.title}</option>;})}
                 </select>
-                <button onClick={sendNoteToJournal} disabled={!notes.trim() || !journalSpaceId} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:12,color:"#EDEDEF",padding:"10px 12px",cursor:(!notes.trim()||!journalSpaceId)?"default":"pointer",opacity:(!notes.trim()||!journalSpaceId)?0.45:1,fontSize:12}}>Enviar para Diário</button>
+                <button onClick={sendNoteToJournal} disabled={!notes.trim() || !journalSpaceId} style={{background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.14)",borderRadius:12,color:"#EDEDEF",padding:"10px 12px",cursor:(!notes.trim()||!journalSpaceId)?"default":"pointer",opacity:(!notes.trim()||!journalSpaceId)?0.45:1,fontSize:12}}>Enviar para Notas</button>
               </div>
               {journalStatus && <p style={{fontSize:10,color:"#A0A0A8",margin:"8px 0 0",fontFamily:"'JetBrains Mono',monospace"}}>{journalStatus}</p>}
             </div>

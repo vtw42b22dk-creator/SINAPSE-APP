@@ -294,7 +294,7 @@ var SHELL_CSS = [
   ".shell{display:flex;height:100vh;height:100dvh;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative}",
   ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.42),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.34),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(143,179,155,.16),transparent 62%)}",
   ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto}",
-  ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page{height:100%!important;max-height:100%!important;min-height:0!important}",
+  ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page,.shell-stage>.nt-root{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
   ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(255,255,255,.035);border-right:1px solid rgba(255,255,255,.12);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2)}",
   ".sh-side.is-mini{width:72px;padding:18px 0 14px;align-items:center}",
@@ -354,6 +354,6 @@ var SHELL_CSS = [
   ".sh-scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:85}",
   ".sh-side{position:fixed;inset:0 auto 0 0;width:min(82vw,280px);transform:translateX(-105%);transition:transform 280ms cubic-bezier(.22,1,.36,1);z-index:90;padding-top:max(18px,env(safe-area-inset-top))}",
   ".sh-side.is-open{transform:none}",
-  ".shell-stage .ch-head,.shell-stage .tk-head,.shell-stage .pj-top,.shell-stage .pw-head,.shell-stage .fs-headwrap,.shell-stage .gn-header,.shell-stage .wl-head,.shell-stage .hub-top,.shell-stage>* > header{padding-left:56px!important}",
+  ".shell-stage .ch-head,.shell-stage .tk-head,.shell-stage .pj-top,.shell-stage .pw-head,.shell-stage .fs-headwrap,.shell-stage .gn-header,.shell-stage .nt-head,.shell-stage .wl-head,.shell-stage .hub-top,.shell-stage>* > header{padding-left:56px!important}",
   "}",
 ].join("");

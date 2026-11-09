@@ -128,7 +128,7 @@ export async function recoverJournal() {
     summary:
       "Textos: " + fmt(backupBlocks) + " · Temas: " + fmt(backupSpaces) +
       " · Nuvem: " + fmt(cloudBlocks) + "/" + fmt(cloudSpaces) +
-      " · Aplicado: " + fixed.blocks.length + " textos, " + fixed.spaces.length + " temas. Abre o Diário.",
+      " · Aplicado: " + fixed.blocks.length + " textos, " + fixed.spaces.length + " cadernos. Abre as Notas.",
   };
 }
 
