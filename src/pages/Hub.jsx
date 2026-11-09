@@ -1,321 +1,111 @@
+/* eslint-disable no-unused-vars, no-empty */
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
-import { ProjectsIcon } from "./Projects";
 import { COLORS, MODULE_COLORS, moduleGlow } from "../lib/theme";
 import { MICRO_CSS, trackSpotlight } from "../lib/microUi";
+import { readLocal } from "../lib/cloudStore";
+import * as tasksStore from "../lib/tasksStore";
+import * as journalStore from "../lib/journalStore";
+import * as wishlistStore from "../lib/wishlistStore";
+import * as financeStore from "../lib/financeStore";
+import * as incomeStore from "../lib/incomeStore";
+import { financeStats } from "../lib/financeSequences";
+import {
+  loadHubOrder,
+  saveHubOrder,
+  loadHidden,
+  saveHidden,
+} from "../lib/navModules.jsx";
 
-function CalendarIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <rect x="6" y="10" width="36" height="32" stroke="currentColor" strokeWidth="2"/>
-      <line x1="6" y1="20" x2="42" y2="20" stroke="currentColor" strokeWidth="2"/>
-    </svg>
-  );
-}
-function TasksIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M14 24 L21 31 L36 14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
-    </svg>
-  );
-}
-function WishlistIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M14 12H34L32 30H16L14 12Z" stroke="currentColor" strokeWidth="2"/>
-    </svg>
-  );
-}
-function FinanceIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M10 34 L20 22 L28 28 L38 14" stroke="currentColor" strokeWidth="2"/>
-    </svg>
-  );
-}
-function JournalIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <path d="M12 8H36V40H12Z" stroke="currentColor" strokeWidth="2"/>
-      <path d="M18 16H30M18 24H30" stroke="currentColor" strokeWidth="1.6"/>
-    </svg>
-  );
-}
-function FocusIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <circle cx="24" cy="26" r="14" stroke="currentColor" strokeWidth="2"/>
-      <path d="M24 26 L24 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="square"/>
-    </svg>
-  );
-}
-
-var MODULES = [
-  { id: "calendar", name: "Calendário", desc: "Visualiza e organiza o teu tempo", Icon: CalendarIcon, path: "/calendar", color: MODULE_COLORS.calendar },
-  { id: "focus", name: "Estúdio de Foco", desc: "Sessões de estudo, ideias e métricas diárias", Icon: FocusIcon, path: "/focus", color: MODULE_COLORS.focus },
-  { id: "tasks", name: "Tarefas", desc: "Captura, prioriza, conquista", Icon: TasksIcon, path: "/tasks", color: MODULE_COLORS.tasks },
-  { id: "journal", name: "Diário", desc: "Blocos de escrita para tudo o que vem à cabeça", Icon: JournalIcon, path: "/journal", color: MODULE_COLORS.journal },
-  { id: "projects", name: "Projetos", desc: "Workspaces modulares com finanças, notas e sinapses", Icon: ProjectsIcon, path: "/projects", color: MODULE_COLORS.projects },
-  { id: "wishlist", name: "Wishlist", desc: "Lista o que queres comprar ou fazer", Icon: WishlistIcon, path: "/wishlist", color: MODULE_COLORS.wishlist },
-  { id: "finance", name: "Financeiro", desc: "Saldo vivo, sequências e relatório do mês", Icon: FinanceIcon, path: "/finance", color: MODULE_COLORS.finance },
+var NOTES = [
+  "O que não está escrito ainda não existe.",
+  "Uma coisa de cada vez. O resto espera.",
+  "O foco não é força — é recusa.",
+  "Guarda o dia antes de o dia te guardar a ti.",
+  "Pequenos movimentos, todos os dias.",
+  "Se está na cabeça, põe-no nalgum sítio.",
+  "O silêncio também é trabalho.",
+  "Não precisas de mais horas. Precisas de menos ruído.",
+  "Começa pelo que pesa mais.",
+  "O amanhã trata-se melhor se o hoje ficar fechado.",
 ];
 
 var HUB_CSS = [
   MICRO_CSS,
-  "@keyframes hubIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}",
-  "@keyframes hubTick{0%,48%{opacity:1}50%,98%{opacity:.15}}",
-  "@keyframes hubDrift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(3%,-4%) scale(1.06)}66%{transform:translate(-3%,3%) scale(0.97)}}",
-  "@keyframes hubPulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}",
-  ".hub-scroll{height:100vh;height:100dvh;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;position:relative;background:" + COLORS.bg + ";color:" + COLORS.text + ";font-family:'IBM Plex Sans',sans-serif}",
+  "@keyframes hubIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}",
+  "@keyframes hubTick{0%,48%{opacity:1}50%,98%{opacity:.18}}",
+  "@keyframes hubDrift{0%,100%{transform:translate(0,0)}50%{transform:translate(3%,-4%)}}",
+  "@keyframes hubPulse{0%,100%{opacity:1}50%{opacity:.35}}",
+  ".hub-scroll{height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;position:relative;background:transparent;color:" + COLORS.text + ";font-family:'Manrope',sans-serif}",
   ".hub-scroll::-webkit-scrollbar{width:5px}",
   ".hub-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}",
-  ".hub-inner{max-width:920px;margin:0 auto;padding:48px 24px 120px;position:relative;z-index:1}",
-  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);animation:uiGlow 8s ease-in-out infinite,hubDrift 22s ease-in-out infinite;transition:background 1.2s var(--ease)}",
-  ".hub-glow--a{width:min(520px,68vw);height:min(520px,68vw);top:-14%;left:-10%}",
-  ".hub-glow--b{width:min(400px,52vw);height:min(400px,52vw);bottom:2%;right:-12%;animation-delay:-3s,-7s}",
-  ".hub-glow--c{width:min(320px,42vw);height:min(320px,42vw);top:40%;left:36%;animation-delay:-5s,-14s;opacity:.4}",
-  ".hub-mark{position:fixed;right:-2%;top:14%;font-family:'JetBrains Mono',monospace;font-size:clamp(80px,20vw,240px);",
-  "font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,.025);line-height:.8;pointer-events:none;user-select:none;transform:rotate(-10deg);z-index:0}",
-  ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:52px}",
-  ".hub-sec{font-size:10px;letter-spacing:2.6px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;margin:0;display:flex;align-items:center;gap:8px}",
-  ".hub-live{width:6px;height:6px;border-radius:50%;background:var(--mc);flex-shrink:0;animation:hubPulseDot 2s ease-in-out infinite}",
-  ".hub-clock-wrap{animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:40ms}",
-  ".hub-time{display:flex;align-items:baseline;font-family:'JetBrains Mono',monospace;font-weight:300;letter-spacing:-0.075em;line-height:.85}",
-  ".hub-time-grad{background-image:linear-gradient(100deg,#8FA8C4,#C4A57C,#8FB39B,#C08C8C,#8FA8C4);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:auroraText 16s linear infinite}",
-  ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 1px;color:" + COLORS.faint + "}",
-  ".hub-date{margin:20px 0 0;font-size:14px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
-  ".hub-out{margin-top:4px}",
-  ".hub-divider{height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--mc,#EDEDEF) 45%,transparent),rgba(255,255,255,.04) 65%,transparent);margin:0 0 20px;transition:background 1s var(--ease)}",
-  ".hub-index-head{position:relative;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;padding-top:12px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:100ms}",
-  ".hub-list{display:flex;flex-direction:column;gap:6px}",
-  ".hub-row{position:relative;display:grid;grid-template-columns:44px 28px 1fr auto;align-items:center;gap:16px;width:100%;text-align:left;overflow:hidden;",
-  "padding:20px 16px 20px 12px;background:none;border:none;border-bottom:none;color:" + COLORS.muted + ";cursor:pointer;font-family:inherit;border-radius:var(--radius-md);",
-  "transition:color var(--dur) var(--ease),padding-left var(--dur) var(--ease),background var(--dur) var(--ease)}",
-  "@media(hover:hover) and (pointer:fine){.hub-row{cursor:grab}.hub-row.is-dragging{cursor:grabbing;opacity:.42}.hub-row.is-over{background:rgba(255,255,255,.05)}.hub-row.is-over::before{height:32px;opacity:1}}",
-  ".hub-row::before{content:'';position:absolute;left:8px;top:50%;transform:translateY(-50%);width:3px;height:0;border-radius:var(--radius-pill);background:var(--mc);",
-  "transition:height var(--dur) var(--ease),opacity var(--dur) var(--ease);opacity:0;z-index:2}",
-  ".hub-row::after{content:'';position:absolute;inset:0;background:radial-gradient(240px circle at var(--mx,15%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 10%,transparent),transparent 72%);opacity:0;transition:opacity .4s var(--ease);pointer-events:none;z-index:0;border-radius:inherit}",
-  ".hub-row:hover::after,.hub-row:focus-visible::after{opacity:1}",
-  ".hub-row:hover,.hub-row:focus-visible{color:" + COLORS.text + ";padding-left:14px;background:rgba(255,255,255,.03)}",
-  ".hub-row:hover::before,.hub-row:focus-visible::before{height:32px;opacity:1}",
-  ".hub-row:active{transform:scale(.995)}",
-  ".hub-idx{position:relative;z-index:1;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.6px;color:" + COLORS.faint + ";transition:color var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-idx{color:var(--mc)}",
-  ".hub-ic-wrap{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;color:" + COLORS.faint + "}",
-  ".hub-dot{position:absolute;left:-4px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:var(--mc);opacity:.45;",
-  "transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-dot,.hub-row:focus-visible .hub-dot{opacity:1;transform:translateY(-50%) scale(1.15)}",
-  ".hub-row svg{opacity:.4;transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".hub-row:hover svg,.hub-row:focus-visible svg{opacity:1;color:var(--mc);transform:translateX(2px) rotate(-4deg)}",
-  ".hub-row h2{position:relative;z-index:1;margin:0;font-family:'JetBrains Mono',monospace;font-size:clamp(19px,2.6vw,28px);font-weight:400;letter-spacing:-.035em;color:" + COLORS.text + ";line-height:1.12;transition:color var(--dur) var(--ease)}",
-  ".hub-row:hover h2,.hub-row:focus-visible h2{color:var(--mc)}",
-  ".hub-row p{position:relative;z-index:1;margin:7px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.faint + ";max-width:44ch;transition:color var(--dur) var(--ease)}",
-  ".hub-row:hover p{color:" + COLORS.muted + "}",
-  ".hub-go{position:relative;z-index:1;font-size:20px;color:" + COLORS.faint + ";opacity:0;transform:translateX(-12px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease),color var(--dur) var(--ease)}",
-  ".hub-row:hover .hub-go,.hub-row:focus-visible .hub-go{opacity:1;transform:none;color:var(--mc)}",
-  ".hub-empty{margin:18px 0 0;font-size:13px;line-height:1.55;color:" + COLORS.muted + "}",
+  ".hub-inner{max-width:1080px;margin:0 auto;padding:48px 32px 96px;position:relative;z-index:1}",
+  ".hub-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(100px);animation:hubDrift 22s ease-in-out infinite}",
+  ".hub-glow--a{width:min(480px,60vw);height:min(480px,60vw);top:-16%;right:-8%;opacity:.55}",
+  ".hub-glow--b{width:min(340px,46vw);height:min(340px,46vw);bottom:4%;left:-10%;opacity:.35;animation-delay:-8s}",
+  ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin-bottom:48px}",
+  ".hub-kicker{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;margin:0 0 14px;display:flex;align-items:center;gap:8px}",
+  ".hub-live{width:6px;height:6px;border-radius:50%;background:var(--mc,#EDE8DF);flex-shrink:0;animation:hubPulse 2.2s ease-in-out infinite}",
+  ".hub-hello{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(40px,6.4vw,72px);letter-spacing:-.055em;line-height:.92;margin:0;color:" + COLORS.text + "}",
+  ".hub-hello span{display:block;color:" + COLORS.muted + ";font-weight:500;font-size:.52em;letter-spacing:-.03em;margin-top:10px}",
+  ".hub-clock-wrap{text-align:right;animation:hubIn var(--dur-slow) var(--ease) both}",
+  ".hub-time{display:flex;align-items:baseline;justify-content:flex-end;font-family:'JetBrains Mono',monospace;font-weight:300;letter-spacing:-.08em;line-height:.85;font-size:clamp(40px,5vw,64px);color:" + COLORS.text + "}",
+  ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 2px;color:" + COLORS.text + "}",
+  ".hub-date{margin:12px 0 0;font-size:13px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
+  ".hub-ring{margin-top:16px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.8px}",
+  ".hub-ring svg{display:block}",
+  ".hub-note{max-width:42ch;margin:0 0 40px;font-size:18px;line-height:1.55;color:" + COLORS.muted + ";font-family:'Syne',sans-serif;font-weight:500;letter-spacing:-.02em;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
+  ".hub-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:120ms}",
+  ".hub-stat{padding:16px 16px 14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0}",
+  ".hub-stat:hover{border-color:color-mix(in srgb,var(--sc,#EDE8DF) 45%,transparent);background:rgba(255,255,255,.04)}",
+  ".hub-stat b{display:block;font-family:'JetBrains Mono',monospace;font-size:clamp(22px,3vw,28px);font-weight:400;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1}",
+  ".hub-stat i{display:block;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;text-transform:uppercase}",
+  ".hub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:180ms}",
+  ".hub-panel h2{margin:0 0 14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:" + COLORS.faint + ";font-weight:400}",
+  ".hub-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
+  ".hub-row:hover .hub-row-t{color:var(--mc,#EDE8DF)}",
+  ".hub-row-t{margin:0;font-size:15px;color:" + COLORS.text + ";line-height:1.35}",
+  ".hub-row-m{font-family:'JetBrains Mono',monospace;font-size:11px;color:" + COLORS.faint + ";flex-shrink:0}",
+  ".hub-empty{margin:0;font-size:13px;color:" + COLORS.faint + ";line-height:1.55}",
   ".hub-set{animation:hubIn var(--dur-slow) var(--ease) both}",
   ".hub-set-lead{margin:0 0 28px;max-width:48ch;font-size:14px;line-height:1.55;color:" + COLORS.muted + "}",
   ".hub-set-block{margin-top:36px}",
-  ".hub-tog{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 2px;border-bottom:1px solid rgba(255,255,255,.06)}",
-  ".hub-tog h3{margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:400;letter-spacing:-.02em;color:" + COLORS.text + "}",
+  ".hub-index-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-top:4px}",
+  ".hub-tog{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:14px;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".hub-tog h3{margin:0;font-family:'Syne',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.02em;color:" + COLORS.text + "}",
   ".hub-tog p{margin:4px 0 0;font-size:12.5px;line-height:1.45;color:" + COLORS.faint + "}",
   ".hub-switch{min-height:44px;padding:8px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.16);background:transparent;color:#6E6E76;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.4px;cursor:pointer;white-space:nowrap}",
   ".hub-switch.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
   ".hub-set-link{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:18px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
-  ".hub-set-link h3{margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:400;color:" + COLORS.text + "}",
+  ".hub-set-link h3{margin:0;font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:" + COLORS.text + "}",
   ".hub-set-link p{margin:4px 0 0;font-size:12.5px;color:" + COLORS.faint + "}",
-  ".hub-set-link .hub-go{opacity:1;transform:none}",
   ".hub-set-link:hover h3{color:var(--mc)}",
-  ".hub-foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:400ms}",
+  ".hub-foot{margin-top:48px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'JetBrains Mono',monospace;letter-spacing:.4px}",
-  "@media(hover:none),(pointer:coarse){",
-  ".hub-row:hover{color:" + COLORS.muted + ";padding-left:12px;background:none}",
-  ".hub-row:hover::after{opacity:0}",
-  ".hub-row:hover::before{height:0;opacity:0}",
-  ".hub-row:hover .hub-idx{color:" + COLORS.faint + "}",
-  ".hub-row:hover .hub-dot{opacity:.45;transform:translateY(-50%)}",
-  ".hub-row:hover svg{opacity:.4;color:inherit;transform:none}",
-  ".hub-row:hover h2{color:" + COLORS.text + "}",
-  ".hub-row:hover p{color:" + COLORS.faint + "}",
-  ".hub-row:hover .hub-go{opacity:.45;transform:none;color:" + COLORS.faint + "}",
-  ".hub-row:active{transform:none;background:none;color:" + COLORS.muted + "}",
-  ".hub-row.ui-tap:active:not(:disabled){transform:none}",
-  ".hub-row.is-press{color:" + COLORS.text + ";background:rgba(255,255,255,.04)}",
-  ".hub-row.is-press::before{height:32px;opacity:1}",
-  ".hub-row.is-press h2{color:var(--mc)}",
-  ".hub-row.is-press svg{opacity:1;color:var(--mc)}",
-  "}",
+  "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
+  "@media(max-width:900px){.hub-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
   "@media(max-width:719px){",
-  ".hub-inner{padding:36px 16px max(100px,env(safe-area-inset-bottom))}",
-  ".hub-top{flex-direction:column;gap:14px;margin-bottom:36px}",
-  ".hub-out{align-self:flex-start}",
-  ".hub-row{grid-template-columns:36px 24px 1fr auto;gap:12px;padding:20px 4px;min-height:72px}",
+  ".hub-inner{padding:28px 16px max(88px,env(safe-area-inset-bottom))}",
+  ".hub-hello{font-size:36px}",
+  ".hub-note{font-size:16px;margin-bottom:28px}",
+  ".hub-stats{gap:8px}",
   ".hub-tog{grid-template-columns:24px minmax(0,1fr);gap:12px}",
   ".hub-switch{grid-column:1 / -1;justify-self:start}",
-  ".hub-row:hover{padding-left:4px;background:none}",
-  ".hub-row svg{display:block}",
-  ".hub-row h2{font-size:20px}",
-  ".hub-row p{font-size:12.5px;max-width:none}",
-  ".hub-go{opacity:.45;transform:none}",
-  ".hub-time{font-size:56px!important}",
-  ".hub-date{font-size:13px;margin-top:14px}",
-  ".hub-foot{margin-top:36px}",
   "}",
-  "@media(pointer:coarse){",
-  ".hub-row{min-height:76px}",
-  "}",
-  "@media(prefers-reduced-motion:reduce){.hub-glow{animation:none}.hub-time-grad{animation:none}}",
 ].join("");
 
-var ORDER_KEY = "sinapse-hub-order-v1";
-var HIDDEN_KEY = "sinapse-hub-hidden-v1";
-
-function loadHubOrder() {
-  try {
-    var raw = JSON.parse(localStorage.getItem(ORDER_KEY) || "[]");
-    if (!Array.isArray(raw) || !raw.length) return MODULES.slice();
-    var map = {};
-    MODULES.forEach(function(m) { map[m.id] = m; });
-    var out = [];
-    raw.forEach(function(id) {
-      if (map[id]) { out.push(map[id]); delete map[id]; }
-    });
-    MODULES.forEach(function(m) { if (map[m.id]) out.push(m); });
-    return out;
-  } catch (e) {
-    return MODULES.slice();
-  }
+function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+function dayKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
 }
-
-function saveHubOrder(list) {
-  try {
-    localStorage.setItem(ORDER_KEY, JSON.stringify(list.map(function(m) { return m.id; })));
-  } catch (e) {}
+function eur(v) {
+  return (Number(v) || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 }
-
-function loadHidden() {
-  try {
-    var raw = JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]");
-    if (!Array.isArray(raw)) return [];
-    var known = {};
-    MODULES.forEach(function(m) { known[m.id] = true; });
-    return raw.filter(function(id) { return known[id]; });
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveHidden(ids) {
-  try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch (e) {}
-}
-
 function canDesktopReorder() {
-  try {
-    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  } catch (e) {
-    return true;
-  }
+  try { return window.matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return true; }
 }
-
-function ModuleRow(props) {
-  var mod = props.module;
-  var n = String(props.index + 1).padStart(2, "0");
-  var pressS = useState(false);
-  var pressed = pressS[0], setPressed = pressS[1];
-  var startRef = useRef(null);
-  var dragRef = useRef(false);
-  var canDrag = !!props.canReorder;
-
-  function onPointerDown(e) {
-    if (!props.isMobile) return;
-    startRef.current = { x: e.clientX, y: e.clientY, timer: setTimeout(function() { setPressed(true); }, 70) };
-    function onMove(pe) {
-      if (!startRef.current) return;
-      if (Math.abs(pe.clientX - startRef.current.x) + Math.abs(pe.clientY - startRef.current.y) > 6) onEnd();
-    }
-    function onEnd() {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onEnd);
-      window.removeEventListener("pointercancel", onEnd);
-      if (startRef.current && startRef.current.timer) clearTimeout(startRef.current.timer);
-      startRef.current = null;
-      setPressed(false);
-    }
-    window.addEventListener("pointermove", onMove, { passive: true });
-    window.addEventListener("pointerup", onEnd);
-    window.addEventListener("pointercancel", onEnd);
-  }
-
-  return (
-    <button type="button" className={"hub-row ui-tap ui-fade-in" + (pressed ? " is-press" : "") + (props.dragging ? " is-dragging" : "") + (props.over ? " is-over" : "")}
-      style={{ "--mc": mod.color, animationDelay: (120 + props.index * 55) + "ms" }}
-      draggable={canDrag}
-      onMouseMove={props.isMobile ? undefined : trackSpotlight}
-      onPointerDown={onPointerDown}
-      onDragStart={function(e) {
-        if (!canDrag) { e.preventDefault(); return; }
-        dragRef.current = true;
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", mod.id);
-        if (props.onDragStart) props.onDragStart(mod.id);
-      }}
-      onDragOver={function(e) {
-        if (!canDrag) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (props.onDragOver) props.onDragOver(mod.id);
-      }}
-      onDrop={function(e) {
-        if (!canDrag) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (props.onDrop) props.onDrop(mod.id);
-      }}
-      onDragEnd={function() {
-        if (props.onDragEnd) props.onDragEnd();
-        setTimeout(function() { dragRef.current = false; }, 120);
-      }}
-      onClick={function() {
-        if (dragRef.current || props.dragging || (props.dragLockRef && props.dragLockRef.current)) return;
-        if (mod.path) props.onClick(mod);
-      }}>
-      <span className="hub-idx">{n}</span>
-      <span className="hub-ic-wrap" aria-hidden="true">
-        <span className="hub-dot" />
-        <mod.Icon />
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <h2>{mod.name}</h2>
-        <p>{mod.path ? mod.desc : "Em breve"}</p>
-      </span>
-      <span className="hub-go" aria-hidden="true">→</span>
-    </button>
-  );
-}
-
-function Clock(props) {
-  var tS = useState(new Date()); var time = tS[0], setTime = tS[1];
-  useEffect(function() { var i = setInterval(function() { setTime(new Date()); }, 1000); return function() { clearInterval(i); }; }, []);
-  var h = time.getHours().toString().padStart(2, "0");
-  var m = time.getMinutes().toString().padStart(2, "0");
-  var s = time.getSeconds().toString().padStart(2, "0");
-  return (
-    <div className="hub-clock-wrap">
-      <div className="hub-time hub-time-grad" style={{ fontSize: props.isMobile ? 64 : 96 }}>
-        <span>{h}</span>
-        <span className="hub-colon">:</span>
-        <span>{m}</span>
-        <span style={{ fontSize: props.isMobile ? 13 : 15, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.2em", marginLeft: 12, alignSelf: "flex-end", marginBottom: 10 }}>{s}</span>
-      </div>
-      <p className="hub-date">
-        {time.toLocaleDateString("pt-PT", { weekday: "long" })} · {time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}
-      </p>
-    </div>
-  );
-}
-
 function getGreeting() {
   var h = new Date().getHours();
   if (h < 6) return "Boa madrugada";
@@ -323,28 +113,109 @@ function getGreeting() {
   if (h < 20) return "Boa tarde";
   return "Boa noite";
 }
+function dayNote() {
+  var i = Math.floor(Date.now() / 86400000) % NOTES.length;
+  return NOTES[i];
+}
+
+function Clock(props) {
+  var tS = useState(new Date()); var time = tS[0], setTime = tS[1];
+  useEffect(function() {
+    var i = setInterval(function() { setTime(new Date()); }, 1000);
+    return function() { clearInterval(i); };
+  }, []);
+  var h = time.getHours().toString().padStart(2, "0");
+  var m = time.getMinutes().toString().padStart(2, "0");
+  var s = time.getSeconds().toString().padStart(2, "0");
+  var passed = (time.getHours() * 60 + time.getMinutes()) / (24 * 60);
+  var C = 2 * Math.PI * 14;
+  var dash = (passed * C).toFixed(2);
+  return (
+    <div className="hub-clock-wrap">
+      <div className="hub-time" style={{ fontSize: props.isMobile ? 48 : 64 }}>
+        <span>{h}</span>
+        <span className="hub-colon">:</span>
+        <span>{m}</span>
+        <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.18em", marginLeft: 10, alignSelf: "flex-end", marginBottom: 6 }}>{s}</span>
+      </div>
+      <p className="hub-date">
+        {time.toLocaleDateString("pt-PT", { weekday: "long" })} · {time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}
+      </p>
+      <div className="hub-ring">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="2.4" />
+          <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeDasharray={dash + " " + C} strokeLinecap="butt" transform="rotate(-90 18 18)" />
+        </svg>
+        {Math.round(passed * 100)}% do dia
+      </div>
+    </div>
+  );
+}
+
+async function loadSnapshot() {
+  var today = dayKey();
+  var tasks = [];
+  var events = [];
+  var spaces = [];
+  var items = [];
+  var projects = [];
+  var expenses = [];
+  var incomes = [];
+  try { tasks = await tasksStore.loadTasksLocal(); } catch (e) {}
+  try {
+    var raw = await readLocal("sinapse-calendar-v3", []);
+    if (raw && !Array.isArray(raw) && typeof raw === "object") {
+      events = (raw[today] || []).map(function(r) {
+        return { title: r.title, time: r.time, allDay: !!r.allDay };
+      });
+    } else {
+      events = (raw || []).filter(function(r) {
+        return (r.day_key || r.dayKey) === today;
+      }).map(function(r) {
+        return { title: r.title, time: r.time, allDay: !!(r.allDay || r.all_day) };
+      });
+    }
+  } catch (e) {}
+  try { spaces = await journalStore.loadSpacesLocal(); } catch (e) {}
+  try { items = await wishlistStore.loadItemsLocal(); } catch (e) {}
+  try { projects = await readLocal("sinapse-projects-v1", []); } catch (e) {}
+  try { expenses = await financeStore.loadExpenses(); } catch (e) {}
+  try { incomes = await incomeStore.loadIncomes(); } catch (e) {}
+
+  var openTasks = (tasks || []).filter(function(t) {
+    return t.column !== "done" && t.column !== "longdone";
+  });
+  var dueToday = openTasks.filter(function(t) { return t.due === today; });
+  var wishOpen = (items || []).filter(function(i) { return !i.purchased; });
+  var stats = financeStats(expenses, incomes);
+  events.sort(function(a, b) {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return String(a.time || "").localeCompare(String(b.time || ""));
+  });
+  return {
+    openTasks: openTasks.length,
+    dueToday: dueToday.slice(0, 6),
+    events: events.slice(0, 6),
+    notes: (spaces || []).length,
+    wishes: wishOpen.length,
+    projects: (projects || []).length,
+    saldo: stats.saldo,
+  };
+}
 
 export default function Hub() {
   var navigate = useNavigate();
+  var loc = useLocation();
   var auth = useAuth();
   var vwS = useState(window.innerWidth);
   var isMobile = vwS[0] < 720;
+  var screen = /view=settings/.test(loc.search || "") ? "settings" : "hub";
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
     window.addEventListener("resize", onResize);
-    var mq = null;
-    try { mq = window.matchMedia("(hover: hover) and (pointer: fine)"); } catch (e) {}
-    if (mq) {
-      if (mq.addEventListener) mq.addEventListener("change", onResize);
-      else if (mq.addListener) mq.addListener(onResize);
-    }
-    return function() {
-      window.removeEventListener("resize", onResize);
-      if (!mq) return;
-      if (mq.removeEventListener) mq.removeEventListener("change", onResize);
-      else if (mq.removeListener) mq.removeListener(onResize);
-    };
+    return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
   var who = auth.user && auth.user.email ? auth.user.email.split("@")[0] : "Martim";
@@ -355,15 +226,20 @@ export default function Hub() {
   var hidden = hiddenS[0], setHidden = hiddenS[1];
   var hiddenSet = {};
   hidden.forEach(function(id) { hiddenSet[id] = true; });
-  var visible = mods.filter(function(m) { return !hiddenSet[m.id]; });
-  var screenS = useState("hub");
-  var screen = screenS[0], setScreen = screenS[1];
+  var snapS = useState(null);
+  var snap = snapS[0], setSnap = snapS[1];
   var dragIdS = useState(null);
   var dragId = dragIdS[0], setDragId = dragIdS[1];
   var overIdS = useState(null);
   var overId = overIdS[0], setOverId = overIdS[1];
   var dragLockRef = useRef(false);
   var dragIdRef = useRef(null);
+
+  useEffect(function() {
+    var alive = true;
+    loadSnapshot().then(function(s) { if (alive) setSnap(s); }).catch(function() {});
+    return function() { alive = false; };
+  }, []);
 
   function toggleModule(id) {
     setHidden(function(prev) {
@@ -392,91 +268,61 @@ export default function Hub() {
     });
   }
 
+  function setScreen(next) {
+    navigate(next === "settings" ? { pathname: "/", search: "?view=settings" } : "/");
+  }
+
   return (
     <div className="hub-root hub-scroll" data-scrollable>
       <style>{HUB_CSS}</style>
-      <div className="hub-glow hub-glow--a" style={{ background: moduleGlow(MODULE_COLORS.calendar, "20") }} aria-hidden="true" />
-      <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.focus, "18") }} aria-hidden="true" />
-      <div className="hub-glow hub-glow--c" style={{ background: moduleGlow(MODULE_COLORS.tasks, "16") }} aria-hidden="true" />
-      <div className="hub-mark" aria-hidden="true">SINAPSE</div>
+      <div className="hub-glow hub-glow--a" style={{ background: moduleGlow(MODULE_COLORS.focus, "22") }} aria-hidden="true" />
+      <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.calendar, "18") }} aria-hidden="true" />
       <div className="hub-inner">
         <header className="hub-top">
           <div>
-            <p className="hub-sec hub-clock-wrap" style={{ marginBottom: 22 }}><span className="hub-live" aria-hidden="true" />{getGreeting()} — {who}</p>
-            <Clock isMobile={isMobile} />
+            <p className="hub-kicker"><span className="hub-live" aria-hidden="true" />{getGreeting()}</p>
+            <h1 className="hub-hello">
+              {who}
+              <span>O teu sítio para pensar e avançar.</span>
+            </h1>
           </div>
-          <button type="button" className="ui-line-btn hub-out ui-tap" onClick={function() { auth.signOut(); }}>Sair</button>
+          <Clock isMobile={isMobile} />
         </header>
 
         {screen === "settings" ? (
           <section className="hub-set" aria-label="Definições">
             <div className="hub-index-head">
-              <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
-              <p className="hub-sec">Definições</p>
-              <button type="button" className="ui-line-btn ui-tap" onClick={function() { setScreen("hub"); }}>Índice</button>
+              <p className="hub-kicker" style={{ margin: 0 }}>Definições</p>
+              <button type="button" className="ui-line-btn ui-tap" onClick={function() { setScreen("hub"); }}>Início</button>
             </div>
-            <p className="hub-set-lead">O índice só mostra os módulos ligados. Ocultar não apaga dados — podes voltar a ligar quando quiseres.</p>
-            <p className="hub-sec" style={{ marginBottom: 8 }}>Módulos</p>
+            <p className="hub-set-lead">A barra lateral só mostra os módulos ligados. Ocultar não apaga dados — podes voltar a ligar quando quiseres.</p>
+            <p className="hub-kicker" style={{ marginBottom: 8 }}>Módulos</p>
             <div>
               {mods.map(function(mod) {
                 var on = !hiddenSet[mod.id];
                 return (
-                  <div key={mod.id} className="hub-tog" style={{ "--mc": mod.color }}>
-                    <span className="hub-ic-wrap" aria-hidden="true"><mod.Icon /></span>
-                    <span style={{ minWidth: 0 }}>
-                      <h3>{mod.name}</h3>
-                      <p>{mod.desc}</p>
-                    </span>
-                    <button type="button" className={"hub-switch ui-tap" + (on ? " is-on" : "")} aria-pressed={on} onClick={function() { toggleModule(mod.id); }}>
-                      {on ? "No índice" : "Oculto"}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="hub-set-block">
-              <p className="hub-sec" style={{ marginBottom: 4 }}>Atalhos</p>
-              <button type="button" className="hub-set-link ui-tap" style={{ "--mc": MODULE_COLORS.finance }} onClick={function() { navigate("/quick"); }}>
-                <span>
-                  <h3>Atalhos iPhone</h3>
-                  <p>Captura rápida de recursos e gastos, e o modelo para a app Atalhos.</p>
-                </span>
-                <span className="hub-go" aria-hidden="true">→</span>
-              </button>
-            </div>
-          </section>
-        ) : (
-          <div>
-            <div className="hub-index-head">
-              <div className="hub-divider" style={{ position: "absolute", left: 0, right: 0, top: 0 }} />
-              <p className="hub-sec">Índice</p>
-              <p className="hub-sec">{String(visible.length).padStart(2, "0")}</p>
-            </div>
-
-            <nav className="hub-list" aria-label="Módulos">
-              {visible.length === 0 ? (
-                <p className="hub-empty">Nenhum módulo no índice. Em Definições podes voltar a mostrar.</p>
-              ) : null}
-              {visible.map(function(mod, i) {
-                return (
-                  <ModuleRow
+                  <div
                     key={mod.id}
-                    module={mod}
-                    index={i}
-                    isMobile={isMobile}
-                    canReorder={canReorder}
-                    dragging={dragId === mod.id}
-                    over={overId === mod.id && dragId && dragId !== mod.id}
-                    onClick={function() { navigate(mod.path); }}
-                    dragLockRef={dragLockRef}
-                    onDragStart={function(id) {
+                    className={"hub-tog" + (dragId === mod.id ? " is-dragging" : "") + (overId === mod.id && dragId && dragId !== mod.id ? " is-over" : "")}
+                    style={{ "--mc": mod.color }}
+                    draggable={canReorder}
+                    onDragStart={function(e) {
+                      if (!canReorder) { e.preventDefault(); return; }
                       dragLockRef.current = true;
-                      dragIdRef.current = id;
-                      setDragId(id);
+                      dragIdRef.current = mod.id;
+                      setDragId(mod.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", mod.id);
                     }}
-                    onDragOver={function(id) { setOverId(id); }}
-                    onDrop={function(id) {
-                      moveModule(dragIdRef.current, id);
+                    onDragOver={function(e) {
+                      if (!canReorder) return;
+                      e.preventDefault();
+                      setOverId(mod.id);
+                    }}
+                    onDrop={function(e) {
+                      if (!canReorder) return;
+                      e.preventDefault();
+                      moveModule(dragIdRef.current, mod.id);
                       setDragId(null);
                       setOverId(null);
                     }}
@@ -486,14 +332,83 @@ export default function Hub() {
                       setOverId(null);
                       setTimeout(function() { dragLockRef.current = false; }, 150);
                     }}
-                  />
+                  >
+                    <span aria-hidden="true" style={{ color: mod.color, display: "flex" }}><mod.Icon /></span>
+                    <span style={{ minWidth: 0 }}>
+                      <h3>{mod.name}</h3>
+                      <p>{mod.desc}</p>
+                    </span>
+                    <button type="button" className={"hub-switch ui-tap" + (on ? " is-on" : "")} aria-pressed={on} onClick={function() { toggleModule(mod.id); }}>
+                      {on ? "Na barra" : "Oculto"}
+                    </button>
+                  </div>
                 );
               })}
-            </nav>
+            </div>
+            <div className="hub-set-block">
+              <p className="hub-kicker" style={{ marginBottom: 4 }}>Atalhos</p>
+              <button type="button" className="hub-set-link ui-tap" style={{ "--mc": MODULE_COLORS.finance }} onClick={function() { navigate("/quick"); }}>
+                <span>
+                  <h3>Atalhos iPhone</h3>
+                  <p>Captura rápida de recursos e gastos, e o modelo para a app Atalhos.</p>
+                </span>
+                <span aria-hidden="true" style={{ color: COLORS.faint }}>→</span>
+              </button>
+            </div>
+          </section>
+        ) : (
+          <div>
+            <p className="hub-note">{dayNote()}</p>
+
+            {snap ? (
+              <div className="hub-stats">
+                <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }} onMouseMove={trackSpotlight}>
+                  <b>{snap.openTasks}</b>
+                  <i>tarefas abertas</i>
+                </button>
+                <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
+                  <b>{snap.events.length}</b>
+                  <i>eventos hoje</i>
+                </button>
+                <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.finance }} onClick={function() { navigate("/finance"); }}>
+                  <b>{eur(snap.saldo)}</b>
+                  <i>saldo vivo</i>
+                </button>
+                <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.journal }} onClick={function() { navigate("/journal"); }}>
+                  <b>{snap.notes}</b>
+                  <i>espaços no diário</i>
+                </button>
+              </div>
+            ) : null}
+
+            <div className="hub-grid">
+              <section className="hub-panel">
+                <h2>Hoje no calendário</h2>
+                {snap && snap.events.length ? snap.events.map(function(ev, i) {
+                  return (
+                    <button key={i} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
+                      <p className="hub-row-t">{ev.title || "Evento"}</p>
+                      <span className="hub-row-m">{ev.allDay ? "todo o dia" : (ev.time || "")}</span>
+                    </button>
+                  );
+                }) : <p className="hub-empty">Nada marcado para hoje. O dia ainda está aberto.</p>}
+              </section>
+              <section className="hub-panel">
+                <h2>A vencer hoje</h2>
+                {snap && snap.dueToday.length ? snap.dueToday.map(function(t) {
+                  return (
+                    <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
+                      <p className="hub-row-t">{t.title || "Tarefa"}</p>
+                      <span className="hub-row-m">{t.priority || ""}</span>
+                    </button>
+                  );
+                }) : <p className="hub-empty">Nenhuma tarefa com prazo para hoje.</p>}
+              </section>
+            </div>
 
             <footer className="hub-foot">
-              <p>{canReorder ? "Arrasta para reordenar" : "Desliza para explorar"} · {visible.length} módulos</p>
-              <button type="button" className="ui-line-btn ui-tap" style={{ marginTop: 14 }} onClick={function() { setScreen("settings"); }}>Definições</button>
+              <p>{snap ? (snap.projects + " projetos · " + snap.wishes + " na wishlist") : "Sinapse"}</p>
+              <button type="button" className="ui-line-btn ui-tap" onClick={function() { setScreen("settings"); }}>Definições</button>
             </footer>
           </div>
         )}

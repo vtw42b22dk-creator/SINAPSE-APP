@@ -51,16 +51,19 @@ export default function AuthGate(props) {
   return (
     <div style={{
       minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
-      fontFamily: "'IBM Plex Sans',sans-serif", position: "relative", overflow: "hidden",
+      fontFamily: "'Manrope',sans-serif", position: "relative", overflow: "hidden",
       display: "flex", alignItems: "stretch", "--mc": MODULE_COLORS.auth,
     }}>
       <style>{AUTH_CSS + MODULE_GLOW_CSS}</style>
       <div className="mod-glow" style={{ top: -120, right: "5%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
       <div className="mod-glow" style={{ bottom: -80, left: "-5%", background: moduleGlow(MODULE_COLORS.journal, "14"), opacity: 0.4 }} aria-hidden="true" />
-      <div className="mod-glow" style={{ top: "30%", left: "55%", background: moduleGlow(MODULE_COLORS.focus, "10"), opacity: 0.35 }} aria-hidden="true" />
-      <p className="ag-mark" aria-hidden="true">SINAPSE</p>
+      <aside className="ag-aside" aria-hidden="true">
+        <p className="ag-aside-k">Ecossistema</p>
+        <p className="ag-aside-t">Sinapse</p>
+        <p className="ag-aside-d">Calendário, tarefas, diário, foco e o resto — no mesmo sítio.</p>
+      </aside>
       <form className="ag-form" onSubmit={submit}>
-        <p className="ag-kicker">Sinapse</p>
+        <p className="ag-kicker">Conta</p>
         <h1 className="ag-title">{mode === "login" ? "Entrar" : "Criar conta"}</h1>
         <p className="ag-lead">
           Sincroniza calendário, tarefas, sinapses e diário entre dispositivos.
@@ -94,27 +97,29 @@ export default function AuthGate(props) {
 }
 
 var AUTH_CSS = [
-  ".ag-mark{position:absolute;left:-4%;bottom:-8%;margin:0;font-family:'JetBrains Mono',monospace;",
-  "font-size:clamp(80px,22vw,280px);font-weight:300;letter-spacing:-0.08em;color:rgba(255,255,255,0.035);",
-  "line-height:.75;pointer-events:none;user-select:none;white-space:nowrap}",
-  ".ag-form{position:relative;z-index:1;width:min(420px,100%);margin:auto 0 auto clamp(28px,8vw,120px);",
+  ".ag-aside{position:relative;z-index:1;width:min(42vw,420px);flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;",
+  "padding:48px 36px 56px;border-right:1px solid rgba(255,255,255,.06);background:#09090B}",
+  ".ag-aside-k{margin:0 0 16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#6E6A64}",
+  ".ag-aside-t{margin:0;font-family:'Syne',sans-serif;font-size:clamp(40px,5vw,64px);font-weight:700;letter-spacing:-.06em;line-height:.9}",
+  ".ag-aside-d{margin:18px 0 0;max-width:28ch;font-size:15px;line-height:1.55;color:#A0988C}",
+  ".ag-form{position:relative;z-index:1;width:min(420px,100%);margin:auto 0 auto clamp(28px,6vw,80px);",
   "padding:48px 24px 64px;animation:appearUp var(--dur-slow) var(--ease) both}",
   ".ag-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.6px;text-transform:uppercase;",
   "color:var(--mc);margin:0 0 28px}",
-  ".ag-title{font-family:'JetBrains Mono',monospace;font-size:clamp(36px,6vw,52px);margin:0 0 12px;",
-  "font-weight:300;letter-spacing:-0.05em;line-height:.95}",
-  ".ag-lead{font-size:15px;color:#A0A0A8;line-height:1.65;margin:0 0 40px;max-width:34ch}",
+  ".ag-title{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,52px);margin:0 0 12px;",
+  "font-weight:700;letter-spacing:-0.05em;line-height:.95}",
+  ".ag-lead{font-size:15px;color:#A0988C;line-height:1.65;margin:0 0 40px;max-width:34ch}",
   ".ag-field{display:block;margin:0 0 22px}",
   ".ag-field span{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.8px;",
-  "text-transform:uppercase;color:#6E6E76;margin-bottom:8px}",
+  "text-transform:uppercase;color:#6E6A64;margin-bottom:8px}",
   ".ag-field input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid rgba(255,255,255,0.12);",
-  "background:rgba(255,255,255,0.03);color:#EDEDEF;outline:none;font-size:16px;font-family:inherit;border-radius:var(--radius-sm)}",
+  "background:rgba(255,255,255,0.03);color:#EDE8DF;outline:none;font-size:16px;font-family:inherit;border-radius:var(--radius-sm)}",
   ".ag-field input:focus{border-color:var(--mc);background:rgba(255,255,255,0.05)}",
-  ".ag-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:11px 20px;background:color-mix(in srgb,var(--mc) 10%,transparent);border:1px solid color-mix(in srgb,var(--mc) 40%,transparent);border-radius:var(--radius-pill);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;",
+  ".ag-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:11px 20px;background:color-mix(in srgb,var(--mc) 10%,transparent);border:1px solid color-mix(in srgb,var(--mc) 40%,transparent);color:var(--mc);font-family:'JetBrains Mono',monospace;font-size:14px;",
   "font-weight:400;letter-spacing:.4px;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".ag-go:hover{background:color-mix(in srgb,var(--mc) 16%,transparent)}",
-  ".ag-switch{display:block;margin-top:28px;background:none;border:none;color:#6E6E76;font-size:13px;",
-  "cursor:pointer;font-family:inherit;padding:8px 12px;border-radius:var(--radius-sm)}",
-  ".ag-switch:hover{color:#EDEDEF}",
-  "@media(max-width:719px){.ag-form{margin:auto 20px 0;padding:36px 4px 80px}}",
+  ".ag-switch{display:block;margin-top:28px;background:none;border:none;color:#6E6A64;font-size:13px;",
+  "cursor:pointer;font-family:inherit;padding:8px 12px}",
+  ".ag-switch:hover{color:#EDE8DF}",
+  "@media(max-width:719px){.ag-aside{display:none}.ag-form{margin:auto 20px 0;padding:36px 4px 80px}}",
 ].join("");

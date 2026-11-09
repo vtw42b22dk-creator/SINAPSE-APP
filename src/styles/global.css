@@ -7,16 +7,16 @@
 
 :root,
 [data-theme="dark"] {
-  --page-bg: #070708;
-  --page-text: #ededef;
-  --header-bg: #070708;
+  --page-bg: #0c0c0e;
+  --page-text: #ede8df;
+  --header-bg: #0c0c0e;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.2);
   --surface: transparent;
   --surface-hi: rgba(255, 255, 255, 0.03);
-  --text-muted: #a0a0a8;
-  --text-faint: #6e6e76;
-  --accent: #e6e6e9;
+  --text-muted: #a0988c;
+  --text-faint: #6e6a64;
+  --accent: #e6e0d6;
   --rule: rgba(255, 255, 255, 0.09);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 150ms;
@@ -87,7 +87,7 @@ html::before {
 }
 
 body {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--page-text);
@@ -490,7 +490,7 @@ textarea::placeholder {
 }
 #root .pj-ring i,
 #root .pm-hero-ring i {
-  background: #070708 !important;
+  background: var(--page-bg) !important;
 }
 #root .fx-analog-face {
   background: transparent !important;
@@ -790,4 +790,25 @@ textarea::placeholder {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+[style*="IBM Plex"] {
+  font-family: "Manrope", system-ui, sans-serif !important;
+}
+
+.ch-root,
+.pj-page,
+.pw,
+.fs-root,
+.tk-page,
+.wl-page {
+  background: var(--page-bg) !important;
+}
+
+.ch-glow {
+  position: absolute !important;
+}
+
+.fs-panel--clock {
+  min-height: calc(100% - 180px) !important;
 }

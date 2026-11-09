@@ -4,17 +4,17 @@
  */
 
 export var COLORS = {
-  bg: "#070708",
-  bgSoft: "#070708",
+  bg: "#0C0C0E",
+  bgSoft: "#0C0C0E",
   surface: "transparent",
   surfaceHi: "#1C1C20",
   border: "#26262A",
   borderSoft: "rgba(255,255,255,0.07)",
   borderHi: "rgba(255,255,255,0.14)",
-  text: "#EDEDEF",
-  muted: "#A0A0A8",
-  faint: "#6E6E76",
-  accent: "#E6E6E9",
+  text: "#EDE8DF",
+  muted: "#A0988C",
+  faint: "#6E6A64",
+  accent: "#E6E0D6",
   positive: "#8FB39B",
   negative: "#C08C8C",
   warning: "#C4A57C",

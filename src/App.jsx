@@ -12,6 +12,7 @@ import QuickAdd from './pages/QuickAdd'
 import Focus from './pages/Focus'
 import AuthGate from './components/AuthGate'
 import SyncRoot from './components/SyncRoot'
+import AppShell from './components/AppShell'
 import RouteAccent from './lib/RouteAccent'
 import { AuthProvider } from './lib/AuthContext'
 import { ThemeProvider } from './lib/ThemeContext'
@@ -27,6 +28,7 @@ export default function App() {
           <style>{MOBILE_GLOBAL_CSS + MODULE_ACCENT_CSS}</style>
           <AuthGate>
             <SyncRoot>
+            <AppShell>
             <Routes>
               <Route path="/" element={<Hub />} />
               <Route path="/projects" element={<Projects />} />
@@ -41,6 +43,7 @@ export default function App() {
               <Route path="/quick" element={<QuickAdd />} />
               <Route path="/focus" element={<Focus />} />
             </Routes>
+            </AppShell>
             </SyncRoot>
           </AuthGate>
         </HashRouter>

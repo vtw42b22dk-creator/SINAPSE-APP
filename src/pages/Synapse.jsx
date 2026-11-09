@@ -1230,8 +1230,8 @@ export default function Synapse(props) {
     );
   }
 
-  var canvasW = embedded ? "100%" : "100vw";
-  var canvasH = embedded ? "100%" : "100vh";
+  var canvasW = "100%";
+  var canvasH = "100%";
 
   return (
     <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'IBM Plex Sans',sans-serif",touchAction:"none",userSelect:"none"}}>

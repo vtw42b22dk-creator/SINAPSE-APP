@@ -28,7 +28,7 @@ var CHRO_CSS = [
   "@keyframes chNow{0%,100%{opacity:1}50%{opacity:.6}}",
   "@keyframes chDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-4%,4%) scale(1.08)}}",
   ".ch-root{height:100vh;height:100dvh;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'IBM Plex Sans',sans-serif;overflow:hidden;position:relative}",
-  ".ch-glow{position:fixed;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55;z-index:0;animation:chDrift 20s ease-in-out infinite;transition:background 1s var(--ease)}",
+  ".ch-glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55;z-index:0;animation:chDrift 20s ease-in-out infinite;transition:background 1s var(--ease)}",
   ".ch-glow--a{width:440px;height:440px;top:-10%;right:-8%}",
   ".ch-glow--b{width:320px;height:320px;bottom:6%;left:-6%;opacity:.32;animation-delay:-9s}",
   ".ch-head{flex-shrink:0;padding:16px 22px 14px;display:flex;flex-direction:column;gap:18px;border-bottom:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(7,7,8,.97),rgba(7,7,8,.82));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:30;position:relative}",
