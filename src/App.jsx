@@ -44,6 +44,7 @@ export default function App() {
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/vinted" element={<Vinted />} />
+              <Route path="/vinted/:secao" element={<Vinted />} />
               <Route path="/quick" element={<QuickAdd />} />
               <Route path="/focus" element={<Focus />} />
             </Routes>

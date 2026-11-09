@@ -145,5 +145,6 @@ export function navActive(path, pathname) {
   if (path === "/projects") {
     return pathname.indexOf("/projects") === 0 || pathname.indexOf("/synapse") === 0;
   }
+  if (path === "/vinted") return pathname.indexOf("/vinted") === 0;
   return pathname === path || pathname.indexOf(path + "/") === 0;
 }

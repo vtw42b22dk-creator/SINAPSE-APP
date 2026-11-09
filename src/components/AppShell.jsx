@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/AuthContext";
 import { HomeIcon, NAV_EVENT, navActive, visibleModules } from "../lib/navModules.jsx";
+import { VINTED_SECTIONS, vintedSectionFromPath } from "../lib/vintedNav";
 
 var ShellContext = createContext(null);
 var COLLAPSE_KEY = "sinapse-shell-collapsed-v1";
@@ -171,17 +172,40 @@ export default function AppShell(props) {
             {mods.map(function(mod) {
               var on = navActive(mod.path, loc.pathname);
               var openProject = mod.id === "projects" && projectNav;
+              var openVinted = mod.id === "vinted" && loc.pathname.indexOf("/vinted") === 0;
+              var vintedSec = openVinted ? vintedSectionFromPath(loc.pathname) : "";
               return (
-                <div key={mod.id} className={openProject ? "sh-block" : undefined}>
+                <div key={mod.id} className={openProject || openVinted ? "sh-block" : undefined}>
                   <NavLink
                     to={mod.path}
-                    className={"sh-link" + (openProject ? " is-parent" : on ? " is-on" : "")}
+                    className={"sh-link" + (openProject || openVinted ? " is-parent" : on ? " is-on" : "")}
                     style={{ "--nc": mod.color }}
                     title={mod.name}
                   >
                     <span className="sh-ic"><mod.Icon /></span>
                     {mini ? null : <span className="sh-lbl">{mod.name}</span>}
                   </NavLink>
+                  {openVinted ? (
+                    <div className="sh-sub">
+                      {VINTED_SECTIONS.map(function(sec) {
+                        var active = vintedSec === sec.id;
+                        return (
+                          <div key={sec.id} className={"sh-sub-row" + (active ? " is-on" : "")}>
+                            <NavLink
+                              to={sec.path}
+                              end={sec.id === "overview"}
+                              className={"sh-sub-link" + (active ? " is-on" : "")}
+                              style={{ "--nc": mod.color }}
+                              title={sec.label}
+                            >
+                              <span className="sh-sub-ic" aria-hidden="true">{sec.icon}</span>
+                              {mini ? null : <span className="sh-sub-lbl">{sec.label}</span>}
+                            </NavLink>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                   {openProject ? (
                     <div className="sh-sub">
                       {mini ? null : (
@@ -294,7 +318,7 @@ var SHELL_CSS = [
   ".shell{display:flex;height:100vh;height:100dvh;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative}",
   ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.42),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.34),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(143,179,155,.16),transparent 62%)}",
   ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto}",
-  ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page,.shell-stage>.nt-root{height:100%!important;max-height:100%!important;min-height:0!important}",
+  ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page,.shell-stage>.nt-root,.shell-stage>.vin-root{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
   ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(255,255,255,.035);border-right:1px solid rgba(255,255,255,.12);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2)}",
   ".sh-side.is-mini{width:72px;padding:18px 0 14px;align-items:center}",
@@ -324,7 +348,7 @@ var SHELL_CSS = [
   ".sh-sub{display:flex;flex-direction:column;gap:1px;margin:4px 0 8px 18px;padding:2px 0 2px 8px;border-left:1px solid rgba(255,255,255,.1)}",
   ".sh-sub-name{margin:0 0 4px;padding:0 8px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.4px;color:#7A756C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
   ".sh-sub-row{display:flex;align-items:center;gap:2px;min-width:0}",
-  ".sh-sub-link{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:7px 8px;border:none;background:transparent;color:#8A857C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12.5px;text-align:left;border-radius:8px}",
+  ".sh-sub-link{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:7px 8px;border:none;background:transparent;color:#8A857C;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12.5px;text-align:left;border-radius:8px;text-decoration:none}",
   ".sh-sub-link:hover,.sh-sub-rm:hover{color:#EDE8DF;background:rgba(255,255,255,.06)}",
   ".sh-sub-link.is-on{color:#EDE8DF;background:color-mix(in srgb,var(--nc,#EDE8DF) 16%,rgba(255,255,255,.04))}",
   ".sh-sub-link.is-on .sh-sub-ic{color:var(--nc,#EDE8DF)}",
