@@ -183,11 +183,11 @@ export default function AppShell(props) {
 
 var SHELL_CSS = [
   ".shell{display:flex;height:100vh;height:100dvh;background:transparent;color:var(--page-text,#EDE8DF);overflow:hidden;position:relative}",
-  ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.28),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.22),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(255,255,255,.05),transparent 62%)}",
-  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto;z-index:1}",
+  ".sh-aurora{position:absolute;inset:-18%;pointer-events:none;z-index:0;background-repeat:no-repeat;background-size:140% 140%,130% 130%,160% 160%;background-image:radial-gradient(ellipse 55% 42% at 8% 8%,rgba(196,165,124,.42),transparent 58%),radial-gradient(ellipse 42% 36% at 96% 92%,rgba(143,168,196,.34),transparent 55%),radial-gradient(ellipse 48% 38% at 48% 42%,rgba(143,179,155,.16),transparent 62%)}",
+  ".shell-stage{position:relative;flex:1;min-width:0;min-height:0;height:100%;overflow:auto}",
   ".shell-stage>.ch-root,.shell-stage>.pj-page,.shell-stage>.pw,.shell-stage>.fs-root,.shell-stage>.hub-scroll,.shell-stage>.tk-page{height:100%!important;max-height:100%!important;min-height:0!important}",
   ".shell-stage>.wl-page{min-height:100%!important;height:auto}",
-  ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(10,10,12,.28);border-right:1px solid rgba(255,255,255,.1);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(36px) saturate(1.7);-webkit-backdrop-filter:blur(36px) saturate(1.7)}",
+  ".sh-side{display:flex;flex-direction:column;width:232px;flex-shrink:0;height:100%;background:rgba(255,255,255,.035);border-right:1px solid rgba(255,255,255,.12);padding:18px 12px 14px;z-index:40;backdrop-filter:blur(28px) saturate(2);-webkit-backdrop-filter:blur(28px) saturate(2)}",
   ".sh-side.is-mini{width:76px;padding:18px 10px 14px;align-items:center}",
   ".sh-brand{display:flex;align-items:center;gap:12px;padding:6px 10px 18px;color:inherit;text-decoration:none;min-width:0}",
   ".sh-side.is-mini .sh-brand{padding:6px 0 18px;justify-content:center}",

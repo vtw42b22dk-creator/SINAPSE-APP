@@ -809,7 +809,7 @@ textarea::placeholder {
 .fs-root,
 .tk-page,
 .wl-page {
-  background: color-mix(in srgb, var(--page-bg) 58%, transparent) !important;
+  background: color-mix(in srgb, var(--page-bg) 22%, transparent) !important;
 }
 
 .tk-head,
@@ -819,9 +819,9 @@ textarea::placeholder {
 .wl-head,
 .gn-header,
 .shell-stage > * > header {
-  background: rgba(12, 12, 14, 0.28) !important;
-  backdrop-filter: blur(28px) saturate(1.55) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(1.55) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(24px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
 }
 
 .ch-glow {
