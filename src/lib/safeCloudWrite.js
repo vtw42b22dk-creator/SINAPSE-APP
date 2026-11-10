@@ -1,19 +1,9 @@
 /* eslint-disable no-empty */
 import { supabase } from "./supabase";
 
-async function refreshSessionForWrite() {
-  if (!supabase) return null;
-  try {
-    var res = await supabase.auth.refreshSession();
-    return res.data && res.data.session ? res.data.session : null;
-  } catch (e) {
-    return null;
-  }
-}
-
 var EMERGENCY_PREFIX = "sinapse-emergency-v1:";
 
-/** Verifica sessão ativa; tenta refresh antes de escrever na nuvem. */
+/** Lê a sessão já guardada. Não força um refresh: um refresh falhado apagava a conta. */
 export async function ensureWriteSession() {
   if (!supabase) {
     return { canWriteCloud: false, user: null, reason: "Supabase não configurado" };
@@ -22,10 +12,6 @@ export async function ensureWriteSession() {
     var ses = await supabase.auth.getSession();
     if (ses.data && ses.data.session && ses.data.session.user) {
       return { canWriteCloud: true, user: ses.data.session.user, reason: null };
-    }
-    var refreshed = await refreshSessionForWrite();
-    if (refreshed && refreshed.user) {
-      return { canWriteCloud: true, user: refreshed.user, reason: null };
     }
   } catch (e) {}
   return { canWriteCloud: false, user: null, reason: "Sessão expirada — inicia sessão no Hub" };

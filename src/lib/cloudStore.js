@@ -36,11 +36,8 @@ export async function getUser() {
   try {
     var ses = await supabase.auth.getSession();
     if (ses.data && ses.data.session && ses.data.session.user) return ses.data.session.user;
-    var res = await supabase.auth.getUser();
-    return res && res.data ? res.data.user : null;
-  } catch (e) {
-    return null;
-  }
+  } catch (e) {}
+  return null;
 }
 
 export async function refreshSession() {

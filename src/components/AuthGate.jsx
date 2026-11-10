@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useAuth } from "../lib/AuthContext";
+import { emailLembrado, lembrarEmail, useAuth } from "../lib/AuthContext";
 import { COLORS, MODULE_COLORS, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { PageLoader } from "./PageLoader";
 
 export default function AuthGate(props) {
   var auth = useAuth();
-  var eS = useState("");
+  var eS = useState(emailLembrado);
   var email = eS[0], setEmail = eS[1];
   var pS = useState("");
   var password = pS[0], setPassword = pS[1];
@@ -38,8 +38,14 @@ export default function AuthGate(props) {
     setBusy(true);
     try {
       var res = mode === "login" ? await auth.signIn(email, password) : await auth.signUp(email, password);
-      if (res.error) setError(res.error.message);
-      else if (mode === "signup") setError("Conta criada. Se o Supabase pedir confirmação, confirma o email antes de entrar.");
+      if (res.error) setError(erroLogin(res.error.message));
+      else if (mode === "signup" && !(res.data && res.data.session)) {
+        lembrarEmail(email);
+        setMode("login");
+        setError("Conta criada. Abre o email de confirmação (vê também o spam) e depois entra aqui com a mesma password.");
+      } else {
+        lembrarEmail(email);
+      }
     } catch (ex) {
       setError(ex.message || "Não foi possível autenticar.");
     }
@@ -94,6 +100,15 @@ export default function AuthGate(props) {
       </form>
     </div>
   );
+}
+
+function erroLogin(msg) {
+  var texto = String(msg || "");
+  if (/invalid login credentials/i.test(texto)) return "Email ou password errados.";
+  if (/email not confirmed/i.test(texto)) return "A conta existe, mas o email ainda não foi confirmado. Abre o link que o Supabase enviou e entra outra vez.";
+  if (/user already registered/i.test(texto)) return "Esta conta já existe. Entra com o email e a password.";
+  if (/rate limit/i.test(texto)) return "Demasiadas tentativas. Espera um minuto e tenta outra vez.";
+  return texto;
 }
 
 var AUTH_CSS = [

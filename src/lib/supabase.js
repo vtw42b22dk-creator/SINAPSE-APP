@@ -9,7 +9,8 @@ export const supabase =
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false,
+          flowType: 'pkce',
           storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },
       })
