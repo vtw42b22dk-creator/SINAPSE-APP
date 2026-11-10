@@ -60,8 +60,12 @@ export function AuthProvider(props) {
       setLoading(false);
     });
 
+    var ultimoOlhar = 0;
     function aoVoltar() {
       if (document.visibilityState !== "visible") return;
+      var agora = Date.now();
+      if (agora - ultimoOlhar < 60000) return;
+      ultimoOlhar = agora;
       supabase.auth.getSession().then(function(res) {
         if (res && res.data && res.data.session) aplicar(res.data.session);
       });

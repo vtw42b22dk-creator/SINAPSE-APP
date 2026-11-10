@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { emailLembrado, lembrarEmail, useAuth } from "../lib/AuthContext";
 import { COLORS, MODULE_COLORS, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { PageLoader } from "./PageLoader";
@@ -15,6 +15,17 @@ export default function AuthGate(props) {
   var error = errS[0], setError = errS[1];
   var busyS = useState(false);
   var busy = busyS[0], setBusy = busyS[1];
+  var esperaS = useState(lerEspera);
+  var esperaAte = esperaS[0], setEsperaAte = esperaS[1];
+  var agoraS = useState(Date.now());
+  var agora = agoraS[0], setAgora = agoraS[1];
+  var falta = Math.max(0, Math.ceil((esperaAte - agora) / 1000));
+
+  useEffect(function() {
+    if (esperaAte <= Date.now()) return;
+    var id = setInterval(function() { setAgora(Date.now()); }, 1000);
+    return function() { clearInterval(id); };
+  }, [esperaAte, setAgora]);
 
   if (auth && auth.loading) {
     return (
@@ -37,8 +48,22 @@ export default function AuthGate(props) {
     setError("");
     setBusy(true);
     try {
+      if (lerEspera() > Date.now()) {
+        setEsperaAte(lerEspera());
+        setError("O servidor ainda está a bloquear entradas. Espera o tempo do botão e carrega uma vez.");
+        setBusy(false);
+        return;
+      }
       var res = mode === "login" ? await auth.signIn(email, password) : await auth.signUp(email, password);
-      if (res.error) setError(erroLogin(res.error.message));
+      if (res.error) {
+        var seg = segundosDeEspera(res.error.message);
+        if (seg) {
+          var ate = Date.now() + seg * 1000;
+          try { localStorage.setItem(ESPERA_KEY, String(ate)); } catch (e) {}
+          setEsperaAte(ate);
+        }
+        setError(erroLogin(res.error.message, seg));
+      }
       else if (mode === "signup" && !(res.data && res.data.session)) {
         lembrarEmail(email);
         setMode("login");
@@ -85,9 +110,9 @@ export default function AuthGate(props) {
         {error && (
           <p style={{ fontSize: 13, color: ok ? COLORS.positive : COLORS.negative, lineHeight: 1.5, margin: "0 0 20px" }}>{error}</p>
         )}
-        <button disabled={busy} type="submit" className="ag-go">
-          {busy ? "Aguarda…" : mode === "login" ? "Entrar" : "Criar conta"}
-          <span aria-hidden="true"> →</span>
+        <button disabled={busy || falta > 0} type="submit" className="ag-go">
+          {falta > 0 ? ("Tenta em " + formatarEspera(falta)) : busy ? "Aguarda…" : mode === "login" ? "Entrar" : "Criar conta"}
+          {falta > 0 ? null : <span aria-hidden="true"> →</span>}
         </button>
         <button type="button" className="ag-switch" onClick={function() { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>
           {mode === "login" ? "Ainda não tenho conta" : "Já tenho conta"}
@@ -102,12 +127,33 @@ export default function AuthGate(props) {
   );
 }
 
-function erroLogin(msg) {
+var ESPERA_KEY = "sinapse-login-espera";
+
+function lerEspera() {
+  try { return Number(localStorage.getItem(ESPERA_KEY) || 0); } catch (e) { return 0; }
+}
+
+function segundosDeEspera(msg) {
+  var texto = String(msg || "");
+  var encontrado = texto.match(/(\d+)\s*second/i);
+  if (encontrado) return Math.max(60, Number(encontrado[1]));
+  if (/rate limit|too many requests|over_request/i.test(texto)) return 300;
+  return 0;
+}
+
+function formatarEspera(seg) {
+  var m = Math.floor(seg / 60);
+  var s = seg % 60;
+  if (m <= 0) return s + " s";
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+
+function erroLogin(msg, seg) {
   var texto = String(msg || "");
   if (/invalid login credentials/i.test(texto)) return "Email ou password errados.";
   if (/email not confirmed/i.test(texto)) return "A conta existe, mas o email ainda não foi confirmado. Abre o link que o Supabase enviou e entra outra vez.";
   if (/user already registered/i.test(texto)) return "Esta conta já existe. Entra com o email e a password.";
-  if (/rate limit/i.test(texto)) return "Demasiadas tentativas. Espera um minuto e tenta outra vez.";
+  if (seg) return "O servidor bloqueou entradas novas durante " + formatarEspera(seg) + ". Não carregues outra vez antes disso. No Chrome, recarrega a extensão 2.25.5 para ela deixar de pedir login sozinha.";
   return texto;
 }
 
