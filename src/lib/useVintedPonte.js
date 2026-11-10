@@ -30,7 +30,7 @@ function patchDe(acao, extra, vis) {
   if (acao === "compra") return { compraAtivo: Boolean(extra && extra.ativo) };
   if (acao === "modo-vendedor") {
     var vOn = Boolean(extra && extra.ligado);
-    return { mensagens: { vendedor: vOn, auto: vOn ? Boolean(msgs.auto) : false } };
+    return { mensagens: { vendedor: vOn, auto: vOn } };
   }
   if (acao === "auto-envio") {
     var aOn = Boolean(extra && extra.ligado);
@@ -167,7 +167,7 @@ export function useVintedPonte() {
   baseRef.current = basePayload;
 
   var visto = data.estado && data.estado.visto_em;
-  var ligado = Boolean(visto && data.agora && data.agora - new Date(visto).getTime() < 40000);
+  var ligado = Boolean(visto && data.agora && data.agora - new Date(visto).getTime() < 25000);
   var syncPendente = (data.comandos || []).find(function(c) {
     if (!ehSync(c)) return false;
     if (c.estado !== "pedido" && c.estado !== "a-correr") return false;
@@ -280,6 +280,9 @@ export function useVintedPonte() {
   var ultimoErro = "";
   if (ultimo && ultimo.estado === "erro" && ultimo.resultado && idadeCmd(ultimo, data.agora) < 20000) {
     ultimoErro = ultimo.resultado.erro || "";
+    if (/jwt expired|invalid jwt|token is expired|token has expired/i.test(ultimoErro)) {
+      ultimoErro = "A sessão expirou. Entra outra vez na conta.";
+    }
   }
 
   return useMemo(function() {

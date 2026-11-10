@@ -189,7 +189,9 @@ async function loadSnapshot() {
   var projects = [];
   var expenses = [];
   var incomes = [];
-  try { tasks = await tasksStore.loadTasksLocal(); } catch (e) {}
+  try { tasks = await tasksStore.pullTasks(); } catch (e) {
+    try { tasks = await tasksStore.loadTasksLocal(); } catch (err) {}
+  }
   try {
     var raw = await readLocal("sinapse-calendar-v3", []);
     if (raw && !Array.isArray(raw) && typeof raw === "object") {
@@ -213,7 +215,7 @@ async function loadSnapshot() {
   var boardTasks = (tasks || []).filter(function(t) {
     return t.column === "inbox" || t.column === "today";
   });
-  var dueToday = boardTasks.filter(function(t) { return t.due === today; });
+  var dueToday = (tasks || []).filter(function(t) { return t.column === "today"; });
   var wishOpen = (items || []).filter(function(i) { return !i.purchased; });
   var stats = financeStats(expenses, incomes);
   events.sort(function(a, b) {
@@ -249,7 +251,7 @@ async function loadSnapshot() {
   return {
     openTasks: boardTasks.length,
     dueTodayCount: dueToday.length,
-    dueToday: dueToday.slice(0, 6),
+    dueToday: dueToday.slice(0, 12),
     events: events.slice(0, 6),
     notes: (spaces || []).length,
     wishes: wishOpen.length,
@@ -294,8 +296,20 @@ export default function Hub() {
 
   useEffect(function() {
     var alive = true;
-    loadSnapshot().then(function(s) { if (alive) setSnap(s); }).catch(function() {});
-    return function() { alive = false; };
+    var aLer = false;
+    function ler() {
+      if (aLer) return;
+      aLer = true;
+      loadSnapshot().then(function(s) { if (alive) setSnap(s); }).catch(function() {}).finally(function() { aLer = false; });
+    }
+    ler();
+    var id = setInterval(ler, 20000);
+    window.addEventListener("focus", ler);
+    return function() {
+      alive = false;
+      clearInterval(id);
+      window.removeEventListener("focus", ler);
+    };
   }, []);
 
   function toggleModule(id) {
@@ -452,15 +466,15 @@ export default function Hub() {
                 }) : <p className="hub-empty">Nada marcado para hoje. O dia ainda está aberto.</p>}
               </section>
               <section className="hub-panel">
-                <h2>A vencer hoje{snap && snap.dueTodayCount ? " · " + snap.dueTodayCount : ""}</h2>
+                <h2>Hoje · {snap ? snap.dueTodayCount : 0}</h2>
                 {snap && snap.dueToday.length ? snap.dueToday.map(function(t) {
                   return (
                     <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
                       <p className="hub-row-t">{t.title || "Tarefa"}</p>
-                      <span className="hub-row-m">{t.priority || ""}</span>
+                      <span className="hub-row-m">{t.due ? "prazo " + t.due.split("-").reverse().join("/") : "na lista de hoje"}</span>
                     </button>
                   );
-                }) : <p className="hub-empty">Nenhuma tarefa com prazo para hoje.</p>}
+                }) : <p className="hub-empty">Nenhuma tarefa na lista Hoje.</p>}
               </section>
             </div>
 

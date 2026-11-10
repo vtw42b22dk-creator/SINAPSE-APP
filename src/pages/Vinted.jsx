@@ -124,7 +124,7 @@ export default function Vinted() {
           <div>
             <p className="vin-kicker">
               <span className={"vin-live"} style={{ background: ponte.ligado ? COLORS.positive : COLORS.faint }} />
-              {ponte.ligado ? "Computador ligado" : "Computador fechado"}
+              {ponte.ligado ? "Vinted aberta no computador" : "Vinted desligada no computador"}
               {payload.at ? " · " + haQuanto(payload.at, ponte.agora) : ""}
             </p>
             <h1 className="vin-hello">
@@ -149,6 +149,9 @@ export default function Vinted() {
         {!ponte.loading && ponte.erro ? <p className="vin-note">{ponte.erro}</p> : null}
         {ponte.aviso ? <p className="vin-note">{ponte.aviso}</p> : null}
         {ponte.ultimoErro ? <p className="vin-note err">{ponte.ultimoErro}</p> : null}
+        {!ponte.loading && !ponte.ligado ? (
+          <p className="vin-note">O computador não está na Vinted. Abre o Chrome com a Vinted para ligar, desligar e enviar daqui. Enquanto estiver fechado, isto fica desligado.</p>
+        ) : null}
 
         {!ponte.loading && !ponte.erro ? (
           secao === "overview" ? (
