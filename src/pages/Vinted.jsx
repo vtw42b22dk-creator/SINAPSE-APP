@@ -78,13 +78,15 @@ var VIN_CSS = [
   ".vin-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}",
   ".vin-cal{margin:0 0 18px}",
   ".vin-cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}",
-  ".vin-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:0 0 10px}",
-  ".vin-cal-dow{text-align:center;font-size:10px;letter-spacing:.4px;color:" + COLORS.faint + ";padding:4px 0}",
-  ".vin-cal-cell{min-height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;font-size:12px;color:" + COLORS.muted + "}",
-  ".vin-cal-cell.is-out{opacity:.35}",
-  ".vin-cal-cell.is-today{border-color:color-mix(in srgb,var(--mc) 45%,transparent);color:var(--mc)}",
-  ".vin-cal-bars{position:relative;display:flex;flex-direction:column;gap:6px;margin:8px 0 4px}",
-  ".vin-cal-bar{position:relative;height:28px;border-radius:999px;display:flex;align-items:center;padding:0 12px;font-size:11px;font-weight:600;color:#0c0c0e;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:uiSlideUp .4s var(--ease) both}",
+  ".vin-cal-dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:0 0 6px}",
+  ".vin-cal-dow span{text-align:center;font-size:10px;letter-spacing:.4px;color:" + COLORS.faint + "}",
+  ".vin-cal-week{margin:0 0 10px}",
+  ".vin-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}",
+  ".vin-cal-cell{min-height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:" + COLORS.muted + "}",
+  ".vin-cal-cell.is-out{opacity:.28}",
+  ".vin-cal-cell.is-today{color:var(--mc);font-weight:700}",
+  ".vin-cal-lane{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:4px;min-height:22px}",
+  ".vin-cal-bar{height:22px;border-radius:999px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;color:#0c0c0e;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-decoration:none;min-width:0}",
   "@media(max-width:1100px){.vin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.vin-top{flex-direction:column}}",
   "@media(max-width:719px){.vin-root{overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y}.vin-inner{padding:22px 16px max(96px,env(safe-area-inset-bottom));overflow-x:hidden}.vin-actions{width:100%;justify-content:stretch}.vin-glass-btn{flex:1 1 auto;min-width:0}.vin-stats{grid-template-columns:1fr 1fr;gap:10px}.vin-stat:last-child:nth-child(odd){grid-column:1/-1}.vin-week{gap:4px}.vin-day{padding:10px 0;min-width:0}.vin-day b{font-size:14px}.vin-glow{opacity:.7}}",
 ].join("");
@@ -639,50 +641,68 @@ function chaveDia(ts) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
 
+function meiaNoite(ts) {
+  var d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function semanasDoMes(y, m) {
+  var primeiro = new Date(y, m, 1);
+  var cursor = new Date(y, m, 1 - ((primeiro.getDay() + 6) % 7));
+  var semanas = [];
+  var fimMes = new Date(y, m + 1, 0).getTime();
+  while (semanas.length < 6) {
+    var dias = [];
+    var i;
+    for (i = 0; i < 7; i++) {
+      dias.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    semanas.push(dias);
+    if (cursor.getTime() > fimMes && cursor.getMonth() !== m) break;
+  }
+  return semanas;
+}
+
 function EnviosCalendario(props) {
   var itens = props.itens || [];
   var mesS = useState(function() { return inicioMes(new Date()); });
   var mes = mesS[0], setMes = mesS[1];
   var y = mes.getFullYear();
   var m = mes.getMonth();
-  var primeiro = new Date(y, m, 1);
-  var ultimo = new Date(y, m + 1, 0);
-  var startPad = (primeiro.getDay() + 6) % 7;
-  var diasNoMes = ultimo.getDate();
-  var cells = [];
-  var i;
-  for (i = 0; i < startPad; i++) cells.push(null);
-  for (i = 1; i <= diasNoMes; i++) cells.push(new Date(y, m, i));
-  while (cells.length % 7) cells.push(null);
   var hoje = chaveDia(Date.now());
-  var cores = ["#8FA8C4", "#8FB39B", "#C4A57C", "#C08C8C", "#A0A0A8", "#7BA3B8"];
-  var barras = itens.map(function(e, idx) {
+  var cores = ["#8FA8C4", "#8FB39B", "#C4A57C", "#C08C8C", "#A0A0A8", "#7BA3B8", "#D4A0B0", "#9BB8A4"];
+  var envios = itens.map(function(e, idx) {
     var a = Number(e.inicioTs) || Number(e.fimTs) || 0;
     var b = Number(e.fimTs) || Number(e.inicioTs) || 0;
+    if (a && a < 1e12) a *= 1000;
+    if (b && b < 1e12) b *= 1000;
     if (!a && !b) return null;
     if (!a) a = b;
     if (!b) b = a;
     if (b < a) { var t = a; a = b; b = t; }
-    var start = new Date(a); start.setHours(0, 0, 0, 0);
-    var end = new Date(b); end.setHours(0, 0, 0, 0);
-    var mesIni = new Date(y, m, 1).getTime();
-    var mesFim = new Date(y, m, diasNoMes).getTime();
-    if (end.getTime() < mesIni || start.getTime() > mesFim) return null;
-    var from = Math.max(1, start.getMonth() === m && start.getFullYear() === y ? start.getDate() : 1);
-    var to = Math.min(diasNoMes, end.getMonth() === m && end.getFullYear() === y ? end.getDate() : diasNoMes);
-    var left = ((startPad + from - 1) / (cells.length || 1)) * 100;
-    var width = ((to - from + 1) / (cells.length || 1)) * 100;
     return {
-      id: e.id || idx,
+      id: e.id || String(idx),
       titulo: e.titulo || "Envio",
-      left: left,
-      width: Math.max(width, 100 / 7),
-      cor: cores[idx % cores.length],
       url: e.url || "",
+      cor: cores[idx % cores.length],
+      inicio: meiaNoite(a),
+      fim: meiaNoite(b),
     };
-  }).filter(Boolean);
-
+  }).filter(Boolean).sort(function(a, b) { return a.inicio - b.inicio; });
+  var faixas = [];
+  envios.forEach(function(envio) {
+    var i;
+    for (i = 0; i < faixas.length; i++) {
+      if (faixas[i] < envio.inicio) break;
+    }
+    envio.faixa = i;
+    faixas[i] = envio.fim;
+  });
+  var semanas = semanasDoMes(y, m);
   var rotulo = mes.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+  var algum = false;
 
   return (
     <div className="vin-cal">
@@ -691,25 +711,58 @@ function EnviosCalendario(props) {
         <strong style={{ textTransform: "capitalize" }}>{rotulo}</strong>
         <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setMes(new Date(y, m + 1, 1)); }}>›</button>
       </div>
-      <div className="vin-cal-grid">
-        {["S", "T", "Q", "Q", "S", "S", "D"].map(function(d, i) { return <div key={d + i} className="vin-cal-dow">{d}</div>; })}
-        {cells.map(function(d, i) {
-          if (!d) return <div key={"e" + i} className="vin-cal-cell is-out" />;
-          var k = chaveDia(d.getTime());
-          return <div key={k} className={"vin-cal-cell" + (k === hoje ? " is-today" : "")}>{d.getDate()}</div>;
-        })}
+      <div className="vin-cal-dow">
+        {["S", "T", "Q", "Q", "S", "S", "D"].map(function(d, i) { return <span key={d + i}>{d}</span>; })}
       </div>
-      {barras.length ? (
-        <div className="vin-cal-bars">
-          {barras.map(function(b) {
-            var estilo = { width: b.width + "%", marginLeft: b.left + "%", background: b.cor };
-            if (b.url) {
-              return <a key={b.id} className="vin-cal-bar" href={b.url} target="_blank" rel="noreferrer" style={estilo} title={b.titulo}>{b.titulo}</a>;
+      {semanas.map(function(dias, si) {
+        var nFaixas = 0;
+        var segmentos = [];
+        envios.forEach(function(envio) {
+          var de = -1;
+          var ate = -1;
+          dias.forEach(function(d, col) {
+            var ts = meiaNoite(d.getTime());
+            if (ts >= envio.inicio && ts <= envio.fim && d.getMonth() === m) {
+              if (de < 0) de = col;
+              ate = col;
             }
-            return <div key={b.id} className="vin-cal-bar" style={estilo} title={b.titulo}>{b.titulo}</div>;
-          })}
-        </div>
-      ) : <p className="vin-empty">Sem envios a caminho com datas neste mês.</p>}
+          });
+          if (de < 0) return;
+          algum = true;
+          if (envio.faixa + 1 > nFaixas) nFaixas = envio.faixa + 1;
+          segmentos.push({ envio: envio, de: de, ate: ate, primeiro: meiaNoite(dias[de].getTime()) === envio.inicio || (de === 0 && dias[de].getMonth() === m) });
+        });
+        var lanes = [];
+        var li;
+        for (li = 0; li < nFaixas; li++) lanes.push([]);
+        segmentos.forEach(function(seg) { lanes[seg.envio.faixa].push(seg); });
+        return (
+          <div key={si} className="vin-cal-week">
+            <div className="vin-cal-days">
+              {dias.map(function(d) {
+                var k = chaveDia(d.getTime());
+                var fora = d.getMonth() !== m;
+                return <div key={k} className={"vin-cal-cell" + (fora ? " is-out" : "") + (k === hoje ? " is-today" : "")}>{fora ? "" : d.getDate()}</div>;
+              })}
+            </div>
+            {lanes.map(function(segs, faixa) {
+              return (
+                <div key={faixa} className="vin-cal-lane">
+                  {segs.map(function(seg) {
+                    var estilo = { gridColumn: (seg.de + 1) + " / " + (seg.ate + 2), background: seg.envio.cor };
+                    var nome = seg.primeiro ? seg.envio.titulo : "";
+                    if (seg.envio.url) {
+                      return <a key={seg.envio.id} className="vin-cal-bar" href={seg.envio.url} target="_blank" rel="noreferrer" style={estilo} title={seg.envio.titulo}>{nome}</a>;
+                    }
+                    return <div key={seg.envio.id} className="vin-cal-bar" style={estilo} title={seg.envio.titulo}>{nome}</div>;
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+      {algum ? null : <p className="vin-empty">Sem envios a caminho com datas neste mês.</p>}
     </div>
   );
 }
