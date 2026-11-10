@@ -68,6 +68,23 @@ var VIN_CSS = [
   ".vin-empty{margin:8px 0 14px;font-size:13px;color:" + COLORS.faint + ";line-height:1.5}",
   ".vin-note{margin:0 0 16px;font-size:13px;color:" + COLORS.muted + ";line-height:1.5}",
   ".vin-note.err{color:" + COLORS.negative + "}",
+  ".vin-age{border-radius:14px;border:1px solid rgba(255,255,255,.08);padding:2px 0;margin:0 0 8px;transition:border-color .25s var(--ease),background .25s var(--ease)}",
+  ".vin-age.is-verde{border-color:color-mix(in srgb,#8FB39B 45%,transparent);background:color-mix(in srgb,#8FB39B 8%,transparent)}",
+  ".vin-age.is-amarelo{border-color:color-mix(in srgb,#C4A57C 50%,transparent);background:color-mix(in srgb,#C4A57C 10%,transparent)}",
+  ".vin-age.is-vermelho{border-color:color-mix(in srgb,#C08C8C 55%,transparent);background:color-mix(in srgb,#C08C8C 12%,transparent)}",
+  ".vin-age.is-oculto{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.02);opacity:.72}",
+  ".vin-legenda{display:flex;flex-wrap:wrap;gap:10px 14px;margin:0 0 14px;font-size:11px;color:" + COLORS.faint + "}",
+  ".vin-legenda span{display:inline-flex;align-items:center;gap:6px}",
+  ".vin-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}",
+  ".vin-cal{margin:0 0 18px}",
+  ".vin-cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}",
+  ".vin-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:0 0 10px}",
+  ".vin-cal-dow{text-align:center;font-size:10px;letter-spacing:.4px;color:" + COLORS.faint + ";padding:4px 0}",
+  ".vin-cal-cell{min-height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;font-size:12px;color:" + COLORS.muted + "}",
+  ".vin-cal-cell.is-out{opacity:.35}",
+  ".vin-cal-cell.is-today{border-color:color-mix(in srgb,var(--mc) 45%,transparent);color:var(--mc)}",
+  ".vin-cal-bars{position:relative;display:flex;flex-direction:column;gap:6px;margin:8px 0 4px}",
+  ".vin-cal-bar{position:relative;height:28px;border-radius:999px;display:flex;align-items:center;padding:0 12px;font-size:11px;font-weight:600;color:#0c0c0e;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:uiSlideUp .4s var(--ease) both}",
   "@media(max-width:1100px){.vin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.vin-top{flex-direction:column}}",
   "@media(max-width:719px){.vin-root{overflow-x:hidden;overscroll-behavior:none;touch-action:pan-y}.vin-inner{padding:22px 16px max(96px,env(safe-area-inset-bottom));overflow-x:hidden}.vin-actions{width:100%;justify-content:stretch}.vin-glass-btn{flex:1 1 auto;min-width:0}.vin-stats{grid-template-columns:1fr 1fr;gap:10px}.vin-stat:last-child:nth-child(odd){grid-column:1/-1}.vin-week{gap:4px}.vin-day{padding:10px 0;min-width:0}.vin-day b{font-size:14px}.vin-glow{opacity:.7}}",
 ].join("");
@@ -145,11 +162,11 @@ export default function Vinted() {
               onGo={function(id) { navigate(id === "overview" ? "/vinted" : "/vinted/" + id); }}
             />
           ) : secao === "mensagens" ? (
-            <Mensagens ponte={ponte} msgs={msgs} />
+            <Mensagens ponte={ponte} msgs={msgs} isMobile={isMobile} />
           ) : secao === "venda" ? (
-            <Venda ponte={ponte} payload={payload} />
+            <Venda ponte={ponte} payload={payload} isMobile={isMobile} />
           ) : secao === "analise" ? (
-            <Analise ponte={ponte} payload={payload} />
+            <Analise ponte={ponte} payload={payload} isMobile={isMobile} />
           ) : (
             <Compra ponte={ponte} compra={payload.compra || {}} />
           )
@@ -160,6 +177,7 @@ export default function Vinted() {
 }
 
 function Overview(props) {
+  var isMobile = Boolean(props.isMobile);
   var gavetaS = useState("");
   var gaveta = gavetaS[0], setGaveta = gavetaS[1];
   var lista = gaveta === "vendas" ? (props.payload.vendasSemana || [])
@@ -204,7 +222,11 @@ function Overview(props) {
       </Card>
 
       <div className="vin-stats" style={{ marginTop: 8 }}>
-        {VINTED_SECTIONS.filter(function(s) { return s.id !== "overview"; }).map(function(s) {
+        {VINTED_SECTIONS.filter(function(s) {
+          if (s.id === "overview") return false;
+          if (isMobile && s.id === "venda") return false;
+          return true;
+        }).map(function(s) {
           return (
             <button key={s.id} type="button" className="vin-stat ui-spot" onMouseMove={trackSpotlight} onClick={function() { props.onGo(s.id); }}>
               <b style={{ fontSize: 18 }}>{s.icon} {s.label}</b>
@@ -219,6 +241,7 @@ function Overview(props) {
 
 function Mensagens(props) {
   var msgs = props.msgs || {};
+  var isMobile = Boolean(props.isMobile);
   var subS = useState("conversas");
   var sub = subS[0], setSub = subS[1];
   var msgS = useState(msgs.texto || "");
@@ -226,6 +249,12 @@ function Mensagens(props) {
   var qrS = useState({ titulo: "", texto: "", i: -1, edTitulo: "", edTexto: "" });
   var qr = qrS[0], setQr = qrS[1];
   var ponte = props.ponte;
+  var tabs = [["conversas", "Conversas"], ["vendedor", "Modo vendedor"], ["fixar", "Fixar"], ["respostas", "Respostas"]];
+  if (isMobile) tabs = tabs.filter(function(it) { return it[0] !== "fixar"; });
+
+  useEffect(function() {
+    if (isMobile && sub === "fixar") setSub("conversas");
+  }, [isMobile, sub]);
 
   useEffect(function() {
     setMsg(function(atual) {
@@ -236,7 +265,7 @@ function Mensagens(props) {
   return (
     <div>
       <div className="vin-seg">
-        {[["conversas", "Conversas"], ["vendedor", "Modo vendedor"], ["fixar", "Fixar"], ["respostas", "Respostas"]].map(function(it) {
+        {tabs.map(function(it) {
           return <button key={it[0]} type="button" className={"vin-chip" + (sub === it[0] ? " is-on" : "")} onClick={function() { setSub(it[0]); }}>{it[1]}</button>;
         })}
       </div>
@@ -271,12 +300,11 @@ function Mensagens(props) {
           <textarea id="vin-msg" className="vin-field" rows={4} value={msg} onChange={function(e) { setMsg(e.target.value); }} placeholder="Vazia: vai a mensagem padrão." />
           <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
             <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("msg-auto", { texto: msg }); }}>Guardar</button>
-            <a className="vin-glass-btn soft ui-tap" href={ponte.origem + "/member/notifications"} target="_blank" rel="noreferrer">Abrir na Vinted</a>
           </div>
         </Card>
       ) : null}
 
-      {sub === "fixar" ? (
+      {sub === "fixar" && !isMobile ? (
         <Card titulo="Fixar mensagens" lead="As fixadas aparecem no topo da caixa.">
           <Switch nome="Modo fixar" detalhe="Botão Fixar em cada conversa" ligado={Boolean(msgs.fixar)} onClick={function() { ponte.pedir("fixar-modo", { ligado: !msgs.fixar }); }} />
           <Switch nome="Minimizar fixadas" detalhe="Barra compacta no topo" ligado={Boolean(msgs.fixarMin)} onClick={function() { ponte.pedir("fixar-min", { ligado: !msgs.fixarMin }); }} />
@@ -336,17 +364,25 @@ function Mensagens(props) {
 function Venda(props) {
   var payload = props.payload || {};
   var ponte = props.ponte;
+  var isMobile = Boolean(props.isMobile);
   return (
     <div>
-      <Card titulo="Publicar" lead="Na página de venda tens a IA e o agendamento.">
-        <div className="vin-actions" style={{ justifyContent: "flex-start", marginBottom: 8 }}>
-          <a className="vin-glass-btn primary ui-tap" href={ponte.origem + "/items/new"} target="_blank" rel="noreferrer">Artigo novo</a>
-          <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("sync-anuncios"); }}>Sincronizar anúncios</button>
-        </div>
-        {payload.quota ? <p className="vin-empty">IA hoje · rápido {payload.quota.rapido.used}/{payload.quota.rapido.limit} · qualidade {payload.quota.qualidade.used}/{payload.quota.qualidade.limit}</p> : null}
-      </Card>
+      {isMobile ? null : (
+        <Card titulo="Publicar" lead="Na página de venda tens a IA e o agendamento.">
+          <div className="vin-actions" style={{ justifyContent: "flex-start", marginBottom: 8 }}>
+            <a className="vin-glass-btn primary ui-tap" href={ponte.origem + "/items/new"} target="_blank" rel="noreferrer">Artigo novo</a>
+            <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("sync-anuncios"); }}>Sincronizar anúncios</button>
+          </div>
+          {payload.quota ? <p className="vin-empty">IA hoje · rápido {payload.quota.rapido.used}/{payload.quota.rapido.limit} · qualidade {payload.quota.qualidade.used}/{payload.quota.qualidade.limit}</p> : null}
+        </Card>
+      )}
       <Card titulo="Rascunhos" lead={(payload.rascunhos || []).length + " à espera"}>
-        {(payload.rascunhos || []).length ? (
+        {isMobile ? (
+          <div className="vin-actions" style={{ justifyContent: "flex-start", marginBottom: 8 }}>
+            <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("sync-anuncios"); }}>Sincronizar anúncios</button>
+          </div>
+        ) : null}
+        {(payload.rascunhos || []).length && !isMobile ? (
           <div className="vin-actions" style={{ justifyContent: "flex-start", marginBottom: 8 }}>
             <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("publicar-rascunhos"); }}>Publicar um a um</button>
           </div>
@@ -358,21 +394,25 @@ function Venda(props) {
   );
 }
 
+function corAnuncio(a) {
+  if (a && a.oculto) return "oculto";
+  if (a && a.cor) return a.cor;
+  var d = a && a.dias;
+  if (d == null || !Number.isFinite(Number(d))) return "sem";
+  if (d >= 5) return "vermelho";
+  if (d >= 4) return "amarelo";
+  return "verde";
+}
+
 function Analise(props) {
   var payload = props.payload || {};
   var ponte = props.ponte;
-  var filtroS = useState("todos");
-  var filtro = filtroS[0], setFiltro = filtroS[1];
-  var qS = useState("");
-  var q = qS[0], setQ = qS[1];
+  var isMobile = Boolean(props.isMobile);
   var contagem = payload.contagem || {};
-  var texto = String(q || "").toLowerCase();
-  var itens = (payload.anuncios || []).filter(function(a) {
-    if (filtro === "ocultos") { if (!a.oculto) return false; }
-    else if (filtro !== "todos" && (a.oculto || a.cor !== filtro)) return false;
-    if (!texto) return true;
-    return (a.titulo + " " + (a.marca || "") + " " + (a.tamanho || "")).toLowerCase().indexOf(texto) >= 0;
-  });
+  var itens = payload.anuncios || [];
+  var envios = payload.envios || [];
+  var aCaminho = envios.filter(function(e) { return e && e.estado !== "por-enviar"; });
+  var porEnviar = envios.filter(function(e) { return e && e.estado === "por-enviar"; });
 
   return (
     <div>
@@ -380,46 +420,123 @@ function Analise(props) {
         <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("analise-conta"); }}>Análise de conta</button>
         <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("analytics"); }}>Views e favoritos</button>
       </div>
-      <div className="vin-seg">
-        {[["vermelho", "Republicar", contagem.vermelho], ["amarelo", "Atenção", contagem.amarelo], ["verde", "Em dia", contagem.verde], ["ocultos", "Ocultos", contagem.ocultos], ["todos", "Todos", (payload.anuncios || []).length]].map(function(f) {
-          return <button key={f[0]} type="button" className={"vin-chip" + (filtro === f[0] ? " is-on" : "")} onClick={function() { setFiltro(f[0]); }}>{f[1] + " " + (f[2] || 0)}</button>;
-        })}
+      <div className="vin-legenda">
+        <span><i className="vin-dot" style={{ background: corIdade("verde") }} />Em dia {contagem.verde || 0}</span>
+        <span><i className="vin-dot" style={{ background: corIdade("amarelo") }} />Em atenção {contagem.amarelo || 0}</span>
+        <span><i className="vin-dot" style={{ background: corIdade("vermelho") }} />Republicar {contagem.vermelho || 0}</span>
+        <span><i className="vin-dot" style={{ background: corIdade("oculto") }} />Ocultos {contagem.ocultos || 0}</span>
       </div>
-      <input className="vin-field" placeholder="Procurar título, marca ou tamanho" value={q} onChange={function(e) { setQ(e.target.value); }} />
-      <Card titulo="Anúncios" lead={itens.length + " neste filtro"}>
+      <Card titulo="Anúncios" lead={itens.length + " no total"}>
         {itens.map(function(a) {
+          var faixa = corAnuncio(a);
           return (
-            <div key={a.id} className="vin-row">
-              {a.foto ? <img className="vin-foto" src={a.foto} alt="" /> : <span style={{ width: 10, height: 10, borderRadius: "50%", background: corIdade(a.cor), flexShrink: 0 }} />}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h3>{a.titulo}</h3>
-                <p>{[a.preco != null ? eur(a.preco) : "", a.dias != null ? a.dias + " dias" : "", (a.favs || 0) + " fav", (a.views || 0) + " views"].filter(Boolean).join(" · ")}</p>
+            <div key={a.id} className={"vin-age is-" + faixa}>
+              <div className="vin-row" style={{ borderBottom: "none", padding: "10px 12px" }}>
+                {a.foto ? <img className="vin-foto" src={a.foto} alt="" /> : <span style={{ width: 10, height: 10, borderRadius: "50%", background: corIdade(faixa), flexShrink: 0 }} />}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3>{a.titulo}</h3>
+                  <p>{[a.preco != null ? eur(a.preco) : "", a.dias != null ? a.dias + " dias" : "", (a.favs || 0) + " fav", (a.views || 0) + " views", faixa === "oculto" ? "oculto" : ""].filter(Boolean).join(" · ")}</p>
+                </div>
+                <button type="button" className="vin-glass-btn ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("relaunch", { id: a.id, titulo: a.titulo }); }}>Relaunch</button>
               </div>
-              <button type="button" className="vin-glass-btn ui-tap" disabled={ponte.busy} onClick={function() { ponte.pedir("relaunch", { id: a.id, titulo: a.titulo }); }}>Relaunch</button>
             </div>
           );
         })}
-        {itens.length ? null : <p className="vin-empty">Nenhum anúncio neste filtro.</p>}
+        {itens.length ? null : <p className="vin-empty">Nenhum anúncio para mostrar.</p>}
       </Card>
-      <Card titulo="Envios" lead="Compras a caminho ou por enviar">
-        <Lista itens={payload.envios || []} agora={ponte.agora} envio />
+      <Card titulo="Envios" lead="Calendário das chegadas · por enviar fica em baixo">
+        <EnviosCalendario itens={aCaminho} />
+        {porEnviar.length ? (
+          <div style={{ marginTop: 16 }}>
+            <p className="vin-kicker" style={{ marginBottom: 8 }}>Por enviar · {porEnviar.length}</p>
+            <Lista itens={porEnviar} agora={ponte.agora} envio />
+          </div>
+        ) : <p className="vin-empty">Nada por enviar.</p>}
       </Card>
-      <Card titulo="Mais">
-        <Switch nome="Modo escuro na Vinted" detalhe="A Central do site já é escura" ligado={Boolean((payload.mensagens || {}).escuro)} onClick={function() { ponte.pedir("modo-escuro", { ligado: !(payload.mensagens || {}).escuro }); }} />
-        <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "10px 0 8px" }}>
-          <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("cache", function() { ponte.pedir("limpar-cache"); }); }}>{ponte.conf === "cache" ? "Confirmar limpeza" : "Limpar cache"}</button>
-          <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("reler", function() { ponte.pedir("reler-historico"); }); }}>{ponte.conf === "reler" ? "Confirmar releitura" : "Reler histórico"}</button>
-        </div>
-      </Card>
+      {isMobile ? null : (
+        <Card titulo="Mais">
+          <Switch nome="Modo escuro na Vinted" detalhe="A Central do site já é escura" ligado={Boolean((payload.mensagens || {}).escuro)} onClick={function() { ponte.pedir("modo-escuro", { ligado: !(payload.mensagens || {}).escuro }); }} />
+          <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "10px 0 8px" }}>
+            <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("cache", function() { ponte.pedir("limpar-cache"); }); }}>{ponte.conf === "cache" ? "Confirmar limpeza" : "Limpar cache"}</button>
+            <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("reler", function() { ponte.pedir("reler-historico"); }); }}>{ponte.conf === "reler" ? "Confirmar releitura" : "Reler histórico"}</button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
+
+var COMPRA_ESTADOS = ["Novo com etiquetas", "Novo sem etiquetas", "Muito bom", "Bom"];
+var COMPRA_INTERVALOS = ["6", "8", "10", "15", "30"];
 
 function Compra(props) {
   var compra = props.compra || {};
   var ponte = props.ponte;
   var buscaS = useState({ nome: "", texto: "" });
   var busca = buscaS[0], setBusca = buscaS[1];
+  var editS = useState(null);
+  var edit = editS[0], setEdit = editS[1];
+  var filtS = useState(function() {
+    return {
+      intervaloSeg: String(compra.intervaloSeg || 6),
+      precoMin: compra.precoMin == null ? "" : String(compra.precoMin),
+      precoMax: compra.precoMax == null ? "" : String(compra.precoMax),
+      tamanhos: Array.isArray(compra.tamanhos) ? compra.tamanhos.join(", ") : "",
+      estados: Array.isArray(compra.estados) ? compra.estados.slice() : [],
+      excluir: Array.isArray(compra.excluir) ? compra.excluir.join(", ") : "",
+    };
+  });
+  var filt = filtS[0];
+  var setFilt = filtS[1];
+  var filtAssinatura = [
+    compra.intervaloSeg,
+    compra.precoMin,
+    compra.precoMax,
+    (compra.tamanhos || []).join(","),
+    (compra.estados || []).join("|"),
+    (compra.excluir || []).join("|"),
+  ].join("::");
+
+  useEffect(function() {
+    var el = typeof document !== "undefined" ? document.activeElement : null;
+    if (el && el.classList && el.classList.contains("vin-field")) return;
+    setFilt({
+      intervaloSeg: String(compra.intervaloSeg || 6),
+      precoMin: compra.precoMin == null ? "" : String(compra.precoMin),
+      precoMax: compra.precoMax == null ? "" : String(compra.precoMax),
+      tamanhos: Array.isArray(compra.tamanhos) ? compra.tamanhos.join(", ") : "",
+      estados: Array.isArray(compra.estados) ? compra.estados.slice() : [],
+      excluir: Array.isArray(compra.excluir) ? compra.excluir.join(", ") : "",
+    });
+  }, [filtAssinatura]);
+
+  function guardarFiltros() {
+    if (!filt) return;
+    var tamanhos = String(filt.tamanhos || "").split(/[,;\s]+/).map(function(x) { return x.trim(); }).filter(Boolean).slice(0, 20);
+    var excluir = String(filt.excluir || "").split(/[,;]+/).map(function(x) { return x.trim(); }).filter(Boolean).slice(0, 40);
+    var precoMin = String(filt.precoMin || "").trim() === "" ? null : Number(filt.precoMin);
+    var precoMax = String(filt.precoMax || "").trim() === "" ? null : Number(filt.precoMax);
+    ponte.pedir("compra-filtros", {
+      intervaloSeg: Number(filt.intervaloSeg) || 6,
+      precoMin: Number.isFinite(precoMin) ? precoMin : null,
+      precoMax: Number.isFinite(precoMax) ? precoMax : null,
+      tamanhos: tamanhos,
+      estados: filt.estados || [],
+      excluir: excluir,
+    });
+  }
+
+  function guardarEdicao() {
+    if (!edit || !edit.id) return;
+    ponte.pedir("compra-busca", {
+      editar: true,
+      id: edit.id,
+      nome: edit.nome,
+      texto: edit.texto,
+    });
+    setEdit(null);
+  }
+
   return (
     <div>
       <Card titulo="Monitor" lead={compra.resumo || "Liga a caça com a Vinted aberta no computador."}>
@@ -430,16 +547,76 @@ function Compra(props) {
           onClick={function() { ponte.pedir("compra", { ativo: !compra.ativo }); }}
         />
       </Card>
+      <Card titulo="Filtros gerais" lead="Aplicam-se a todas as buscas">
+        {filt ? (
+          <div>
+            <label className="vin-kicker" style={{ display: "block", marginTop: 4 }}>Intervalo (s)</label>
+            <div className="vin-seg">
+              {COMPRA_INTERVALOS.map(function(v) {
+                return <button key={v} type="button" className={"vin-chip" + (filt.intervaloSeg === v ? " is-on" : "")} onClick={function() { setFilt(Object.assign({}, filt, { intervaloSeg: v })); }}>{v}s</button>;
+              })}
+            </div>
+            <label className="vin-kicker" style={{ display: "block" }}>Preço mín / máx</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <input className="vin-field" style={{ marginTop: 0 }} placeholder="Mín" value={filt.precoMin} onChange={function(e) { setFilt(Object.assign({}, filt, { precoMin: e.target.value })); }} />
+              <input className="vin-field" style={{ marginTop: 0 }} placeholder="Máx" value={filt.precoMax} onChange={function(e) { setFilt(Object.assign({}, filt, { precoMax: e.target.value })); }} />
+            </div>
+            <label className="vin-kicker" style={{ display: "block", marginTop: 10 }}>Tamanhos</label>
+            <input className="vin-field" style={{ marginTop: 0 }} placeholder="ex. 42, 42.5, 43" value={filt.tamanhos} onChange={function(e) { setFilt(Object.assign({}, filt, { tamanhos: e.target.value })); }} />
+            <label className="vin-kicker" style={{ display: "block", marginTop: 10 }}>Estados</label>
+            <div className="vin-seg">
+              {COMPRA_ESTADOS.map(function(nome) {
+                var on = (filt.estados || []).indexOf(nome) >= 0;
+                return (
+                  <button
+                    key={nome}
+                    type="button"
+                    className={"vin-chip" + (on ? " is-on" : "")}
+                    onClick={function() {
+                      var next = (filt.estados || []).slice();
+                      var i = next.indexOf(nome);
+                      if (i >= 0) next.splice(i, 1);
+                      else next.push(nome);
+                      setFilt(Object.assign({}, filt, { estados: next }));
+                    }}
+                  >{nome}</button>
+                );
+              })}
+            </div>
+            <label className="vin-kicker" style={{ display: "block" }}>Excluir palavras</label>
+            <input className="vin-field" style={{ marginTop: 0 }} placeholder="réplica, fake, defeito" value={filt.excluir} onChange={function(e) { setFilt(Object.assign({}, filt, { excluir: e.target.value })); }} />
+            <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
+              <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy} onClick={guardarFiltros}>Guardar filtros</button>
+            </div>
+          </div>
+        ) : null}
+      </Card>
       <Card titulo="Buscas" lead={(compra.buscas || []).length + " activas"}>
         {(compra.buscas || []).map(function(b) {
+          var aEditar = edit && edit.id === b.id;
           return (
-            <div key={b.id} className="vin-row">
-              <div style={{ flex: 1 }}><h3>{b.nome || b.texto}</h3>{b.texto && b.texto !== b.nome ? <p>{b.texto}</p> : null}</div>
-              <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("b-" + b.id, function() { ponte.pedir("compra-busca", { remover: true, id: b.id }); }); }}>{ponte.conf === "b-" + b.id ? "Confirmar" : "Tirar"}</button>
+            <div key={b.id} className="vin-row" style={{ alignItems: "flex-start" }}>
+              {aEditar ? (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <input className="vin-field" style={{ marginTop: 0 }} value={edit.nome} onChange={function(e) { setEdit(Object.assign({}, edit, { nome: e.target.value })); }} placeholder="Nome" />
+                  <input className="vin-field" value={edit.texto} onChange={function(e) { setEdit(Object.assign({}, edit, { texto: e.target.value })); }} placeholder="O que procurar" />
+                  <div className="vin-actions" style={{ justifyContent: "flex-start", marginTop: 10 }}>
+                    <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !String(edit.texto || "").trim()} onClick={guardarEdicao}>Guardar</button>
+                    <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setEdit(null); }}>Cancelar</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ flex: 1 }}><h3>{b.nome || b.texto}</h3>{b.texto && b.texto !== b.nome ? <p>{b.texto}</p> : null}</div>
+                  <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setEdit({ id: b.id, nome: b.nome || "", texto: b.texto || "" }); }}>Editar</button>
+                  <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("b-" + b.id, function() { ponte.pedir("compra-busca", { remover: true, id: b.id }); }); }}>{ponte.conf === "b-" + b.id ? "Confirmar" : "Tirar"}</button>
+                </>
+              )}
             </div>
           );
         })}
         {(compra.buscas || []).length ? null : <p className="vin-empty">Ainda não há buscas.</p>}
+        <p className="vin-kicker" style={{ marginTop: 12 }}>Nova busca</p>
         <input className="vin-field" placeholder="Nome" value={busca.nome} onChange={function(e) { setBusca({ nome: e.target.value, texto: busca.texto }); }} />
         <input className="vin-field" placeholder="O que procurar" value={busca.texto} onChange={function(e) { setBusca({ nome: busca.nome, texto: e.target.value }); }} />
         <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
@@ -449,6 +626,90 @@ function Compra(props) {
       <Card titulo="Últimos alertas">
         <Lista itens={compra.feed || []} agora={ponte.agora} />
       </Card>
+    </div>
+  );
+}
+
+function inicioMes(d) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function chaveDia(ts) {
+  var d = new Date(ts);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function EnviosCalendario(props) {
+  var itens = props.itens || [];
+  var mesS = useState(function() { return inicioMes(new Date()); });
+  var mes = mesS[0], setMes = mesS[1];
+  var y = mes.getFullYear();
+  var m = mes.getMonth();
+  var primeiro = new Date(y, m, 1);
+  var ultimo = new Date(y, m + 1, 0);
+  var startPad = (primeiro.getDay() + 6) % 7;
+  var diasNoMes = ultimo.getDate();
+  var cells = [];
+  var i;
+  for (i = 0; i < startPad; i++) cells.push(null);
+  for (i = 1; i <= diasNoMes; i++) cells.push(new Date(y, m, i));
+  while (cells.length % 7) cells.push(null);
+  var hoje = chaveDia(Date.now());
+  var cores = ["#8FA8C4", "#8FB39B", "#C4A57C", "#C08C8C", "#A0A0A8", "#7BA3B8"];
+  var barras = itens.map(function(e, idx) {
+    var a = Number(e.inicioTs) || Number(e.fimTs) || 0;
+    var b = Number(e.fimTs) || Number(e.inicioTs) || 0;
+    if (!a && !b) return null;
+    if (!a) a = b;
+    if (!b) b = a;
+    if (b < a) { var t = a; a = b; b = t; }
+    var start = new Date(a); start.setHours(0, 0, 0, 0);
+    var end = new Date(b); end.setHours(0, 0, 0, 0);
+    var mesIni = new Date(y, m, 1).getTime();
+    var mesFim = new Date(y, m, diasNoMes).getTime();
+    if (end.getTime() < mesIni || start.getTime() > mesFim) return null;
+    var from = Math.max(1, start.getMonth() === m && start.getFullYear() === y ? start.getDate() : 1);
+    var to = Math.min(diasNoMes, end.getMonth() === m && end.getFullYear() === y ? end.getDate() : diasNoMes);
+    var left = ((startPad + from - 1) / (cells.length || 1)) * 100;
+    var width = ((to - from + 1) / (cells.length || 1)) * 100;
+    return {
+      id: e.id || idx,
+      titulo: e.titulo || "Envio",
+      left: left,
+      width: Math.max(width, 100 / 7),
+      cor: cores[idx % cores.length],
+      url: e.url || "",
+    };
+  }).filter(Boolean);
+
+  var rotulo = mes.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
+
+  return (
+    <div className="vin-cal">
+      <div className="vin-cal-head">
+        <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setMes(new Date(y, m - 1, 1)); }}>‹</button>
+        <strong style={{ textTransform: "capitalize" }}>{rotulo}</strong>
+        <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setMes(new Date(y, m + 1, 1)); }}>›</button>
+      </div>
+      <div className="vin-cal-grid">
+        {["S", "T", "Q", "Q", "S", "S", "D"].map(function(d, i) { return <div key={d + i} className="vin-cal-dow">{d}</div>; })}
+        {cells.map(function(d, i) {
+          if (!d) return <div key={"e" + i} className="vin-cal-cell is-out" />;
+          var k = chaveDia(d.getTime());
+          return <div key={k} className={"vin-cal-cell" + (k === hoje ? " is-today" : "")}>{d.getDate()}</div>;
+        })}
+      </div>
+      {barras.length ? (
+        <div className="vin-cal-bars">
+          {barras.map(function(b) {
+            var estilo = { width: b.width + "%", marginLeft: b.left + "%", background: b.cor };
+            if (b.url) {
+              return <a key={b.id} className="vin-cal-bar" href={b.url} target="_blank" rel="noreferrer" style={estilo} title={b.titulo}>{b.titulo}</a>;
+            }
+            return <div key={b.id} className="vin-cal-bar" style={estilo} title={b.titulo}>{b.titulo}</div>;
+          })}
+        </div>
+      ) : <p className="vin-empty">Sem envios a caminho com datas neste mês.</p>}
     </div>
   );
 }

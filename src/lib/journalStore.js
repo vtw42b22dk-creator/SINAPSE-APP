@@ -111,7 +111,12 @@ export function mergeLayouts(a, b) {
   }
   if (lv >= LAYOUT_SCHEMA && rv < LAYOUT_SCHEMA) return cloneLayout(left);
   if (rv >= LAYOUT_SCHEMA && lv < LAYOUT_SCHEMA) return cloneLayout(right);
-  return cloneLayout((left.updated || 0) >= (right.updated || 0) ? left : right);
+  // Preferir a cópia mais completa quando os timestamps estão próximos (sync entre telemóvel/iPad).
+  var tu = (left.updated || 0) - (right.updated || 0);
+  if (sa !== sb && Math.abs(tu) < 120000) {
+    return cloneLayout(sa > sb ? left : right);
+  }
+  return cloneLayout(tu >= 0 ? left : right);
 }
 
 async function migrateLegacyNoteLayout() {
@@ -524,11 +529,13 @@ export async function pullNoteLayout() {
       if (tableRow) remote = normalizeNoteLayoutRow(tableRow);
     } catch (e) {}
 
+    var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
+    var fromSpaces = extractLayoutFromSpaces(await readLocal(SPACES, []));
     var picked = mergeLayouts(local, remote);
-    if (layoutScore(picked) === 0) {
-      var fromBlocks = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
-      var fromSpaces = extractLayoutFromSpaces(await readLocal(SPACES, []));
-      picked = mergeLayouts(mergeLayouts(picked, fromBlocks || emptyNoteLayout()), fromSpaces || emptyNoteLayout());
+    picked = mergeLayouts(picked, fromBlocks || emptyNoteLayout());
+    picked = mergeLayouts(picked, fromSpaces || emptyNoteLayout());
+    if (layoutScore(picked) > 0 && layoutScore(remote) === 0) {
+      picked = stampLayoutSchema(picked, true);
     }
 
     await writeLocal(NOTE_LAYOUT_KEY, [noteLayoutToDb(picked)]);
@@ -590,11 +597,12 @@ export async function saveNoteLayout(layout) {
     }
   } catch (e) {}
   var tableRes = await replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
+  var cloudOk = !!(tableRes && tableRes.ok) || !!(spaceRes && spaceRes.ok);
   return {
-    ok: !!(spaceRes && spaceRes.ok) || !!(tableRes && tableRes.ok),
-    error: (spaceRes && spaceRes.error) || (tableRes && tableRes.error),
-    cloud: (spaceRes && spaceRes.cloud) || (tableRes && tableRes.cloud),
-    emergency: (spaceRes && spaceRes.emergency) || (tableRes && tableRes.emergency),
+    ok: cloudOk,
+    error: (tableRes && tableRes.error) || (spaceRes && spaceRes.error),
+    cloud: !!(tableRes && tableRes.cloud) || !!(spaceRes && spaceRes.cloud),
+    emergency: (tableRes && tableRes.emergency) || (spaceRes && spaceRes.emergency),
   };
 }
 

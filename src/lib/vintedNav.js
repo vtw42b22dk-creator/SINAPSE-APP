@@ -37,5 +37,6 @@ export function corIdade(cor) {
   if (cor === "vermelho") return "#C08C8C";
   if (cor === "amarelo") return "#C4A57C";
   if (cor === "verde") return "#8FB39B";
+  if (cor === "oculto") return "#6E6A64";
   return "#6E6A64";
 }

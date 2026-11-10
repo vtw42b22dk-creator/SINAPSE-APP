@@ -21,7 +21,8 @@ export var MICRO_CSS = [
   ".ui-slide-left{animation:uiSlideLeft var(--dur-slow) var(--ease) both}",
   ".ui-slide-right{animation:uiSlideRight var(--dur-slow) var(--ease) both}",
   ".ui-spot{position:relative;overflow:hidden}",
-  ".ui-spot::after{content:'';position:absolute;inset:0;background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 14%,transparent),transparent 70%);opacity:0;transition:opacity .35s var(--ease);pointer-events:none}",
+  ".ui-spot::after{content:'';position:absolute;inset:0;background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--mc,#EDEDEF) 16%,transparent),transparent 70%);opacity:0;transition:opacity .35s var(--ease);pointer-events:none}",
+  "@media(hover:hover) and (pointer:fine){.ui-tap:hover{border-color:color-mix(in srgb,var(--mc,#EDEDEF) 35%,transparent)}}",
   "",
 ].join("");
 

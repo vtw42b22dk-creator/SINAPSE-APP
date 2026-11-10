@@ -4,6 +4,7 @@ import { lerPonte, ouvirPonte, pedirComando } from "./vintedStore";
 var RAPIDA = {
   compra: true,
   "compra-busca": true,
+  "compra-filtros": true,
   "modo-vendedor": true,
   "auto-envio": true,
   "fixar-modo": true,

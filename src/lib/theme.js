@@ -5,36 +5,36 @@
 
 export var COLORS = {
   bg: "#0C0C0E",
-  bgSoft: "#0C0C0E",
+  bgSoft: "#0E0E11",
   surface: "transparent",
   surfaceHi: "#1C1C20",
-  border: "#26262A",
-  borderSoft: "rgba(255,255,255,0.07)",
-  borderHi: "rgba(255,255,255,0.14)",
+  border: "#2A2A2E",
+  borderSoft: "rgba(255,255,255,0.08)",
+  borderHi: "rgba(255,255,255,0.16)",
   text: "#EDE8DF",
-  muted: "#A0988C",
+  muted: "#A89F92",
   faint: "#6E6A64",
-  accent: "#E6E0D6",
-  positive: "#8FB39B",
-  negative: "#C08C8C",
-  warning: "#C4A57C",
+  accent: "#E8E1D4",
+  positive: "#7FBA96",
+  negative: "#C89191",
+  warning: "#C9A978",
 };
 
 /** Paleta neutra para o utilizador escolher (projetos, notas, eventos). */
-export var PALETTE = ["#E6E6E9", "#A0A0A8", "#8FB39B", "#C4A57C", "#C08C8C", "#8FA8C4", "#6E6E76"];
+export var PALETTE = ["#E6E6E9", "#A0A0A8", "#7FBA96", "#C9A978", "#C89191", "#7BA3B8", "#6E6E76"];
 
 /** Cor decorativa por módulo — estilo wishlist (ponto + glow subtil). */
 export var MODULE_COLORS = {
-  calendar: "#8FA8C4",
-  focus: "#C4A57C",
-  tasks: "#8FB39B",
-  journal: "#C08C8C",
-  projects: "#A0A0A8",
-  wishlist: "#C4A57C",
-  finance: "#A0A0A8",
-  vinted: "#C4A57C",
-  hub: "#E6E6E9",
-  auth: "#8FA8C4",
+  calendar: "#7BA3B8",
+  focus: "#C9A978",
+  tasks: "#7FBA96",
+  journal: "#C89191",
+  projects: "#9AA3AD",
+  wishlist: "#C9A978",
+  finance: "#8FA8A0",
+  vinted: "#C9A978",
+  hub: "#E8E1D4",
+  auth: "#7BA3B8",
 };
 
 export function moduleFromPath(path) {

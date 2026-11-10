@@ -248,6 +248,7 @@ async function loadSnapshot() {
 
   return {
     openTasks: boardTasks.length,
+    dueTodayCount: dueToday.length,
     dueToday: dueToday.slice(0, 6),
     events: events.slice(0, 6),
     notes: (spaces || []).length,
@@ -451,7 +452,7 @@ export default function Hub() {
                 }) : <p className="hub-empty">Nada marcado para hoje. O dia ainda está aberto.</p>}
               </section>
               <section className="hub-panel">
-                <h2>A vencer hoje</h2>
+                <h2>A vencer hoje{snap && snap.dueTodayCount ? " · " + snap.dueTodayCount : ""}</h2>
                 {snap && snap.dueToday.length ? snap.dueToday.map(function(t) {
                   return (
                     <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
