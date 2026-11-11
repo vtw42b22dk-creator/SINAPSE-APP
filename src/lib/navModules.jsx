@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars, no-empty */
 import { MODULE_COLORS } from "./theme";
+import { patchPrefs } from "./prefsStore";
 
 export var ORDER_KEY = "sinapse-hub-order-v1";
 export var HIDDEN_KEY = "sinapse-hub-hidden-v1";
@@ -110,10 +111,12 @@ export function loadHubOrder() {
 }
 
 export function saveHubOrder(list) {
+  var ids = list.map(function(m) { return m.id; });
   try {
-    localStorage.setItem(ORDER_KEY, JSON.stringify(list.map(function(m) { return m.id; })));
+    localStorage.setItem(ORDER_KEY, JSON.stringify(ids));
   } catch (e) {}
   emitNav();
+  patchPrefs({ hubOrder: ids, hubHidden: loadHidden() });
 }
 
 export function loadHidden() {
@@ -131,6 +134,10 @@ export function loadHidden() {
 export function saveHidden(ids) {
   try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch (e) {}
   emitNav();
+  patchPrefs({
+    hubHidden: ids,
+    hubOrder: loadHubOrder().map(function(m) { return m.id; }),
+  });
 }
 
 export function visibleModules() {

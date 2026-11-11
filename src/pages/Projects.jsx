@@ -11,6 +11,7 @@ import { moduleColor, moduleGlow, MODULE_GLOW_CSS, PALETTE } from "../lib/theme"
 import { useCloudSync } from "../lib/useCloudSync";
 import { isCloudPullPaused, pauseCloudPull } from "../lib/cloudSyncGuard";
 import { onSync } from "../lib/syncEvents";
+import { patchPrefs } from "../lib/prefsStore";
 
 var ACCENT = moduleColor("projects");
 
@@ -38,6 +39,7 @@ function loadPins() {
 }
 function savePins(arr) {
   try { localStorage.setItem(PIN_KEY, JSON.stringify(arr)); } catch (e) {}
+  patchPrefs({ projectPins: arr });
 }
 
 var PROJ_CSS = [
@@ -333,8 +335,13 @@ export default function Projects() {
 
   useEffect(function() {
     function onResize() { vwS[1](window.innerWidth); }
+    function onPrefs() { setPins(loadPins()); }
     window.addEventListener("resize", onResize);
-    return function() { window.removeEventListener("resize", onResize); };
+    window.addEventListener("sinapse-prefs", onPrefs);
+    return function() {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("sinapse-prefs", onPrefs);
+    };
   }, []);
 
   useEffect(function() {

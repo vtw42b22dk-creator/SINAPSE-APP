@@ -6,6 +6,7 @@ import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import { useCloudSync } from "../lib/useCloudSync";
+import { layoutAllDaySpans } from "../lib/calendarSpans";
 import { isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { hasTouchPrimary } from "../lib/mobileUi";
 
@@ -117,11 +118,14 @@ var CHRO_CSS = [
   ".ch-wk-load{width:calc(100% - 12px);max-width:48px;height:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px;border-radius:99px}",
   ".ch-wk-load i{display:block;height:100%;background:var(--mc);border-radius:99px}",
   ".ch-wk-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}",
+  ".ch-wk-pin{position:sticky;top:0;z-index:14;background:rgba(12,12,14,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}",
+  ".ch-wk-pin .ch-wk-strip-row{position:relative;top:auto}",
   ".ch-wk-allday{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02)}",
   ".ch-wk-allday-lbl{grid-column:1;font-size:10px;font-family:'Manrope',sans-serif;color:#7A756C;text-align:right;padding:6px 8px 0 0;font-weight:600}",
-  ".ch-wk-allday-col{padding:2px 4px;display:flex;flex-direction:column;gap:4px;min-width:0;border-left:1px solid rgba(255,255,255,.05)}",
+  ".ch-wk-allday-col{padding:2px 4px;display:flex;flex-direction:column;gap:4px;min-width:0;border-left:1px solid rgba(255,255,255,.05);pointer-events:none}",
   ".ch-wk-allday-col:first-of-type{border-left:none}",
-  ".ch-wk-allday-chip{padding:6px 8px;border:none;border-left:3px solid var(--ec);background:color-mix(in srgb,var(--ec) 16%,rgba(255,255,255,.04));color:#EDE8DF;font-size:12px;font-weight:600;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;border-radius:8px}",
+  ".ch-wk-allday-chip{position:relative;z-index:1;margin:2px 4px;padding:6px 8px;border:none;border-left:3px solid var(--ec);background:color-mix(in srgb,var(--ec) 16%,rgba(255,255,255,.04));color:#EDE8DF;font-size:12px;font-weight:600;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;width:auto;border-radius:8px;align-self:stretch}",
+  ".ch-wk-allday-chip.is-span{border-radius:8px}",
   ".ch-wk-allday-chip:hover{background:color-mix(in srgb,var(--ec) 24%,rgba(255,255,255,.06))}",
   ".ch-wk-grid{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));min-height:" + (HOURS * WK_HOUR_H) + "px}",
   ".ch-wk-gutter{position:relative;grid-column:1;border-right:1px solid rgba(255,255,255,.06)}",
@@ -950,12 +954,10 @@ function WeekPlanner(props) {
 
   var weekDays = props.weekDays;
 
-  var allDayRows = useMemo(function() {
-    return weekDays.map(function(k) {
-      return sortEvents((props.events[k] || []).filter(function(ev) { return ev.allDay; }));
-    });
+  var allDayLayout = useMemo(function() {
+    return layoutAllDaySpans(weekDays, props.events);
   }, [weekDays, props.events]);
-  var hasAllDay = allDayRows.some(function(l) { return l.length > 0; });
+  var hasAllDay = allDayLayout.spans.length > 0;
 
   var nowLine = useMemo(function() {
     var idx = weekDays.indexOf(props.todayKey);
@@ -1100,26 +1102,42 @@ function WeekPlanner(props) {
     <div className="ch-wk">
       <div ref={scrollRef} className={"ch-wk-scroll" + (props.isMobile ? " ch-wk-scroll-h" : "")}>
         <div className={"ch-wk-board" + (props.isMobile ? " ch-wk-board--mob" : "")}>
+          <div className="ch-wk-pin">
           <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} onFocusDay={props.onFocusDay} />
           {hasAllDay ? (
-            <div className="ch-wk-allday">
-              <span className="ch-wk-allday-lbl">dia</span>
-              {allDayRows.map(function(list, i) {
+            <div className="ch-wk-allday" style={{ gridTemplateRows: "repeat(" + allDayLayout.lanes + ", minmax(32px, auto))" }}>
+              <span className="ch-wk-allday-lbl" style={{ gridColumn: 1, gridRow: "1 / -1" }}>dia</span>
+              {weekDays.map(function(day, i) {
+                return <div key={day} className="ch-wk-allday-col" style={{ gridColumn: i + 2, gridRow: "1 / -1" }} />;
+              })}
+              {allDayLayout.spans.map(function(span) {
+                var spanning = span.end > span.start;
                 return (
-                  <div key={weekDays[i]} className="ch-wk-allday-col">
-                    {list.map(function(ev) {
-                      return (
-                        <button key={ev.id} type="button" className="ch-wk-allday-chip ui-tap" style={{ "--ec": ev.color || ACCENT }}
-                          onClick={function() { props.onSelectDay(weekDays[i]); props.onEventClick(ev, weekDays[i]); }}>
-                          {ev.title || "·"}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <button key={span.id} type="button"
+                    className={"ch-wk-allday-chip ui-tap" + (spanning ? " is-span" : "")}
+                    style={{
+                      "--ec": span.ev.color || ACCENT,
+                      gridColumn: (span.start + 2) + " / " + (span.end + 3),
+                      gridRow: span.lane + 1,
+                    }}
+                    onClick={function(e) {
+                      var rect = e.currentTarget.getBoundingClientRect();
+                      var cols = span.end - span.start + 1;
+                      var ratio = rect.width ? (e.clientX - rect.left) / rect.width : 0;
+                      var offset = Math.min(cols - 1, Math.max(0, Math.floor(ratio * cols)));
+                      var dayIndex = span.start + offset;
+                      var day = weekDays[dayIndex] || span.dayKey;
+                      var match = (props.events[day] || []).find(function(ev) { return span.ids.indexOf(ev.id) >= 0; });
+                      props.onSelectDay(day);
+                      props.onEventClick(match || span.ev, day);
+                    }}>
+                    {span.ev.title || "·"}
+                  </button>
                 );
               })}
             </div>
           ) : null}
+          </div>
           <div className="ch-wk-grid">
             <div className="ch-wk-gutter">
               {Array.from({ length: HOURS }, function(_, h) {
@@ -1394,7 +1412,9 @@ function EventSheet(props) {
         <div className="ch-field">
           <label className="ch-lbl">Copiar para outros dias da semana</label>
           <p style={{ margin: "0 0 10px", fontSize: 12, color: "#6E6E76", lineHeight: 1.45 }}>
-            O dia base fica marcado. Toca nos outros dias para duplicar o evento na mesma semana.
+            {ev.allDay
+              ? "O dia base fica marcado. Dias seguidos de um evento de dia todo aparecem como uma faixa contínua no topo da semana."
+              : "O dia base fica marcado. Toca nos outros dias para duplicar o evento na mesma semana."}
           </p>
           <div className="ch-rep" style={{ "--rc": accent }}>
             {WEEKDAYS.map(function(w, i) {

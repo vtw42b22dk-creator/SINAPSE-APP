@@ -14,12 +14,11 @@ var ACCENT = moduleColor("tasks");
 var COLUMNS = [
   { id: "inbox", label: "Inbox", icon: "◎", hint: "Captura rápida" },
   { id: "today", label: "Hoje", icon: "◉", hint: "Foco do dia" },
-  { id: "doing", label: "A fazer", icon: "▸", hint: "Em progresso" },
   { id: "done", label: "Concluído", icon: "✓", hint: "Vitórias" },
 ];
 var MOBILE_VIEWS = [
   { id: "inbox", label: "Inbox", icon: "◎", hint: "Captura rápida", columns: ["inbox"] },
-  { id: "today", label: "Hoje", icon: "◉", hint: "Foco e progresso", columns: ["today", "doing"] },
+  { id: "today", label: "Hoje", icon: "◉", hint: "Foco e progresso", columns: ["today"] },
   { id: "done", label: "Concluídas", icon: "✓", hint: "Vitórias", columns: ["done"] },
 ];
 var PRIORITIES = [
@@ -461,7 +460,7 @@ export default function Tasks() {
     return tasks.filter(function(t) {
       var long = taskStore.isLongTerm(t);
       if (inLong !== long) return false;
-      if (!inLong && focusToday && t.column !== "today" && t.column !== "doing") return false;
+      if (!inLong && focusToday && t.column !== "today") return false;
       if (!q) return true;
       return (t.title && t.title.toLowerCase().indexOf(q) >= 0) || (t.notes && t.notes.toLowerCase().indexOf(q) >= 0);
     });
@@ -501,13 +500,15 @@ export default function Tasks() {
   }, []);
 
   function columnForSave(d) {
+    var column = d.column || "inbox";
+    if (column === "doing") column = "today";
     if (d.horizon) {
-      if (d.column === "done" || d.column === "longdone") return "longdone";
+      if (column === "done" || column === "longdone") return "longdone";
       return "long";
     }
-    if (d.column === "long") return "inbox";
-    if (d.column === "longdone") return "done";
-    return d.column || "inbox";
+    if (column === "long") return "inbox";
+    if (column === "longdone") return "done";
+    return column;
   }
 
   function setHorizon(on) {
@@ -848,7 +849,7 @@ export default function Tasks() {
           </div>
         ) : showLong ? (
           <div>
-            <p className="tk-long-lead">Estas tarefas ficam só aqui. Não entram no quadro de Inbox, Hoje, A fazer ou Concluído. Podes editá-las ou devolvê-las ao quadro.</p>
+            <p className="tk-long-lead">Estas tarefas ficam só aqui. Não entram no quadro de Inbox, Hoje ou Concluído. Podes editá-las ou devolvê-las ao quadro.</p>
             {stats.longDone > 0 ? (
               <div style={{ marginBottom: 14 }}>
                 <button type="button" className="tk-clear ui-tap" onClick={function() {

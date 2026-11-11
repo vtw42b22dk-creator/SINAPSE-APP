@@ -19,6 +19,11 @@ var SYNC_TABLES = [
   "wishlist_groups",
   "expenses",
   "incomes",
+  "focus_projects",
+  "focus_tasks",
+  "study_ideas",
+  "study_metrics",
+  "user_prefs",
 ];
 
 export default function SyncRoot(props) {

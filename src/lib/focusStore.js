@@ -9,6 +9,7 @@ import {
 } from "./cloudStore";
 import { supabase } from "./supabase";
 import * as journalStore from "./journalStore";
+import { patchPrefs } from "./prefsStore";
 
 var PROJECTS_TABLE = "focus_projects";
 var PROJECTS_KEY = "focus-projects-v1";
@@ -166,6 +167,7 @@ export function saveShelf(shelf) {
     archived: (shelf && shelf.archived) || [],
   };
   try { localStorage.setItem(SHELF_KEY, JSON.stringify(next)); } catch (e) {}
+  patchPrefs({ focusShelf: next });
   return next;
 }
 
@@ -245,6 +247,40 @@ export async function loadIdeas(projectId) {
 
 export async function saveIdeas(rows) {
   return replaceRows(IDEAS_TABLE, IDEAS_KEY, (rows || []).map(ideaToDb), { pruneOrphans: false });
+}
+
+export function reviewTextFor(ideas, projectId) {
+  var list = (ideas || []).filter(function(item) {
+    return item && item.project_id === projectId && item.kind === "review";
+  });
+  if (!list.length) return "";
+  list.sort(function(a, b) { return (b.updated || 0) - (a.updated || 0); });
+  return list[0].content || "";
+}
+
+export function upsertReview(ideas, projectId, text) {
+  var stableId = "freview-" + projectId;
+  var now = Date.now();
+  var existing = (ideas || []).find(function(item) { return item && item.id === stableId; })
+    || (ideas || []).find(function(item) { return item && item.project_id === projectId && item.kind === "review"; });
+  var keepId = existing ? existing.id : stableId;
+  var rest = (ideas || []).filter(function(item) {
+    if (!item) return false;
+    if (item.id === keepId) return false;
+    if (item.project_id === projectId && item.kind === "review") return false;
+    return true;
+  });
+  if (!String(text || "").trim()) return { ideas: rest, removedId: existing ? existing.id : "" };
+  var row = normalizeIdea(Object.assign({}, existing || {}, {
+    id: keepId,
+    project_id: projectId,
+    content: text,
+    day_key: (existing && existing.day_key) || dayKey(),
+    kind: "review",
+    updated: now,
+    created: existing && existing.created ? existing.created : now,
+  }));
+  return { ideas: [row].concat(rest), removedId: "" };
 }
 
 export async function deleteIdea(allRows, id) {

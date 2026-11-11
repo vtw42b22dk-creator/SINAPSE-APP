@@ -26,19 +26,38 @@ function emptyNoteLayout() {
   return { blocks: [], assign: {}, collapsed: {}, updated: 0, schema: 0 };
 }
 
+function layoutPayload(row) {
+  if (!row) return {};
+  var payload = row.payload != null ? row.payload : row.data;
+  if (typeof payload === "string") {
+    try { payload = JSON.parse(payload); } catch (e) { payload = null; }
+  }
+  if (payload && typeof payload === "object" && (Array.isArray(payload.blocks) || payload.assign || payload.collapsed)) {
+    return payload;
+  }
+  if (Array.isArray(row.blocks) || row.assign || row.collapsed) {
+    return {
+      blocks: row.blocks,
+      assign: row.assign,
+      collapsed: row.collapsed,
+      schema: row.schema,
+      updated: row.updated,
+    };
+  }
+  return payload && typeof payload === "object" ? payload : {};
+}
+
 function normalizeNoteLayoutRow(row) {
   if (!row) return Object.assign({ id: LAYOUT_ROW_ID, updated: 0 }, emptyNoteLayout());
-  var p = row.payload || row.data || {};
-  if (typeof p === "string") {
-    try { p = JSON.parse(p); } catch (e) { p = {}; }
-  }
+  var p = layoutPayload(row);
+  var updated = row.updated || (row.updated_at ? new Date(row.updated_at).getTime() : 0) || p.updated || 0;
   return {
     id: row.id || LAYOUT_ROW_ID,
     blocks: Array.isArray(p.blocks) ? p.blocks : [],
     assign: p.assign && typeof p.assign === "object" ? p.assign : {},
     collapsed: p.collapsed && typeof p.collapsed === "object" ? p.collapsed : {},
-    updated: row.updated || (row.updated_at ? new Date(row.updated_at).getTime() : (p.updated || 0)),
-    schema: p.schema || 0,
+    updated: updated || 0,
+    schema: p.schema || row.schema || 0,
   };
 }
 
@@ -471,11 +490,12 @@ export async function loadBlocks() {
 
 export async function saveBlocks(blocks, layout) {
   var rows = stripLayoutBlocks(blocks || []).map(sanitizeBlockForSave);
-  if (layout) rows.push(sanitizeBlockForSave(layoutToBlock(layout)));
-  else {
+  var layoutToKeep = layout && layoutScore(layout) > 0 ? layout : null;
+  if (!layoutToKeep) {
     var existing = extractLayoutFromBlocks(await readLocal(BLOCKS, []));
-    if (existing) rows.push(sanitizeBlockForSave(layoutToBlock(existing)));
+    if (existing && layoutScore(existing) > 0) layoutToKeep = existing;
   }
+  if (layoutToKeep) rows.push(sanitizeBlockForSave(layoutToBlock(layoutToKeep)));
   if (!rows.length) {
     return { ok: true, cloud: true, rows: [], skippedEmpty: true };
   }

@@ -47,7 +47,8 @@ function normalize(row) {
     subtasks: parseSubtasks(row).map(function(s) {
       return { id: s.id || uid("st"), title: s.title || "", done: !!s.done };
     }),
-    column: row.column || row.status || "inbox",
+    column: (row.column || row.status || "inbox") === "doing" ? "today" : (row.column || row.status || "inbox"),
+    _fromDoing: (row.column || row.status || "inbox") === "doing",
     source_type: row.source_type || "manual",
     source_id: row.source_id || null,
     synapse_project_id: row.synapse_project_id || null,
@@ -93,15 +94,32 @@ async function migrateOldKey() {
 export async function loadTasksLocal() {
   await migrateOldKey();
   var rows = await readLocal(KEY, []);
-  return (rows || []).map(normalize);
+  return (rows || []).map(function(row) {
+    var task = normalize(row);
+    delete task._fromDoing;
+    return task;
+  });
 }
 
 /** Traz alterações da nuvem e faz merge seguro com o dispositivo. */
+function rawColumn(row) {
+  return (row && (row.column || row.status)) || "inbox";
+}
+
 export async function pullTasks() {
   await migrateOldKey();
   try {
     var merged = await safePullMerge(KEY, TABLE, normalize);
-    return (merged || []).map(normalize);
+    var moved = (merged || []).some(function(row) {
+      return rawColumn(row) === "doing" || row._fromDoing;
+    });
+    var list = (merged || []).map(function(row) {
+      var task = normalize(row);
+      delete task._fromDoing;
+      return task;
+    });
+    if (moved) await pushTasks(list);
+    return list;
   } catch (e) {
     return loadTasksLocal();
   }

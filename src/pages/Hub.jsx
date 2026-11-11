@@ -17,6 +17,7 @@ import {
   saveHubOrder,
   loadHidden,
   saveHidden,
+  NAV_EVENT,
 } from "../lib/navModules.jsx";
 
 var HUB_CSS = [
@@ -77,24 +78,31 @@ var HUB_CSS = [
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
   "@media(max-width:1100px){.hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
   "@media(max-width:719px){",
-  ".hub-inner{padding:22px 18px max(96px,env(safe-area-inset-bottom))}",
-  ".hub-top{margin-bottom:26px;gap:16px}",
+  ".hub-inner{padding:calc(58px + env(safe-area-inset-top)) 16px max(96px,env(safe-area-inset-bottom))}",
+  ".shell-stage .hub-scroll .hub-inner .hub-top{padding-left:0!important;padding-right:0!important}",
+  ".hub-top{margin-bottom:22px;gap:18px;align-items:stretch}",
   ".hub-kicker{margin-bottom:10px}",
-  ".hub-hello{font-size:32px}",
-  ".hub-hello span{font-size:.5em;margin-top:8px;max-width:16ch}",
-  ".hub-clock-wrap{padding:2px 0 0}",
-  ".hub-date{margin-top:8px;font-size:12.5px}",
+  ".hub-hello{font-size:clamp(28px,8vw,34px);line-height:.95}",
+  ".hub-hello span{display:block;font-size:.48em;margin-top:8px;max-width:none;line-height:1.25}",
+  ".hub-clock-wrap{padding:0;text-align:left;width:100%}",
+  ".hub-time,.hub-ring{justify-content:flex-start}",
+  ".hub-time{font-size:clamp(36px,10vw,48px)}",
+  ".hub-date{margin-top:8px;font-size:13px}",
   ".hub-ring{display:none}",
-  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:28px}",
-  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1}",
-  ".hub-stat{padding:18px 16px 16px;border-radius:18px}",
-  ".hub-stat b{font-size:26px}",
-  ".hub-stat i{margin-top:10px;font-size:10.5px}",
-  ".hub-grid{gap:22px}",
-  ".hub-panel h2{margin-bottom:10px;font-size:14px}",
-  ".hub-foot{margin-top:28px;padding-top:16px}",
-  ".hub-tog{grid-template-columns:24px minmax(0,1fr);gap:12px}",
-  ".hub-switch{grid-column:1 / -1;justify-self:start}",
+  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}",
+  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1;width:calc(50% - 5px);justify-self:center}",
+  ".hub-stat{padding:16px 14px 14px;border-radius:16px;text-align:left}",
+  ".hub-stat b{font-size:24px}",
+  ".hub-stat i{margin-top:8px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+  ".hub-grid{grid-template-columns:1fr;gap:20px}",
+  ".hub-panel h2{margin-bottom:8px;font-size:13px}",
+  ".hub-row{padding:14px 0;min-height:48px;align-items:center}",
+  ".hub-row-t{min-width:0}",
+  ".hub-foot{margin-top:28px;padding-top:16px;align-items:flex-start}",
+  ".hub-tog{grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 0}",
+  ".hub-switch{grid-column:auto;justify-self:end;min-height:44px;padding:8px 0}",
+  ".hub-set-lead{margin-bottom:20px;max-width:none}",
+  ".hub-set-link{min-height:56px;padding:16px 0}",
   "}",
 ].join("");
 
@@ -283,6 +291,16 @@ export default function Hub() {
   var mods = modsS[0], setMods = modsS[1];
   var hiddenS = useState(loadHidden);
   var hidden = hiddenS[0], setHidden = hiddenS[1];
+
+  useEffect(function() {
+    function onNav() {
+      setMods(loadHubOrder());
+      setHidden(loadHidden());
+    }
+    window.addEventListener(NAV_EVENT, onNav);
+    return function() { window.removeEventListener(NAV_EVENT, onNav); };
+  }, []);
+
   var hiddenSet = {};
   hidden.forEach(function(id) { hiddenSet[id] = true; });
   var snapS = useState(null);

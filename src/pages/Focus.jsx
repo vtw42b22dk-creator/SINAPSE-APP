@@ -9,6 +9,9 @@ import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MICRO_CSS } from "../lib/microUi";
 import { moduleColor, moduleGlow, alpha } from "../lib/theme";
 import { GLASS_CSS, glowFilter, segThumbStyle } from "../lib/glassUi";
+import { useCloudSync } from "../lib/useCloudSync";
+import { isCloudPullPaused } from "../lib/cloudSyncGuard";
+import { onSync } from "../lib/syncEvents";
 
 var ACCENT = moduleColor("focus");
 var CYAN = ACCENT;
@@ -528,6 +531,11 @@ function ProjectPicker(props) {
   var hasGoal = hasGoalS[0], setHasGoal = hasGoalS[1];
   var shelfS = useState(focusStore.loadShelf);
   var shelf = shelfS[0];
+  useEffect(function() {
+    function onPrefs() { shelfS[1](focusStore.loadShelf()); }
+    window.addEventListener("sinapse-prefs", onPrefs);
+    return function() { window.removeEventListener("sinapse-prefs", onPrefs); };
+  }, []);
   var dragIdS = useState(null);
   var dragId = dragIdS[0], setDragId = dragIdS[1];
   var hotPassS = useState(false);
@@ -784,6 +792,8 @@ export default function Focus() {
   var syncStatus = syncS[0], setSyncStatus = syncS[1];
   var taskInputS = useState("");
   var taskInput = taskInputS[0], setTaskInput = taskInputS[1];
+  var reviewDirtyRef = useRef(false);
+  var reviewTimerRef = useRef(0);
   var immersiveCtrlS = useState(false);
   var immersiveControls = immersiveCtrlS[0], setImmersiveControls = immersiveCtrlS[1];
   var immersiveDismissS = useState(false);
@@ -867,14 +877,66 @@ export default function Focus() {
     return function() { alive = false; };
   }, []);
 
+  var reloadFocus = useCallback(function() {
+    return Promise.all([
+      focusStore.loadProjects(),
+      focusStore.loadMetrics(),
+      focusStore.loadIdeas(),
+      focusStore.loadTasks(),
+    ]).then(function(res) {
+      projectsRef.current = res[0];
+      metricsRef.current = res[1];
+      tasksRef.current = res[3];
+      setProjects(res[0]);
+      setAllMetrics(res[1]);
+      setAllTasks(res[3]);
+      if (!reviewDirtyRef.current) {
+        ideasRef.current = res[2];
+        setAllIdeas(res[2]);
+      }
+    });
+  }, []);
+
+  useCloudSync({
+    tables: ["focus_projects", "focus_tasks", "study_ideas", "study_metrics"],
+    intervalMs: 4000,
+    shouldSkip: function() {
+      return !isHydrated
+        || isCloudPullPaused("focus_projects")
+        || isCloudPullPaused("focus_tasks")
+        || isCloudPullPaused("study_ideas")
+        || isCloudPullPaused("study_metrics");
+    },
+    onPull: reloadFocus,
+  });
+
+  useEffect(function() {
+    if (!isHydrated) return undefined;
+    return onSync(function(detail) {
+      var table = detail && detail.table;
+      if (table && table !== "*" && table !== "focus_projects" && table !== "focus_tasks" && table !== "study_ideas" && table !== "study_metrics") return;
+      reloadFocus();
+    });
+  }, [isHydrated, reloadFocus]);
+
   useEffect(function() {
     if (!activeProject) return;
     focusStore.saveActiveProjectId(activeProject.id);
     focusTimer.bindProject(activeProject.id);
-    try {
-      setReviewText(localStorage.getItem(reviewDraftKey(activeProject.id)) || "");
-    } catch (e) { setReviewText(""); }
-  }, [activeProject]);
+    if (reviewDirtyRef.current) return;
+    var remote = focusStore.reviewTextFor(allIdeas, activeProject.id);
+    var local = "";
+    try { local = localStorage.getItem(reviewDraftKey(activeProject.id)) || ""; } catch (e) {}
+    if (!remote && local.trim()) {
+      var migrated = focusStore.upsertReview(ideasRef.current, activeProject.id, local);
+      ideasRef.current = migrated.ideas;
+      setAllIdeas(migrated.ideas);
+      focusStore.saveIdeas(migrated.ideas);
+      setReviewText(local);
+      return;
+    }
+    setReviewText(remote);
+  }, [activeProject, allIdeas]);
 
   useEffect(function() { metricsRef.current = allMetrics; }, [allMetrics]);
   useEffect(function() { ideasRef.current = allIdeas; }, [allIdeas]);
@@ -1011,10 +1073,23 @@ export default function Focus() {
 
   function onReviewChange(val) {
     setReviewText(val);
-    if (activeProject) {
-      try { localStorage.setItem(reviewDraftKey(activeProject.id), val); } catch (e) {}
-    }
+    if (!activeProject) return;
+    reviewDirtyRef.current = true;
+    var projectId = activeProject.id;
+    try { localStorage.setItem(reviewDraftKey(projectId), val); } catch (e) {}
     if (syncStatus !== "idle") setSyncStatus("idle");
+    clearTimeout(reviewTimerRef.current);
+    reviewTimerRef.current = setTimeout(function() {
+      var result = focusStore.upsertReview(ideasRef.current, projectId, val);
+      ideasRef.current = result.ideas;
+      setAllIdeas(result.ideas);
+      var finish = function() { reviewDirtyRef.current = false; };
+      if (result.removedId) {
+        focusStore.deleteIdea(result.ideas, result.removedId).finally(finish);
+        return;
+      }
+      focusStore.saveIdeas(result.ideas).finally(finish);
+    }, 700);
   }
 
   function syncToDiary() {

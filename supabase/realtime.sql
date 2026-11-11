@@ -20,3 +20,8 @@ do $rl$ begin alter publication supabase_realtime add table public.project_kpis;
 do $rl$ begin alter publication supabase_realtime add table public.project_inventory; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.vinted_estado; exception when others then null; end $rl$;
 do $rl$ begin alter publication supabase_realtime add table public.vinted_comandos; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.focus_projects; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.focus_tasks; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.study_ideas; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.study_metrics; exception when others then null; end $rl$;
+do $rl$ begin alter publication supabase_realtime add table public.user_prefs; exception when others then null; end $rl$;

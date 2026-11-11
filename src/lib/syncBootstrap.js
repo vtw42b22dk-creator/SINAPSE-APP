@@ -11,6 +11,8 @@ import * as journalStore from "./journalStore";
 import * as wishlistStore from "./wishlistStore";
 import * as financeStore from "./financeStore";
 import * as incomeStore from "./incomeStore";
+import * as focusStore from "./focusStore";
+import { pullPrefs } from "./prefsStore";
 import { emitSync } from "./syncEvents";
 
 var CORE_KEYS = [
@@ -28,6 +30,11 @@ var CORE_KEYS = [
   "expenses-v1",
   "income-categories-v1",
   "incomes-v1",
+  "focus-projects-v1",
+  "focus-tasks-v1",
+  "study-ideas-v1",
+  "study-metrics-v1",
+  "user-prefs-v1",
 ];
 
 function extraLocalKeys() {
@@ -65,6 +72,11 @@ export async function pullAllCore() {
   try { await financeStore.loadExpenses(); } catch (e) {}
   try { await incomeStore.loadCategories(); } catch (e) {}
   try { await incomeStore.loadIncomes(); } catch (e) {}
+  try { await focusStore.loadProjects(); } catch (e) {}
+  try { await focusStore.loadIdeas(); } catch (e) {}
+  try { await focusStore.loadMetrics(); } catch (e) {}
+  try { await focusStore.loadTasks(); } catch (e) {}
+  try { await pullPrefs(); } catch (e) {}
   try { projects = await synapseStore.loadProjects(); } catch (e) { projects = []; }
   await Promise.all((projects || []).map(function(p) {
     if (!p || !p.id) return Promise.resolve();

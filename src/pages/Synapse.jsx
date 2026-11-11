@@ -212,7 +212,7 @@ function NodeCircle(props) {
 // ═══ Toolbar Button ═══
 function TBtn(props) {
   var hS = useState(false); var hov = hS[0], setHov = hS[1];
-  var sz = props.small ? 34 : 40;
+  var sz = props.small ? 42 : 40;
   return (
     <button onClick={props.onClick} title={props.title}
       onMouseEnter={function(){setHov(true);}} onMouseLeave={function(){setHov(false);}}
@@ -224,12 +224,14 @@ function TBtn(props) {
 
 function mobileActionStyle(color) {
   return {
-    minHeight: 42,
+    minHeight: 48,
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.07)",
     background: "#1A1A1D",
     color: color === "#ffffff" ? "#6E6E76" : "#EDEDEF",
-    fontSize: 11,
+    fontSize: 12,
+    padding: "8px 2px",
+    whiteSpace: "nowrap",
     fontFamily: "'Manrope',sans-serif",
     cursor: "pointer",
   };
@@ -496,11 +498,11 @@ function DocPanel(props) {
   var nodeTasks = tasks.filter(function(t){return t.synapse_node_id===node.id;});
 
   function actionButton(label, icon, onClick, strong) {
-    return <button onClick={onClick} style={{border:"1px solid "+(strong?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:strong?"#1A1A1D":"#141416",color:strong?"#EDEDEF":"#A0A0A8",borderRadius:12,padding:"10px 12px",fontSize:12,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}><span>{icon}</span>{label}</button>;
+    return <button onClick={onClick} style={{border:"1px solid "+(strong?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:strong?"#1A1A1D":"#141416",color:strong?"#EDEDEF":"#A0A0A8",borderRadius:12,padding:"10px 12px",minHeight:isMobile?44:0,fontSize:12,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center"}}><span>{icon}</span>{label}</button>;
   }
   function tabBtn(key, icon, label, count) {
     var active = tab === key;
-    return <button onClick={function(){setTab(key);}} style={{border:"1px solid "+(active?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:active?"#1A1A1D":"#141416",color:active?"#EDEDEF":"#6E6E76",borderRadius:14,padding:isMobile?"9px 10px":"10px 14px",fontSize:11,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}><span style={{fontSize:14}}>{icon}</span>{label}<span style={{opacity:0.45}}>{count}</span></button>;
+    return <button onClick={function(){setTab(key);}} style={{border:"1px solid "+(active?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.07)"),background:active?"#1A1A1D":"#141416",color:active?"#EDEDEF":"#6E6E76",borderRadius:14,padding:isMobile?"10px 6px":"10px 14px",minHeight:isMobile?44:0,fontSize:isMobile?10:11,fontFamily:"'Manrope',sans-serif",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:4,whiteSpace:"nowrap",overflow:"hidden",minWidth:0}}><span style={{fontSize:14,flexShrink:0}}>{icon}</span><span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{label}</span><span style={{opacity:0.45,flexShrink:0}}>{count}</span></button>;
   }
   function emptyState(icon, text) {
     return <div style={{minHeight:170,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12,textAlign:"center",border:"1px dashed rgba(255,255,255,0.07)",borderRadius:18,background:"#141416"}}><div style={{width:58,height:58,borderRadius:20,background:"#1A1A1D",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>{icon}</div><p style={{fontSize:13,color:"#6E6E76",lineHeight:1.6,margin:0}}>{text}</p></div>;
@@ -527,14 +529,14 @@ function DocPanel(props) {
       <div key={f.id} className={recent ? "doc-recent-row" : ""} style={{display:"grid",gridTemplateColumns:isMobile?"1fr auto":"minmax(0,1fr) 90px 110px auto",gap:10,alignItems:"center",padding:"12px 14px",borderRadius:14,border:"1px solid "+(recent?"rgba(196,165,124,0.28)":"rgba(255,255,255,0.07)"),background:recent?"rgba(196,165,124,0.06)":"#141416",transition:"border-color .35s ease, background .35s ease"}}>
         <div style={{minWidth:0,display:"flex",alignItems:"center",gap:10}}>
           <span style={{fontSize:10,fontFamily:"'Manrope',sans-serif",color:"#6E6E76",flexShrink:0}}>{kind}</span>
-          <a href={f.url||f.data} target="_blank" rel="noopener noreferrer" download={f.name} style={{color:"#EDEDEF",fontSize:13,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</a>
+          <a href={f.url||f.data} target="_blank" rel="noopener noreferrer" download={f.name} style={{color:"#EDEDEF",fontSize:13,textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0,flex:1}}>{f.name}</a>
           {recent ? <span style={{fontSize:9,padding:"2px 7px",borderRadius:999,background:"rgba(196,165,124,0.12)",color:"#C4A57C",fontFamily:"'Manrope',sans-serif",flexShrink:0}}>Recente</span> : null}
         </div>
         {!isMobile && <span style={{fontSize:10,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>{when}</span>}
         {!isMobile && <span style={{fontSize:10,color:"#6E6E76"}}>{f.folderId ? "Pasta" : "Geral"}</span>}
-        <div style={{display:"flex",gap:6,justifyContent:"flex-end"}}>
-          <button onClick={function(){togglePin(f);}} style={{background:"none",border:"none",fontSize:13,cursor:"pointer",color:isPinned?"#C4A57C":"#6E6E76"}}>&#9733;</button>
-          <button onClick={function(){rmFile(f.id);}} style={{background:"none",border:"none",fontSize:12,cursor:"pointer",color:"#6E6E76"}}>&#10005;</button>
+        <div style={{display:"flex",gap:4,justifyContent:"flex-end",flexShrink:0}}>
+          <button onClick={function(){togglePin(f);}} style={{background:"none",border:"none",fontSize:16,cursor:"pointer",color:isPinned?"#C4A57C":"#6E6E76",width:isMobile?44:32,height:isMobile?44:32}}>&#9733;</button>
+          <button onClick={function(){rmFile(f.id);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer",color:"#6E6E76",width:isMobile?44:32,height:isMobile?44:32}}>&#10005;</button>
         </div>
       </div>
     );
@@ -556,9 +558,9 @@ function DocPanel(props) {
   }
 
   return (
-    <div data-no-canvas-zoom onClick={props.onClose} style={{position:"fixed",inset:0,zIndex:70,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",padding:isMobile?8:(isTablet?14:22)}}>
-      <div onClick={function(e){e.stopPropagation();}} style={{width:isMobile?"97vw":(isTablet?"95vw":"min(1060px,92vw)"),height:isMobile?"94vh":(isTablet?"90vh":"min(760px,86vh)"),borderRadius:isMobile?20:28,overflow:"hidden",border:"1px solid rgba(255,255,255,0.07)",background:"#0E0E10",boxShadow:"0 16px 48px rgba(0,0,0,0.55)",display:"flex",flexDirection:"column",animation:"searchIn 0.22s cubic-bezier(0.2,0,0,1)"}}>
-        <div style={{padding:isMobile?"18px 16px":"24px 26px 20px",background:"#0E0E10",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+    <div data-no-canvas-zoom onClick={props.onClose} style={{position:"fixed",inset:0,zIndex:160,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"center",padding:isMobile?0:(isTablet?14:22)}}>
+      <div onClick={function(e){e.stopPropagation();}} style={{width:isMobile?"100%":(isTablet?"95vw":"min(1060px,92vw)"),height:isMobile?"100%":(isTablet?"90vh":"min(760px,86vh)"),maxHeight:isMobile?"100dvh":undefined,borderRadius:isMobile?0:28,overflow:"hidden",border:isMobile?"none":"1px solid rgba(255,255,255,0.07)",background:"#0E0E10",boxShadow:"0 16px 48px rgba(0,0,0,0.55)",display:"flex",flexDirection:"column",animation:"searchIn 0.22s cubic-bezier(0.2,0,0,1)",paddingTop:isMobile?"env(safe-area-inset-top)":0,paddingBottom:isMobile?"env(safe-area-inset-bottom)":0}}>
+        <div style={{padding:isMobile?"18px 16px 18px 56px":"24px 26px 20px",background:"#0E0E10",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
           <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
             <div style={{width:54,height:54,borderRadius:20,background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",color:"#A0A0A8",fontSize:23,flexShrink:0}}>&#10022;</div>
             <div style={{flex:1,minWidth:0}}>
@@ -567,17 +569,17 @@ function DocPanel(props) {
               <p style={{margin:"8px 0 0",fontSize:12,color:"#6E6E76"}}>{files.length} ficheiro{files.length!==1?"s":""} · {links.length} link{links.length!==1?"s":""} · {notes.length} caracteres em notas</p>
               {uploadStatus ? <p style={{margin:"6px 0 0",fontSize:11,color:"#A0A0A8"}}>{uploadStatus}</p> : null}
             </div>
-            <button onClick={props.onClose} style={{width:38,height:38,borderRadius:13,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",color:"#A0A0A8",fontSize:16,cursor:"pointer",flexShrink:0}}>&#10005;</button>
+            <button onClick={props.onClose} style={{width:isMobile?44:38,height:isMobile?44:38,borderRadius:13,border:"1px solid rgba(255,255,255,0.07)",background:"#141416",color:"#A0A0A8",fontSize:16,cursor:"pointer",flexShrink:0}}>&#10005;</button>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1.2fr repeat(3,0.45fr)",gap:10,marginTop:18}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)"}}><span style={{color:"#6E6E76"}}>&#128269;</span><input value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Filtrar ficheiros e links..." style={{flex:1,background:"transparent",border:"none",outline:"none",color:"#EDEDEF",fontSize:isMobile?16:13,fontFamily:"'Manrope',sans-serif"}}/></div>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(3,minmax(0,1fr))":"1.2fr repeat(3,0.45fr)",gap:10,marginTop:18}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",gridColumn:isMobile?"1 / -1":"auto"}}><span style={{color:"#6E6E76"}}>&#128269;</span><input value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Filtrar ficheiros e links..." style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",color:"#EDEDEF",fontSize:isMobile?16:13,fontFamily:"'Manrope',sans-serif"}}/></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>FICHEIROS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{files.length}</strong></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#6E6E76",fontFamily:"'Manrope',sans-serif"}}>LINKS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{links.length}</strong></div>
             <div style={{borderRadius:14,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",padding:"10px 12px"}}><p style={{margin:0,fontSize:9,color:"#C4A57C",fontFamily:"'Manrope',sans-serif"}}>FAVORITOS</p><strong style={{fontSize:18,color:"#EDEDEF"}}>{pinned.length}</strong></div>
           </div>
         </div>
 
-        <div style={{display:"flex",gap:8,overflowX:"auto",padding:isMobile?"12px 12px":"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(3,minmax(0,1fr))":"repeat(5,minmax(0,1fr))",gap:8,padding:isMobile?"12px":"14px 22px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
           {tabBtn("home","\u2726","VISÃO",quick.length)}
           {tabBtn("files","\uD83D\uDCC1","FICHEIROS",visibleFiles.length)}
           {tabBtn("links","\uD83D\uDD17","LINKS",visibleLinks.length)}
@@ -995,11 +997,7 @@ export default function Synapse(props) {
       setConnFrom(null);setTool("select");return;
     }
     setSel(nid);setCtx(null);
-    if (touchUI) {
-      setDocNode(null);
-      setPlacing(false);
-      return;
-    }
+    if (touchUI) setPlacing(false);
     if(!didDrag.current&&editId!==nid){
       clearTimeout(tapTimers.current[nid]);
       tapTimers.current[nid]=setTimeout(function(){
@@ -1234,8 +1232,10 @@ export default function Synapse(props) {
   var canvasH = "100%";
 
   return (
-    <div ref={workspaceRef} style={{width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'Manrope',sans-serif",touchAction:"none",userSelect:"none"}}>
-      <style>{"*{margin:0;padding:0;box-sizing:border-box}@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}body{overflow:hidden}"}</style>
+    <div ref={workspaceRef} style={embedded
+      ? {position:"absolute",inset:0,background:"#070708",overflow:"hidden",fontFamily:"'Manrope',sans-serif",touchAction:"none",userSelect:"none"}
+      : {width:canvasW,height:canvasH,background:"#070708",position:"relative",overflow:"hidden",fontFamily:"'Manrope',sans-serif",touchAction:"none",userSelect:"none"}}>
+      <style>{"@keyframes ctxIn{from{opacity:0;transform:scale(0.96) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}@keyframes searchIn{from{opacity:0;transform:translateY(-12px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes panelSlide{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}"}</style>
 
       <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"32px 32px",pointerEvents:"none"}}/>
 
@@ -1248,7 +1248,7 @@ export default function Synapse(props) {
           <h1 style={{fontSize:isMob?14:18,fontWeight:700,fontFamily:"'Syne',sans-serif",color:"#EDEDEF",letterSpacing:"-.04em",maxWidth:isMob?140:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{activeProject.name}</h1>
         </div>
         )}
-        <div style={{display:"flex",gap:isMob?3:5,alignItems:"center"}}>
+        <div style={{display:"flex",gap:isMob?6:5,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end",maxWidth:isMob?"100%":"none"}}>
           {!touchUI && (
             <>
               <TBtn title="Selecionar" active={tool==="select"} onClick={function(){setTool("select");setConnFrom(null);}} accent="#E6E6E9" small={isTab}>
@@ -1279,7 +1279,7 @@ export default function Synapse(props) {
         </div>
       )}
       {touchUI && selectedNode && !docNode && !ctx && (
-        <div data-no-canvas-zoom style={{position:"absolute",left:10,right:10,bottom:16,zIndex:82,display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:18,padding:8,boxShadow:"0 16px 48px rgba(0,0,0,0.55)"}}>
+        <div data-no-canvas-zoom style={{position:"absolute",left:10,right:10,bottom:"max(12px, env(safe-area-inset-bottom))",zIndex:120,display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:6,background:"#141416",border:"1px solid rgba(255,255,255,0.07)",borderRadius:18,padding:8,boxShadow:"0 16px 48px rgba(0,0,0,0.55)"}}>
           <button onClick={function(){createNode(selectedNode.x+150, selectedNode.y+70, selectedNode.id);}} style={mobileActionStyle(selectedNode.color)}>Filho</button>
           <button onClick={function(){var a=Math.random()*Math.PI*2;createNode(selectedNode.x+Math.cos(a)*160,selectedNode.y+Math.sin(a)*160);}} style={mobileActionStyle(selectedNode.color)}>Nova</button>
           <button onClick={function(){renameNode(selectedNode.id);}} style={mobileActionStyle(selectedNode.color)}>Nome</button>
