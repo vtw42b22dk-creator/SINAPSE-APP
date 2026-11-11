@@ -150,6 +150,9 @@ function formatarEspera(seg) {
 
 function erroLogin(msg, seg) {
   var texto = String(msg || "");
+  if (/exceed_egress_quota|spend cap|restricted due to the following violations/i.test(texto)) {
+    return "O Supabase bloqueou este projeto: a quota de tráfego de saída esgotou. Não é a password. No painel do Supabase abre Billing, sobe o plano ou remove o limite de gastos. Enquanto o serviço estiver restrito, a entrada não funciona.";
+  }
   if (/invalid login credentials/i.test(texto)) return "Email ou password errados.";
   if (/email not confirmed/i.test(texto)) return "A conta existe, mas o email ainda não foi confirmado. Abre o link que o Supabase enviou e entra outra vez.";
   if (/user already registered/i.test(texto)) return "Esta conta já existe. Entra com o email e a password.";

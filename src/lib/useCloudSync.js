@@ -3,11 +3,15 @@ import { useAuth } from "./AuthContext";
 import { supabase } from "./supabase";
 
 /**
- * Sincronização segura entre dispositivos:
- * - onPush ao sair do separador / ficar offline
- * - onPull ao voltar, ao ganhar foco, ao repor rede, em intervalo e via Realtime
- * - merge protegido fica nos stores (shouldSkip)
+ * Sincronização entre dispositivos sem descarregar a conta em ciclo curto.
+ * O tempo real avisa quando outra sessão grava. O intervalo é só uma rede
+ * de segurança: 3 min com o canal ligado, nunca abaixo de 45 s se cair.
+ * onPull ao abrir, ao voltar ao separador, ao ganhar foco e ao repor a rede.
+ * O merge protegido fica nos stores (shouldSkip).
  */
+var SAFETY_MS = 180000;
+var FALLBACK_MS = 45000;
+
 export function useCloudSync(opts) {
   opts = opts || {};
   var auth = useAuth();
@@ -19,12 +23,32 @@ export function useCloudSync(opts) {
     function() {
       if (!userId) return;
       var pullTimer = 0;
+      var pollTimer = 0;
+      var realtimeUp = false;
 
       function pull() {
-        var o = optsRef.current;
-        if (o.onPull && !(o.shouldSkip && o.shouldSkip())) {
-          Promise.resolve().then(function() { return o.onPull(); }).catch(function() {});
-        }
+        clearTimeout(pullTimer);
+        pullTimer = setTimeout(function() {
+          var o = optsRef.current;
+          if (o.onPull && !(o.shouldSkip && o.shouldSkip())) {
+            Promise.resolve().then(function() { return o.onPull(); }).catch(function() {});
+          }
+        }, 500);
+      }
+
+      function nextDelay() {
+        if (realtimeUp) return SAFETY_MS;
+        var asked = Number(optsRef.current.intervalMs);
+        if (!isFinite(asked) || asked < FALLBACK_MS) return FALLBACK_MS;
+        return asked;
+      }
+
+      function schedule() {
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(function() {
+          if (document.visibilityState === "visible") pull();
+          schedule();
+        }, nextDelay());
       }
 
       function push() {
@@ -58,11 +82,7 @@ export function useCloudSync(opts) {
       window.addEventListener("pageshow", onPageShow);
 
       pull();
-
-      var intervalMs = optsRef.current.intervalMs || 4000;
-      var interval = setInterval(function() {
-        if (document.visibilityState === "visible") pull();
-      }, intervalMs);
+      schedule();
 
       var channel = null;
       var tables = optsRef.current.tables;
@@ -71,11 +91,15 @@ export function useCloudSync(opts) {
         tables.forEach(function(table) {
           var filter = { event: "*", schema: "public", table: table, filter: "user_id=eq." + userId };
           channel.on("postgres_changes", filter, function() {
-            clearTimeout(pullTimer);
-            pullTimer = setTimeout(pull, 250);
+            pull();
           });
         });
-        channel.subscribe();
+        channel.subscribe(function(status) {
+          var up = status === "SUBSCRIBED";
+          if (up === realtimeUp) return;
+          realtimeUp = up;
+          schedule();
+        });
       }
 
       return function() {
@@ -83,7 +107,7 @@ export function useCloudSync(opts) {
         window.removeEventListener("online", onOnline);
         window.removeEventListener("focus", onFocus);
         window.removeEventListener("pageshow", onPageShow);
-        clearInterval(interval);
+        clearTimeout(pollTimer);
         clearTimeout(pullTimer);
         if (channel) {
           try { supabase.removeChannel(channel); } catch (e) {}

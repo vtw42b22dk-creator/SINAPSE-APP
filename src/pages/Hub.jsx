@@ -321,7 +321,7 @@ export default function Hub() {
       loadSnapshot().then(function(s) { if (alive) setSnap(s); }).catch(function() {}).finally(function() { aLer = false; });
     }
     ler();
-    var id = setInterval(ler, 20000);
+    var id = setInterval(ler, 180000);
     window.addEventListener("focus", ler);
     return function() {
       alive = false;

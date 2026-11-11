@@ -215,8 +215,8 @@ export function useVintedPonte() {
 
   useEffect(function() {
     function ritmo() {
-      if (typeof document !== "undefined" && document.hidden) return 8000;
-      return esperaRef.current ? 1000 : 2500;
+      if (typeof document !== "undefined" && document.hidden) return 60000;
+      return esperaRef.current ? 2000 : 20000;
     }
     function agendar() {
       clearInterval(timerRef.current);
