@@ -523,12 +523,16 @@ textarea::placeholder {
   border-radius: var(--radius-md) !important;
 }
 #root .ch-wk-allday-chip {
-  border-radius: 7px !important;
-  min-height: 24px !important;
-  height: 26px !important;
-  margin: 3px 3px !important;
+  border-radius: 6px !important;
+  min-height: 0 !important;
+  height: 22px !important;
+  margin: 4px 4px !important;
   padding: 0 8px !important;
   align-self: center !important;
+  border: none !important;
+  background: var(--ec, #e6e6e9) !important;
+  color: #16161a !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
 }
 #root .ch-allday-row {
   border-radius: 12px !important;
@@ -582,6 +586,13 @@ textarea::placeholder {
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+#root .ch-wk-strip-cell.is-on,
+#root .ch-wk-allday-col.is-on {
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+#root .ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7) !important;
 }
 
 #root .tk-progress,

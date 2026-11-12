@@ -104,33 +104,38 @@ var CHRO_CSS = [
   ".ch-wk{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}",
   ".ch-wk-board{min-width:100%}",
   ".ch-wk-board--mob{min-width:640px}",
-  ".ch-wk-strip-row{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));position:relative;z-index:14;background:transparent;border-bottom:1px solid rgba(255,255,255,.08)}",
-  ".ch-wk-strip-gap{grid-column:1}",
-  ".ch-wk-strip-cell{grid-column:span 1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;padding:8px 2px;border:none;background:transparent;cursor:pointer;font-family:'Manrope',sans-serif;position:relative}",
-  ".ch-wk-strip-cell:hover .ch-wk-strip-num{background:rgba(255,255,255,.08)}",
-  ".ch-wk-strip-dow{font-size:10px;color:rgba(255,255,255,.42);letter-spacing:.08em;font-weight:600;text-transform:uppercase}",
-  ".ch-wk-strip-num{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;line-height:1;font-weight:700;font-family:'Syne',sans-serif;border-radius:50%}",
-  ".ch-wk-strip-cell.is-today .ch-wk-strip-num{box-shadow:inset 0 0 0 1px rgba(255,255,255,.45)}",
+  ".ch-wk-strip-row{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));position:relative;z-index:14;background:transparent;border-bottom:none}",
+  ".ch-wk-strip-gap{grid-column:1;border-right:1px solid rgba(255,255,255,.07)}",
+  ".ch-wk-strip-cell{grid-column:span 1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:8px 0 7px;border:none;border-left:1px solid rgba(255,255,255,.07);background:transparent;cursor:pointer;font-family:'Manrope',sans-serif;position:relative;border-radius:0}",
+  ".ch-wk-strip-cell:first-of-type{border-left:none}",
+  ".ch-wk-strip-cell.is-on{background:rgba(255,255,255,.07)}",
+  ".ch-wk-strip-cell:hover .ch-wk-strip-num{background:rgba(255,255,255,.1)}",
+  ".ch-wk-strip-cell.is-on:hover .ch-wk-strip-num{background:#fff}",
+  ".ch-wk-strip-dow{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.14em;font-weight:650;text-transform:uppercase}",
+  ".ch-wk-strip-cell.is-on .ch-wk-strip-dow{color:rgba(255,255,255,.88)}",
+  ".ch-wk-strip-num{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;line-height:1;font-weight:700;font-family:'Syne',sans-serif;border-radius:50%}",
+  ".ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.7)}",
   ".ch-wk-strip-cell.is-on .ch-wk-strip-num{background:#fff;color:#111}",
   ".ch-wk-load{display:none}",
   ".ch-wk-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}",
-  ".ch-wk-pin{position:sticky;top:0;z-index:14;background:linear-gradient(180deg,rgba(12,12,18,.72),rgba(12,12,18,.55));backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".ch-wk-pin{position:sticky;top:0;z-index:14;background:linear-gradient(180deg,rgba(8,9,16,.92),rgba(8,9,16,.78));backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,.08)}",
   ".ch-wk-pin .ch-wk-strip-row{position:relative;top:auto;border-bottom:none}",
-  ".ch-wk-allday{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;padding:0 0 8px;align-items:center;background:transparent}",
-  ".ch-wk-allday-lbl{grid-column:1;font-size:9px;font-family:'Manrope',sans-serif;color:rgba(255,255,255,.38);text-align:right;padding:0 8px 0 0;font-weight:600;letter-spacing:.06em;text-transform:uppercase}",
-  ".ch-wk-allday-col{min-width:0;border-left:1px solid rgba(255,255,255,.05);pointer-events:none;align-self:stretch}",
+  ".ch-wk-allday{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;padding:0;align-items:stretch;background:transparent;border-top:1px solid rgba(255,255,255,.07)}",
+  ".ch-wk-allday-lbl{grid-column:1;align-self:center;font-size:10px;font-family:'Manrope',sans-serif;color:rgba(255,255,255,.38);text-align:right;padding:0 8px 0 0;font-weight:600;letter-spacing:.04em;border-right:1px solid rgba(255,255,255,.07)}",
+  ".ch-wk-allday-col{min-width:0;border-left:1px solid rgba(255,255,255,.07);pointer-events:none;align-self:stretch;min-height:100%}",
   ".ch-wk-allday-col:first-of-type{border-left:none}",
-  ".ch-wk-allday-chip{position:relative;z-index:1;margin:3px 3px;padding:0 8px;height:26px;border:none;background:color-mix(in srgb,var(--ec) 78%,#1a1a1f);color:#fff;font-size:12px;font-weight:600;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;border-radius:7px;align-self:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}",
-  ".ch-wk-allday-chip.is-span{border-radius:7px}",
-  ".ch-wk-allday-chip:hover{filter:brightness(1.08)}",
+  ".ch-wk-allday-col.is-on{background:rgba(255,255,255,.07)}",
+  ".ch-wk-allday-chip{position:relative;z-index:1;margin:4px 4px;padding:0 8px;height:22px;border:none;background:var(--ec);color:#16161a;font-size:11.5px;font-weight:700;letter-spacing:-.01em;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;border-radius:6px;align-self:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}",
+  ".ch-wk-allday-chip.is-span{border-radius:6px}",
+  ".ch-wk-allday-chip:hover{filter:brightness(1.12)}",
   ".ch-wk-grid{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));min-height:" + (HOURS * WK_HOUR_H) + "px}",
   ".ch-wk-gutter{position:relative;grid-column:1;border-right:1px solid rgba(255,255,255,.06)}",
   ".ch-wk-gutter-lbl{position:absolute;right:8px;font-size:11px;font-family:'Manrope',sans-serif;font-variant-numeric:tabular-nums;color:#7A756C;font-weight:500}",
   ".ch-wk-cols{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}",
   ".ch-wk-col{position:relative;border-left:1px solid rgba(255,255,255,.06);min-height:" + (HOURS * WK_HOUR_H) + "px}",
   ".ch-wk-col:first-child{border-left:none}",
-  ".ch-wk-col.is-on{background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.03) 100%)}",
-  ".ch-wk-col.is-today{background:linear-gradient(180deg,rgba(255,255,255,.03) 0%,transparent 40%)}",
+  ".ch-wk-col.is-on{background:rgba(255,255,255,.045)}",
+  ".ch-wk-col.is-today:not(.is-on){background:transparent}",
   ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;touch-action:pan-y}",
   ".ch-wk-col{touch-action:pan-y}",
   ".ch-wk-strip-row--plain{grid-template-columns:repeat(7,minmax(0,1fr))}",
@@ -1102,10 +1107,11 @@ function WeekPlanner(props) {
           <div className="ch-wk-pin">
           <WeekStrip weekDays={weekDays} selected={props.selected} todayKey={props.todayKey} events={props.events} onSelectDay={props.onSelectDay} onFocusDay={props.onFocusDay} />
           {hasAllDay ? (
-            <div className="ch-wk-allday" style={{ gridTemplateRows: "repeat(" + allDayLayout.lanes + ", minmax(32px, auto))" }}>
-              <span className="ch-wk-allday-lbl" style={{ gridColumn: 1, gridRow: "1 / -1" }}>dia</span>
+            <div className="ch-wk-allday" style={{ gridTemplateRows: "repeat(" + allDayLayout.lanes + ", 30px)" }}>
+              <span className="ch-wk-allday-lbl" style={{ gridColumn: 1, gridRow: "1 / -1" }}>todo</span>
               {weekDays.map(function(day, i) {
-                return <div key={day} className="ch-wk-allday-col" style={{ gridColumn: i + 2, gridRow: "1 / -1" }} />;
+                var colOn = day === props.selected;
+                return <div key={day} className={"ch-wk-allday-col" + (colOn ? " is-on" : "")} style={{ gridColumn: i + 2, gridRow: "1 / -1" }} />;
               })}
               {allDayLayout.spans.map(function(span) {
                 var spanning = span.end > span.start;
