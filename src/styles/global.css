@@ -523,15 +523,15 @@ textarea::placeholder {
   border-radius: var(--radius-md) !important;
 }
 #root .ch-wk-allday-chip {
-  border-radius: 6px !important;
+  border-radius: 999px !important;
   min-height: 0 !important;
   height: 22px !important;
-  margin: 4px 4px !important;
-  padding: 0 8px !important;
+  margin: 3px 5px !important;
+  padding: 0 10px !important;
   align-self: center !important;
   border: none !important;
-  background: var(--ec, #e6e6e9) !important;
-  color: #16161a !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ec, #7ba3b8) 78%, #fff), color-mix(in srgb, var(--ec, #7ba3b8) 62%, #1a1c24)) !important;
+  color: #10141c !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
 }
 #root .ch-allday-row {
@@ -587,12 +587,19 @@ textarea::placeholder {
   background: transparent !important;
   box-shadow: none !important;
 }
-#root .ch-wk-strip-cell.is-on,
+#root .ch-wk-strip-cell.is-on {
+  background: transparent !important;
+}
 #root .ch-wk-allday-col.is-on {
-  background: rgba(255, 255, 255, 0.07) !important;
+  background: color-mix(in srgb, var(--mc, #7ba3b8) 14%, transparent) !important;
+}
+#root .ch-wk-strip-cell.is-on .ch-wk-strip-num {
+  background: var(--mc, #7ba3b8) !important;
+  color: #10141c !important;
 }
 #root .ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num {
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 0 1.5px var(--mc, #7ba3b8) !important;
 }
 
 #root .tk-progress,
@@ -845,7 +852,6 @@ textarea::placeholder {
 #root .fl-in,
 #root .pm-input,
 #root .pm-notes,
-#root .pj-search input,
 #root .ch-in,
 #root .ag-field input {
   background: rgba(255, 255, 255, 0.03) !important;
@@ -1134,7 +1140,6 @@ textarea::placeholder {
 #root .fl-in,
 #root .pm-input,
 #root .pm-notes,
-#root .pj-search input,
 #root .ch-in,
 #root .ag-field input,
 #root .ui-in,
@@ -1221,26 +1226,36 @@ textarea::placeholder {
   -webkit-text-fill-color: rgba(255, 255, 255, 0.62) !important;
 }
 
-/* Pesquisa sempre à direita do título, mesmo tamanho */
+/* Pesquisa: a mesma pílula, sempre à direita do título */
 #root .page-search,
 #root .nt-search,
 #root .pj-search input,
-#root .tk-search-row .tk-in {
+#root .tk-search-row .page-search {
   width: 220px !important;
   max-width: 220px !important;
-  min-width: 0 !important;
+  min-width: 220px !important;
   height: 40px !important;
   margin: 0 !important;
-  padding: 0 14px !important;
-  border: none !important;
+  padding: 0 14px 0 36px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  box-shadow: var(--glass-inset-soft) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,.5)' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.2-3.2'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px 50% !important;
+  background-size: 14px 14px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
   color: #fff !important;
   font-family: "Manrope", sans-serif !important;
   font-size: 13px !important;
   backdrop-filter: blur(20px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+}
+
+#root .page-search::placeholder,
+#root .nt-search::placeholder,
+#root .pj-search input::placeholder {
+  color: rgba(255, 255, 255, 0.42) !important;
 }
 
 #root .pj-search,
@@ -1250,28 +1265,47 @@ textarea::placeholder {
   flex: 0 0 auto !important;
   width: auto !important;
   max-width: none !important;
+  min-width: 0 !important;
+  order: 2 !important;
+}
+
+#root .pj-top-actions,
+#root .tk-new-btn {
+  margin-left: 0 !important;
+  order: 3 !important;
 }
 
 #root .pj-search {
   width: 220px !important;
+  position: relative !important;
+}
+
+#root .pj-search svg {
+  display: none !important;
 }
 
 #root .pj-search input {
-  width: 100% !important;
-  max-width: none !important;
-  padding-left: 34px !important;
+  width: 220px !important;
+  max-width: 220px !important;
 }
 
 @media (max-width: 719px) {
-  #root .page-search,
-  #root .nt-search,
   #root .pj-search,
-  #root .pj-search input,
   #root .tk-search-row,
-  #root .tk-search-row .tk-in {
+  #root .nt-tools {
+    margin-left: 0 !important;
     width: 100% !important;
     max-width: none !important;
-    margin-left: 0 !important;
     flex: 1 1 100% !important;
+    order: 4 !important;
+  }
+
+  #root .page-search,
+  #root .nt-search,
+  #root .pj-search input,
+  #root .tk-search-row .page-search {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
   }
 }

@@ -1142,7 +1142,7 @@ export default function Focus() {
 
   if (!isHydrated) {
     return (
-      <div style={{ minHeight: "100vh", background: "#070708", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="pl-screen">
         <PageLoader accent={CYAN} label="Estúdio" />
       </div>
     );

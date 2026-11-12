@@ -50,15 +50,12 @@ var PROJ_CSS = [
   ".pj-brand{display:flex;align-items:baseline;gap:8px}",
   ".pj-brand h1{margin:0;font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.04em}",
   ".pj-brand span{font-size:10.5px;font-family:'Manrope',sans-serif;color:rgba(255,255,255,.5);padding:3px 9px;border-radius:999px;border:1px solid transparent;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}",
-  ".pj-search{flex:1;min-width:140px;max-width:300px;position:relative;display:flex;align-items:center}",
-  ".pj-search svg{position:absolute;left:12px;color:#6E6E76;pointer-events:none;transition:color var(--dur) var(--ease)}",
-  ".pj-search:focus-within svg{color:#A0A0A8}",
-  ".pj-search input{width:100%;padding:9px 0 9px 22px;border:none;border-bottom:1px solid rgba(255,255,255,0.12);background:transparent;color:#EDEDEF;font-size:13px;line-height:1.5;outline:none;font-family:inherit}",
-  ".pj-search input:focus{border-bottom-color:rgba(255,255,255,0.4)}",
+  ".pj-search{position:relative;display:flex;align-items:center;margin-left:auto;flex:0 0 auto}",
+  ".pj-search input{width:220px;height:40px;outline:none;font-family:inherit}",
   ".pj-viewtog{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,0.07);overflow:hidden}",
   ".pj-viewtog button{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.45);cursor:pointer;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
   ".pj-viewtog button.on{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}",
-  ".pj-top-actions{display:flex;align-items:center;gap:12px;margin-left:auto}",
+  ".pj-top-actions{display:flex;align-items:center;gap:12px;margin-left:0}",
   ".pj-new{padding:9px 2px;border:none;border-bottom:1px solid #EDEDEF;background:transparent;color:#EDEDEF;font-family:'Manrope',sans-serif;font-size:11px;font-weight:400;letter-spacing:.4px;cursor:pointer;white-space:nowrap}",
   ".pj-preset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}",
   ".pj-preset button{flex:1;min-width:90px;padding:10px 8px;border-radius:16px;border:1px solid transparent;background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:rgba(255,255,255,.65);font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}",
@@ -151,13 +148,6 @@ function projectTypeMeta(p) {
   return { icon: "✦", tag: "Projeto", color: color };
 }
 
-function SearchIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/>
-    </svg>
-  );
-}
 function GridIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
@@ -514,7 +504,7 @@ export default function Projects() {
 
   if (!loaded) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="pl-screen">
         <PageLoader accent={ACCENT} label="Projetos" />
       </div>
     );
@@ -565,7 +555,6 @@ export default function Projects() {
           <div className="pj-brand"><h1>Projetos</h1><span>{projects.length}</span></div>
         )}
         <div className="pj-search">
-          <SearchIcon />
           <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..." />
         </div>
         <div className="pj-top-actions">

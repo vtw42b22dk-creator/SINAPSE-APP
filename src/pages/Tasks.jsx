@@ -35,12 +35,12 @@ var TASKS_CSS = [
   "@keyframes taskIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}",
   ".tk-page{min-height:100vh;background:transparent;color:#F4F2EF;font-family:'Manrope',sans-serif;position:relative;overflow-x:hidden}",
   ".tk-head{position:sticky;top:0;z-index:20;padding:14px 20px;background:rgba(255,255,255,.08);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.12);border-radius:0 0 24px 24px}",
-  ".tk-head-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}",
+  ".tk-head-inner{width:100%;margin:0;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:12px}",
   ".tk-head-inner--mob{flex-direction:column;align-items:stretch;padding:12px}",
   ".tk-back{padding:6px 2px;border:none;border-bottom:1px solid rgba(255,255,255,.14);background:transparent;color:#A0A0A8;font-size:12px;cursor:pointer;font-family:'Manrope',sans-serif;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
   ".tk-back:active{transform:translateY(1px)}",
-  ".tk-search-row{display:flex;align-items:center;gap:10px;flex:1;max-width:380px;min-width:180px}",
+  ".tk-search-row{display:flex;align-items:center;gap:10px;flex:0 0 auto;margin-left:auto}",
   ".tk-search-row--full{max-width:none}",
   ".tk-focus-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-focus-btn.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
@@ -726,8 +726,7 @@ export default function Tasks() {
           </div>
           {!(isMobile && !mobileTab) ? (
           <div className={"tk-search-row" + (isMobile ? " tk-search-row--full" : "")}>
-            <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
-              style={{ flex: 1, padding: "10px 4px", fontSize: isMobile ? 16 : 13 }} />
+            <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..." />
             {!showLong ? (
             <button type="button" className={"tk-focus-btn ui-tap" + (focusToday ? " is-on" : "")} onClick={function() { setFocusToday(!focusToday); }}>
               Foco hoje

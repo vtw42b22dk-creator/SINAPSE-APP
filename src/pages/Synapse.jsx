@@ -1183,7 +1183,7 @@ export default function Synapse(props) {
   }, [editId]);
 
   if(!loaded) return (
-    <div style={{width:"100vw",height:"100vh",background:"#0A0A0B",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div className="pl-screen">
       <PageLoader accent="#E6E6E9" label="Sinapse" />
     </div>
   );
@@ -1193,7 +1193,7 @@ export default function Synapse(props) {
   if (!activeProject) {
     if (embedded && routeProjectId) {
       return (
-        <div style={{ width: "100%", height: "100%", background: "#0A0A0B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="pl-screen">
           <PageLoader accent="#E6E6E9" compact label="Sinapse" />
         </div>
       );
