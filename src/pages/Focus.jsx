@@ -40,7 +40,7 @@ var FX_CSS = [
   "@keyframes fxIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}",
 
   /* ---------- shell & ambient field ---------- */
-  ".fs-root{height:100vh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:#070708;color:#EDEDEF;font-family:'Manrope',sans-serif;position:relative}",
+  ".fs-root{height:100vh;max-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:transparent;color:#F4F2EF;font-family:'Manrope',sans-serif;position:relative}",
   ".fs-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}",
   ".fs-orb{position:absolute;border-radius:50%;filter:blur(90px)}",
   ".fs-orb--a{width:52vw;height:52vw;max-width:560px;max-height:560px;top:-18%;left:-14%;animation:haloBreatheSlow 9s var(--ease) infinite,driftA 24s ease-in-out infinite}",
@@ -210,7 +210,7 @@ var FX_CSS = [
   ".fs-task-check.on{border-color:var(--ac);background:var(--ac);color:#0A0A0B;animation:chipPop .35s var(--ease)}",
 
   /* ---------- immersive session ---------- */
-  ".fs-immersive{position:fixed;inset:0;z-index:200;background:#070708;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;cursor:pointer;overflow:hidden;animation:fxIn var(--dur-slow) var(--ease) both}",
+  ".fs-immersive{position:fixed;inset:0;z-index:200;background:rgba(7,7,10,.72);backdrop-filter:blur(28px) saturate(1.4);-webkit-backdrop-filter:blur(28px) saturate(1.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;cursor:pointer;overflow:hidden;animation:fxIn var(--dur-slow) var(--ease) both}",
   ".fs-immersive-bg{position:absolute;inset:-10%;pointer-events:none;background:radial-gradient(circle at 50% 42%,var(--glow,rgba(237,237,239,.28)),transparent 62%);animation:haloBreathe 5s var(--ease) infinite}",
   ".fs-immersive-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:640px;pointer-events:none}",
   ".fs-immersive .fs-halo{width:min(72vw,420px);height:min(72vw,420px)}",

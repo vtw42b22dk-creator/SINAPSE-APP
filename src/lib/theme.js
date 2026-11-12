@@ -4,7 +4,7 @@
  */
 
 export var COLORS = {
-  bg: "#0C0C0E",
+  bg: "#07070A",
   bgSoft: "#0E0E11",
   surface: "transparent",
   surfaceHi: "#1C1C20",

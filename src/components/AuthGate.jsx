@@ -81,13 +81,14 @@ export default function AuthGate(props) {
 
   return (
     <div style={{
-      minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
+      minHeight: "100vh", background: "transparent", color: COLORS.text,
       fontFamily: "'Manrope',sans-serif", position: "relative", overflow: "hidden",
       display: "flex", alignItems: "stretch", "--mc": MODULE_COLORS.auth,
     }}>
       <style>{AUTH_CSS + MODULE_GLOW_CSS}</style>
-      <div className="mod-glow" style={{ top: -120, right: "5%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
-      <div className="mod-glow" style={{ bottom: -80, left: "-5%", background: moduleGlow(MODULE_COLORS.journal, "14"), opacity: 0.4 }} aria-hidden="true" />
+      <div className="mod-glow" style={{ top: -140, right: "0%", width: "55vw", height: "55vw", background: "radial-gradient(circle,rgba(79,109,255,.45),transparent 68%)" }} aria-hidden="true" />
+      <div className="mod-glow" style={{ bottom: -100, left: "-8%", width: "50vw", height: "50vw", background: "radial-gradient(circle,rgba(255,90,122,.35),transparent 68%)" }} aria-hidden="true" />
+      <div className="mod-glow" style={{ top: "30%", left: "35%", width: "40vw", height: "40vw", background: "radial-gradient(circle,rgba(180,76,255,.28),transparent 70%)" }} aria-hidden="true" />
       <aside className="ag-aside" aria-hidden="true">
         <p className="ag-aside-k">Ecossistema</p>
         <p className="ag-aside-t">Sinapse</p>
@@ -158,29 +159,42 @@ function erroLogin(msg, seg) {
 }
 
 var AUTH_CSS = [
-  ".ag-aside{position:relative;z-index:1;width:min(42vw,420px);flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;",
-  "padding:48px 36px 56px;border-right:1px solid rgba(255,255,255,.06);background:#09090B}",
-  ".ag-aside-k{margin:0 0 16px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:#6E6A64}",
-  ".ag-aside-t{margin:0;font-family:'Syne',sans-serif;font-size:clamp(40px,5vw,64px);font-weight:700;letter-spacing:-.06em;line-height:.9}",
-  ".ag-aside-d{margin:18px 0 0;max-width:28ch;font-size:15px;line-height:1.55;color:#A0988C}",
-  ".ag-form{position:relative;z-index:1;width:min(420px,100%);margin:auto 0 auto clamp(28px,6vw,80px);",
-  "padding:48px 24px 64px;animation:appearUp var(--dur-slow) var(--ease) both}",
+  ".ag-aside{position:relative;z-index:1;isolation:isolate;width:min(42vw,420px);flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;",
+  "margin:16px;padding:48px 36px 56px;border:1px solid transparent;border-radius:36px;background:rgba(255,255,255,.1);",
+  "backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);",
+  "box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.35),0 18px 48px rgba(0,0,0,.4);overflow:hidden}",
+  ".ag-aside::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;",
+  "background:linear-gradient(155deg,rgba(255,255,255,.65),rgba(255,255,255,.1) 40%,rgba(255,255,255,.22));",
+  "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".ag-aside > *{position:relative;z-index:2}",
+  ".ag-aside-k{margin:0 0 16px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.45)}",
+  ".ag-aside-t{margin:0;font-family:'Syne',sans-serif;font-size:clamp(40px,5vw,64px);font-weight:700;letter-spacing:-.06em;line-height:.9;color:#fff}",
+  ".ag-aside-d{margin:18px 0 0;max-width:28ch;font-size:15px;line-height:1.55;color:rgba(255,255,255,.65)}",
+  ".ag-form{position:relative;z-index:1;isolation:isolate;width:min(420px,100%);margin:auto 0 auto clamp(28px,6vw,80px);",
+  "padding:40px 28px 48px;border-radius:32px;background:rgba(255,255,255,.1);backdrop-filter:blur(48px) saturate(1.9);",
+  "-webkit-backdrop-filter:blur(48px) saturate(1.9);border:1px solid transparent;",
+  "box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 1px rgba(0,0,0,.3),0 18px 48px rgba(0,0,0,.38);",
+  "animation:appearUp var(--dur-slow) var(--ease) both;overflow:hidden}",
+  ".ag-form::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;",
+  "background:linear-gradient(155deg,rgba(255,255,255,.6),rgba(255,255,255,.08) 45%,rgba(255,255,255,.2));",
+  "-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".ag-form > *{position:relative;z-index:2}",
   ".ag-kicker{font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:2.6px;text-transform:uppercase;",
   "color:var(--mc);margin:0 0 28px}",
   ".ag-title{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,52px);margin:0 0 12px;",
-  "font-weight:700;letter-spacing:-0.05em;line-height:.95}",
-  ".ag-lead{font-size:15px;color:#A0988C;line-height:1.65;margin:0 0 40px;max-width:34ch}",
+  "font-weight:700;letter-spacing:-0.05em;line-height:.95;color:#fff}",
+  ".ag-lead{font-size:15px;color:rgba(255,255,255,.65);line-height:1.65;margin:0 0 40px;max-width:34ch}",
   ".ag-field{display:block;margin:0 0 22px}",
   ".ag-field span{display:block;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.8px;",
-  "text-transform:uppercase;color:#6E6A64;margin-bottom:8px}",
-  ".ag-field input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid rgba(255,255,255,0.12);",
-  "background:rgba(255,255,255,0.03);color:#EDE8DF;outline:none;font-size:16px;font-family:inherit;border-radius:var(--radius-sm)}",
-  ".ag-field input:focus{border-color:var(--mc);background:rgba(255,255,255,0.05)}",
-  ".ag-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:11px 20px;background:color-mix(in srgb,var(--mc) 10%,transparent);border:1px solid color-mix(in srgb,var(--mc) 40%,transparent);color:var(--mc);font-family:'Manrope',sans-serif;font-size:14px;",
-  "font-weight:400;letter-spacing:.4px;cursor:pointer;transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".ag-go:hover{background:color-mix(in srgb,var(--mc) 16%,transparent)}",
-  ".ag-switch{display:block;margin-top:28px;background:none;border:none;color:#6E6A64;font-size:13px;",
+  "text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:8px}",
+  ".ag-field input{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid transparent;",
+  "background:rgba(255,255,255,0.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);color:#fff;outline:none;font-size:16px;font-family:inherit;border-radius:16px}",
+  ".ag-field input:focus{background:rgba(255,255,255,0.14)}",
+  ".ag-go{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:11px 22px;background:rgba(255,255,255,.14);border:1px solid transparent;border-radius:999px;color:#fff;font-family:'Manrope',sans-serif;font-size:14px;",
+  "font-weight:400;letter-spacing:.4px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.5);transition:background var(--dur) var(--ease)}",
+  ".ag-go:hover{background:rgba(255,255,255,.2)}",
+  ".ag-switch{display:block;margin-top:28px;background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;",
   "cursor:pointer;font-family:inherit;padding:8px 12px}",
-  ".ag-switch:hover{color:#EDE8DF}",
-  "@media(max-width:719px){.ag-aside{display:none}.ag-form{margin:auto 20px 0;padding:36px 4px 80px}}",
+  ".ag-switch:hover{color:#fff}",
+  "@media(max-width:719px){.ag-aside{display:none}.ag-form{margin:auto 16px 16px;padding:32px 20px 48px;border-radius:28px}}",
 ].join("");

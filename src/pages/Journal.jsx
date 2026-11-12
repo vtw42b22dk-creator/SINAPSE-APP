@@ -132,7 +132,7 @@ var JR_CSS = [
   ".gn-orb--b{width:38vw;height:38vw;max-width:400px;max-height:400px;top:30%;right:-10%;opacity:.6;animation:haloBreatheSlow 12s var(--ease) infinite -4s,driftB 30s ease-in-out infinite}",
 
   /* ---------- header ---------- */
-  ".gn-header{position:sticky;top:0;z-index:20;background:rgba(9,9,10,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07)}",
+  ".gn-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.08);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.12);border-radius:0 0 24px 24px}",
   ".gn-hbtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:999px;color:#A0A0A8;padding:9px 14px;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.3px;flex-shrink:0;transition:color var(--dur) var(--ease),background var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
   ".gn-hbtn:hover{color:#EDEDEF;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)}",
 

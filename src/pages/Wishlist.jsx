@@ -21,7 +21,7 @@ var WL_CSS = [
   "@keyframes wlIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}",
   ".wl-page{min-height:100vh;background:var(--page-bg);color:var(--page-text);font-family:'Manrope',sans-serif;position:relative;overflow-x:hidden}",
   ".wl-glow{position:absolute;width:min(520px,70vw);height:min(520px,70vw);border-radius:50%;pointer-events:none;filter:blur(80px);opacity:.55;transition:background 1s var(--ease)}",
-  ".wl-head{position:sticky;top:0;z-index:20;background:rgba(7,7,8,.88);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}",
+  ".wl-head{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.08);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.12);border-radius:0 0 24px 24px}",
   ".wl-head-in{max-width:1040px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}",
   ".wl-back{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;padding:8px 2px;cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:.3px}",
   ".wl-back:hover{color:#EDEDEF;border-bottom-color:#EDEDEF}",
