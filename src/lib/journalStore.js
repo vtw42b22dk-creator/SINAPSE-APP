@@ -23,7 +23,17 @@ var LEGACY_NOTE_BLOCKS_KEY = "sinapse-journal-note-blocks-v1";
 var LAYOUT_SCHEMA = 2;
 
 function emptyNoteLayout() {
-  return { blocks: [], assign: {}, collapsed: {}, updated: 0, schema: 0 };
+  return { blocks: [], assign: {}, collapsed: {}, hidden: {}, updated: 0, schema: 0 };
+}
+
+function copyHidden(src) {
+  var hidden = src && src.hidden;
+  if (!hidden || typeof hidden !== "object" || Array.isArray(hidden)) return {};
+  var out = {};
+  Object.keys(hidden).forEach(function(key) {
+    if (key && hidden[key]) out[key] = 1;
+  });
+  return out;
 }
 
 function layoutPayload(row) {
@@ -35,11 +45,12 @@ function layoutPayload(row) {
   if (payload && typeof payload === "object" && (Array.isArray(payload.blocks) || payload.assign || payload.collapsed)) {
     return payload;
   }
-  if (Array.isArray(row.blocks) || row.assign || row.collapsed) {
+  if (Array.isArray(row.blocks) || row.assign || row.collapsed || row.hidden) {
     return {
       blocks: row.blocks,
       assign: row.assign,
       collapsed: row.collapsed,
+      hidden: row.hidden,
       schema: row.schema,
       updated: row.updated,
     };
@@ -56,6 +67,7 @@ function normalizeNoteLayoutRow(row) {
     blocks: Array.isArray(p.blocks) ? p.blocks : [],
     assign: p.assign && typeof p.assign === "object" ? p.assign : {},
     collapsed: p.collapsed && typeof p.collapsed === "object" ? p.collapsed : {},
+    hidden: copyHidden(p),
     updated: updated || 0,
     schema: p.schema || row.schema || 0,
   };
@@ -69,6 +81,7 @@ function noteLayoutToDb(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      hidden: copyHidden(l),
       schema: l.schema || LAYOUT_SCHEMA,
       updated: l.updated || Date.now(),
     },
@@ -91,6 +104,7 @@ function cloneLayout(layout) {
     blocks: (l.blocks || []).slice(),
     assign: Object.assign({}, l.assign || {}),
     collapsed: Object.assign({}, l.collapsed || {}),
+    hidden: copyHidden(l),
     updated: l.updated || 0,
     schema: l.schema || 0,
   };
@@ -185,6 +199,7 @@ function spaceFromLayout(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      hidden: copyHidden(l),
       schema: l.schema || LAYOUT_SCHEMA,
       updated: l.updated || Date.now(),
     }),
@@ -228,6 +243,7 @@ function layoutToBlock(layout) {
       blocks: l.blocks || [],
       assign: l.assign || {},
       collapsed: l.collapsed || {},
+      hidden: copyHidden(l),
       schema: l.schema || LAYOUT_SCHEMA,
       updated: l.updated || Date.now(),
     }),
@@ -522,10 +538,12 @@ function layoutBodyEqual(a, b) {
     blocks: (a && a.blocks) || [],
     assign: (a && a.assign) || {},
     collapsed: (a && a.collapsed) || {},
+    hidden: copyHidden(a),
   }) === JSON.stringify({
     blocks: (b && b.blocks) || [],
     assign: (b && b.assign) || {},
     collapsed: (b && b.collapsed) || {},
+    hidden: copyHidden(b),
   });
 }
 

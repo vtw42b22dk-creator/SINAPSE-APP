@@ -9,10 +9,28 @@ import { onSync } from "../lib/syncEvents";
 import { pauseCloudPull, isCloudPullPaused } from "../lib/cloudSyncGuard";
 import { RECOVERY_EVENT, shouldSkipCloudSync } from "../lib/recoveryFlags";
 import { moduleColor, moduleGlow, PALETTE } from "../lib/theme";
+import * as prefsStore from "../lib/prefsStore";
 import { GLASS_CSS } from "../lib/glassUi";
 
 var ACCENT = moduleColor("journal");
 var COLORS = PALETTE;
+var CAT_COLORS = ["#C89191", "#7BA3B8", "#7FBA96", "#C9A978", "#A78BB5", "#D08A6A", "#7FA8A0", "#C4B48A"];
+var UNGROUPED_COLOR = "#A89F92";
+var UNGROUPED_KEY = "__none__";
+
+function categoryColor(block, index) {
+  if (block && typeof block.color === "string" && block.color) return block.color;
+  return CAT_COLORS[(index || 0) % CAT_COLORS.length];
+}
+
+function nextCategoryColor(blocks) {
+  var used = {};
+  (blocks || []).forEach(function(block, index) { used[categoryColor(block, index)] = true; });
+  for (var i = 0; i < CAT_COLORS.length; i++) {
+    if (!used[CAT_COLORS[i]]) return CAT_COLORS[i];
+  }
+  return CAT_COLORS[(blocks || []).length % CAT_COLORS.length];
+}
 var JOURNAL_FONT = "'Manrope', sans-serif";
 var JOURNAL_LETTER_SPACING = "0.04em";
 var JOURNAL_LINE_HEIGHT = 1.75;
@@ -26,7 +44,7 @@ var JOURNAL_TEXT = {
 var JR_CSS = [
   GLASS_CSS,
   ".nt-root{height:100%;min-height:0;display:flex;flex-direction:column;background:transparent;color:#EDE8DF;font-family:'Manrope',sans-serif;position:relative;overflow:hidden}",
-  ".nt-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px 12px;z-index:20;background:rgba(255,255,255,.04);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid rgba(255,255,255,.08)}",
+  ".nt-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px 12px;z-index:20;position:relative;isolation:isolate;background:rgba(255,255,255,.05);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.22);border-bottom:1px solid rgba(255,255,255,.1)}",
   ".nt-brand{display:flex;align-items:baseline;gap:10px;min-width:0}",
   ".nt-brand h1{margin:0;font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-.04em;color:#EDE8DF}",
   ".nt-count{font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.8px;color:#7A756C}",
@@ -46,8 +64,31 @@ var JR_CSS = [
   ".nt-chip-x{border:none;background:transparent;color:#6A655E;cursor:pointer;padding:0 0 0 2px;font-size:14px;line-height:1}",
   ".nt-chip-x:hover{color:#C08C8C}",
   ".nt-chip-add{border-style:dashed}",
-  ".nt-split{flex:1;min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr)}",
-  ".nt-list{min-height:0;overflow-y:auto;padding:10px 10px 24px;border-right:1px solid rgba(255,255,255,.07);user-select:none;-webkit-user-select:none}",
+  ".nt-split{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr)}",
+  ".nt-list{min-height:0;overflow-y:auto;padding:8px 8px 28px;border-right:1px solid rgba(255,255,255,.07);user-select:none;-webkit-user-select:none}",
+  ".nt-cat{margin:0 0 4px}",
+  ".nt-cat-h{display:flex;align-items:center;gap:4px;min-height:30px;padding:2px 2px 2px 0}",
+  ".nt-chev-btn{width:18px;height:24px;border:none;background:transparent;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}",
+  ".nt-chev{width:0;height:0;border-top:3px solid transparent;border-bottom:3px solid transparent;border-left:4px solid #8A857C;display:block;transition:transform .15s ease}",
+  ".nt-chev.is-open{transform:rotate(90deg)}",
+  ".nt-dot-cat{width:7px;height:7px;margin-top:0}",
+  ".nt-cat-label{flex:1;min-width:0;display:flex;align-items:center;gap:2px}",
+  ".nt-cat-name{flex:0 1 auto;min-width:0;max-width:100%;text-align:left;border:none;background:transparent;color:#EDE8DF;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.01em;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 0}",
+  ".nt-cat-n{margin-left:auto;font-family:'Manrope',sans-serif;font-size:10px;color:#7A756C;flex-shrink:0;font-variant-numeric:tabular-nums}",
+  ".nt-kdot{width:16px;height:22px;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;flex-shrink:0;opacity:.5}",
+  ".nt-kdot i{display:block;width:2px;height:2px;border-radius:50%;background:#C8C2B8}",
+  ".nt-kdot:hover{opacity:1}",
+  ".nt-cat-rename{flex:1;min-width:0}",
+  ".nt-dot.is-secret{box-shadow:0 0 0 1px rgba(255,255,255,.45)}",
+  ".nt-addcat{margin:8px 4px 0}",
+  ".nt-vault{margin:16px 6px 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}",
+  ".nt-vault-l{margin:0 0 8px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#7A756C}",
+  ".nt-vault-l b{font-weight:500;letter-spacing:0;text-transform:none;margin-left:6px}",
+  ".nt-vault-row{display:flex;align-items:center;gap:8px}",
+  ".nt-vault-row input{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#EDE8DF;padding:8px 2px;font-family:'Manrope',sans-serif;font-size:13px;outline:none}",
+  ".nt-vault-row input:focus{border-bottom-color:var(--mc)}",
+  ".nt-vault-go,.nt-vault-lock{border:none;background:transparent;color:var(--mc);cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;padding:6px 0;white-space:nowrap}",
+  ".nt-vault-err{margin:6px 0 0;font-size:11px;color:#C08C8C}",
   ".nt-empty{margin:28px 12px;font-size:13px;line-height:1.55;color:#7A756C}",
   ".nt-row{display:flex;align-items:flex-start;gap:6px;padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05)}",
   ".nt-row.is-on{background:color-mix(in srgb,var(--nc,#EDE8DF) 12%,rgba(255,255,255,.04))}",
@@ -60,7 +101,9 @@ var JR_CSS = [
   ".nt-drag{cursor:grab;color:#5A5A62;font-size:12px;line-height:1;user-select:none;flex-shrink:0;margin-top:5px}",
   ".nt-note-x{display:none}",
   ".nt-menu-bg{position:fixed;inset:0;z-index:90}",
-  ".nt-menu{position:fixed;z-index:91;min-width:214px;max-width:min(280px,calc(100vw - 16px));padding:8px;background:rgba(14,14,16,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(28px) saturate(1.7);-webkit-backdrop-filter:blur(28px) saturate(1.7)}",
+  ".nt-menu{position:fixed;isolation:isolate;z-index:91;min-width:214px;max-width:min(280px,calc(100vw - 16px));padding:8px;background:rgba(255,255,255,.06);border:1px solid transparent;border-radius:16px;backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 1px rgba(0,0,0,.3),inset 0 0 24px rgba(255,255,255,.04);overflow:hidden}",
+  ".nt-menu::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.1) 40%,rgba(255,255,255,.2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".nt-menu > *{position:relative;z-index:4}",
   ".nt-menu p{margin:0 0 4px;padding:6px 10px 4px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#7A756C}",
   ".nt-menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;color:#EDE8DF;cursor:pointer;font-family:'Manrope',sans-serif;font-size:14px}",
   ".nt-menu button:hover,.nt-menu button.is-on{background:rgba(255,255,255,.06)}",
@@ -198,6 +241,7 @@ var JR_CSS = [
   ".nt-head{padding:max(12px,env(safe-area-inset-top)) 12px 12px;flex-wrap:wrap}",
   ".nt-tools{flex-basis:100%;justify-content:stretch}",
   ".nt-search,.nt-new{flex:1}",
+  ".nt-vault-row input{font-size:16px}",
   ".nt-search{width:auto}",
   ".nt-new input{width:auto;flex:1}",
   ".nt-rail{padding:8px 12px;gap:6px}",
@@ -250,6 +294,8 @@ var JR_CSS = [
   ".gn-block .gn-x,.gn-noterow .gn-x{opacity:1}",
   ".gn-insert{min-height:44px}",
   ".gn-fmtbtn{min-height:44px}",
+  ".nt-kdot{width:32px;height:36px;opacity:.8}",
+  ".nt-chev-btn{width:32px;height:36px}",
   "}",
   "@media(hover:none){",
   ".gn-block:hover{border-color:rgba(255,255,255,.09)}",
@@ -386,14 +432,24 @@ export default function Journal() {
   var isHydrated = hydratedS[0], setIsHydrated = hydratedS[1];
   var sessionWarnS = useState("");
   var sessionWarn = sessionWarnS[0], setSessionWarn = sessionWarnS[1];
-  var noteBlocksS = useState(function() { return { blocks: [], assign: {}, collapsed: {} }; });
+  var noteBlocksS = useState(function() { return { blocks: [], assign: {}, collapsed: {}, hidden: {} }; });
   var noteBlocks = noteBlocksS[0], setNoteBlocks = noteBlocksS[1];
   var mobileNoteOpenS = useState(function() { return loadJournalLast().open; });
   var mobileNoteOpen = mobileNoteOpenS[0], setMobileNoteOpen = mobileNoteOpenS[1];
-  var catPickS = useState(null);
-  var catPick = catPickS[0], setCatPick = catPickS[1];
   var menuS = useState(null);
   var menu = menuS[0], setMenu = menuS[1];
+  var catMenuS = useState(null);
+  var catMenu = catMenuS[0], setCatMenu = catMenuS[1];
+  var vaultOpenS = useState(false);
+  var vaultOpen = vaultOpenS[0], setVaultOpen = vaultOpenS[1];
+  var vaultDraftS = useState("");
+  var vaultDraft = vaultDraftS[0], setVaultDraft = vaultDraftS[1];
+  var vaultErrorS = useState("");
+  var vaultError = vaultErrorS[0], setVaultError = vaultErrorS[1];
+  var notesLockS = useState("eeeeee");
+  var notesLock = notesLockS[0], setNotesLock = notesLockS[1];
+  var lockReadyS = useState(false);
+  var lockReady = lockReadyS[0], setLockReady = lockReadyS[1];
   var renameIdS = useState(null);
   var renameId = renameIdS[0], setRenameId = renameIdS[1];
   var renameValS = useState("");
@@ -405,18 +461,13 @@ export default function Journal() {
   var catForm = catFormS[0], setCatForm = catFormS[1];
   var queryS = useState("");
   var query = queryS[0], setQuery = queryS[1];
-  var catFilterS = useState("all");
-  var catFilter = catFilterS[0], setCatFilter = catFilterS[1];
   var catFormRef = useRef(null);
   var skipCatBlurRef = useRef(false);
-  var dragNoteRef = useRef(null);
-  var dragOverS = useState(null);
-  var dragOverTarget = dragOverS[0], setDragOverTarget = dragOverS[1];
   var saveSpacesTimer = useRef(null);
   var saveBlocksTimer = useRef(null);
   var blocksRef = useRef([]);
   var spacesRef = useRef([]);
-  var noteBlocksRef = useRef({ blocks: [], assign: {}, collapsed: {} });
+  var noteBlocksRef = useRef({ blocks: [], assign: {}, collapsed: {}, hidden: {} });
   var isHydratedRef = useRef(false);
   var editingBlockRef = useRef(null);
   var flushHandlersRef = useRef({});
@@ -457,6 +508,7 @@ export default function Journal() {
       blocks: layout.blocks || [],
       assign: layout.assign || {},
       collapsed: layout.collapsed || {},
+      hidden: layout.hidden || {},
       updated: layout.updated || 0,
       schema: layout.schema || 0,
     };
@@ -647,6 +699,23 @@ export default function Journal() {
     return function() { window.removeEventListener("resize", onResize); };
   }, []);
 
+  useEffect(function() {
+    var alive = true;
+    function pullLock() {
+      prefsStore.loadNotesLock().then(function(value) {
+        if (!alive) return;
+        if (value) setNotesLock(value);
+        setLockReady(true);
+      });
+    }
+    pullLock();
+    window.addEventListener("sinapse-prefs", pullLock);
+    return function() {
+      alive = false;
+      window.removeEventListener("sinapse-prefs", pullLock);
+    };
+  }, []);
+
   useEffect(function() { blocksRef.current = blocks; }, [blocks]);
   useEffect(function() { spacesRef.current = spaces; }, [spaces]);
   useEffect(function() { noteBlocksRef.current = noteBlocks; }, [noteBlocks]);
@@ -662,12 +731,13 @@ export default function Journal() {
   }, [isHydrated, syncFromCloud]);
 
   function commitNoteLayout(updater) {
-    var prev = noteBlocksRef.current || { blocks: [], assign: {}, collapsed: {} };
+    var prev = noteBlocksRef.current || { blocks: [], assign: {}, collapsed: {}, hidden: {} };
     var next = typeof updater === "function" ? updater(prev) : updater;
     next = {
       blocks: (next && next.blocks) || [],
       assign: (next && next.assign) || {},
       collapsed: (next && next.collapsed) || {},
+      hidden: next && next.hidden != null ? next.hidden : ((prev && prev.hidden) || {}),
       schema: (next && next.schema) || 2,
       updated: Date.now(),
     };
@@ -684,6 +754,21 @@ export default function Journal() {
       noteLayoutDirtyRef.current = false;
     });
   }
+
+  useEffect(function() {
+    if (!isHydrated) return;
+    var list = noteBlocks.blocks || [];
+    if (!list.some(function(block) { return block && !block.color; })) return;
+    commitNoteLayout(function(prev) {
+      var blocks = prev.blocks || [];
+      if (!blocks.some(function(block) { return block && !block.color; })) return prev;
+      return Object.assign({}, prev, {
+        blocks: blocks.map(function(block, index) {
+          return block && block.color ? block : Object.assign({}, block, { color: categoryColor(block, index) });
+        }),
+      });
+    });
+  }, [isHydrated, noteBlocks.blocks]);
 
   useEffect(function() {
     if (!isHydrated || skipSaveRef.current) return;
@@ -726,7 +811,8 @@ export default function Journal() {
   }
 
   var activeSpace = spaces.find(function(s) { return s.id === active; }) || spaces[0];
-  var color = activeSpace ? activeSpace.color : ACCENT;
+  var activeLocked = !!(activeSpace && noteIsHidden(activeSpace) && !vaultOpen);
+  var color = activeLocked ? UNGROUPED_COLOR : colorForSpace(activeSpace);
   var activeBlocks = useMemo(function() {
     return blocks.filter(function(b) { return b.space_id === active; }).sort(function(a, b) { return a.order_index - b.order_index; });
   }, [blocks, active]);
@@ -746,19 +832,32 @@ export default function Journal() {
     });
     return { byBlock: byBlock, ungrouped: ungrouped };
   }, [spaces, noteBlocks]);
-  var visibleNotes = useMemo(function() {
+  function noteIsHidden(space) {
+    return !!(space && noteBlocks.hidden && noteBlocks.hidden[space.id]);
+  }
+
+  function noteMatchesQuery(space) {
     var q = (query || "").trim().toLowerCase();
-    var valid = {};
-    noteBlocks.blocks.forEach(function(b) { valid[b.id] = true; });
-    return spaces.filter(function(s) {
-      var bid = noteBlocks.assign[s.id];
-      var grouped = !!(bid && valid[bid]);
-      if (catFilter === "none" && grouped) return false;
-      if (catFilter !== "all" && catFilter !== "none" && bid !== catFilter) return false;
-      if (q && (s.title || "").toLowerCase().indexOf(q) < 0) return false;
-      return true;
+    if (!q) return true;
+    return ((space && space.title) || "").toLowerCase().indexOf(q) >= 0;
+  }
+
+  function visibleGroupNotes(list) {
+    return (list || []).filter(function(space) {
+      if (noteIsHidden(space) && !vaultOpen) return false;
+      return noteMatchesQuery(space);
     });
-  }, [spaces, noteBlocks, catFilter, query]);
+  }
+
+  function colorForSpace(space) {
+    if (!space) return ACCENT;
+    var blocks = noteBlocks.blocks || [];
+    var assigned = noteBlocks.assign && noteBlocks.assign[space.id];
+    for (var i = 0; i < blocks.length; i++) {
+      if (blocks[i].id === assigned) return categoryColor(blocks[i], i);
+    }
+    return UNGROUPED_COLOR;
+  }
 
   function createSpace() {
     if (!isHydrated) return;
@@ -773,7 +872,9 @@ export default function Journal() {
     setNewTitle("");
     if (isMobile) setMobileNoteOpen(true);
     persistSpaces(next);
-    if (catFilter && catFilter !== "all" && catFilter !== "none") assignNoteToBlock(s.id, catFilter);
+    if (noteBlocksRef.current.collapsed && noteBlocksRef.current.collapsed[UNGROUPED_KEY]) {
+      toggleNoteBlockCollapse(UNGROUPED_KEY);
+    }
   }
 
   function renameSpace(space, name) {
@@ -793,12 +894,23 @@ export default function Journal() {
 
   function openNoteMenu(space, x, y) {
     if (!space) return;
+    setCatMenu(null);
     var mw = 228;
-    var mh = 72 + ((noteBlocks.blocks || []).length + 1) * 40;
+    var mh = 220;
     var pad = 10;
     var left = Math.max(pad, Math.min(x, window.innerWidth - mw - pad));
-    var top = Math.max(pad, Math.min(y, window.innerHeight - Math.min(mh, window.innerHeight - pad * 2) - pad));
-    setMenu({ id: space.id, x: left, y: top });
+    var top = Math.max(pad, Math.min(y, window.innerHeight - mh - pad));
+    setMenu({ id: space.id, x: left, y: top, view: "root" });
+  }
+
+  function openCatMenu(block, event) {
+    event.stopPropagation();
+    event.preventDefault();
+    setMenu(null);
+    var rect = event.currentTarget.getBoundingClientRect();
+    var left = Math.max(8, Math.min(rect.right - 168, window.innerWidth - 176));
+    var top = Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - 110));
+    setCatMenu({ id: block.id, x: left, y: top });
   }
 
   function clearPressTimer() {
@@ -812,6 +924,13 @@ export default function Journal() {
   async function removeSpace(space) {
     if (!space) return;
     if (!window.confirm("Eliminar a nota \"" + space.title + "\" e todo o seu conteúdo?")) return;
+    commitNoteLayout(function(prev) {
+      var assign = Object.assign({}, prev.assign || {});
+      var hidden = Object.assign({}, prev.hidden || {});
+      delete assign[space.id];
+      delete hidden[space.id];
+      return Object.assign({}, prev, { assign: assign, hidden: hidden });
+    });
     var nextSpaces = spaces.filter(function(s) { return s.id !== space.id; });
     if (!nextSpaces.length) nextSpaces = [{ id: journalStore.newBlock("x").id.replace("jb", "js"), title: "Livre", color: ACCENT }];
     blocks.filter(function(b) { return b.space_id === space.id && b.meta && b.meta.attachment; }).forEach(function(b) {
@@ -898,7 +1017,7 @@ export default function Journal() {
     } else {
       commitNoteLayout(function(prev) {
         return Object.assign({}, prev, {
-          blocks: (prev.blocks || []).concat([{ id: newNoteBlockId(), name: name }]),
+          blocks: (prev.blocks || []).concat([{ id: newNoteBlockId(), name: name, color: nextCategoryColor(prev.blocks) }]),
         });
       });
     }
@@ -926,6 +1045,15 @@ export default function Journal() {
     });
   }
 
+  function setNoteHidden(spaceId, hidden) {
+    commitNoteLayout(function(prev) {
+      var map = Object.assign({}, prev.hidden || {});
+      if (hidden) map[spaceId] = 1;
+      else delete map[spaceId];
+      return Object.assign({}, prev, { hidden: map });
+    });
+  }
+
   function toggleNoteBlockCollapse(id) {
     commitNoteLayout(function(prev) {
       var collapsed = Object.assign({}, prev.collapsed);
@@ -934,39 +1062,22 @@ export default function Journal() {
     });
   }
 
-  function dropZoneProps(blockId) {
-    var key = blockId || "__none__";
-    return {
-      onDragOver: function(e) {
-        if (!dragNoteRef.current) return;
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (dragOverTarget !== key) setDragOverTarget(key);
-      },
-      onDrop: function(e) {
-        e.preventDefault();
-        var sid = dragNoteRef.current || (e.dataTransfer && e.dataTransfer.getData("text/plain"));
-        if (sid) assignNoteToBlock(sid, blockId || null);
-        dragNoteRef.current = null;
-        setDragOverTarget(null);
-      },
-    };
-  }
-
   function openNote(spaceId) {
     setActive(spaceId);
     if (isMobile) setMobileNoteOpen(true);
   }
 
-  function renderNoteItem(s) {
+  function renderNoteItem(s, dotColor) {
     var on = active === s.id;
     var snippet = noteSnippet(s.id, blocks);
     var renaming = renameId === s.id;
+    var paint = dotColor || UNGROUPED_COLOR;
+    var secret = noteIsHidden(s);
     return (
-      <div key={s.id} className={"nt-row" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} style={{ "--nc": s.color }}>
+      <div key={s.id} className={"nt-row" + (on && (!isMobile || mobileNoteOpen) ? " is-on" : "")} style={{ "--nc": paint }}>
         {renaming ? (
           <div className="nt-note">
-            <span className="nt-dot" style={{ background: s.color }} />
+            <span className={"nt-dot" + (secret ? " is-secret" : "")} style={{ background: paint }} />
             <input
               className="nt-rename"
               autoFocus
@@ -1017,7 +1128,7 @@ export default function Journal() {
             onPointerUp={clearPressTimer}
             onPointerCancel={clearPressTimer}
           >
-            <span className="nt-dot" style={{ background: s.color }} />
+            <span className={"nt-dot" + (secret ? " is-secret" : "")} style={{ background: paint }} />
             <span className="nt-note-body">
               <span className="nt-note-t">{s.title}</span>
               {snippet ? <span className="nt-note-s">{snippet}</span> : null}
@@ -1029,19 +1140,72 @@ export default function Journal() {
   }
 
   useEffect(function() {
-    if (!menu) return;
-    function onKey(e) { if (e.key === "Escape") closeNoteMenu(); }
-    function onScroll() { closeNoteMenu(); }
+    if (!menu && !catMenu) return;
+    function onKey(e) {
+      if (e.key === "Escape") { closeNoteMenu(); setCatMenu(null); }
+    }
+    function onScroll() { closeNoteMenu(); setCatMenu(null); }
     window.addEventListener("keydown", onKey);
     window.addEventListener("scroll", onScroll, true);
     return function() {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("scroll", onScroll, true);
     };
-  }, [menu]);
+  }, [menu, catMenu]);
+
+  useEffect(function() {
+    if (activeLocked && isMobile) setMobileNoteOpen(false);
+  }, [activeLocked, isMobile]);
 
   function format(cmd, value) {
     document.execCommand(cmd, false, value || null);
+  }
+
+  function renderCategory(key, label, items, opts) {
+    var shown = visibleGroupNotes(items);
+    var searching = !!(query || "").trim();
+    if (searching && !shown.length) return null;
+    if (!opts.always && !shown.length) return null;
+    var closed = !!(noteBlocks.collapsed && noteBlocks.collapsed[key]);
+    var renaming = opts.block && catForm && catForm.mode === "rename" && catForm.id === opts.block.id;
+    var paint = opts.color || UNGROUPED_COLOR;
+    return (
+      <section key={key} className="nt-cat">
+        <div className="nt-cat-h">
+          <button type="button" className="nt-chev-btn" aria-label={closed ? "Abrir" : "Fechar"} onClick={function() { toggleNoteBlockCollapse(key); }}>
+            <span className={"nt-chev" + (closed ? "" : " is-open")} />
+          </button>
+          <span className="nt-dot nt-dot-cat" style={{ background: paint }} />
+          <span className="nt-cat-label">
+            {renaming ? (
+              <input
+                className="nt-rename nt-cat-rename"
+                autoFocus
+                value={catForm.name}
+                onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
+                onBlur={function() {
+                  if (skipCatBlurRef.current) { skipCatBlurRef.current = false; return; }
+                  submitCatForm();
+                }}
+                onKeyDown={function(e) {
+                  if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
+                  if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
+                }}
+              />
+            ) : (
+              <button type="button" className="nt-cat-name" onClick={function() { toggleNoteBlockCollapse(key); }}>{label}</button>
+            )}
+            {opts.block ? (
+              <button type="button" className="nt-kdot" aria-label="Editar categoria" title="Editar categoria" onClick={function(e) { openCatMenu(opts.block, e); }}>
+                <i /><i /><i />
+              </button>
+            ) : null}
+          </span>
+          <span className="nt-cat-n">{shown.length}</span>
+        </div>
+        {closed ? null : shown.map(function(s) { return renderNoteItem(s, paint); })}
+      </section>
+    );
   }
 
   return (
@@ -1057,7 +1221,7 @@ export default function Journal() {
           {isMobile && mobileNoteOpen ? (
             <HubBack label="Notas" onClick={function() { setMobileNoteOpen(false); }} />
           ) : null}
-          <h1>{isMobile && mobileNoteOpen && activeSpace ? activeSpace.title : "Notas"}</h1>
+          <h1>{isMobile && mobileNoteOpen && activeSpace && !activeLocked ? activeSpace.title : "Notas"}</h1>
           {isMobile && mobileNoteOpen ? null : <span className="nt-count">{spaces.length}</span>}
         </div>
         {isMobile && mobileNoteOpen ? null : (
@@ -1077,87 +1241,82 @@ export default function Journal() {
 
       {!isHydrated ? <PageLoader accent={ACCENT} lines={7} /> : (
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", pointerEvents: "auto", position: "relative", zIndex: 1 }}>
-          {(!isMobile || !mobileNoteOpen) ? (
-            <div className="nt-rail">
-              <button type="button" className={"nt-chip" + (catFilter === "all" ? " is-on" : "")} onClick={function() { setCatFilter("all"); }}>Todas <b>{spaces.length}</b></button>
-              <button type="button" className={"nt-chip" + (catFilter === "none" ? " is-on" : "") + (dragOverTarget === "__none__" ? " is-hot" : "")} {...dropZoneProps(null)} onClick={function() { setCatFilter("none"); }}>
-                Sem categoria <b>{noteGroups.ungrouped.length}</b>
-              </button>
-              {noteBlocks.blocks.map(function(blk) {
-                var items = noteBlocks.blocks ? (noteGroups.byBlock[blk.id] || []) : [];
-                var hot = dragOverTarget === blk.id;
-                if (catForm && catForm.mode === "rename" && catForm.id === blk.id) {
-                  return (
-                    <div key={blk.id} className="nt-catform">
-                      <input
-                        autoFocus
-                        value={catForm.name}
-                        onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
-                        onBlur={function() {
-                          if (skipCatBlurRef.current) { skipCatBlurRef.current = false; return; }
-                          submitCatForm();
-                        }}
-                        onKeyDown={function(e) {
-                          if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
-                          if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
-                        }}
-                      />
-                    </div>
-                  );
-                }
-                return (
-                  <button
-                    key={blk.id}
-                    type="button"
-                    className={"nt-chip" + (catFilter === blk.id ? " is-on" : "") + (hot ? " is-hot" : "")}
-                    {...dropZoneProps(blk.id)}
-                    onClick={function() { setCatFilter(blk.id); }}
-                    onDoubleClick={function(e) { e.preventDefault(); renameNoteBlock(blk.id); }}
-                    title="Duplo clique para renomear · arrasta notas para aqui"
-                  >
-                    {blk.name} <b>{items.length}</b>
-                    <span className="nt-chip-x" role="button" title="Eliminar categoria" onClick={function(e) { e.stopPropagation(); deleteNoteBlock(blk.id); }}>×</span>
-                  </button>
-                );
-              })}
-              {catForm && catForm.mode === "new" ? (
-                <div className="nt-catform">
-                  <input
-                    autoFocus
-                    value={catForm.name}
-                    onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
-                    onKeyDown={function(e) {
-                      if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
-                      if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
-                    }}
-                    placeholder="Nome da categoria"
-                  />
-                  <button type="button" className="nt-chip is-on" onClick={submitCatForm}>Criar</button>
-                </div>
-              ) : (
-                <button type="button" className="nt-chip nt-chip-add" onClick={addNoteBlock} title="Nova categoria">+ Categoria</button>
-              )}
-            </div>
-          ) : null}
-
           <div className="nt-split">
             {(!isMobile || !mobileNoteOpen) ? (
               <aside className="nt-list" data-scrollable>
                 {!spaces.length ? (
                   <p className="nt-empty">Ainda não há notas. Cria a primeira em cima — se já as tens noutro dispositivo, espera um momento a sincronizar.</p>
-                ) : !visibleNotes.length ? (
-                  <p className="nt-empty">Nada neste filtro. Muda de categoria ou cria uma nota nova.</p>
-                ) : visibleNotes.map(renderNoteItem)}
+                ) : null}
+                {renderCategory(UNGROUPED_KEY, "Sem categoria", noteGroups.ungrouped, { color: UNGROUPED_COLOR })}
+                {noteBlocks.blocks.map(function(blk, index) {
+                  return renderCategory(blk.id, blk.name || "Categoria", noteGroups.byBlock[blk.id] || [], {
+                    color: categoryColor(blk, index),
+                    block: blk,
+                    always: true,
+                  });
+                })}
+                {(query || "").trim() && spaces.length && !visibleGroupNotes(spaces).length ? (
+                  <p className="nt-empty">Nada encontrado.</p>
+                ) : null}
+                {catForm && catForm.mode === "new" ? (
+                  <div className="nt-catform nt-addcat">
+                    <input
+                      autoFocus
+                      value={catForm.name}
+                      onChange={function(e) { setCatForm(Object.assign({}, catForm, { name: e.target.value })); }}
+                      onKeyDown={function(e) {
+                        if (e.key === "Enter") { e.preventDefault(); submitCatForm(); }
+                        if (e.key === "Escape") { e.preventDefault(); cancelCatForm(); }
+                      }}
+                      placeholder="Nome da categoria"
+                    />
+                    <button type="button" className="nt-vault-go" onClick={submitCatForm}>Criar</button>
+                  </div>
+                ) : (
+                  <button type="button" className="nt-chip nt-chip-add nt-addcat" onClick={addNoteBlock}>+ Categoria</button>
+                )}
+                {spaces.some(noteIsHidden) ? (
+                  <div className="nt-vault">
+                    {vaultOpen ? (
+                      <button type="button" className="nt-vault-lock" onClick={function() { setVaultOpen(false); setVaultDraft(""); setVaultError(""); }}>Trancar ocultas</button>
+                    ) : (
+                      <form onSubmit={function(e) {
+                        e.preventDefault();
+                        if (!lockReady) return;
+                        if ((vaultDraft || "").trim() === notesLock) {
+                          setVaultOpen(true);
+                          setVaultDraft("");
+                          setVaultError("");
+                        } else setVaultError("Palavra-passe errada.");
+                      }}>
+                        <p className="nt-vault-l">Ocultas <b>{spaces.filter(noteIsHidden).length}</b></p>
+                        <div className="nt-vault-row">
+                          <input type="password" autoComplete="off" value={vaultDraft} placeholder="Palavra-passe" onChange={function(e) { setVaultDraft(e.target.value); if (vaultError) setVaultError(""); }} />
+                          <button type="submit" className="nt-vault-go" disabled={!lockReady}>Abrir</button>
+                        </div>
+                        {vaultError ? <p className="nt-vault-err">{vaultError}</p> : null}
+                      </form>
+                    )}
+                  </div>
+                ) : null}
               </aside>
             ) : null}
 
             {(!isMobile || mobileNoteOpen) ? (
               <section className="nt-editor" data-scrollable>
-                {!activeSpace ? (
+                {activeLocked ? (
+                  <p className="nt-empty">Esta nota está oculta. A palavra-passe está na lista, em Ocultas.</p>
+                ) : !activeSpace ? (
                   <p className="nt-empty">Escolhe uma nota à esquerda, ou cria uma nova.</p>
                 ) : (
                   <div>
-                    <div className="nt-ed-head">
+                    <div
+                      className="nt-ed-head"
+                      onContextMenu={function(e) {
+                        e.preventDefault();
+                        openNoteMenu(activeSpace, e.clientX, e.clientY);
+                      }}
+                    >
                       <span className="nt-dot" style={{ background: color, width: 10, height: 10, marginTop: 8 }} />
                       <h2>{activeSpace.title}</h2>
                     </div>
@@ -1208,6 +1367,8 @@ export default function Journal() {
         var space = spaces.find(function(s) { return s.id === menu.id; });
         if (!space) return null;
         var currentCat = noteBlocks.assign[space.id];
+        var secret = noteIsHidden(space);
+        var picking = menu.view === "move";
         return (
           <div
             className="nt-menu-bg"
@@ -1215,16 +1376,42 @@ export default function Journal() {
             onContextMenu={function(e) { e.preventDefault(); closeNoteMenu(); }}
           >
             <div className="nt-menu" style={{ left: menu.x, top: menu.y }} onClick={function(e) { e.stopPropagation(); }}>
-              <p>Categoria</p>
-              <button type="button" className={!currentCat ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, null); closeNoteMenu(); }}>Sem categoria</button>
-              {noteBlocks.blocks.map(function(blk) {
-                return (
-                  <button key={blk.id} type="button" className={currentCat === blk.id ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, blk.id); closeNoteMenu(); }}>{blk.name}</button>
-                );
-              })}
-              <div className="nt-menu-sep" />
-              <button type="button" onClick={function() { setRenameVal(space.title || ""); setRenameId(space.id); closeNoteMenu(); }}>Mudar nome</button>
-              <button type="button" className="is-danger" onClick={function() { closeNoteMenu(); removeSpace(space); }}>Eliminar</button>
+              {picking ? (
+                <div>
+                  <p>Mudar de categoria</p>
+                  <button type="button" className={!currentCat ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, null); closeNoteMenu(); }}>Sem categoria</button>
+                  {noteBlocks.blocks.map(function(blk) {
+                    return (
+                      <button key={blk.id} type="button" className={currentCat === blk.id ? "is-on" : ""} onClick={function() { assignNoteToBlock(space.id, blk.id); closeNoteMenu(); }}>{blk.name}</button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div>
+                  <button type="button" onClick={function() {
+                    var count = (noteBlocks.blocks || []).length + 2;
+                    var top = Math.max(10, Math.min(menu.y, window.innerHeight - (56 + count * 40) - 10));
+                    setMenu(Object.assign({}, menu, { view: "move", y: top }));
+                  }}>Mudar de categoria</button>
+                  <button type="button" onClick={function() { setNoteHidden(space.id, !secret); closeNoteMenu(); }}>{secret ? "Mostrar nota" : "Ocultar nota"}</button>
+                  <div className="nt-menu-sep" />
+                  <button type="button" onClick={function() { setRenameVal(space.title || ""); setRenameId(space.id); closeNoteMenu(); }}>Mudar nome</button>
+                  <button type="button" className="is-danger" onClick={function() { closeNoteMenu(); removeSpace(space); }}>Eliminar</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })() : null}
+
+      {catMenu ? (function() {
+        var blk = (noteBlocks.blocks || []).find(function(b) { return b.id === catMenu.id; });
+        if (!blk) return null;
+        return (
+          <div className="nt-menu-bg" onClick={function() { setCatMenu(null); }} onContextMenu={function(e) { e.preventDefault(); setCatMenu(null); }}>
+            <div className="nt-menu" style={{ left: catMenu.x, top: catMenu.y }} onClick={function(e) { e.stopPropagation(); }}>
+              <button type="button" onClick={function() { renameNoteBlock(blk.id); setCatMenu(null); }}>Renomear</button>
+              <button type="button" className="is-danger" onClick={function() { setCatMenu(null); deleteNoteBlock(blk.id); }}>Eliminar</button>
             </div>
           </div>
         );

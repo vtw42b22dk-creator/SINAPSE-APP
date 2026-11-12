@@ -19,6 +19,7 @@ import {
   saveHidden,
   NAV_EVENT,
 } from "../lib/navModules.jsx";
+import { loadNotesLock, patchPrefs } from "../lib/prefsStore";
 
 var HUB_CSS = [
   MICRO_CSS,
@@ -48,9 +49,11 @@ var HUB_CSS = [
   ".hub-ring svg{display:block}",
   ".hub-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
   ".hub-stats.has-resale{grid-template-columns:repeat(4,minmax(0,1fr))}",
-  ".hub-stat{position:relative;padding:16px 16px 14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.045);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(22px) saturate(2.1);-webkit-backdrop-filter:blur(22px) saturate(2.1);overflow:hidden;border-radius:16px}",
-  ".hub-stat::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 48%)}",
-  ".hub-stat:hover{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.07)}",
+  ".hub-stat{position:relative;isolation:isolate;padding:16px 16px 14px;border:1px solid transparent;background:rgba(255,255,255,.055);text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);overflow:hidden;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 1px rgba(0,0,0,.32),inset 0 0 28px rgba(255,255,255,.045)}",
+  ".hub-stat::before{content:'';position:absolute;inset:1px 1px auto 1px;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent 75%);z-index:1}",
+  ".hub-stat::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.12) 30%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.2) 78%,rgba(255,255,255,.08));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".hub-stat:hover{background:rgba(255,255,255,.08)}",
+  ".hub-stat > *{position:relative;z-index:4}",
   ".hub-stat b{display:block;font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1}",
   ".hub-stat i{display:block;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;text-transform:uppercase}",
   ".hub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:180ms}",
@@ -73,6 +76,14 @@ var HUB_CSS = [
   ".hub-set-link h3{margin:0;font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:" + COLORS.text + "}",
   ".hub-set-link p{margin:4px 0 0;font-size:12.5px;color:" + COLORS.faint + "}",
   ".hub-set-link:hover h3{color:var(--mc)}",
+  ".hub-lock{display:flex;flex-direction:column;align-items:flex-start;gap:10px;max-width:460px;padding:4px 0 8px}",
+  ".hub-lock h3{margin:0;font-family:'Syne',sans-serif;font-size:16px;font-weight:600;color:" + COLORS.text + "}",
+  ".hub-lock p{margin:0;font-size:12.5px;line-height:1.5;color:" + COLORS.faint + "}",
+  ".hub-lock-in{width:min(280px,100%);background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:" + COLORS.text + ";padding:10px 0;font-family:'Manrope',sans-serif;font-size:15px;outline:none}",
+  ".hub-lock-in:focus{border-bottom-color:var(--mc,#EDE8DF)}",
+  ".hub-lock-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}",
+  ".hub-lock-show{border:none;background:transparent;color:" + COLORS.faint + ";cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;padding:8px 0}",
+  ".hub-lock-msg{font-size:12px;color:" + COLORS.muted + "}",
   ".hub-foot{margin-top:48px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;letter-spacing:.4px}",
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
@@ -117,6 +128,52 @@ function eur(v) {
 }
 function canDesktopReorder() {
   try { return window.matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) { return true; }
+}
+
+function NotesLockSetting() {
+  var draftS = useState("");
+  var msgS = useState("");
+  var showS = useState(false);
+  var draft = draftS[0], setDraft = draftS[1];
+  var msg = msgS[0], setMsg = msgS[1];
+  var show = showS[0], setShow = showS[1];
+
+  useEffect(function() {
+    var alive = true;
+    loadNotesLock().then(function(value) { if (alive) setDraft(value || "eeeeee"); });
+    return function() { alive = false; };
+  }, []);
+
+  function save(e) {
+    e.preventDefault();
+    var next = (draft || "").trim();
+    if (!next) {
+      setMsg("Escreve uma palavra-passe.");
+      return;
+    }
+    patchPrefs({ notesLock: next });
+    setDraft(next);
+    setMsg("Guardada. Fica igual nos outros dispositivos.");
+  }
+
+  return (
+    <form className="hub-lock" onSubmit={save}>
+      <h3>Notas ocultas</h3>
+      <p>Palavra-passe para voltar a ver uma nota ocultada. A predefinida é eeeeee.</p>
+      <input
+        className="hub-lock-in"
+        type={show ? "text" : "password"}
+        autoComplete="new-password"
+        value={draft}
+        onChange={function(e) { setDraft(e.target.value); if (msg) setMsg(""); }}
+      />
+      <div className="hub-lock-actions">
+        <button type="submit" className="ui-line-btn ui-tap">Guardar</button>
+        <button type="button" className="hub-lock-show" onClick={function() { setShow(!show); }}>{show ? "Esconder" : "Mostrar"}</button>
+        {msg ? <span className="hub-lock-msg">{msg}</span> : null}
+      </div>
+    </form>
+  );
 }
 function getGreeting() {
   var h = new Date().getHours();
@@ -321,7 +378,7 @@ export default function Hub() {
       loadSnapshot().then(function(s) { if (alive) setSnap(s); }).catch(function() {}).finally(function() { aLer = false; });
     }
     ler();
-    var id = setInterval(ler, 180000);
+    var id = setInterval(ler, 20000);
     window.addEventListener("focus", ler);
     return function() {
       alive = false;
@@ -434,6 +491,10 @@ export default function Hub() {
                   </div>
                 );
               })}
+            </div>
+            <div className="hub-set-block">
+              <p className="hub-kicker" style={{ marginBottom: 8 }}>Notas</p>
+              <NotesLockSetting />
             </div>
             <div className="hub-set-block">
               <p className="hub-kicker" style={{ marginBottom: 4 }}>Atalhos</p>

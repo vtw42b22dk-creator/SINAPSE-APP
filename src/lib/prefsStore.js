@@ -19,8 +19,15 @@ function emptyPrefs() {
     hubHidden: [],
     projectPins: [],
     focusShelf: { order: [], archived: [] },
+    notesLock: "",
     updated: 0,
   };
+}
+
+var DEFAULT_NOTES_LOCK = "eeeeee";
+
+function notesLockText(value) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function asList(value) {
@@ -57,8 +64,24 @@ export function normalizePrefs(row) {
     hubHidden: asList(top.hubHidden),
     projectPins: asList(top.projectPins),
     focusShelf: asShelf(top.focusShelf),
+    notesLock: notesLockText(top.notesLock),
     updated: updated || 0,
   };
+}
+
+/** Palavra-passe das notas ocultas. Vazia na nuvem significa a predefinida. */
+export function notesLockFrom(prefs) {
+  return notesLockText(prefs && prefs.notesLock) || DEFAULT_NOTES_LOCK;
+}
+
+export async function loadNotesLock() {
+  var local = memory;
+  try {
+    var rows = await readLocal(KEY, []);
+    var stored = rows && rows[0] ? normalizePrefs(rows[0]) : null;
+    if (!local || (stored && (stored.updated || 0) > (local.updated || 0))) local = stored || local;
+  } catch (e) {}
+  return notesLockFrom(local);
 }
 
 function toDb(prefs) {
@@ -70,6 +93,7 @@ function toDb(prefs) {
       hubHidden: asList(p.hubHidden),
       projectPins: asList(p.projectPins),
       focusShelf: asShelf(p.focusShelf),
+      notesLock: notesLockText(p.notesLock),
       updated: p.updated || Date.now(),
     },
     updated: p.updated || Date.now(),
@@ -121,12 +145,15 @@ function applyPrefs(prefs) {
 function pickPrefs(localRow, remoteRow) {
   var local = normalizePrefs(localRow);
   var remote = normalizePrefs(remoteRow);
-  if (score(remote) === 0 && score(local) > 0) return local;
-  if (score(local) === 0 && score(remote) > 0) return remote;
-  if ((local.updated || 0) === (remote.updated || 0)) {
-    return score(local) >= score(remote) ? local : remote;
-  }
-  return (local.updated || 0) > (remote.updated || 0) ? local : remote;
+  var picked;
+  if (score(remote) === 0 && score(local) > 0) picked = local;
+  else if (score(local) === 0 && score(remote) > 0) picked = remote;
+  else if ((local.updated || 0) === (remote.updated || 0)) {
+    picked = score(local) >= score(remote) ? local : remote;
+  } else picked = (local.updated || 0) > (remote.updated || 0) ? local : remote;
+  var lock = notesLockText(picked.notesLock) || notesLockText(local.notesLock) || notesLockText(remote.notesLock);
+  if (lock && lock !== notesLockText(picked.notesLock)) return Object.assign({}, picked, { notesLock: lock });
+  return picked;
 }
 
 async function savePrefsNow(prefs) {
@@ -145,12 +172,14 @@ export function patchPrefs(partial) {
       hubHidden: partial && partial.hubHidden != null ? partial.hubHidden : base.hubHidden,
       projectPins: partial && partial.projectPins != null ? partial.projectPins : base.projectPins,
       focusShelf: partial && partial.focusShelf != null ? partial.focusShelf : base.focusShelf,
+      notesLock: partial && partial.notesLock != null ? notesLockText(partial.notesLock) : notesLockText(base.notesLock),
       updated: Date.now(),
     },
     updated: Date.now(),
   });
   memory = next;
   writeLocal(KEY, [toDb(next)]).catch(function() {});
+  try { window.dispatchEvent(new Event("sinapse-prefs")); } catch (e) {}
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function() {
     savePrefsNow(memory || next).catch(function() {});
@@ -176,7 +205,11 @@ export async function pullPrefs() {
 
   var picked = pickPrefs(localRow, remoteRow);
   var remoteEmpty = score(remoteRow) === 0 && score(picked) > 0;
-  if (!sameBody(picked, remoteRow) && ((picked.updated || 0) > (remoteRow.updated || 0) || remoteEmpty)) {
+  var lockDrift = notesLockText(picked.notesLock) !== notesLockText(remoteRow.notesLock) && !!notesLockText(picked.notesLock);
+  if (lockDrift && (picked.updated || 0) <= (remoteRow.updated || 0)) {
+    picked = Object.assign({}, picked, { updated: Date.now() });
+  }
+  if ((!sameBody(picked, remoteRow) && ((picked.updated || 0) > (remoteRow.updated || 0) || remoteEmpty)) || lockDrift) {
     if (!picked.updated || (picked.updated || 0) <= (remoteRow.updated || 0)) {
       picked = Object.assign({}, picked, { updated: Date.now() });
     }

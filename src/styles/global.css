@@ -28,6 +28,26 @@
   --radius-lg: 16px;
   --radius-xl: 22px;
   --radius-pill: 999px;
+  /* Apple Liquid Glass + Spatial UI */
+  --glass-blur: 40px;
+  --glass-sat: 1.85;
+  --glass-fill: rgba(255, 255, 255, 0.055);
+  --glass-rim: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.14) 28%,
+    rgba(255, 255, 255, 0.04) 48%,
+    rgba(255, 255, 255, 0.22) 72%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  --glass-inset:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.32),
+    inset 0 0 28px rgba(255, 255, 255, 0.045);
+  --glass-inset-soft:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.22),
+    inset 0 0 18px rgba(255, 255, 255, 0.03);
   color-scheme: dark;
 }
 
@@ -315,10 +335,85 @@ textarea::placeholder {
   background: color-mix(in srgb, var(--mc, #fff) 50%, rgba(255, 255, 255, 0.2));
 }
 
-/* ── Campo aberto: sem caixas pesadas, mas curvas suaves nos controlos. ── */
+/* ── Campo aberto: sem sombras exteriores pesadas; Liquid Glass usa inset. ── */
 #root *,
 #root *::before,
 #root *::after {
+  box-shadow: none !important;
+}
+
+/* Excepções: vidro espacial precisa de inner shadow + (opcional) drop suave */
+#root .liquid-glass,
+#root .glass,
+#root .glass-flat,
+#root .glass-capsule,
+#root .glass-soft,
+#root .sh-side,
+#root .sh-burger,
+#root .hub-stat,
+#root .vin-stat,
+#root .vin-card,
+#root .vin-glass-btn,
+#root .vin-day,
+#root .tk-card,
+#root .wl-item,
+#root .nt-menu,
+#root .ch-sheet,
+#root .ch-sheet--desk,
+#root .pj-modal,
+#root .fx-modal,
+#root .cal-event-popup-panel,
+#root .seg,
+#root .fs-head.glass-capsule,
+#root .fs-dock.glass-capsule,
+#root .tk-head,
+#root .ch-head,
+#root .pj-top,
+#root .pw-head,
+#root .wl-head,
+#root .gn-header,
+#root .nt-head,
+#root .shell-stage > * > header {
+  box-shadow: var(--glass-inset) !important;
+}
+
+#root .glass-flat,
+#root .glass-soft,
+#root .vin-day,
+#root .tk-card,
+#root .wl-item,
+#root .seg {
+  box-shadow: var(--glass-inset-soft) !important;
+}
+
+/* Borda-reflexo (gradiente nas arestas) via ::before em superfícies-chave */
+#root .liquid-glass::before,
+#root .glass::before,
+#root .glass-flat::before,
+#root .glass-capsule::before,
+#root .glass-soft::before,
+#root .sh-side::before,
+#root .hub-stat::after,
+#root .vin-stat::after,
+#root .vin-card::after,
+#root .vin-glass-btn::after,
+#root .tk-card::before,
+#root .wl-item::after,
+#root .nt-menu::before,
+#root .ch-sheet::before,
+#root .pj-modal::before,
+#root .fx-modal::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  padding: 1px !important;
+  background: var(--glass-rim) !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+  mask-composite: exclude !important;
+  pointer-events: none !important;
+  z-index: 3 !important;
   box-shadow: none !important;
 }
 
@@ -387,10 +482,16 @@ textarea::placeholder {
 }
 
 #root .tk-card {
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  position: relative !important;
+  isolation: isolate !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid transparent !important;
   border-radius: var(--radius-md) !important;
   margin-bottom: 8px !important;
+  backdrop-filter: blur(28px) saturate(1.7) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.7) !important;
+  box-shadow: var(--glass-inset-soft) !important;
+  overflow: hidden !important;
 }
 
 #root .ch-ev-body,
@@ -522,14 +623,12 @@ textarea::placeholder {
 #root .pj-rowcard,
 #root .pj-addcard,
 #root .pj-empty,
-#root .pj-modal,
 #root .tk-col,
 #root .tk-tab,
 #root .tk-empty,
 #root .fx-panel,
 #root .fx-proj,
 #root .fx-addcard,
-#root .fx-modal,
 #root .fx-stat,
 #root .fx-goal,
 #root .fx-idea,
@@ -556,15 +655,37 @@ textarea::placeholder {
 #root .wl-rail {
   background: transparent !important;
   border: none !important;
-  box-shadow: none !important;
+}
+
+/* Modais / sheets: Liquid Glass espacial */
+#root .pj-modal,
+#root .fx-modal,
+#root .cal-event-popup-panel,
+#root .ch-sheet,
+#root .ch-sheet--desk,
+#root .nt-menu {
+  position: relative !important;
+  isolation: isolate !important;
+  background: rgba(14, 14, 16, 0.55) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  border: 1px solid transparent !important;
+  box-shadow: var(--glass-inset) !important;
+  overflow: hidden !important;
 }
 
 #root .wl-item {
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  position: relative !important;
+  isolation: isolate !important;
+  border: 1px solid transparent !important;
   border-radius: var(--radius-md) !important;
   margin-bottom: 6px !important;
   padding: 12px 14px !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(28px) saturate(1.7) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.7) !important;
+  box-shadow: var(--glass-inset-soft) !important;
+  overflow: hidden !important;
 }
 
 #root .wl-hero,
@@ -657,13 +778,6 @@ textarea::placeholder {
   border: none !important;
 }
 
-#root .pj-modal,
-#root .fx-modal,
-#root .cal-event-popup-panel {
-  background: #070708 !important;
-  border: none !important;
-  border-top: 1px solid var(--border-strong) !important;
-}
 
 #root .tk-in,
 #root .fx-input,
@@ -862,10 +976,54 @@ textarea::placeholder {
 .pw-head,
 .wl-head,
 .gn-header,
+.nt-head,
 .shell-stage > * > header {
-  background: rgba(255, 255, 255, 0.04) !important;
-  backdrop-filter: blur(24px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+  position: relative !important;
+  isolation: isolate !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  box-shadow: var(--glass-inset-soft) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Hub / Vinted stats — painéis Liquid Glass */
+#root .hub-stat,
+#root .vin-stat,
+#root .vin-card,
+#root .vin-glass-btn,
+#root .vin-day {
+  position: relative !important;
+  isolation: isolate !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  border: 1px solid transparent !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  box-shadow: var(--glass-inset) !important;
+  overflow: hidden !important;
+}
+
+#root .vin-day {
+  box-shadow: var(--glass-inset-soft) !important;
+  backdrop-filter: blur(24px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+}
+
+#root .hub-stat,
+#root .vin-stat,
+#root .vin-card,
+#root .vin-glass-btn,
+#root .sh-burger,
+#root .nt-menu {
+  border-radius: var(--radius-lg) !important;
+}
+
+#root .vin-card {
+  border-radius: var(--radius-xl) !important;
+}
+
+#root .ch-sheet {
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
 }
 
 .ch-glow {

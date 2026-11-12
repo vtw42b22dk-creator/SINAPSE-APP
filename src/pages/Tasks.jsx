@@ -417,7 +417,7 @@ export default function Tasks() {
     document.addEventListener("visibilitychange", onVis);
     var timer = setInterval(function() {
       if (document.visibilityState === "visible") syncFromCloud();
-    }, 180000);
+    }, 12000);
     var channel = null;
     if (supabase && auth.user) {
       channel = supabase.channel("sync-tasks-" + auth.user.id.slice(0, 8));
