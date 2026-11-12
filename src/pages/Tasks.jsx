@@ -135,17 +135,22 @@ var TASKS_CSS = [
   ".tk-tab-icon{font-size:20px;line-height:1;color:#A0A0A8;flex-shrink:0;width:32px}",
   ".tk-tab-count{font-size:15px;font-family:'Manrope',sans-serif;color:#EDEDEF;min-width:34px;text-align:right}",
   ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer;display:flex;align-items:center;justify-content:center}",
-  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(10,12,20,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center}",
-  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.55));backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);border:1px solid transparent;border-bottom:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 24px 60px rgba(0,0,0,.4);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:28px 28px 0 0}",
-  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.35);margin:0 auto 14px}",
+  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(6,8,16,.48);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:24px}",
+  ".tk-sheet{position:relative;isolation:isolate;width:min(440px,100%);max-height:min(86vh,680px);overflow:auto;background:linear-gradient(168deg,rgba(255,255,255,.16),rgba(255,255,255,.04) 38%,rgba(8,8,14,.58));backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);border:1px solid transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.62),inset 0 -1px 1px rgba(0,0,0,.42),0 28px 70px rgba(0,0,0,.45);padding:22px 22px 18px;border-radius:28px}",
+  ".tk-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;background:linear-gradient(155deg,rgba(255,255,255,.7),rgba(255,255,255,.12) 32%,rgba(255,255,255,.04) 55%,rgba(255,255,255,.22));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".tk-sheet>*{position:relative;z-index:3}",
+  ".tk-sheet-kicker{margin:0 0 4px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.45);font-family:'Manrope',sans-serif}",
+  ".tk-sheet-h{margin:0 0 16px;font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-.04em;color:#fff}",
+  ".tk-sheet-handle{display:none}",
   ".tk-sheet-title{width:100%;box-sizing:border-box;background:rgba(255,255,255,.12);border:none;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);color:#fff;font-size:18px;font-family:'Manrope',sans-serif;outline:none;padding:14px 14px;margin-top:8px}",
   ".tk-sheet-title::placeholder{color:rgba(255,255,255,.4)}",
+  ".tk-sheet .tk-in{width:100%;margin-top:10px;padding:12px 14px!important;border-radius:14px!important;background:rgba(255,255,255,.06)!important}",
   ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}",
   ".tk-chip{min-height:40px;padding:8px 14px;border-radius:999px;border:none;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:rgba(255,255,255,.7);font-family:'Manrope',sans-serif;font-size:13px;cursor:pointer}",
   ".tk-chip.is-on{color:#fff;background:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 1px rgba(0,0,0,.3)}",
   ".tk-sheet-go{width:100%;min-height:50px;margin-top:16px;border:none;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 1px rgba(0,0,0,.35);font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px)}",
   ".tk-sheet-cancel{width:100%;min-height:44px;margin-top:6px;border:none;background:transparent;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer}",
-  "@media(min-width:720px){.tk-sheet-bg{align-items:center;padding:24px}.tk-sheet{width:min(480px,100%);margin:0;border-radius:28px;border-bottom:none;max-height:86vh}}",
+  "@media(max-width:719px){.tk-sheet-bg{padding:16px}.tk-sheet{width:min(440px,100%);max-height:88vh;padding:18px 16px 16px}}",
   "@media(max-width:719px){",
   ".tk-head{padding:12px;padding-top:max(12px,env(safe-area-inset-top))}",
   ".tk-head-inner{flex-direction:column;align-items:stretch}",
@@ -769,67 +774,6 @@ export default function Tasks() {
           </button>
         ) : null}
 
-        {showForm && !touchCreate ? (
-          <div className="tk-form">
-            <p className="tk-lbl" style={{ margin: "0 0 14px" }}>{editId ? "EDITAR TAREFA" : "NOVA TAREFA"}</p>
-            <div className={"tk-form-grid" + (isMobile ? " tk-form-grid--mob" : "")}>
-              <input className="tk-in ui-in" value={draft.title} onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }} placeholder="O que tens de fazer?" autoFocus
-                style={{ gridColumn: "1 / -1", padding: "12px 4px", fontSize: isMobile ? 16 : 14.5 }} />
-              <textarea className="tk-in ui-in" value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
-                style={{ gridColumn: "1 / -1", padding: "11px 4px", fontSize: isMobile ? 16 : 13, resize: "vertical", lineHeight: 1.55 }} />
-              <button type="button" className={"tk-switch" + (draft.horizon ? " is-on" : "")} style={{ gridColumn: "1 / -1" }} onClick={function() { setHorizon(!draft.horizon); }}>
-                <span><b>Longo prazo</b><span>Fica fora do quadro, só na zona própria</span></span>
-                <i aria-hidden="true" />
-              </button>
-              {draft.horizon ? (
-                <p className="tk-horizon-hint" style={{ gridColumn: "1 / -1", margin: 0 }}>Fica só na zona de longo prazo, fora do quadro.</p>
-              ) : (
-              <select className="tk-in ui-in" value={draft.column === "long" || draft.column === "longdone" ? "inbox" : draft.column} onChange={function(e) { setDraft(Object.assign({}, draft, { column: e.target.value, horizon: false })); }}
-                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }}>
-                {COLUMNS.map(function(c) { return <option key={c.id} value={c.id}>{c.label}</option>; })}
-              </select>
-              )}
-              <select className="tk-in ui-in" value={draft.priority} onChange={function(e) { setDraft(Object.assign({}, draft, { priority: e.target.value })); }}
-                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }}>
-                {PRIORITIES.map(function(p) { return <option key={p.id} value={p.id}>{p.label}</option>; })}
-              </select>
-              <input className="tk-in ui-in" type="date" value={draft.due} onChange={function(e) { setDraft(Object.assign({}, draft, { due: e.target.value })); }}
-                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13, fontFamily: "'Manrope',sans-serif", color: "#A0A0A8" }} />
-              <input className="tk-in ui-in" value={draft.tags} onChange={function(e) { setDraft(Object.assign({}, draft, { tags: e.target.value })); }} placeholder="Tags: casa, estudo..."
-                style={{ padding: "11px 4px", fontSize: isMobile ? 16 : 13 }} />
-            </div>
-            <div style={{ marginTop: 18 }}>
-              <p className="tk-lbl" style={{ margin: "0 0 10px" }}>SUBTAREFAS</p>
-              {(draft.subtasks || []).map(function(st) {
-                return (
-                  <label key={st.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, fontSize: 12, cursor: "pointer" }}>
-                    <input type="checkbox" checked={!!st.done} onChange={function() {
-                      setDraft(Object.assign({}, draft, {
-                        subtasks: (draft.subtasks || []).map(function(s) { return s.id === st.id ? Object.assign({}, s, { done: !s.done }) : s; }),
-                      }));
-                    }} />
-                    <span style={{ textDecoration: st.done ? "line-through" : "none", color: st.done ? "#6E6E76" : "#A0A0A8" }}>{st.title}</span>
-                  </label>
-                );
-              })}
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <input className="tk-in ui-in" value={subDraft} onChange={function(e) { setSubDraft(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") addSubtask(); }} placeholder="Nova subtarefa..."
-                  style={{ flex: 1, padding: "10px 4px", fontSize: isMobile ? 16 : 13 }} />
-                <button type="button" className="ui-line-btn ui-tap" onClick={addSubtask}>+</button>
-              </div>
-            </div>
-            <div className="tk-form-actions">
-              <button type="button" className="tk-save ui-tap" onClick={function() { saveTask(); }}>Guardar</button>
-              <button type="button" className="tk-cancel ui-tap" onClick={resetDraft}>Cancelar</button>
-              {!editId && (
-                <button type="button" className="tk-quick-save ui-tap" onClick={function() { saveTask(Object.assign({}, draft, { column: "today", due: tk, horizon: false })); }}>
-                  Guardar em «Hoje»
-                </button>
-              )}
-            </div>
-          </div>
-        ) : null}
-
         {isMobile && !mobileTab ? (
           <div data-stagger style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
             <p style={{ margin: "0 0 4px", fontSize: 13.5, color: "#A0A0A8", lineHeight: 1.5 }}>Onde queres começar?</p>
@@ -930,11 +874,11 @@ export default function Tasks() {
         )}
       </div>
 
-      {touchCreate && showForm ? (
+      {showForm ? (
         <div className="tk-sheet-bg" onClick={resetDraft}>
-          <div className="tk-sheet" onClick={function(e) { e.stopPropagation(); }}>
-            <div className="tk-sheet-handle" />
-            <p className="tk-lbl" style={{ margin: "0 0 8px" }}>{editId ? "Editar tarefa" : "Nova tarefa"}</p>
+          <div className="tk-sheet" role="dialog" aria-modal="true" aria-label={editId ? "Editar tarefa" : "Nova tarefa"} onClick={function(e) { e.stopPropagation(); }}>
+            <p className="tk-sheet-kicker">Tarefas</p>
+            <h2 className="tk-sheet-h">{editId ? "Editar tarefa" : "Nova tarefa"}</h2>
             <input
               className="tk-sheet-title"
               value={draft.title}

@@ -519,10 +519,19 @@ textarea::placeholder {
 #root .ch-wk-ev {
   border-radius: 5px !important;
 }
-#root .ch-wk-allday-chip,
-#root .ch-allday-row,
 #root .hub-row {
   border-radius: var(--radius-md) !important;
+}
+#root .ch-wk-allday-chip {
+  border-radius: 7px !important;
+  min-height: 24px !important;
+  height: 26px !important;
+  margin: 3px 3px !important;
+  padding: 0 8px !important;
+  align-self: center !important;
+}
+#root .ch-allday-row {
+  border-radius: 12px !important;
 }
 
 #root .tk-card {
@@ -544,9 +553,14 @@ textarea::placeholder {
 }
 
 #root .ch-ev-bar,
-#root .ch-wk-ev-bar,
-#root .ch-allday-bar {
+#root .ch-wk-ev-bar {
   border-radius: var(--radius-xs) 0 0 var(--radius-xs) !important;
+}
+#root .ch-allday-bar {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  align-self: center !important;
 }
 
 #root .ch-sheet {
@@ -561,9 +575,13 @@ textarea::placeholder {
 }
 
 #root .ch-rail-day,
-#root .ch-wk-strip-cell,
 #root .ch-month-cell {
   border-radius: var(--radius-sm) !important;
+}
+#root .ch-wk-strip-cell {
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 #root .tk-progress,
@@ -616,7 +634,9 @@ textarea::placeholder {
 }
 
 #root .ch-wk-strip-row {
-  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 #root .fx-analog-face,
