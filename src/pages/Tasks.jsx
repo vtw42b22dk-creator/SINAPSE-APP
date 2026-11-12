@@ -48,13 +48,19 @@ var TASKS_CSS = [
   ".tk-zone-btn{padding:8px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.2);background:transparent;color:#A0A0A8;font-size:11px;font-family:'Manrope',sans-serif;cursor:pointer;white-space:nowrap;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur-fast) var(--ease)}",
   ".tk-zone-btn:hover{color:var(--mc);border-bottom-color:var(--mc)}",
   ".tk-zone-btn:active{transform:scale(.96)}",
-  ".tk-zone-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin:0 0 22px;padding:16px 2px;border:none;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);background:transparent;color:#A0A0A8;cursor:pointer;text-align:left;font-family:inherit}",
-  ".tk-zone-entry strong{font-family:'Manrope',sans-serif;font-weight:500;font-size:13px;letter-spacing:.3px;color:#EDEDEF}",
-  ".tk-zone-entry span{font-size:12px;color:#6E6E76}",
-  ".tk-zone-entry:hover strong{color:var(--mc)}",
-  ".tk-horizon{padding:11px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#6E6E76;font-size:12px;font-family:'Manrope',sans-serif;cursor:pointer;text-align:left;transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}",
-  ".tk-horizon.is-on{color:var(--mc);border-bottom-color:var(--mc)}",
-  ".tk-horizon-hint{margin:8px 0 0;font-size:12px;line-height:1.5;color:#6E6E76}",
+  ".tk-zone-entry{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;margin:0 0 22px;padding:14px 16px;border:none;border-radius:18px;background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);color:rgba(255,255,255,.7);cursor:pointer;text-align:left;font-family:inherit}",
+  ".tk-zone-entry strong{font-family:'Manrope',sans-serif;font-weight:600;font-size:14px;color:#fff}",
+  ".tk-zone-entry span{font-size:12px;color:rgba(255,255,255,.55)}",
+  ".tk-zone-entry:hover{background:rgba(255,255,255,.18)}",
+  ".tk-switch{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:12px 14px;border:none;border-radius:16px;background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);color:#fff;cursor:pointer;text-align:left;font-family:'Manrope',sans-serif}",
+  ".tk-switch b{display:block;font-weight:600;font-size:14px;color:#fff}",
+  ".tk-switch span span{display:block;margin-top:2px;font-size:12px;color:rgba(255,255,255,.55);font-weight:400}",
+  ".tk-switch i{position:relative;flex-shrink:0;width:46px;height:28px;border-radius:999px;background:rgba(255,255,255,.18)}",
+  ".tk-switch i::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s ease}",
+  ".tk-switch.is-on{background:rgba(255,255,255,.2)}",
+  ".tk-switch.is-on i{background:#fff}",
+  ".tk-switch.is-on i::after{transform:translateX(18px);background:#1a1c28}",
+  ".tk-horizon-hint{margin:8px 0 0;font-size:12px;line-height:1.5;color:rgba(255,255,255,.55)}",
   ".tk-long-lead{margin:0 0 18px;max-width:56ch;font-size:13.5px;line-height:1.55;color:#A0A0A8}",
   ".tk-long-list{display:flex;flex-direction:column;gap:10px;max-width:720px}",
   ".tk-release{background:none;border:none;border-bottom:1px solid rgba(255,255,255,.16);color:#A0A0A8;cursor:pointer;font-size:10px;font-family:'Manrope',sans-serif;letter-spacing:.3px;padding:6px 2px;white-space:nowrap}",
@@ -129,16 +135,17 @@ var TASKS_CSS = [
   ".tk-tab-icon{font-size:20px;line-height:1;color:#A0A0A8;flex-shrink:0;width:32px}",
   ".tk-tab-count{font-size:15px;font-family:'Manrope',sans-serif;color:#EDEDEF;min-width:34px;text-align:right}",
   ".tk-fab{position:fixed;z-index:40;right:18px;bottom:max(20px,env(safe-area-inset-bottom));width:58px;height:58px;border:none;border-radius:50%;background:color-mix(in srgb,var(--mc) 22%,#111);color:var(--mc);font-size:28px;font-weight:300;line-height:1;box-shadow:0 10px 28px rgba(0,0,0,.45);cursor:pointer;display:flex;align-items:center;justify-content:center}",
-  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.72);display:flex;align-items:flex-end}",
-  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:rgba(255,255,255,.1);backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);border:1px solid transparent;border-bottom:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 1px rgba(0,0,0,.3);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:28px 28px 0 0}",
-  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin:0 auto 16px}",
-  ".tk-sheet-title{width:100%;box-sizing:border-box;background:transparent;border:none;color:#EDEDEF;font-size:22px;font-family:'Manrope',sans-serif;outline:none;padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,.08)}",
-  ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}",
-  ".tk-chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:12px;cursor:pointer}",
-  ".tk-chip.is-on{color:var(--mc);border-color:color-mix(in srgb,var(--mc) 50%,transparent);background:color-mix(in srgb,var(--mc) 14%,transparent)}",
-  ".tk-sheet-go{width:100%;min-height:50px;margin-top:18px;border:none;border-radius:14px;background:color-mix(in srgb,var(--mc) 18%,transparent);color:var(--mc);font-family:'Manrope',sans-serif;font-size:14px;cursor:pointer}",
-  ".tk-sheet-cancel{width:100%;min-height:46px;margin-top:8px;border:none;background:transparent;color:#6E6E76;font-size:14px;cursor:pointer}",
-  "@media(min-width:720px){.tk-sheet{width:min(480px,100%);margin:0 auto;border-radius:22px 22px 0 0}}",
+  ".tk-sheet-bg{position:fixed;inset:0;z-index:80;background:rgba(10,12,20,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center}",
+  ".tk-sheet{width:100%;max-height:92vh;overflow-y:auto;background:rgba(255,255,255,.18);backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);border:1px solid transparent;border-bottom:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 1px rgba(0,0,0,.2),0 24px 60px rgba(0,0,0,.35);padding:18px 18px max(22px,env(safe-area-inset-bottom));border-radius:28px 28px 0 0}",
+  ".tk-sheet-handle{width:40px;height:4px;border-radius:999px;background:rgba(255,255,255,.35);margin:0 auto 14px}",
+  ".tk-sheet-title{width:100%;box-sizing:border-box;background:rgba(255,255,255,.12);border:none;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);color:#fff;font-size:18px;font-family:'Manrope',sans-serif;outline:none;padding:14px 14px;margin-top:8px}",
+  ".tk-sheet-title::placeholder{color:rgba(255,255,255,.4)}",
+  ".tk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px}",
+  ".tk-chip{min-height:40px;padding:8px 14px;border-radius:999px;border:none;background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:rgba(255,255,255,.7);font-family:'Manrope',sans-serif;font-size:13px;cursor:pointer}",
+  ".tk-chip.is-on{color:#1a1c28;background:#fff}",
+  ".tk-sheet-go{width:100%;min-height:50px;margin-top:16px;border:none;border-radius:999px;background:#fff;color:#1a1c28;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer}",
+  ".tk-sheet-cancel{width:100%;min-height:44px;margin-top:6px;border:none;background:transparent;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer}",
+  "@media(min-width:720px){.tk-sheet-bg{align-items:center;padding:24px}.tk-sheet{width:min(480px,100%);margin:0;border-radius:28px;border-bottom:none;max-height:86vh}}",
   "@media(max-width:719px){",
   ".tk-head{padding:12px;padding-top:max(12px,env(safe-area-inset-top))}",
   ".tk-head-inner{flex-direction:column;align-items:stretch}",
@@ -708,13 +715,13 @@ export default function Tasks() {
             ) : (
               <HubBack />
             )}
-            <h1 className="mod-h1" style={{ margin: 0, fontSize: fs(isMobile, 20, 24), fontFamily: "'Syne',sans-serif", color: ACCENT, fontWeight: 700, letterSpacing: "-0.04em" }}>
+            <h1 className="mod-h1">
               {showLong ? "Longo prazo" : isMobile && activeMobileView ? activeMobileView.label : "Tarefas"}
             </h1>
           </div>
           {!(isMobile && !mobileTab) ? (
           <div className={"tk-search-row" + (isMobile ? " tk-search-row--full" : "")}>
-            <input className="tk-in ui-in" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
+            <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..."
               style={{ flex: 1, padding: "10px 4px", fontSize: isMobile ? 16 : 13 }} />
             {!showLong ? (
             <button type="button" className={"tk-focus-btn ui-tap" + (focusToday ? " is-on" : "")} onClick={function() { setFocusToday(!focusToday); }}>
@@ -770,8 +777,9 @@ export default function Tasks() {
                 style={{ gridColumn: "1 / -1", padding: "12px 4px", fontSize: isMobile ? 16 : 14.5 }} />
               <textarea className="tk-in ui-in" value={draft.notes} onChange={function(e) { setDraft(Object.assign({}, draft, { notes: e.target.value })); }} placeholder="Notas..." rows={2}
                 style={{ gridColumn: "1 / -1", padding: "11px 4px", fontSize: isMobile ? 16 : 13, resize: "vertical", lineHeight: 1.55 }} />
-              <button type="button" className={"tk-horizon" + (draft.horizon ? " is-on" : "")} style={{ gridColumn: "1 / -1" }} onClick={function() { setHorizon(!draft.horizon); }}>
-                {draft.horizon ? "Longo prazo · activo" : "Marcar como longo prazo"}
+              <button type="button" className={"tk-switch" + (draft.horizon ? " is-on" : "")} style={{ gridColumn: "1 / -1" }} onClick={function() { setHorizon(!draft.horizon); }}>
+                <span><b>Longo prazo</b><span>Fica fora do quadro, só na zona própria</span></span>
+                <i aria-hidden="true" />
               </button>
               {draft.horizon ? (
                 <p className="tk-horizon-hint" style={{ gridColumn: "1 / -1", margin: 0 }}>Fica só na zona de longo prazo, fora do quadro.</p>
@@ -934,22 +942,23 @@ export default function Tasks() {
               placeholder="O que tens de fazer?"
               onChange={function(e) { setDraft(Object.assign({}, draft, { title: e.target.value })); }}
             />
-            <p className="tk-lbl" style={{ margin: "16px 0 0" }}>Onde</p>
-            <div className="tk-chips">
-              <button type="button" className={"tk-chip" + (draft.horizon ? " is-on" : "")}
-                onClick={function() { setHorizon(!draft.horizon); }}>
-                Longo prazo
-              </button>
-              {!draft.horizon ? COLUMNS.map(function(c) {
-                return (
-                  <button key={c.id} type="button" className={"tk-chip" + (draft.column === c.id ? " is-on" : "")}
-                    onClick={function() { setDraft(Object.assign({}, draft, { column: c.id, horizon: false })); }}>
-                    {c.icon} {c.label}
-                  </button>
-                );
-              }) : null}
-            </div>
-            {draft.horizon ? <p className="tk-horizon-hint">Fica fora do quadro, só na zona de longo prazo.</p> : null}
+            <p className="tk-lbl" style={{ margin: "16px 0 8px" }}>Onde</p>
+            {!draft.horizon ? (
+              <div className="tk-chips">
+                {COLUMNS.map(function(c) {
+                  return (
+                    <button key={c.id} type="button" className={"tk-chip" + (draft.column === c.id ? " is-on" : "")}
+                      onClick={function() { setDraft(Object.assign({}, draft, { column: c.id, horizon: false })); }}>
+                      {c.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : <p className="tk-horizon-hint">Esta tarefa fica só na zona de longo prazo.</p>}
+            <button type="button" className={"tk-switch" + (draft.horizon ? " is-on" : "")} onClick={function() { setHorizon(!draft.horizon); }}>
+              <span><b>Longo prazo</b><span>Fora do quadro diário</span></span>
+              <i aria-hidden="true" />
+            </button>
             <p className="tk-lbl" style={{ margin: "4px 0 0" }}>Prioridade</p>
             <div className="tk-chips">
               {PRIORITIES.map(function(p) {

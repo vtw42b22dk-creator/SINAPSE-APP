@@ -665,8 +665,10 @@ export default function Journal() {
       lastSaveAt.current = Date.now();
       setSessionWarn("");
       try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
-    } else if (res.error) {
+    } else if (res.error && !/schema cache|could not find the table|journal_note_layout|does not exist|PGRST205/i.test(res.error)) {
       setSessionWarn("Nuvem: " + res.error);
+    } else if (res.error) {
+      setSessionWarn("");
     }
   }
 
@@ -1226,7 +1228,7 @@ export default function Journal() {
         </div>
         {isMobile && mobileNoteOpen ? null : (
           <div className="nt-tools">
-            <input className="nt-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar…" />
+            <input className="nt-search page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar…" />
             <div className="nt-new">
               <input value={newTitle} onChange={function(e) { setNewTitle(e.target.value); }} onKeyDown={function(e) { if (e.key === "Enter") createSpace(); }} placeholder="Nova nota…" />
               <button type="button" className="nt-new-btn" onClick={createSpace} title="Criar nota">+</button>

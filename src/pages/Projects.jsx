@@ -566,7 +566,7 @@ export default function Projects() {
         )}
         <div className="pj-search">
           <SearchIcon />
-          <input value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar projeto..." />
+          <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..." />
         </div>
         <div className="pj-top-actions">
           <div className="pj-viewtog">

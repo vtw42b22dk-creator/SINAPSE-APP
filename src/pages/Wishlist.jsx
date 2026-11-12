@@ -331,7 +331,7 @@ export default function Wishlist() {
         <div className="wl-head-in">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <HubBack />
-            <h1 className="wl-h1 mod-h1" style={{ fontSize: isMobile ? 20 : 15, color: accent }}>Wishlist</h1>
+            <h1 className="wl-h1 mod-h1">Wishlist</h1>
           </div>
           <label className="wl-toggle">
             <input type="checkbox" checked={showDone} onChange={function(e) { setShowDone(e.target.checked); }} />

@@ -6,7 +6,7 @@ import FinanceLedger from "../components/FinanceLedger";
 import { PageLoader } from "../components/PageLoader";
 import { HubBack, HUB_BACK_CSS } from "../components/HubBack";
 import { MODULE_ENTRY_CSS } from "../lib/pageMotion";
-import { pageBg, pageText } from "../lib/ThemeContext";
+import { pageText } from "../lib/ThemeContext";
 import { moduleColor, moduleGlow, MODULE_GLOW_CSS } from "../lib/theme";
 import {
   financeStats,
@@ -121,19 +121,18 @@ export default function Finance() {
   }, [data, month]);
 
   var accent = tab === "income" ? INCOME_ACCENT : EXPENSE_ACCENT;
-  var bg = pageBg();
   var text = pageText();
   var saldo = stats.saldo;
 
   return (
-    <div style={{ minHeight: "100vh", background: bg, color: text, fontFamily: "'Manrope',sans-serif", position: "relative", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "transparent", color: text, fontFamily: "'Manrope',sans-serif", position: "relative", overflowX: "hidden" }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + FIN_CSS}</style>
       <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(MODULE_ACCENT) }} aria-hidden="true" />
-      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "#0A0A0B", borderBottom: "1px solid var(--border-subtle)", padding: isMobile ? "12px" : "14px 20px" }}>
+      <header className="fin-head" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(255,255,255,.14)", backdropFilter: "blur(40px) saturate(1.8)", borderBottom: "1px solid rgba(255,255,255,.14)", padding: isMobile ? "12px" : "14px 20px", borderRadius: "0 0 24px 24px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <HubBack />
-            <h1 className="mod-h1" style={{ fontFamily: "'Syne',sans-serif", fontSize: isMobile ? 22 : 24, fontWeight: 700, letterSpacing: "-0.04em", color: MODULE_ACCENT, margin: 0 }}>Financeiro</h1>
+            <h1 className="mod-h1">Financeiro</h1>
           </div>
           <div style={{ display: "flex", gap: 8, width: isMobile ? "100%" : "auto", flexWrap: "wrap" }}>
             <button className="fin-btn" onClick={function() { setView("move"); }} style={Object.assign({}, tabBtn(view === "move", MODULE_ACCENT), isMobile ? { flex: 1 } : null)}>Movimentos</button>

@@ -635,12 +635,22 @@ export async function saveNoteLayout(layout) {
     }
   } catch (e) {}
   var tableRes = await replaceRows(NOTE_LAYOUT_TABLE, NOTE_LAYOUT_KEY, [row], { pruneOrphans: false });
-  var cloudOk = !!(tableRes && tableRes.ok) || !!(spaceRes && spaceRes.ok);
+  function missingTable(msg) {
+    return /schema cache|could not find the table|does not exist|PGRST205|PGRST204/i.test(String(msg || ""));
+  }
+  var tableErr = tableRes && tableRes.error;
+  var spaceErr = spaceRes && spaceRes.error;
+  if (missingTable(tableErr)) {
+    tableErr = "";
+    try { sessionStorage.removeItem("sinapse-last-cloud-error"); } catch (e) {}
+  }
+  if (missingTable(spaceErr)) spaceErr = "";
+  var err = tableErr || spaceErr || "";
   return {
-    ok: cloudOk,
-    error: (tableRes && tableRes.error) || (spaceRes && spaceRes.error),
-    cloud: !!(tableRes && tableRes.cloud) || !!(spaceRes && spaceRes.cloud),
-    emergency: (tableRes && tableRes.emergency) || (spaceRes && spaceRes.emergency),
+    ok: !err,
+    error: err,
+    cloud: !!(tableRes && tableRes.ok) || !!(spaceRes && spaceRes.ok),
+    emergency: !missingTable(tableRes && tableRes.error) && ((tableRes && tableRes.emergency) || (spaceRes && spaceRes.emergency)),
   };
 }
 

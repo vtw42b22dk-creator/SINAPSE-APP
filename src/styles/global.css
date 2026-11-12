@@ -7,7 +7,7 @@
 
 :root,
 [data-theme="dark"] {
-  --page-bg: #07070a;
+  --page-bg: #1a1c28;
   --page-text: #f4f2ef;
   --header-bg: transparent;
   --border-subtle: rgba(255, 255, 255, 0.12);
@@ -31,8 +31,8 @@
   /* Apple Liquid Glass + Spatial UI (visionOS) */
   --glass-blur: 48px;
   --glass-sat: 1.9;
-  --glass-fill: rgba(255, 255, 255, 0.1);
-  --glass-fill-strong: rgba(255, 255, 255, 0.16);
+  --glass-fill: rgba(255, 255, 255, 0.16);
+  --glass-fill-strong: rgba(255, 255, 255, 0.24);
   --glass-rim: linear-gradient(
     155deg,
     rgba(255, 255, 255, 0.72) 0%,
@@ -1033,7 +1033,7 @@ textarea::placeholder {
 #root .pw-pcard {
   position: relative !important;
   isolation: isolate !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
   border: 1px solid transparent !important;
   border-radius: var(--radius-lg) !important;
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
@@ -1145,4 +1145,92 @@ textarea::placeholder {
 
 .fs-panel--clock {
   min-height: calc(100% - 180px) !important;
+}
+
+/* Títulos de página — todos iguais, brancos */
+#root .mod-h1,
+#root .pj-brand h1,
+#root .ch-brand h1,
+#root .nt-brand h1,
+#root .wl-h1,
+#root .vin-hello,
+#root .fs-headtitle h1,
+#root .pw-name,
+#root .qa-h {
+  font-family: "Syne", sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.15 !important;
+  color: #fff !important;
+  margin: 0 !important;
+  text-transform: none !important;
+  background: none !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+#root .vin-hello span {
+  display: block !important;
+  margin-top: 6px !important;
+  font-family: "Manrope", sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Pesquisa sempre à direita do título, mesmo tamanho */
+#root .page-search,
+#root .nt-search,
+#root .pj-search input,
+#root .tk-search-row .tk-in {
+  width: 220px !important;
+  max-width: 220px !important;
+  min-width: 0 !important;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.18) !important;
+  color: #fff !important;
+  font-family: "Manrope", sans-serif !important;
+  font-size: 13px !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+}
+
+#root .pj-search,
+#root .tk-search-row,
+#root .nt-tools {
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+#root .pj-search {
+  width: 220px !important;
+}
+
+#root .pj-search input {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 34px !important;
+}
+
+@media (max-width: 719px) {
+  #root .page-search,
+  #root .nt-search,
+  #root .pj-search,
+  #root .pj-search input,
+  #root .tk-search-row,
+  #root .tk-search-row .tk-in {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    flex: 1 1 100% !important;
+  }
 }
