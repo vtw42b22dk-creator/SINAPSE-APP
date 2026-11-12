@@ -7,7 +7,7 @@
 
 :root,
 [data-theme="dark"] {
-  --page-bg: #1a1c28;
+  --page-bg: #07080f;
   --page-text: #f4f2ef;
   --header-bg: transparent;
   --border-subtle: rgba(255, 255, 255, 0.12);
@@ -31,8 +31,18 @@
   /* Apple Liquid Glass + Spatial UI (visionOS) */
   --glass-blur: 48px;
   --glass-sat: 1.9;
-  --glass-fill: rgba(255, 255, 255, 0.16);
-  --glass-fill-strong: rgba(255, 255, 255, 0.24);
+  --glass-fill: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.045) 38%,
+    rgba(8, 8, 14, 0.42) 100%
+  );
+  --glass-fill-strong: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.06) 40%,
+    rgba(8, 8, 14, 0.5) 100%
+  );
   --glass-rim: linear-gradient(
     155deg,
     rgba(255, 255, 255, 0.72) 0%,
@@ -922,7 +932,7 @@ textarea::placeholder {
 #root .pj-rowcard:hover,
 #root .tk-tab:hover {
   transform: translateY(-2px) !important;
-  background: rgba(255, 255, 255, 0.14) !important;
+  background: var(--glass-fill-strong) !important;
   filter: none !important;
 }
 
@@ -1001,11 +1011,11 @@ textarea::placeholder {
 .shell-stage > * > header {
   position: relative !important;
   isolation: isolate !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: var(--glass-fill) !important;
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
-  box-shadow: var(--glass-inset-soft) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: var(--glass-inset) !important;
+  border-bottom: 1px solid transparent !important;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
 }
 
@@ -1033,7 +1043,7 @@ textarea::placeholder {
 #root .pw-pcard {
   position: relative !important;
   isolation: isolate !important;
-  background: rgba(255, 255, 255, 0.16) !important;
+  background: var(--glass-fill) !important;
   border: 1px solid transparent !important;
   border-radius: var(--radius-lg) !important;
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
@@ -1048,7 +1058,7 @@ textarea::placeholder {
   box-shadow: var(--glass-inset-soft) !important;
   backdrop-filter: blur(28px) saturate(1.6) !important;
   -webkit-backdrop-filter: blur(28px) saturate(1.6) !important;
-  background: rgba(255, 255, 255, 0.09) !important;
+  background: var(--glass-fill) !important;
 }
 
 #root .hub-stat,
@@ -1081,7 +1091,7 @@ textarea::placeholder {
 #root .hub-stat:hover,
 #root .vin-stat:hover {
   transform: translateY(-2px) !important;
-  background: rgba(255, 255, 255, 0.14) !important;
+  background: var(--glass-fill-strong) !important;
   filter: none !important;
 }
 
@@ -1098,7 +1108,7 @@ textarea::placeholder {
 #root .ag-field input,
 #root .ui-in,
 #root .vin-field {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid transparent !important;
   border-radius: var(--radius-md) !important;
   box-shadow: var(--glass-inset-soft) !important;
@@ -1124,7 +1134,7 @@ textarea::placeholder {
 #root .ag-go,
 #root .ui-line-btn,
 #root .vin-glass-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
   border: 1px solid transparent !important;
   border-radius: var(--radius-pill) !important;
   box-shadow: var(--glass-inset-soft) !important;
@@ -1193,8 +1203,8 @@ textarea::placeholder {
   padding: 0 14px !important;
   border: none !important;
   border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.16) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.18) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: var(--glass-inset-soft) !important;
   color: #fff !important;
   font-family: "Manrope", sans-serif !important;
   font-size: 13px !important;

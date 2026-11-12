@@ -32,7 +32,7 @@ export var GLASS_CSS = [
   ".glass,.glass-flat,.glass-capsule,.glass-soft,.liquid-glass{" +
     "position:relative;" +
     "isolation:isolate;" +
-    "background:var(--glass-fill,rgba(255,255,255,.1));" +
+    "background:var(--glass-fill,linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.045) 38%,rgba(8,8,14,.42)));" +
     "backdrop-filter:blur(var(--glass-blur,48px)) saturate(var(--glass-sat,1.9));" +
     "-webkit-backdrop-filter:blur(var(--glass-blur,48px)) saturate(var(--glass-sat,1.9));" +
     "border:1px solid transparent;" +

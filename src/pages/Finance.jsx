@@ -128,7 +128,7 @@ export default function Finance() {
     <div style={{ minHeight: "100vh", background: "transparent", color: text, fontFamily: "'Manrope',sans-serif", position: "relative", overflowX: "hidden" }}>
       <style>{MODULE_ENTRY_CSS + HUB_BACK_CSS + FIN_CSS}</style>
       <div className="mod-glow" style={{ top: -90, right: "6%", background: moduleGlow(MODULE_ACCENT) }} aria-hidden="true" />
-      <header className="fin-head" style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(255,255,255,.14)", backdropFilter: "blur(40px) saturate(1.8)", borderBottom: "1px solid rgba(255,255,255,.14)", padding: isMobile ? "12px" : "14px 20px", borderRadius: "0 0 24px 24px" }}>
+      <header className="fin-head" style={{ position: "sticky", top: 0, zIndex: 20, background: "linear-gradient(168deg, rgba(255,255,255,.12), rgba(8,8,14,.4))", backdropFilter: "blur(40px) saturate(1.8)", WebkitBackdropFilter: "blur(40px) saturate(1.8)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 1px rgba(0,0,0,.35)", borderBottom: "1px solid transparent", padding: isMobile ? "12px" : "14px 20px", borderRadius: "0 0 24px 24px" }}>
         <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <HubBack />
