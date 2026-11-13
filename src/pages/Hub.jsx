@@ -39,8 +39,10 @@ var HUB_CSS = [
   ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin-bottom:48px}",
   ".hub-kicker{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;margin:0 0 14px;display:flex;align-items:center;gap:8px}",
   ".hub-live{width:6px;height:6px;border-radius:50%;background:var(--mc,#EDE8DF);flex-shrink:0;animation:hubPulse 2.2s ease-in-out infinite}",
-  ".hub-hello{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(40px,6.4vw,72px);letter-spacing:-.055em;line-height:.92;margin:0;color:" + COLORS.text + "}",
-  ".hub-hello span{display:block;color:" + COLORS.muted + ";font-weight:500;font-size:.52em;letter-spacing:-.03em;margin-top:10px}",
+  ".hub-hello-wrap{container-type:inline-size;min-width:0;flex:1 1 auto;margin-top:14px}",
+  "#root .hub-hello-wrap .hub-hello{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(40px,8.4vw,104px);letter-spacing:-.06em;line-height:.86;margin:0;color:" + COLORS.text + "}",
+  "#root .hub-hello-wrap .hub-hello{font-size:clamp(40px,12.4cqi,104px)}",
+  "#root .hub-hello-wrap .hub-hello span{display:block;color:#D6CFC4;font-weight:600;font-size:.32em;letter-spacing:-.03em;margin-top:.42em;line-height:1.2}",
   ".hub-clock-wrap{text-align:right;animation:hubIn var(--dur-slow) var(--ease) both}",
   ".hub-time{display:flex;align-items:baseline;justify-content:flex-end;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.06em;line-height:.85;font-size:clamp(40px,5vw,64px);color:" + COLORS.text + "}",
   ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 2px;color:" + COLORS.text + "}",
@@ -49,13 +51,13 @@ var HUB_CSS = [
   ".hub-ring svg{display:block}",
   ".hub-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
   ".hub-stats.has-resale{grid-template-columns:repeat(4,minmax(0,1fr))}",
-  ".hub-stat{position:relative;isolation:isolate;padding:16px 16px 14px;border:1px solid transparent;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.42));text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);overflow:hidden;border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35)}",
+  ".hub-stat{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;width:100%;padding:16px;border:1px solid transparent;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.42));text-align:center;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);overflow:hidden;border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35)}",
   ".hub-stat::before{content:'';position:absolute;inset:1px 1px auto 1px;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 75%);z-index:1}",
   ".hub-stat::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.14) 30%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.24) 78%,rgba(255,255,255,.1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
   ".hub-stat:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}",
   ".hub-stat > *{position:relative;z-index:4}",
-  ".hub-stat b{display:block;font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1}",
-  ".hub-stat i{display:block;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;text-transform:uppercase}",
+  ".hub-stat b{display:block;max-width:100%;font-family:'Syne',sans-serif;font-size:clamp(28px,3vw,42px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1;white-space:nowrap}",
+  ".hub-stat i{display:block;max-width:100%;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;text-transform:uppercase;text-align:center}",
   ".hub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:180ms}",
   ".hub-panel h2{margin:0 0 14px;font-family:'Syne',sans-serif;font-size:13px;letter-spacing:-.02em;text-transform:none;color:" + COLORS.faint + ";font-weight:700}",
   ".hub-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
@@ -87,23 +89,23 @@ var HUB_CSS = [
   ".hub-foot{margin-top:48px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;letter-spacing:.4px}",
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
-  "@media(max-width:1100px){.hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
+  "@media(max-width:1100px){.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
   "@media(max-width:719px){",
   ".hub-inner{padding:calc(58px + env(safe-area-inset-top)) 16px max(96px,env(safe-area-inset-bottom))}",
   ".shell-stage .hub-scroll .hub-inner .hub-top{padding-left:0!important;padding-right:0!important}",
   ".hub-top{margin-bottom:22px;gap:18px;align-items:stretch}",
   ".hub-kicker{margin-bottom:10px}",
-  ".hub-hello{font-size:clamp(28px,8vw,34px);line-height:.95}",
-  ".hub-hello span{display:block;font-size:.48em;margin-top:8px;max-width:none;line-height:1.25}",
+  "#root .hub-hello-wrap .hub-hello{line-height:.86}",
+  "#root .hub-hello-wrap .hub-hello span{margin-top:.36em;max-width:none;line-height:1.18}",
   ".hub-clock-wrap{padding:0;text-align:left;width:100%}",
   ".hub-time,.hub-ring{justify-content:flex-start}",
   ".hub-time{font-size:clamp(36px,10vw,48px)}",
   ".hub-date{margin-top:8px;font-size:13px}",
   ".hub-ring{display:none}",
   ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}",
-  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1;width:calc(50% - 5px);justify-self:center}",
-  ".hub-stat{padding:16px 14px 14px;border-radius:16px;text-align:left}",
-  ".hub-stat b{font-size:24px}",
+  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1;width:calc(50% - 5px);justify-self:center;aspect-ratio:1}",
+  ".hub-stat{padding:16px 12px;border-radius:16px;text-align:center;aspect-ratio:1}",
+  ".hub-stat b{font-size:34px}",
   ".hub-stat i{margin-top:8px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
   ".hub-grid{grid-template-columns:1fr;gap:20px}",
   ".hub-panel h2{margin-bottom:8px;font-size:13px}",
@@ -426,7 +428,7 @@ export default function Hub() {
         <div className="hub-glow hub-glow--b" style={{ background: moduleGlow(MODULE_COLORS.calendar, "48") }} aria-hidden="true" />
         <div className="hub-glow hub-glow--c" style={{ background: moduleGlow(MODULE_COLORS.tasks, "40") }} aria-hidden="true" />
         <header className="hub-top">
-          <div>
+          <div className="hub-hello-wrap">
             <p className="hub-kicker"><span className="hub-live" aria-hidden="true" />{getGreeting()}</p>
             <h1 className="hub-hello">
               {who}
@@ -532,30 +534,36 @@ export default function Hub() {
               </div>
             ) : null}
 
-            <div className="hub-grid">
-              <section className="hub-panel">
-                <h2>Hoje no calendário</h2>
-                {snap && snap.events.length ? snap.events.map(function(ev, i) {
-                  return (
-                    <button key={i} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
-                      <p className="hub-row-t">{ev.title || "Evento"}</p>
-                      <span className="hub-row-m">{ev.allDay ? "todo o dia" : (ev.time || "")}</span>
-                    </button>
-                  );
-                }) : <p className="hub-empty">Nada marcado para hoje. O dia ainda está aberto.</p>}
-              </section>
-              <section className="hub-panel">
-                <h2>Hoje · {snap ? snap.dueTodayCount : 0}</h2>
-                {snap && snap.dueToday.length ? snap.dueToday.map(function(t) {
-                  return (
-                    <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
-                      <p className="hub-row-t">{t.title || "Tarefa"}</p>
-                      <span className="hub-row-m">{t.due ? "prazo " + t.due.split("-").reverse().join("/") : "na lista de hoje"}</span>
-                    </button>
-                  );
-                }) : <p className="hub-empty">Nenhuma tarefa na lista Hoje.</p>}
-              </section>
-            </div>
+            {snap && (snap.events.length || snap.dueToday.length) ? (
+              <div className="hub-grid">
+                {snap.events.length ? (
+                  <section className="hub-panel">
+                    <h2>Hoje no calendário</h2>
+                    {snap.events.map(function(ev, i) {
+                      return (
+                        <button key={i} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
+                          <p className="hub-row-t">{ev.title || "Evento"}</p>
+                          <span className="hub-row-m">{ev.allDay ? "todo o dia" : (ev.time || "")}</span>
+                        </button>
+                      );
+                    })}
+                  </section>
+                ) : null}
+                {snap.dueToday.length ? (
+                  <section className="hub-panel">
+                    <h2>Hoje · {snap.dueTodayCount}</h2>
+                    {snap.dueToday.map(function(t) {
+                      return (
+                        <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
+                          <p className="hub-row-t">{t.title || "Tarefa"}</p>
+                          <span className="hub-row-m">{t.due ? "prazo " + t.due.split("-").reverse().join("/") : "na lista de hoje"}</span>
+                        </button>
+                      );
+                    })}
+                  </section>
+                ) : null}
+              </div>
+            ) : null}
 
             <footer className="hub-foot">
               <p>{snap ? (snap.projects + " projetos · " + snap.wishes + " na wishlist") : "Sinapse"}</p>

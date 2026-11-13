@@ -32,7 +32,7 @@ var CHRO_CSS = [
   ".ch-glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55;z-index:0;animation:chDrift 20s ease-in-out infinite;transition:background 1s var(--ease)}",
   ".ch-glow--a{width:440px;height:440px;top:-10%;right:-8%}",
   ".ch-glow--b{width:320px;height:320px;bottom:6%;left:-6%;opacity:.32;animation-delay:-9s}",
-  ".ch-head{flex-shrink:0;padding:14px 22px 12px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid rgba(255,255,255,.14);z-index:30;position:relative;background:rgba(255,255,255,.1);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.45);border-radius:0 0 24px 24px}",
+  ".ch-head{flex-shrink:0;padding:14px 22px 12px;display:flex;flex-direction:column;gap:10px;border-bottom:none;z-index:30;position:relative;background:rgba(255,255,255,.1);backdrop-filter:blur(40px) saturate(1.85);-webkit-backdrop-filter:blur(40px) saturate(1.85);box-shadow:inset 0 1px 0 rgba(255,255,255,.45);border-radius:0}",
   ".ch-head-top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}",
   ".ch-brand{display:flex;align-items:center;gap:12px;min-width:0}",
   ".ch-brand-txt{min-width:0}",
@@ -112,16 +112,16 @@ var CHRO_CSS = [
   ".ch-wk-strip-cell.is-on .ch-wk-strip-dow{color:#fff}",
   ".ch-wk-strip-num{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;line-height:1;font-weight:700;font-family:'Syne',sans-serif;border-radius:50%;background:transparent}",
   ".ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num{box-shadow:inset 0 0 0 1.5px var(--mc)}",
-  ".ch-wk-strip-cell.is-on .ch-wk-strip-num,.ch-wk-strip-cell.is-on:hover .ch-wk-strip-num{background:var(--mc);color:#10141c}",
+  ".ch-wk-strip-cell.is-on .ch-wk-strip-num,.ch-wk-strip-cell.is-on:hover .ch-wk-strip-num{background:#fff;color:#16161c;box-shadow:0 6px 16px rgba(0,0,0,.22)}",
   ".ch-wk-load{display:none}",
   ".ch-wk-scroll{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}",
-  ".ch-wk-pin{position:sticky;top:0;z-index:14;background:linear-gradient(180deg,color-mix(in srgb,var(--mc) 22%,rgba(255,255,255,.08)),rgba(255,255,255,.04) 46%,rgba(10,12,20,.2));backdrop-filter:blur(28px) saturate(1.7);-webkit-backdrop-filter:blur(28px) saturate(1.7);border-bottom:1px solid rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}",
+  ".ch-wk-pin{position:sticky;top:0;z-index:14;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));backdrop-filter:blur(32px) saturate(1.8);-webkit-backdrop-filter:blur(32px) saturate(1.8);border-bottom:none;border-radius:0 0 32px 32px;overflow:hidden;box-shadow:inset 0 -1px 0 rgba(255,255,255,.14)}",
   ".ch-wk-pin .ch-wk-strip-row{position:relative;top:auto;border-bottom:none}",
-  ".ch-wk-allday{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;padding:2px 0 6px;align-items:stretch;background:transparent;border-top:1px solid rgba(255,255,255,.08)}",
+  ".ch-wk-allday{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));gap:0;padding:0 0 8px;align-items:stretch;background:transparent;border-top:1px solid rgba(255,255,255,.08)}",
   ".ch-wk-allday-lbl{grid-column:1;align-self:center;font-size:10px;font-family:'Manrope',sans-serif;color:rgba(255,255,255,.42);text-align:right;padding:0 8px 0 0;font-weight:600;letter-spacing:.04em}",
   ".ch-wk-allday-col{min-width:0;pointer-events:none;align-self:stretch;min-height:100%}",
-  ".ch-wk-allday-col.is-on{background:color-mix(in srgb,var(--mc) 14%,transparent)}",
-  ".ch-wk-allday-chip{position:relative;z-index:1;margin:3px 5px;padding:0 10px;height:22px;border:none;background:linear-gradient(180deg,color-mix(in srgb,var(--ec) 78%,#fff),color-mix(in srgb,var(--ec) 62%,#1a1c24));color:#10141c;font-size:11.5px;font-weight:700;letter-spacing:-.01em;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;border-radius:999px;align-self:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}",
+  ".ch-wk-allday-col.is-on{background:rgba(255,255,255,.08)}",
+  ".ch-wk-allday-chip{position:relative;z-index:1;margin:4px 6px;padding:0 12px;height:24px;border:none;background:color-mix(in srgb,var(--ec) 38%,rgba(22,26,38,.72));color:#fff;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.01em;text-transform:none;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;border-radius:999px;align-self:center}",
   ".ch-wk-allday-chip.is-span{border-radius:999px}",
   ".ch-wk-allday-chip:hover{filter:brightness(1.06)}",
   ".ch-wk-grid{display:grid;grid-template-columns:52px repeat(7,minmax(0,1fr));min-height:" + (HOURS * WK_HOUR_H) + "px}",
@@ -130,7 +130,7 @@ var CHRO_CSS = [
   ".ch-wk-cols{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:relative;min-width:0}",
   ".ch-wk-col{position:relative;border-left:1px solid rgba(255,255,255,.06);min-height:" + (HOURS * WK_HOUR_H) + "px}",
   ".ch-wk-col:first-child{border-left:none}",
-  ".ch-wk-col.is-on{background:color-mix(in srgb,var(--mc) 9%,transparent)}",
+  ".ch-wk-col.is-on{background:rgba(255,255,255,.04)}",
   ".ch-wk-col.is-today:not(.is-on){background:transparent}",
   ".ch-wk-hour{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,.05);cursor:ns-resize;touch-action:pan-y}",
   ".ch-wk-col{touch-action:pan-y}",
@@ -881,6 +881,13 @@ function formatWeekRange(weekDays) {
   return da.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }) + " – " + db.toLocaleDateString("pt-PT", { day: "numeric", month: "short" });
 }
 
+function eventFace(title) {
+  var raw = String(title || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "·";
+  var lower = raw.toLocaleLowerCase("pt-PT");
+  return lower.charAt(0).toLocaleUpperCase("pt-PT") + lower.slice(1);
+}
+
 function WeekStrip(props) {
   var tapRef = useRef({ key: "", at: 0 });
   var maxLoad = useMemo(function() {
@@ -1130,7 +1137,7 @@ function WeekPlanner(props) {
                       props.onSelectDay(day);
                       props.onEventClick(match || span.ev, day);
                     }}>
-                    {span.ev.title || "·"}
+                    {eventFace(span.ev.title)}
                   </button>
                 );
               })}

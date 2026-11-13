@@ -78,7 +78,7 @@ export var MODULE_ACCENT_CSS = [
   ".ch-day-num{color:color-mix(in srgb,var(--mc) 88%,#fff 12%)!important}",
   ".ch-rail-day.is-on,.ch-rail-day.is-today .ch-rail-n{color:var(--mc)!important}",
   ".ch-rail-day.is-on::after,.ch-rail-day.is-on .ch-rail-dot{background:var(--mc)!important}",
-  ".ch-wk-strip-cell.is-on .ch-wk-strip-num{background:var(--mc)!important;color:#10141c!important}",
+  ".ch-wk-strip-cell.is-on .ch-wk-strip-num{background:#fff!important;color:#16161c!important}",
   ".ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num{color:#fff!important;box-shadow:inset 0 0 0 1.5px var(--mc)!important}",
   ".ch-month-cell.is-on::after,.ch-month-cell.is-today{color:var(--mc)!important}",
   ".ch-fab{color:var(--mc)!important;border-bottom-color:var(--mc)!important}",

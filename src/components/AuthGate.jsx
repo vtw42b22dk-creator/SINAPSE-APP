@@ -29,11 +29,7 @@ export default function AuthGate(props) {
 
   if (auth && auth.loading) {
     return (
-      <div style={{
-        minHeight: "100vh", background: COLORS.bg, display: "flex", alignItems: "center",
-        justifyContent: "center", position: "relative", overflow: "hidden",
-        "--mc": MODULE_COLORS.auth,
-      }}>
+      <div className="pl-screen" style={{ minHeight: "100vh", position: "relative", overflow: "hidden", "--mc": MODULE_COLORS.auth }}>
         <style>{MODULE_GLOW_CSS}</style>
         <div className="mod-glow" style={{ top: -80, right: "10%", background: moduleGlow(MODULE_COLORS.auth) }} aria-hidden="true" />
         <PageLoader accent={MODULE_COLORS.auth} label="Sinapse" />

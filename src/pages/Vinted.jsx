@@ -480,11 +480,61 @@ function Analise(props) {
 
 var COMPRA_ESTADOS = ["Novo com etiquetas", "Novo sem etiquetas", "Muito bom", "Bom"];
 var COMPRA_INTERVALOS = ["6", "8", "10", "15", "30"];
+var BUSCA_VAZIA = { nome: "", texto: "", precoMin: "", precoMax: "", tamanhoDe: "", tamanhoAte: "" };
+
+function linhaNumeros(b) {
+  var partes = [];
+  if (b.precoMin != null && b.precoMin !== "" && b.precoMax != null && b.precoMax !== "") partes.push(b.precoMin + "–" + b.precoMax + " €");
+  else if (b.precoMin != null && b.precoMin !== "") partes.push("desde " + b.precoMin + " €");
+  else if (b.precoMax != null && b.precoMax !== "") partes.push("até " + b.precoMax + " €");
+  if (b.tamanhoDe && b.tamanhoAte) partes.push("nº " + b.tamanhoDe + "–" + b.tamanhoAte);
+  else if (b.tamanhoDe) partes.push("nº desde " + b.tamanhoDe);
+  else if (b.tamanhoAte) partes.push("nº até " + b.tamanhoAte);
+  return partes.join(" · ");
+}
+
+function payloadNumeros(src) {
+  function n(v) {
+    var t = String(v == null ? "" : v).trim().replace(",", ".");
+    if (!t) return null;
+    var x = Number(t);
+    return Number.isFinite(x) ? x : null;
+  }
+  return {
+    precoMin: n(src.precoMin),
+    precoMax: n(src.precoMax),
+    tamanhoDe: String(src.tamanhoDe || "").trim(),
+    tamanhoAte: String(src.tamanhoAte || "").trim(),
+  };
+}
+
+function CamposNumeros(props) {
+  var v = props.valor || BUSCA_VAZIA;
+  function muda(chave, valor) {
+    var next = Object.assign({}, v);
+    next[chave] = valor;
+    props.onChange(next);
+  }
+  return (
+    <div>
+      <label className="vin-kicker" style={{ display: "block", marginTop: 10 }}>Preço mín / máx</label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <input className="vin-field" style={{ marginTop: 0 }} inputMode="decimal" placeholder="Mín €" value={v.precoMin || ""} onChange={function(e) { muda("precoMin", e.target.value); }} />
+        <input className="vin-field" style={{ marginTop: 0 }} inputMode="decimal" placeholder="Máx €" value={v.precoMax || ""} onChange={function(e) { muda("precoMax", e.target.value); }} />
+      </div>
+      <label className="vin-kicker" style={{ display: "block", marginTop: 10 }}>Número desde / até</label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <input className="vin-field" style={{ marginTop: 0 }} inputMode="decimal" placeholder="ex. 42" value={v.tamanhoDe || ""} onChange={function(e) { muda("tamanhoDe", e.target.value); }} />
+        <input className="vin-field" style={{ marginTop: 0 }} inputMode="decimal" placeholder="ex. 43.5" value={v.tamanhoAte || ""} onChange={function(e) { muda("tamanhoAte", e.target.value); }} />
+      </div>
+    </div>
+  );
+}
 
 function Compra(props) {
   var compra = props.compra || {};
   var ponte = props.ponte;
-  var buscaS = useState({ nome: "", texto: "" });
+  var buscaS = useState(BUSCA_VAZIA);
   var busca = buscaS[0], setBusca = buscaS[1];
   var editS = useState(null);
   var edit = editS[0], setEdit = editS[1];
@@ -540,12 +590,12 @@ function Compra(props) {
 
   function guardarEdicao() {
     if (!edit || !edit.id) return;
-    ponte.pedir("compra-busca", {
+    ponte.pedir("compra-busca", Object.assign({
       editar: true,
       id: edit.id,
       nome: edit.nome,
       texto: edit.texto,
-    });
+    }, payloadNumeros(edit)));
     setEdit(null);
   }
 
@@ -559,7 +609,7 @@ function Compra(props) {
           onClick={function() { ponte.pedir("compra", { ativo: !compra.ativo }); }}
         />
       </Card>
-      <Card titulo="Filtros gerais" lead="Aplicam-se a todas as buscas">
+      <Card titulo="Filtros gerais" lead="Estado, palavras e intervalo valem para todas. Preço e número daqui só entram se a busca não tiver os seus.">
         {filt ? (
           <div>
             <label className="vin-kicker" style={{ display: "block", marginTop: 4 }}>Intervalo (s)</label>
@@ -603,15 +653,18 @@ function Compra(props) {
           </div>
         ) : null}
       </Card>
-      <Card titulo="Buscas" lead={(compra.buscas || []).length + " activas"}>
+      <Card titulo="Buscas" lead={(compra.buscas || []).length + " activas · cada uma com o seu preço e número"}>
         {(compra.buscas || []).map(function(b) {
           var aEditar = edit && edit.id === b.id;
+          var numeros = linhaNumeros(b);
           return (
             <div key={b.id} className="vin-row" style={{ alignItems: "flex-start" }}>
               {aEditar ? (
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <input className="vin-field" style={{ marginTop: 0 }} value={edit.nome} onChange={function(e) { setEdit(Object.assign({}, edit, { nome: e.target.value })); }} placeholder="Nome" />
                   <input className="vin-field" value={edit.texto} onChange={function(e) { setEdit(Object.assign({}, edit, { texto: e.target.value })); }} placeholder="O que procurar" />
+                  <CamposNumeros valor={edit} onChange={setEdit} />
+                  <p className="vin-empty">Vazio nesta busca usa o filtro geral.</p>
                   <div className="vin-actions" style={{ justifyContent: "flex-start", marginTop: 10 }}>
                     <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !String(edit.texto || "").trim()} onClick={guardarEdicao}>Guardar</button>
                     <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setEdit(null); }}>Cancelar</button>
@@ -619,8 +672,8 @@ function Compra(props) {
                 </div>
               ) : (
                 <>
-                  <div style={{ flex: 1 }}><h3>{b.nome || b.texto}</h3>{b.texto && b.texto !== b.nome ? <p>{b.texto}</p> : null}</div>
-                  <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setEdit({ id: b.id, nome: b.nome || "", texto: b.texto || "" }); }}>Editar</button>
+                  <div style={{ flex: 1 }}><h3>{b.nome || b.texto}</h3><p>{[b.texto && b.texto !== b.nome ? b.texto : "", numeros].filter(Boolean).join(" · ") || "Sem preço nem número próprios"}</p></div>
+                  <button type="button" className="vin-glass-btn soft ui-tap" onClick={function() { setEdit({ id: b.id, nome: b.nome || "", texto: b.texto || "", precoMin: b.precoMin == null ? "" : String(b.precoMin), precoMax: b.precoMax == null ? "" : String(b.precoMax), tamanhoDe: b.tamanhoDe || "", tamanhoAte: b.tamanhoAte || "" }); }}>Editar</button>
                   <button type="button" className="vin-glass-btn soft ui-tap" disabled={ponte.busy} onClick={function() { ponte.confirmar("b-" + b.id, function() { ponte.pedir("compra-busca", { remover: true, id: b.id }); }); }}>{ponte.conf === "b-" + b.id ? "Confirmar" : "Tirar"}</button>
                 </>
               )}
@@ -629,10 +682,11 @@ function Compra(props) {
         })}
         {(compra.buscas || []).length ? null : <p className="vin-empty">Ainda não há buscas.</p>}
         <p className="vin-kicker" style={{ marginTop: 12 }}>Nova busca</p>
-        <input className="vin-field" placeholder="Nome" value={busca.nome} onChange={function(e) { setBusca({ nome: e.target.value, texto: busca.texto }); }} />
-        <input className="vin-field" placeholder="O que procurar" value={busca.texto} onChange={function(e) { setBusca({ nome: busca.nome, texto: e.target.value }); }} />
+        <input className="vin-field" placeholder="Nome" value={busca.nome} onChange={function(e) { setBusca(Object.assign({}, busca, { nome: e.target.value })); }} />
+        <input className="vin-field" placeholder="O que procurar" value={busca.texto} onChange={function(e) { setBusca(Object.assign({}, busca, { texto: e.target.value })); }} />
+        <CamposNumeros valor={busca} onChange={setBusca} />
         <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
-          <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !busca.texto.trim()} onClick={function() { ponte.pedir("compra-busca", { nome: busca.nome, texto: busca.texto }); setBusca({ nome: "", texto: "" }); }}>Adicionar</button>
+          <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !busca.texto.trim()} onClick={function() { ponte.pedir("compra-busca", Object.assign({ nome: busca.nome, texto: busca.texto }, payloadNumeros(busca))); setBusca(BUSCA_VAZIA); }}>Adicionar</button>
         </div>
       </Card>
       <Card titulo="Últimos alertas">

@@ -411,6 +411,7 @@ textarea::placeholder {
 #root .seg,
 #root .tk-head,
 #root .ch-head,
+#root .ch-wk-pin,
 #root .pj-top,
 #root .pw-head,
 #root .wl-head,
@@ -525,14 +526,20 @@ textarea::placeholder {
 #root .ch-wk-allday-chip {
   border-radius: 999px !important;
   min-height: 0 !important;
-  height: 22px !important;
-  margin: 3px 5px !important;
-  padding: 0 10px !important;
+  height: 24px !important;
+  margin: 4px 6px !important;
+  padding: 0 12px !important;
   align-self: center !important;
   border: none !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ec, #7ba3b8) 78%, #fff), color-mix(in srgb, var(--ec, #7ba3b8) 62%, #1a1c24)) !important;
-  color: #10141c !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  background: color-mix(in srgb, var(--ec, #7ba3b8) 38%, rgba(22, 26, 38, 0.72)) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-family: "Manrope", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
 }
 #root .ch-allday-row {
   border-radius: 12px !important;
@@ -591,11 +598,11 @@ textarea::placeholder {
   background: transparent !important;
 }
 #root .ch-wk-allday-col.is-on {
-  background: color-mix(in srgb, var(--mc, #7ba3b8) 14%, transparent) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
 }
 #root .ch-wk-strip-cell.is-on .ch-wk-strip-num {
-  background: var(--mc, #7ba3b8) !important;
-  color: #10141c !important;
+  background: #fff !important;
+  color: #16161c !important;
 }
 #root .ch-wk-strip-cell.is-today:not(.is-on) .ch-wk-strip-num {
   color: #fff !important;
@@ -648,7 +655,13 @@ textarea::placeholder {
 }
 
 #root .ch-head {
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+  border-radius: 0 !important;
+  border-bottom: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+#root .ch-wk-pin {
+  border-radius: 0 0 32px 32px !important;
+  overflow: hidden !important;
 }
 
 #root .ch-wk-strip-row {
@@ -1039,7 +1052,6 @@ textarea::placeholder {
 }
 
 .tk-head,
-.ch-head,
 .pj-top,
 .pw-head,
 .wl-head,
@@ -1270,9 +1282,25 @@ textarea::placeholder {
 }
 
 #root .pj-top-actions,
-#root .tk-new-btn {
+#root .tk-focus-btn {
   margin-left: 0 !important;
   order: 3 !important;
+}
+
+#root .tk-new-btn {
+  margin-left: 0 !important;
+  order: 4 !important;
+}
+
+#root .pl-screen {
+  flex: 1 !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
 }
 
 #root .pj-search {

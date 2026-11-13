@@ -560,7 +560,7 @@ function DocPanel(props) {
   return (
     <div data-no-canvas-zoom onClick={props.onClose} style={{position:"fixed",inset:0,zIndex:160,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:isMobile?"stretch":"center",justifyContent:"center",padding:isMobile?0:(isTablet?14:22)}}>
       <div onClick={function(e){e.stopPropagation();}} style={{width:isMobile?"100%":(isTablet?"95vw":"min(1060px,92vw)"),height:isMobile?"100%":(isTablet?"90vh":"min(760px,86vh)"),maxHeight:isMobile?"100dvh":undefined,borderRadius:isMobile?0:28,overflow:"hidden",border:isMobile?"none":"1px solid rgba(255,255,255,0.07)",background:"#0E0E10",boxShadow:"0 16px 48px rgba(0,0,0,0.55)",display:"flex",flexDirection:"column",animation:"searchIn 0.22s cubic-bezier(0.2,0,0,1)",paddingTop:isMobile?"env(safe-area-inset-top)":0,paddingBottom:isMobile?"env(safe-area-inset-bottom)":0}}>
-        <div style={{padding:isMobile?"18px 16px 18px 56px":"24px 26px 20px",background:"#0E0E10",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{padding:isMobile?"18px 16px":"24px 26px 20px",background:"#0E0E10",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
           <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
             <div style={{width:54,height:54,borderRadius:20,background:"#1A1A1D",border:"1px solid rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",color:"#A0A0A8",fontSize:23,flexShrink:0}}>&#10022;</div>
             <div style={{flex:1,minWidth:0}}>

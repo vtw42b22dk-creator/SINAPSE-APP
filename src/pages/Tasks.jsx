@@ -727,12 +727,12 @@ export default function Tasks() {
           {!(isMobile && !mobileTab) ? (
           <div className={"tk-search-row" + (isMobile ? " tk-search-row--full" : "")}>
             <input className="page-search" value={query} onChange={function(e) { setQuery(e.target.value); }} placeholder="Procurar..." />
-            {!showLong ? (
+          </div>
+          ) : null}
+          {!(isMobile && !mobileTab) && !showLong ? (
             <button type="button" className={"tk-focus-btn ui-tap" + (focusToday ? " is-on" : "")} onClick={function() { setFocusToday(!focusToday); }}>
               Foco hoje
             </button>
-            ) : null}
-          </div>
           ) : null}
           {isMobile && mobileTab && !showLong ? (
           <button type="button" className="tk-zone-btn ui-tap" onClick={openLong}>
