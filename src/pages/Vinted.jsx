@@ -653,7 +653,7 @@ function Compra(props) {
           </div>
         ) : null}
       </Card>
-      <Card titulo="Buscas" lead={(compra.buscas || []).length + " activas · cada uma com o seu preço e número"}>
+      <Card titulo="Buscas" lead={(compra.buscas || []).length + " de 10 · cada uma com o seu preço e número"}>
         {(compra.buscas || []).map(function(b) {
           var aEditar = edit && edit.id === b.id;
           var numeros = linhaNumeros(b);
@@ -681,13 +681,17 @@ function Compra(props) {
           );
         })}
         {(compra.buscas || []).length ? null : <p className="vin-empty">Ainda não há buscas.</p>}
-        <p className="vin-kicker" style={{ marginTop: 12 }}>Nova busca</p>
-        <input className="vin-field" placeholder="Nome" value={busca.nome} onChange={function(e) { setBusca(Object.assign({}, busca, { nome: e.target.value })); }} />
-        <input className="vin-field" placeholder="O que procurar" value={busca.texto} onChange={function(e) { setBusca(Object.assign({}, busca, { texto: e.target.value })); }} />
-        <CamposNumeros valor={busca} onChange={setBusca} />
-        <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
-          <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !busca.texto.trim()} onClick={function() { ponte.pedir("compra-busca", Object.assign({ nome: busca.nome, texto: busca.texto }, payloadNumeros(busca))); setBusca(BUSCA_VAZIA); }}>Adicionar</button>
-        </div>
+        {(compra.buscas || []).length >= 10 ? <p className="vin-empty">10 buscas é o máximo. Tira uma para acrescentar outra.</p> : (
+          <>
+            <p className="vin-kicker" style={{ marginTop: 12 }}>Nova busca</p>
+            <input className="vin-field" placeholder="Nome" value={busca.nome} onChange={function(e) { setBusca(Object.assign({}, busca, { nome: e.target.value })); }} />
+            <input className="vin-field" placeholder="O que procurar" value={busca.texto} onChange={function(e) { setBusca(Object.assign({}, busca, { texto: e.target.value })); }} />
+            <CamposNumeros valor={busca} onChange={setBusca} />
+            <div className="vin-actions" style={{ justifyContent: "flex-start", margin: "12px 0" }}>
+              <button type="button" className="vin-glass-btn primary ui-tap" disabled={ponte.busy || !busca.texto.trim()} onClick={function() { ponte.pedir("compra-busca", Object.assign({ nome: busca.nome, texto: busca.texto }, payloadNumeros(busca))); setBusca(BUSCA_VAZIA); }}>Adicionar</button>
+            </div>
+          </>
+        )}
       </Card>
       <Card titulo="Últimos alertas">
         <Lista itens={compra.feed || []} agora={ponte.agora} />

@@ -10,8 +10,7 @@ var STOCK_CSS = [
   ".pm-wrap{padding:14px 16px 40px!important}",
   ".pm-head{margin-bottom:10px!important;align-items:center!important}",
   ".ps-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}",
-  ".ps-hide{border:1px solid rgba(255,255,255,0.14);background:#1A1A1D;color:#A0A0A8;font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;padding:10px 14px;border-radius:12px;cursor:pointer}",
-  ".ps-hide.on{color:#EDEDEF;border-color:rgba(255,255,255,0.32);background:#141416}",
+  ".ps-hide.on{background:#2A2A30;border-color:rgba(255,255,255,.42);color:#fff}",
   ".ps-top{margin-bottom:8px}",
   ".ps-add{display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end}",
   ".ps-week{margin:0 0 10px}",
@@ -668,8 +667,10 @@ export function ProjectStock(props) {
     <ModuleShell mc={MC} icon="◎" title="Loja" subtitle={hidden ? ("Oculto · " + disponiveis.length + " compras · " + vendidos.length + " vendas") : (stats.disponiveis + " em stock · " + stats.vendidos + " vendidas")}
       action={(
         <div className="ps-actions">
-          <button type="button" className={"ps-hide" + (hidden ? " on" : "")} onClick={toggleHidden}
-            title={hidden ? "Mostrar lucro, gráficos e meta" : "Esconder resultados e mostrar só o que compraste e vendeste"}>
+          <button type="button" className={"pm-btn ps-hide" + (hidden ? " on" : "")} onClick={toggleHidden}
+            title={hidden ? "Mostrar lucro, gráficos e meta" : "Esconder resultados e mostrar só o que compraste e vendeste"}
+            aria-pressed={hidden}
+            style={{ background: hidden ? "#2A2A30" : "#1A1A1D", border: hidden ? "1px solid rgba(255,255,255,.45)" : "1px solid rgba(255,255,255,0.14)", color: "#EDEDEF" }}>
             {hidden ? "Oculto" : "Ocultar"}
           </button>
           {hidden ? null : <PrimaryBtn onClick={function() { setSheet({ type: "meta" }); setMsg(null); }}>+ Meta</PrimaryBtn>}

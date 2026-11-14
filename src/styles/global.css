@@ -366,6 +366,7 @@ textarea::placeholder {
 #root .sh-side,
 #root .sh-burger,
 #root .hub-stat,
+#root .hub-week,
 #root .vin-stat,
 #root .vin-card,
 #root .vin-glass-btn,
@@ -439,6 +440,7 @@ textarea::placeholder {
 #root .glass-soft::before,
 #root .sh-side::before,
 #root .hub-stat::after,
+#root .hub-week::after,
 #root .vin-stat::after,
 #root .vin-card::after,
 #root .vin-glass-btn::after,
@@ -1070,6 +1072,7 @@ textarea::placeholder {
 
 /* Painéis / cards Liquid Glass em todo o site */
 #root .hub-stat,
+#root .hub-week,
 #root .vin-stat,
 #root .vin-card,
 #root .vin-glass-btn,
@@ -1111,6 +1114,7 @@ textarea::placeholder {
 }
 
 #root .hub-stat,
+#root .hub-week,
 #root .vin-stat,
 #root .vin-card,
 #root .vin-glass-btn,

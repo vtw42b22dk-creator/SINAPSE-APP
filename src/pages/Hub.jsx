@@ -39,25 +39,38 @@ var HUB_CSS = [
   ".hub-top{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin-bottom:48px}",
   ".hub-kicker{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;margin:0 0 14px;display:flex;align-items:center;gap:8px}",
   ".hub-live{width:6px;height:6px;border-radius:50%;background:var(--mc,#EDE8DF);flex-shrink:0;animation:hubPulse 2.2s ease-in-out infinite}",
-  ".hub-hello-wrap{container-type:inline-size;min-width:0;flex:1 1 auto;margin-top:14px}",
-  "#root .hub-hello-wrap .hub-hello{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(40px,8.4vw,104px);letter-spacing:-.06em;line-height:.86;margin:0;color:" + COLORS.text + "}",
-  "#root .hub-hello-wrap .hub-hello{font-size:clamp(40px,12.4cqi,104px)}",
-  "#root .hub-hello-wrap .hub-hello span{display:block;color:#D6CFC4;font-weight:600;font-size:.32em;letter-spacing:-.03em;margin-top:.42em;line-height:1.2}",
-  ".hub-clock-wrap{text-align:right;animation:hubIn var(--dur-slow) var(--ease) both}",
-  ".hub-time{display:flex;align-items:baseline;justify-content:flex-end;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-.06em;line-height:.85;font-size:clamp(40px,5vw,64px);color:" + COLORS.text + "}",
-  ".hub-colon{display:inline-block;animation:hubTick 2s steps(1) infinite;margin:0 2px;color:" + COLORS.text + "}",
-  ".hub-date{margin:12px 0 0;font-size:13px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
+  ".hub-hello-wrap{min-width:0;flex:1 1 auto}",
+  "#root .hub-hello-wrap .hub-hello{font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(40px,6.4vw,72px);letter-spacing:-.055em;line-height:.92;margin:0;color:" + COLORS.text + "}",
+  "#root .hub-hello-wrap .hub-hello span{display:block;color:" + COLORS.muted + ";font-weight:500;font-size:.52em;letter-spacing:-.03em;margin-top:10px;line-height:1.2}",
+  ".hub-clock-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right;animation:hubIn var(--dur-slow) var(--ease) both}",
+  ".hub-time{display:flex;align-items:baseline;justify-content:flex-end;font-family:'Syne',sans-serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.045em;line-height:.9;font-size:clamp(44px,4.6vw,68px);color:" + COLORS.text + "}",
+  ".hub-colon{display:inline-block;margin:0 .05em;opacity:.42;font-weight:500;color:" + COLORS.text + "}",
+  ".hub-date{margin:0;font-size:13px;color:" + COLORS.muted + ";letter-spacing:.15px;text-transform:capitalize}",
   ".hub-ring{margin-top:16px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:.8px}",
   ".hub-ring svg{display:block}",
   ".hub-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 36px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:80ms}",
   ".hub-stats.has-resale{grid-template-columns:repeat(4,minmax(0,1fr))}",
-  ".hub-stat{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;width:100%;padding:16px;border:1px solid transparent;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.42));text-align:center;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);overflow:hidden;border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35)}",
+  ".hub-stat{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;width:100%;padding:16px 16px 14px;border:1px solid transparent;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.42));text-align:left;cursor:pointer;color:inherit;font-family:inherit;min-width:0;backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);overflow:hidden;border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35)}",
   ".hub-stat::before{content:'';position:absolute;inset:1px 1px auto 1px;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 75%);z-index:1}",
   ".hub-stat::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.14) 30%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.24) 78%,rgba(255,255,255,.1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
   ".hub-stat:hover{background:rgba(255,255,255,.16);transform:translateY(-2px)}",
   ".hub-stat > *{position:relative;z-index:4}",
-  ".hub-stat b{display:block;max-width:100%;font-family:'Syne',sans-serif;font-size:clamp(28px,3vw,42px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1;white-space:nowrap}",
-  ".hub-stat i{display:block;max-width:100%;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;text-transform:uppercase;text-align:center}",
+  ".hub-stat b{display:block;max-width:100%;font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,28px);font-weight:700;letter-spacing:-.04em;color:" + COLORS.text + ";line-height:1;white-space:nowrap}",
+  ".hub-stat i{display:block;max-width:100%;margin-top:8px;font-style:normal;font-size:11px;letter-spacing:.4px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;text-transform:uppercase;text-align:left}",
+  ".hub-week{position:relative;isolation:isolate;margin:0 0 28px;padding:14px 12px 8px;border:1px solid transparent;border-radius:24px;background:linear-gradient(168deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 40%,rgba(8,8,14,.42));backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(0,0,0,.4),0 14px 36px rgba(0,0,0,.35);overflow:hidden}",
+  ".hub-week::before{content:'';position:absolute;inset:1px 1px auto 1px;height:46%;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.2),transparent 75%);z-index:1}",
+  ".hub-week::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.14) 30%,rgba(255,255,255,.04) 50%,rgba(255,255,255,.24) 78%,rgba(255,255,255,.1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
+  ".hub-week > *{position:relative;z-index:4}",
+  ".hub-week-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}",
+  ".hub-week-day{appearance:none;border:none;background:transparent;color:inherit;border-radius:16px;padding:8px 0 7px;cursor:pointer;text-align:center;font-family:inherit;min-width:0}",
+  ".hub-week-day small{display:block;font-family:'Manrope',sans-serif;font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:" + COLORS.faint + "}",
+  ".hub-week-day b{display:block;margin-top:4px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.03em;line-height:1}",
+  ".hub-week-dot{display:block;width:4px;height:4px;margin:6px auto 0;border-radius:50%;background:" + MODULE_COLORS.calendar + ";opacity:0}",
+  ".hub-week-day.has .hub-week-dot{opacity:1}",
+  ".hub-week-day.is-today b{color:" + COLORS.text + "}",
+  ".hub-week-day.is-on{background:rgba(255,255,255,.14)}",
+  ".hub-week-list{margin-top:8px;padding-top:4px;border-top:1px solid rgba(255,255,255,.08)}",
+  ".hub-week-list .hub-empty{padding:10px 4px 8px}",
   ".hub-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;animation:hubIn var(--dur-slow) var(--ease) both;animation-delay:180ms}",
   ".hub-panel h2{margin:0 0 14px;font-family:'Syne',sans-serif;font-size:13px;letter-spacing:-.02em;text-transform:none;color:" + COLORS.faint + ";font-weight:700}",
   ".hub-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border:none;border-bottom:1px solid rgba(255,255,255,.06);background:none;color:inherit;text-align:left;cursor:pointer;font-family:inherit}",
@@ -89,24 +102,24 @@ var HUB_CSS = [
   ".hub-foot{margin-top:48px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}",
   ".hub-foot p{margin:0;font-size:12px;color:" + COLORS.faint + ";font-family:'Manrope',sans-serif;letter-spacing:.4px}",
   "@media(hover:hover) and (pointer:fine){.hub-tog{cursor:grab}.hub-tog.is-dragging{opacity:.42}.hub-tog.is-over{background:rgba(255,255,255,.04)}}",
-  "@media(max-width:1100px){.hub-grid{grid-template-columns:1fr}.hub-top{flex-direction:column}.hub-clock-wrap{text-align:left}.hub-time,.hub-ring{justify-content:flex-start}}",
+  "@media(max-width:1100px) and (min-width:720px){.hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr))}.hub-grid{grid-template-columns:1fr}}",
   "@media(max-width:719px){",
   ".hub-inner{padding:calc(58px + env(safe-area-inset-top)) 16px max(96px,env(safe-area-inset-bottom))}",
   ".shell-stage .hub-scroll .hub-inner .hub-top{padding-left:0!important;padding-right:0!important}",
-  ".hub-top{margin-bottom:22px;gap:18px;align-items:stretch}",
+  ".hub-top{margin-bottom:22px;gap:18px;align-items:stretch;flex-direction:column}",
   ".hub-kicker{margin-bottom:10px}",
-  "#root .hub-hello-wrap .hub-hello{line-height:.86}",
-  "#root .hub-hello-wrap .hub-hello span{margin-top:.36em;max-width:none;line-height:1.18}",
-  ".hub-clock-wrap{padding:0;text-align:left;width:100%}",
-  ".hub-time,.hub-ring{justify-content:flex-start}",
-  ".hub-time{font-size:clamp(36px,10vw,48px)}",
-  ".hub-date{margin-top:8px;font-size:13px}",
+  ".hub-hello-wrap{container-type:inline-size;margin-top:14px}",
+  "#root .hub-hello-wrap .hub-hello{font-size:clamp(40px,12.4cqi,104px);letter-spacing:-.06em;line-height:.86}",
+  "#root .hub-hello-wrap .hub-hello span{color:#D6CFC4;font-weight:600;font-size:.32em;letter-spacing:-.03em;margin-top:.36em;max-width:none;line-height:1.18}",
+  ".hub-clock-wrap{flex-direction:row;align-items:baseline;justify-content:flex-start;gap:12px;padding:0;width:100%;text-align:left}",
+  ".hub-time{font-size:32px;justify-content:flex-start}",
+  ".hub-date{margin:0;font-size:13px}",
   ".hub-ring{display:none}",
-  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px}",
-  ".hub-stat:last-child:nth-child(odd){grid-column:1 / -1;width:calc(50% - 5px);justify-self:center;aspect-ratio:1}",
-  ".hub-stat{padding:16px 12px;border-radius:16px;text-align:center;aspect-ratio:1}",
+  ".hub-board{padding-top:22px}",
+  ".hub-stats,.hub-stats.has-resale{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}",
+  ".hub-stat{padding:16px 12px;border-radius:16px;text-align:center;aspect-ratio:1;align-items:center;justify-content:center}",
   ".hub-stat b{font-size:34px}",
-  ".hub-stat i{margin-top:8px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+  ".hub-stat i{margin-top:8px;font-size:10.5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
   ".hub-grid{grid-template-columns:1fr;gap:20px}",
   ".hub-panel h2{margin-bottom:8px;font-size:13px}",
   ".hub-row{padding:14px 0;min-height:48px;align-items:center}",
@@ -177,6 +190,71 @@ function NotesLockSetting() {
     </form>
   );
 }
+var WEEK_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function weekDays(now) {
+  var date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var day = date.getDay();
+  var diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  var out = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(date.getFullYear(), date.getMonth(), date.getDate() + i);
+    out.push({ date: d, label: WEEK_PT[d.getDay()] });
+  }
+  return out;
+}
+
+function sortDayEvents(list) {
+  return (list || []).slice().sort(function(a, b) {
+    if (a.allDay && !b.allDay) return -1;
+    if (!a.allDay && b.allDay) return 1;
+    return String(a.time || "").localeCompare(String(b.time || ""));
+  });
+}
+
+function WeekStrip(props) {
+  var byDay = props.byDay || {};
+  var today = dayKey();
+  var selS = useState(today);
+  var sel = selS[0], setSel = selS[1];
+  var days = weekDays(new Date());
+  var list = sortDayEvents(byDay[sel]);
+  return (
+    <section className="hub-week" aria-label="Semana">
+      <div className="hub-week-days">
+        {days.map(function(d) {
+          var key = dayKey(d.date);
+          var count = (byDay[key] || []).length;
+          return (
+            <button
+              key={key}
+              type="button"
+              className={"hub-week-day" + (key === sel ? " is-on" : "") + (key === today ? " is-today" : "") + (count ? " has" : "")}
+              aria-pressed={key === sel}
+              onClick={function() { setSel(key); }}
+            >
+              <small>{d.label}</small>
+              <b>{d.date.getDate()}</b>
+              <span className="hub-week-dot" />
+            </button>
+          );
+        })}
+      </div>
+      <div className="hub-week-list">
+        {list.length ? list.map(function(ev, i) {
+          return (
+            <button key={i} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.calendar }} onClick={props.onOpen}>
+              <p className="hub-row-t">{ev.title || "Evento"}</p>
+              <span className="hub-row-m">{ev.allDay ? "todo o dia" : (ev.time || "")}</span>
+            </button>
+          );
+        }) : <p className="hub-empty">Nada neste dia.</p>}
+      </div>
+    </section>
+  );
+}
+
 function getGreeting() {
   var h = new Date().getHours();
   if (h < 6) return "Boa madrugada";
@@ -219,19 +297,15 @@ function Clock(props) {
   }, []);
   var h = time.getHours().toString().padStart(2, "0");
   var m = time.getMinutes().toString().padStart(2, "0");
-  var s = time.getSeconds().toString().padStart(2, "0");
   var passed = (time.getHours() * 60 + time.getMinutes()) / (24 * 60);
   var C = 2 * Math.PI * 14;
   var dash = (passed * C).toFixed(2);
   return (
     <div className="hub-clock-wrap">
-      <div className="hub-time" style={{ fontSize: props.isMobile ? 36 : 64 }}>
+      <div className="hub-time" aria-label={h + ":" + m}>
         <span>{h}</span>
-        <span className="hub-colon">:</span>
+        <span className="hub-colon" aria-hidden="true">:</span>
         <span>{m}</span>
-        {props.isMobile ? null : (
-          <span style={{ fontSize: 13, fontWeight: 400, color: COLORS.faint, letterSpacing: "0.18em", marginLeft: 10, alignSelf: "flex-end", marginBottom: 6 }}>{s}</span>
-        )}
       </div>
       <p className="hub-date">
         {time.toLocaleDateString("pt-PT", { weekday: "long" })} · {time.toLocaleDateString("pt-PT", { day: "numeric", month: "long" })}
@@ -251,6 +325,7 @@ async function loadSnapshot() {
   var today = dayKey();
   var tasks = [];
   var events = [];
+  var byDay = {};
   var spaces = [];
   var items = [];
   var projects = [];
@@ -261,17 +336,21 @@ async function loadSnapshot() {
   }
   try {
     var raw = await readLocal("sinapse-calendar-v3", []);
+    function pushEv(key, r) {
+      if (!key) return;
+      var ev = { title: r.title, time: r.time, allDay: !!(r.allDay || r.all_day) };
+      if (!byDay[key]) byDay[key] = [];
+      byDay[key].push(ev);
+    }
     if (raw && !Array.isArray(raw) && typeof raw === "object") {
-      events = (raw[today] || []).map(function(r) {
-        return { title: r.title, time: r.time, allDay: !!r.allDay };
+      Object.keys(raw).forEach(function(k) {
+        (raw[k] || []).forEach(function(r) { pushEv(k, r); });
       });
     } else {
-      events = (raw || []).filter(function(r) {
-        return (r.day_key || r.dayKey) === today;
-      }).map(function(r) {
-        return { title: r.title, time: r.time, allDay: !!(r.allDay || r.all_day) };
-      });
+      (raw || []).forEach(function(r) { pushEv(r.day_key || r.dayKey, r); });
     }
+    Object.keys(byDay).forEach(function(k) { byDay[k] = sortDayEvents(byDay[k]); });
+    events = (byDay[today] || []).slice();
   } catch (e) {}
   try { spaces = await journalStore.loadSpacesLocal(); } catch (e) {}
   try { items = await wishlistStore.loadItemsLocal(); } catch (e) {}
@@ -320,6 +399,7 @@ async function loadSnapshot() {
     dueTodayCount: dueToday.length,
     dueToday: dueToday.slice(0, 12),
     events: events.slice(0, 6),
+    byDay: byDay,
     notes: (spaces || []).length,
     wishes: wishOpen.length,
     projects: (projects || []).length,
@@ -510,8 +590,23 @@ export default function Hub() {
             </div>
           </section>
         ) : (
-          <div>
-            {snap ? (
+          <div className="hub-main">
+            {snap && isMobile ? (
+              <div className="hub-board">
+                <div className="hub-stats">
+                  <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }} onMouseMove={trackSpotlight}>
+                    <b>{snap.openTasks}</b>
+                    <i>inbox e hoje</i>
+                  </button>
+                  <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
+                    <b>{snap.events.length}</b>
+                    <i>eventos hoje</i>
+                  </button>
+                </div>
+                <WeekStrip byDay={snap.byDay} onOpen={function() { navigate("/calendar"); }} />
+              </div>
+            ) : null}
+            {snap && !isMobile ? (
               <div className={"hub-stats" + (snap.lucro != null ? " has-resale" : "")}>
                 <button type="button" className="hub-stat" style={{ "--sc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }} onMouseMove={trackSpotlight}>
                   <b>{snap.openTasks}</b>
@@ -534,7 +629,7 @@ export default function Hub() {
               </div>
             ) : null}
 
-            {snap && (snap.events.length || snap.dueToday.length) ? (
+            {isMobile && snap && (snap.events.length || snap.dueToday.length) ? (
               <div className="hub-grid">
                 {snap.events.length ? (
                   <section className="hub-panel">
@@ -562,6 +657,32 @@ export default function Hub() {
                     })}
                   </section>
                 ) : null}
+              </div>
+            ) : null}
+            {!isMobile ? (
+              <div className="hub-grid">
+                <section className="hub-panel">
+                  <h2>Hoje no calendário</h2>
+                  {snap && snap.events.length ? snap.events.map(function(ev, i) {
+                    return (
+                      <button key={i} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.calendar }} onClick={function() { navigate("/calendar"); }}>
+                        <p className="hub-row-t">{ev.title || "Evento"}</p>
+                        <span className="hub-row-m">{ev.allDay ? "todo o dia" : (ev.time || "")}</span>
+                      </button>
+                    );
+                  }) : <p className="hub-empty">Nada marcado para hoje. O dia ainda está aberto.</p>}
+                </section>
+                <section className="hub-panel">
+                  <h2>Hoje · {snap ? snap.dueTodayCount : 0}</h2>
+                  {snap && snap.dueToday.length ? snap.dueToday.map(function(t) {
+                    return (
+                      <button key={t.id} type="button" className="hub-row" style={{ "--mc": MODULE_COLORS.tasks }} onClick={function() { navigate("/tasks"); }}>
+                        <p className="hub-row-t">{t.title || "Tarefa"}</p>
+                        <span className="hub-row-m">{t.due ? "prazo " + t.due.split("-").reverse().join("/") : "na lista de hoje"}</span>
+                      </button>
+                    );
+                  }) : <p className="hub-empty">Nenhuma tarefa na lista Hoje.</p>}
+                </section>
               </div>
             ) : null}
 
