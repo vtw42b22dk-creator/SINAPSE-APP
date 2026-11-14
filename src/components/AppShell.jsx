@@ -528,9 +528,9 @@ var SHELL_CSS = [
   "#root .sh-side .sh-sub-rm,#root .sh-side .sh-collapse{border-radius:999px!important}",
 
   "@media(max-width:719px){",
-  ".shell{--sh-dock:96px;position:fixed;inset:0;height:auto;max-height:none;min-height:0;flex-direction:column;padding:0;overflow:hidden;isolation:auto}",
-  ".shell-stage{z-index:2;flex:1 1 auto;min-height:0;height:auto;max-height:none;border-radius:0;overflow:hidden}",
-  ".sh-dock{position:relative;z-index:1;isolation:isolate;flex:0 0 auto;align-self:stretch;width:auto;min-width:0;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box;margin:8px 12px max(12px,env(safe-area-inset-bottom));min-height:56px;border-radius:999px;padding:6px 10px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 42%,rgba(8,8,14,.55));border:1px solid transparent;backdrop-filter:blur(48px) saturate(1.9);-webkit-backdrop-filter:blur(48px) saturate(1.9);overflow:hidden}",
+  ".shell{--sh-dock:96px;position:relative;inset:auto;flex-direction:column;padding:0;overflow:hidden}",
+  ".shell-stage{z-index:1;flex:1 1 auto;min-height:0;height:auto;border-radius:0;overflow-x:hidden;overflow-y:auto}",
+  ".sh-dock{position:relative;z-index:30;pointer-events:auto;isolation:isolate;flex:0 0 auto;align-self:stretch;width:auto;min-width:0;display:flex;flex-direction:column;justify-content:center;box-sizing:border-box;margin:8px 12px max(12px,env(safe-area-inset-bottom));min-height:56px;border-radius:999px;padding:6px 10px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05) 42%,rgba(8,8,14,.55));border:1px solid transparent;overflow:hidden}",
   ".sh-dock::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:3;background:linear-gradient(155deg,rgba(255,255,255,.7),rgba(255,255,255,.18) 28%,rgba(255,255,255,.04) 52%,rgba(255,255,255,.26));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}",
   ".sh-dock::after{content:'';position:absolute;inset:1px 1px auto 1px;height:42%;border-radius:inherit;pointer-events:none;z-index:1;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 75%)}",
   ".sh-dock>*{position:relative;z-index:4;min-width:0}",
